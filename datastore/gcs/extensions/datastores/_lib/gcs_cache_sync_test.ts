@@ -5598,3 +5598,262 @@ Deno.test("#1052: GCS commitPush v2 no-op does NOT mark sidecar clean when cache
     await Deno.remove(cachePath, { recursive: true });
   }
 });
+
+// -- swamp-club#1277/#1329: readShard retry and error propagation ----------
+
+Deno.test("swamp-club#1277: GCS readShard retries on transient error and succeeds", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-test-1277-" });
+  try {
+    const shardKey = "data--model--res1";
+    let getAttempts = 0;
+
+    const mock = createMockGcsClient();
+    const origGet = mock.getObject.bind(mock);
+    (mock as unknown as Record<string, unknown>).getObject = (
+      key: string,
+      signal?: AbortSignal,
+    ) => {
+      if (key === `_index/${shardKey}.json`) {
+        getAttempts++;
+        if (getAttempts === 1) {
+          return Promise.reject(makeGcsErr(503));
+        }
+      }
+      return origGet(key, signal);
+    };
+
+    const entry = {
+      "data/model/res1/payload.yaml": {
+        key: "data/model/res1/payload.yaml",
+        size: 10,
+        lastModified: new Date().toISOString(),
+      },
+    };
+    mock.storage.set(
+      "_index/_meta.json",
+      new TextEncoder().encode(
+        JSON.stringify({ version: 2, partitions: [shardKey], commitSeq: 1 }),
+      ),
+    );
+    mock.storage.set(
+      `_index/${shardKey}.json`,
+      new TextEncoder().encode(JSON.stringify({ version: 1, entries: entry })),
+    );
+    mock.storage.set(
+      "data/model/res1/payload.yaml",
+      new TextEncoder().encode("content"),
+    );
+
+    await seedFile(cachePath, "data/model/res1/payload.yaml", "content");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pushChanged();
+
+    assert(getAttempts >= 2, "readShard must have retried after transient 503");
+    const monolithPuts = mock.puts.filter(
+      (p) => p.key === ".datastore-index.json",
+    );
+    assertEquals(
+      monolithPuts.length,
+      0,
+      "must NOT fall back to v1 monolith after successful retry",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("swamp-club#1329: GCS assembleIndexFromShards throws on persistent transient failure", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-test-1329-" });
+  try {
+    const shardKey = "data--model--res1";
+
+    const mock = createMockGcsClient();
+    const origGet = mock.getObject.bind(mock);
+    (mock as unknown as Record<string, unknown>).getObject = (
+      key: string,
+      signal?: AbortSignal,
+    ) => {
+      if (key === `_index/${shardKey}.json`) {
+        return Promise.reject(makeGcsErr(503));
+      }
+      return origGet(key, signal);
+    };
+
+    mock.storage.set(
+      "_index/_meta.json",
+      new TextEncoder().encode(
+        JSON.stringify({ version: 2, partitions: [shardKey], commitSeq: 1 }),
+      ),
+    );
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/model/res1/payload.yaml": {
+          key: "data/model/res1/payload.yaml",
+          size: 10,
+          lastModified: new Date().toISOString(),
+        },
+      }),
+    );
+
+    await seedFile(cachePath, "data/model/res1/payload.yaml", "content");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    let caught: unknown;
+    try {
+      await service.pushChanged();
+    } catch (e) {
+      caught = e;
+    }
+    assert(
+      caught instanceof Error,
+      "pushChanged must throw on persistent shard failure",
+    );
+    assert(
+      (caught as Error).message.includes("Failed to read shard"),
+      `error must describe shard failure, got: ${(caught as Error).message}`,
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("swamp-club#1277: GCS readPartitionMeta re-throws non-NotFoundError errors", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-test-meta-" });
+  try {
+    const mock = createMockGcsClient();
+    const origGet = mock.getObject.bind(mock);
+    (mock as unknown as Record<string, unknown>).getObject = (
+      key: string,
+      signal?: AbortSignal,
+    ) => {
+      if (key === "_index/_meta.json") {
+        return Promise.reject(makeGcsErr(503));
+      }
+      return origGet(key, signal);
+    };
+
+    await seedFile(cachePath, "data/model/res1/payload.yaml", "content");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    let caught: unknown;
+    try {
+      await service.pushChanged();
+    } catch (e) {
+      caught = e;
+    }
+    assert(
+      caught instanceof Error,
+      "pushChanged must throw when readPartitionMeta gets a transient error",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+// -- swamp-club#1320: migrateRootDataToNamespace namespace isolation -------
+
+Deno.test("swamp-club#1320: GCS migrateRootDataToNamespace excludes foreign namespace data", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-test-1320-" });
+  try {
+    const mock = createMockGcsClient();
+
+    // Seed namespaced index so hasNamespacedIndex guard passes
+    mock.storage.set(
+      "my-ns/.datastore-index.json",
+      encodeIndex({
+        "data/@my-model/payload.yaml": {
+          key: "data/@my-model/payload.yaml",
+          size: 7,
+          lastModified: new Date().toISOString(),
+        },
+      }),
+    );
+
+    // Own data at root
+    mock.storage.set(
+      "data/@my-model/payload.yaml",
+      new TextEncoder().encode("my data"),
+    );
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/@my-model/payload.yaml": {
+          key: "data/@my-model/payload.yaml",
+          size: 7,
+          lastModified: new Date().toISOString(),
+        },
+      }),
+    );
+
+    // Foreign namespace with name in DATA_SUBDIRS
+    mock.storage.set(
+      "audit/.namespace.json",
+      new TextEncoder().encode(JSON.stringify({ namespace: "audit" })),
+    );
+    mock.storage.set(
+      "audit/@their-model/report.yaml",
+      new TextEncoder().encode("foreign"),
+    );
+
+    await seedFile(cachePath, "data/@my-model/payload.yaml", "my data");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pushChanged({ namespace: "my-ns" });
+
+    const foreignMigrated = mock.storage.has(
+      "my-ns/audit/@their-model/report.yaml",
+    );
+    assertEquals(
+      foreignMigrated,
+      false,
+      "foreign namespace data must NOT be migrated under my-ns/",
+    );
+
+    const ownMigrated = mock.storage.has("my-ns/data/@my-model/payload.yaml");
+    assert(ownMigrated, "own root data must be migrated under my-ns/");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("swamp-club#1320: GCS migrateRootDataToNamespace skips when no namespaced index", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-test-1320b-" });
+  try {
+    const mock = createMockGcsClient();
+
+    // Root data from another repo — no namespaced index exists
+    mock.storage.set(
+      "data/@foreign/payload.yaml",
+      new TextEncoder().encode("foreign"),
+    );
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/@foreign/payload.yaml": {
+          key: "data/@foreign/payload.yaml",
+          size: 7,
+          lastModified: new Date().toISOString(),
+        },
+      }),
+    );
+
+    await seedFile(cachePath, "data/@own/payload.yaml", "own");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pushChanged({ namespace: "fresh-ns" });
+
+    // Foreign root data must NOT be copied under fresh-ns/
+    const foreignMigrated = mock.storage.has(
+      "fresh-ns/data/@foreign/payload.yaml",
+    );
+    assertEquals(
+      foreignMigrated,
+      false,
+      "fresh namespace must not migrate foreign root data",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});

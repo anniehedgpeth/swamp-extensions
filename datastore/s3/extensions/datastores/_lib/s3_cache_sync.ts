@@ -625,6 +625,25 @@ export class S3CacheSyncService implements DatastoreSyncService {
     signal?: AbortSignal,
   ): Promise<{ copied: number; total: number }> {
     if (!this.namespace) return { copied: 0, total: 0 };
+
+    // Check whether this repo ever had un-namespaced data by looking
+    // at the namespaced index. If it already exists, this is a solo→ns
+    // transition and root data may belong to us. If it doesn't exist
+    // (fresh namespace setup via --namespace), root data belongs to
+    // another tenant — skip migration entirely.
+    let hasNamespacedIndex = false;
+    try {
+      const head = await this.s3.headObject(this.indexKey(), signal);
+      hasNamespacedIndex = head.exists;
+    } catch {
+      // Can't check — fall through to safe path
+    }
+    if (!hasNamespacedIndex) {
+      // No namespaced index → this repo was set up with a namespace
+      // from the start. Any root-level data belongs to another repo.
+      return { copied: 0, total: 0 };
+    }
+
     // Read the ROOT index (pre-namespace) to know which objects belong
     // to this repo. Without this, a shared bucket without client-level
     // prefix would migrate another repo's data.
@@ -642,14 +661,32 @@ export class S3CacheSyncService implements DatastoreSyncService {
     }
     const listing = await this.s3.listAllObjects(undefined, signal);
     const nsPrefix = `${this.namespace}/`;
+    const foreignNamespaces = new Set<string>();
+    for (const entry of listing) {
+      if (entry.key.endsWith("/.namespace.json")) {
+        const ns = entry.key.substring(
+          0,
+          entry.key.length - "/.namespace.json".length,
+        );
+        if (ns && ns !== this.namespace) foreignNamespaces.add(ns);
+      }
+    }
     const toMigrate = listing.filter((entry) => {
       if (entry.key.startsWith(nsPrefix)) return false;
       if (isInternalCacheFile(entry.key)) return false;
+      if (isInsideNamespaceDir(entry.key, foreignNamespaces)) return false;
       const firstSeg = entry.key.split("/")[0];
       if (!S3CacheSyncService.DATA_SUBDIRS.has(firstSeg)) return false;
       if (knownKeys.size > 0 && !knownKeys.has(entry.key)) return false;
       return true;
     });
+    if (foreignNamespaces.size > 0) {
+      console.warn(
+        `[s3-sync] Excluded ${foreignNamespaces.size} foreign namespace(s) from migration: ${
+          [...foreignNamespaces].join(", ")
+        }`,
+      );
+    }
     if (toMigrate.length === 0) return { copied: 0, total: 0 };
 
     console.info(
@@ -737,7 +774,10 @@ export class S3CacheSyncService implements DatastoreSyncService {
     signal?: AbortSignal,
   ): Promise<PartitionMeta | null> {
     try {
-      const { data } = await this.s3.getObject(this.metaKey(), signal);
+      const { data } = await retryWithBackoff(
+        () => this.s3.getObject(this.metaKey(), signal),
+        { signal },
+      );
       const text = new TextDecoder().decode(data);
       const parsed = JSON.parse(text) as PartitionMeta;
       if (
@@ -747,8 +787,14 @@ export class S3CacheSyncService implements DatastoreSyncService {
         return parsed;
       }
       return null;
-    } catch {
-      return null;
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        (err.name === "NotFound" || err.name === "NoSuchKey")
+      ) {
+        return null;
+      }
+      throw err;
     }
   }
 
@@ -757,16 +803,22 @@ export class S3CacheSyncService implements DatastoreSyncService {
     signal?: AbortSignal,
   ): Promise<Record<string, IndexEntry> | null> {
     try {
-      const { data } = await this.s3.getObject(
-        this.shardKey(partitionKey),
-        signal,
+      const { data } = await retryWithBackoff(
+        () => this.s3.getObject(this.shardKey(partitionKey), signal),
+        { signal },
       );
       const text = new TextDecoder().decode(data);
       const partition = JSON.parse(text) as PartitionIndex;
       if (partition.version !== 1) return null;
       return partition.entries;
-    } catch {
-      return null;
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        (err.name === "NotFound" || err.name === "NoSuchKey")
+      ) {
+        return null;
+      }
+      throw err;
     }
   }
 
@@ -857,20 +909,21 @@ export class S3CacheSyncService implements DatastoreSyncService {
       for (let j = 0; j < results.length; j++) {
         const result = results[j];
         if (result.status === "rejected") {
-          console.warn(
-            `[s3-sync] Failed to read shard ${
-              batch[j]
-            }, falling back to monolith`,
+          throw new Error(
+            `[s3-sync] Failed to read shard ${batch[j]} after retries: ${
+              result.reason instanceof Error
+                ? result.reason.message
+                : String(result.reason)
+            }`,
           );
-          return null;
         }
         if (result.value === null) {
-          console.warn(
+          throw new Error(
             `[s3-sync] Shard ${
               batch[j]
-            } listed in _meta.json but unreadable, falling back to monolith`,
+            } listed in _meta.json v2 but missing from S3 — index is corrupt. ` +
+              `Run 'swamp datastore migrate-index' to rebuild.`,
           );
-          return null;
         }
         for (const [rel, entry] of Object.entries(result.value)) {
           entries[rel] = entry;
@@ -1348,11 +1401,28 @@ export class S3CacheSyncService implements DatastoreSyncService {
     const subPrefix = this.namespace ? `${this.namespace}/` : undefined;
     const listing = await this.s3.listAllObjects(subPrefix, signal);
     const nsPrefix = this.namespace ? `${this.namespace}/` : "";
+    const remoteNamespaces = new Set<string>();
+    if (!this.namespace) {
+      for (const entry of listing) {
+        if (entry.key.endsWith("/.namespace.json")) {
+          const ns = entry.key.substring(
+            0,
+            entry.key.length - "/.namespace.json".length,
+          );
+          if (ns) remoteNamespaces.add(ns);
+        }
+      }
+    }
     const filtered = listing.filter((entry) => {
       const rel = nsPrefix && entry.key.startsWith(nsPrefix)
         ? entry.key.slice(nsPrefix.length)
         : entry.key;
-      return !isInternalCacheFile(rel);
+      if (isInternalCacheFile(rel)) return false;
+      if (
+        remoteNamespaces.size > 0 &&
+        isInsideNamespaceDir(entry.key, remoteNamespaces)
+      ) return false;
+      return true;
     });
 
     // Sub-case (1): genuinely empty bucket. Preserve existing

@@ -1058,7 +1058,10 @@ Deno.test("pushChanged: batch failure message includes underlying error details"
       getObject(
         key: string,
       ): Promise<{ data: Uint8Array; etag?: string }> {
-        if (key === ".datastore-index.json") {
+        if (
+          key === ".datastore-index.json" ||
+          key === "_index/_meta.json"
+        ) {
           const err = new Error("NoSuchKey");
           err.name = "NoSuchKey";
           return Promise.reject(err);
@@ -6107,6 +6110,212 @@ Deno.test("swamp-club#1250: pullFile falls back to root key for data pushed by b
       "legacy-data",
       "must fall back to root key for pre-fix data",
     );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+// -- swamp-club#1277/#1329: readShard retry and error propagation ----------
+
+Deno.test("swamp-club#1277: readShard retries on transient error and succeeds", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-test-1277a-" });
+  try {
+    const shardKey = "data--model--res1";
+    let getAttempts = 0;
+
+    const mock = createMockS3Client();
+    const origGet = mock.getObject.bind(mock);
+    (mock as unknown as Record<string, unknown>).getObject = (
+      key: string,
+      signal?: AbortSignal,
+    ) => {
+      if (key === `_index/${shardKey}.json`) {
+        getAttempts++;
+        if (getAttempts === 1) {
+          return Promise.reject(
+            opError(503),
+          );
+        }
+      }
+      return origGet(key, signal);
+    };
+
+    const entry = {
+      "data/model/res1/payload.yaml": {
+        key: "data/model/res1/payload.yaml",
+        size: 10,
+        lastModified: new Date().toISOString(),
+      },
+    };
+    mock.storage.set(
+      "_index/_meta.json",
+      new TextEncoder().encode(
+        JSON.stringify({ version: 2, partitions: [shardKey], commitSeq: 1 }),
+      ),
+    );
+    mock.storage.set(
+      `_index/${shardKey}.json`,
+      new TextEncoder().encode(JSON.stringify({ version: 1, entries: entry })),
+    );
+    mock.storage.set(
+      "data/model/res1/payload.yaml",
+      new TextEncoder().encode("content"),
+    );
+
+    await seedFile(cachePath, "data/model/res1/payload.yaml", "content");
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    await service.pushChanged();
+
+    assert(getAttempts >= 2, "readShard must have retried after transient 503");
+    const monolithPuts = mock.puts.filter(
+      (p) => p.key === ".datastore-index.json",
+    );
+    assertEquals(
+      monolithPuts.length,
+      0,
+      "must NOT fall back to v1 monolith after successful retry",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("swamp-club#1329: assembleIndexFromShards throws on persistent transient failure instead of falling back to v1", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-test-1329-" });
+  try {
+    const shardKey = "data--model--res1";
+
+    const mock = createMockS3Client();
+    const origGet = mock.getObject.bind(mock);
+    (mock as unknown as Record<string, unknown>).getObject = (
+      key: string,
+      signal?: AbortSignal,
+    ) => {
+      if (key === `_index/${shardKey}.json`) {
+        return Promise.reject(
+          opError(503),
+        );
+      }
+      return origGet(key, signal);
+    };
+
+    mock.storage.set(
+      "_index/_meta.json",
+      new TextEncoder().encode(
+        JSON.stringify({ version: 2, partitions: [shardKey], commitSeq: 1 }),
+      ),
+    );
+    mock.storage.set(
+      ".datastore-index.json",
+      new TextEncoder().encode(
+        JSON.stringify({
+          version: 1,
+          lastPulled: new Date().toISOString(),
+          entries: {},
+        }),
+      ),
+    );
+
+    await seedFile(cachePath, "data/model/res1/payload.yaml", "content");
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    let caught: unknown;
+    try {
+      await service.pushChanged();
+    } catch (e) {
+      caught = e;
+    }
+    assert(
+      caught instanceof Error,
+      "pushChanged must throw on persistent shard failure",
+    );
+    assert(
+      (caught as Error).message.includes("Failed to read shard"),
+      `error must describe shard failure, got: ${(caught as Error).message}`,
+    );
+
+    const monolithPuts = mock.puts.filter(
+      (p) => p.key === ".datastore-index.json",
+    );
+    assertEquals(
+      monolithPuts.length,
+      0,
+      "must NOT write monolith on transient failure — push must fail instead",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("swamp-club#1320: migrateRootDataToNamespace excludes foreign namespace data", async () => {
+  // Uses "audit" as the foreign namespace name because it's in
+  // DATA_SUBDIRS — this ensures the test depends on the
+  // isInsideNamespaceDir guard, not the DATA_SUBDIRS filter.
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-test-1320-" });
+  try {
+    const mock = createMockS3Client();
+
+    // Seed a namespaced index so the hasNamespacedIndex guard passes
+    // and execution reaches the foreign namespace filtering logic.
+    mock.storage.set(
+      "my-ns/.datastore-index.json",
+      encodeIndex({
+        "data/@my-model/payload.yaml": {
+          key: "data/@my-model/payload.yaml",
+          size: 7,
+          lastModified: new Date().toISOString(),
+        },
+      }),
+    );
+
+    // Own data at root (solo layout, pre-namespace)
+    mock.storage.set(
+      "data/@my-model/payload.yaml",
+      new TextEncoder().encode("my data"),
+    );
+    // Root index listing own data (knownKeys filter source)
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/@my-model/payload.yaml": {
+          key: "data/@my-model/payload.yaml",
+          size: 7,
+          lastModified: new Date().toISOString(),
+        },
+      }),
+    );
+
+    // Foreign namespace whose name IS in DATA_SUBDIRS — without the
+    // isInsideNamespaceDir guard, "audit/@their-model/report.yaml"
+    // would pass the DATA_SUBDIRS.has("audit") check and be migrated.
+    mock.storage.set(
+      "audit/.namespace.json",
+      new TextEncoder().encode(JSON.stringify({ namespace: "audit" })),
+    );
+    mock.storage.set(
+      "audit/@their-model/report.yaml",
+      new TextEncoder().encode("foreign audit data"),
+    );
+
+    await seedFile(cachePath, "data/@my-model/payload.yaml", "my data");
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    await service.pushChanged({ namespace: "my-ns" });
+
+    // Check mock.storage (copyObject target), not mock.puts (putObject)
+    const foreignMigrated = mock.storage.has(
+      "my-ns/audit/@their-model/report.yaml",
+    );
+    assertEquals(
+      foreignMigrated,
+      false,
+      "foreign namespace data must NOT be migrated under my-ns/",
+    );
+
+    // Verify own data WAS migrated (via copyObject)
+    const ownMigrated = mock.storage.has("my-ns/data/@my-model/payload.yaml");
+    assert(ownMigrated, "own root data must be migrated under my-ns/");
   } finally {
     await Deno.remove(cachePath, { recursive: true });
   }
