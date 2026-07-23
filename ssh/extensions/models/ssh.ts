@@ -95,7 +95,7 @@ const SELECTOR_METHODS = [
  */
 export const model = {
   type: "@swamp/ssh",
-  version: "2026.07.02.1",
+  version: "2026.07.24.1",
   globalArguments: GlobalArgsSchema,
 
   upgrades: [
@@ -182,6 +182,16 @@ export const model = {
         "OpenSSH public key line, computes its SHA256 fingerprint, and " +
         "emits a hostPublicKey resource per host. New additive resource " +
         "spec (hostPublicKey) with gc 10. No globalArguments schema change.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description:
+        "Fix (#1339): the open method now wraps the ssh argv in sshpass -e " +
+        "for password-auth hosts, matching exec/script/copy. Previously " +
+        "open spawned bare ssh which ignored the SSHPASS env var, causing " +
+        "ControlMaster establishment to fail with 'Permission denied' on " +
+        "any password-auth host. No globalArguments schema change.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

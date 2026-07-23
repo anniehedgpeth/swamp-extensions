@@ -129,7 +129,7 @@ function destination(host: EffectiveHost): string {
  * password itself is delivered out-of-band via the SSHPASS env var (see
  * spawnEnv), so it never appears in the returned argv.
  */
-function maybeWrapSshpass(
+export function maybeWrapSshpass(
   host: EffectiveHost,
   argv: string[],
   ctx: ArgvContext,

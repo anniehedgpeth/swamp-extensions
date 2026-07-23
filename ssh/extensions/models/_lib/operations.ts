@@ -58,6 +58,7 @@ import {
   forwardedEnv,
   type HostPlan,
   type HostRunResult,
+  maybeWrapSshpass,
   runHosts,
   type RunnerBinaries,
   scriptRemoteCommand,
@@ -631,20 +632,22 @@ export async function runOpen(
       }
       await ensureControlDir(g.name);
       const cp = await controlPath(g.name, host);
+      const openArgv = openMasterArgv(bins.ssh, {
+        controlPath: cp,
+        persistSec: host.transport.controlMaster.persistSec,
+        identityFile: host.transport.identityFile,
+        identityAgent: host.transport.identityAgent,
+        identitiesOnly: host.transport.identitiesOnly,
+        user: host.transport.user,
+        address: host.address,
+        port: host.transport.port,
+        proxyJump: host.transport.proxyJump,
+        proxyCommand: host.transport.proxyCommand,
+      });
+      const actx: ArgvContext = { binaries: bins, sendEnvKeys: [] };
       plans.push({
         host,
-        argv: openMasterArgv(bins.ssh, {
-          controlPath: cp,
-          persistSec: host.transport.controlMaster.persistSec,
-          identityFile: host.transport.identityFile,
-          identityAgent: host.transport.identityAgent,
-          identitiesOnly: host.transport.identitiesOnly,
-          user: host.transport.user,
-          address: host.address,
-          port: host.transport.port,
-          proxyJump: host.transport.proxyJump,
-          proxyCommand: host.transport.proxyCommand,
-        }),
+        argv: maybeWrapSshpass(host, openArgv, actx),
         env: envFor(host, args.env),
       });
     }

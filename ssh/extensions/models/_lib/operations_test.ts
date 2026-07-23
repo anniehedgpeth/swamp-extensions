@@ -27,10 +27,15 @@
  * @module
  */
 
-import { assert, assertThrows } from "jsr:@std/assert@1.0.19";
+import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1.0.19";
 import { createModelTestContext } from "@systeminit/swamp-testing";
-import { type FleetContext, resolveSelection } from "./operations.ts";
+import { type FleetContext, resolveSelection, runOpen } from "./operations.ts";
 import { type GlobalArgs, GlobalArgsSchema } from "./schemas.ts";
+import {
+  type ExecRequest,
+  resetCommandExecutor,
+  setCommandExecutor,
+} from "./runner.ts";
 
 const makeCelEnv = createModelTestContext().context.createCelEnvironment;
 
@@ -103,4 +108,90 @@ Deno.test("resolveSelection: cel: parse error surfaces as 'Invalid selector expr
     Error,
     "Invalid selector expression",
   );
+});
+
+// ---------------------------------------------------------------------------
+// runOpen — sshpass wrapping for password-auth hosts (#1339)
+// ---------------------------------------------------------------------------
+
+function openContext(globalArgs: GlobalArgs) {
+  const { ctx } = fakeContext();
+  return {
+    ...ctx,
+    globalArgs: globalArgs as unknown as Record<string, unknown>,
+    methodName: "open",
+  } as unknown as FleetContext;
+}
+
+Deno.test("runOpen: password-auth host argv is wrapped in sshpass -e", async () => {
+  const requests: ExecRequest[] = [];
+  setCommandExecutor((req: ExecRequest) => {
+    requests.push(req);
+    return Promise.resolve({ code: 0, signal: null, stdout: "", stderr: "" });
+  });
+  const savedTmpdir = Deno.env.get("TMPDIR");
+  const tmpDir = await Deno.makeTempDir({ prefix: "open-sshpass-" });
+  Deno.env.set("TMPDIR", tmpDir);
+  try {
+    const g = GlobalArgsSchema.parse({
+      name: "test-fleet",
+      transport: { kind: "ssh" },
+      hosts: [{
+        name: "pw-host",
+        address: "10.0.0.1",
+        transport: {
+          kind: "ssh",
+          auth: { kind: "password", password: "hunter2" },
+        },
+      }],
+    });
+    await runOpen({ hosts: "all" }, openContext(g));
+    assertEquals(requests.length, 1, "expected exactly one spawn");
+    const argv = [requests[0].command, ...requests[0].args];
+    assertEquals(argv[0], "sshpass");
+    assertEquals(argv[1], "-e");
+    assertEquals(argv[2], "ssh");
+    assertEquals(requests[0].env.SSHPASS, "hunter2");
+  } finally {
+    resetCommandExecutor();
+    if (savedTmpdir !== undefined) {
+      Deno.env.set("TMPDIR", savedTmpdir);
+    } else {
+      Deno.env.delete("TMPDIR");
+    }
+    await Deno.remove(tmpDir, { recursive: true }).catch(() => {});
+  }
+});
+
+Deno.test("runOpen: key-auth host argv is NOT wrapped in sshpass", async () => {
+  const requests: ExecRequest[] = [];
+  setCommandExecutor((req: ExecRequest) => {
+    requests.push(req);
+    return Promise.resolve({ code: 0, signal: null, stdout: "", stderr: "" });
+  });
+  const savedTmpdir = Deno.env.get("TMPDIR");
+  const tmpDir = await Deno.makeTempDir({ prefix: "open-key-" });
+  Deno.env.set("TMPDIR", tmpDir);
+  try {
+    const g = GlobalArgsSchema.parse({
+      name: "test-fleet",
+      transport: { kind: "ssh" },
+      hosts: [{
+        name: "key-host",
+        address: "10.0.0.2",
+      }],
+    });
+    await runOpen({ hosts: "all" }, openContext(g));
+    assertEquals(requests.length, 1, "expected exactly one spawn");
+    assertEquals(requests[0].command, "ssh");
+    assertEquals(requests[0].env.SSHPASS, undefined);
+  } finally {
+    resetCommandExecutor();
+    if (savedTmpdir !== undefined) {
+      Deno.env.set("TMPDIR", savedTmpdir);
+    } else {
+      Deno.env.delete("TMPDIR");
+    }
+    await Deno.remove(tmpDir, { recursive: true }).catch(() => {});
+  }
 });
