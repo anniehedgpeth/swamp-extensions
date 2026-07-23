@@ -6547,3 +6547,166 @@ Deno.test("swamp-club#1320: migrateRootDataToNamespace excludes foreign namespac
     await Deno.remove(cachePath, { recursive: true });
   }
 });
+
+// -- repairNamespaceContamination -------------------------------------------
+
+Deno.test("repairNamespaceContamination: dryRun detects foreign objects without deleting", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-repair-dry-" });
+  try {
+    const mock = createMockS3Client();
+    const enc = (s: string) => new TextEncoder().encode(s);
+
+    // Own namespace data
+    mock.storage.set("dwh-infra/data/@my-model/payload.yaml", enc("own-data"));
+    mock.storage.set("dwh-infra/.datastore-index.json", encodeIndex({}));
+    mock.storage.set("dwh-infra/.namespace.json", enc("{}"));
+
+    // Foreign namespace marker at top level
+    mock.storage.set("asdlc/.namespace.json", enc("{}"));
+
+    // Foreign objects nested under our namespace
+    mock.storage.set("dwh-infra/asdlc/data/@model/file.yaml", enc("foreign-1"));
+    mock.storage.set("dwh-infra/asdlc/data/@model/meta.yaml", enc("foreign-2"));
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    const result = await service.repairNamespaceContamination({
+      namespace: "dwh-infra",
+      dryRun: true,
+    });
+
+    assertEquals(result.totalForeignObjects, 2);
+    assertEquals(result.deleted, 0);
+    assertEquals(result.foreignNamespaces.length, 1);
+    assertEquals(result.foreignNamespaces[0].namespace, "asdlc");
+    assertEquals(result.foreignNamespaces[0].objectCount, 2);
+
+    // Foreign objects still exist
+    assert(mock.storage.has("dwh-infra/asdlc/data/@model/file.yaml"));
+    assert(mock.storage.has("dwh-infra/asdlc/data/@model/meta.yaml"));
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("repairNamespaceContamination: dryRun defaults to true", async () => {
+  const cachePath = await Deno.makeTempDir({
+    prefix: "s3sync-repair-default-",
+  });
+  try {
+    const mock = createMockS3Client();
+    const enc = (s: string) => new TextEncoder().encode(s);
+
+    mock.storage.set("ns1/.namespace.json", enc("{}"));
+    mock.storage.set("ns1/.datastore-index.json", encodeIndex({}));
+    mock.storage.set("ns2/.namespace.json", enc("{}"));
+    mock.storage.set("ns1/ns2/data/@m/f.yaml", enc("foreign"));
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    const result = await service.repairNamespaceContamination({
+      namespace: "ns1",
+    });
+
+    assertEquals(result.totalForeignObjects, 1);
+    assertEquals(result.deleted, 0);
+    assert(mock.storage.has("ns1/ns2/data/@m/f.yaml"));
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("repairNamespaceContamination: live repair deletes foreign objects and rebuilds index", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-repair-live-" });
+  try {
+    const mock = createMockS3Client();
+    const enc = (s: string) => new TextEncoder().encode(s);
+
+    // Own data
+    mock.storage.set("dwh-infra/data/@my-model/payload.yaml", enc("own-data"));
+    mock.storage.set("dwh-infra/.namespace.json", enc("{}"));
+
+    // Foreign namespace markers
+    mock.storage.set("asdlc/.namespace.json", enc("{}"));
+    mock.storage.set("other-ns/.namespace.json", enc("{}"));
+
+    // Foreign objects under our namespace
+    mock.storage.set("dwh-infra/asdlc/data/@model/file.yaml", enc("foreign-1"));
+    mock.storage.set("dwh-infra/asdlc/data/@model/meta.yaml", enc("foreign-2"));
+    mock.storage.set(
+      "dwh-infra/other-ns/outputs/report.json",
+      enc("foreign-3"),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    const result = await service.repairNamespaceContamination({
+      namespace: "dwh-infra",
+      dryRun: false,
+    });
+
+    assertEquals(result.totalForeignObjects, 3);
+    assertEquals(result.deleted, 3);
+    assertEquals(result.foreignNamespaces.length, 2);
+
+    // Foreign objects deleted
+    assertEquals(
+      mock.storage.has("dwh-infra/asdlc/data/@model/file.yaml"),
+      false,
+    );
+    assertEquals(
+      mock.storage.has("dwh-infra/asdlc/data/@model/meta.yaml"),
+      false,
+    );
+    assertEquals(
+      mock.storage.has("dwh-infra/other-ns/outputs/report.json"),
+      false,
+    );
+
+    // Own data untouched
+    assert(mock.storage.has("dwh-infra/data/@my-model/payload.yaml"));
+
+    // Foreign namespace markers untouched
+    assert(mock.storage.has("asdlc/.namespace.json"));
+    assert(mock.storage.has("other-ns/.namespace.json"));
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("repairNamespaceContamination: clean namespace returns zero counts", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-repair-clean-" });
+  try {
+    const mock = createMockS3Client();
+    const enc = (s: string) => new TextEncoder().encode(s);
+
+    mock.storage.set("my-ns/data/@model/payload.yaml", enc("own-data"));
+    mock.storage.set("my-ns/.namespace.json", enc("{}"));
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    mock.storage.set("other/.namespace.json", enc("{}"));
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    const result = await service.repairNamespaceContamination({
+      namespace: "my-ns",
+      dryRun: true,
+    });
+
+    assertEquals(result.totalForeignObjects, 0);
+    assertEquals(result.deleted, 0);
+    assertEquals(result.foreignNamespaces.length, 0);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("repairNamespaceContamination: no namespace returns empty summary", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-repair-nons-" });
+  try {
+    const mock = createMockS3Client();
+    const service = new S3CacheSyncService(mock, cachePath);
+    const result = await service.repairNamespaceContamination();
+
+    assertEquals(result.totalForeignObjects, 0);
+    assertEquals(result.deleted, 0);
+    assertEquals(result.foreignNamespaces.length, 0);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});

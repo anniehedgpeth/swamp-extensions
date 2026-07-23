@@ -195,6 +195,25 @@ export interface DatastoreSyncService {
   ): Promise<number | void>;
 }
 
+/** Options for the namespace contamination repair operation. */
+export interface RepairNamespaceContaminationOptions {
+  signal?: AbortSignal;
+  namespace?: string;
+  /** true = detect only, false = delete + rebuild index. Defaults to true. */
+  dryRun?: boolean;
+}
+
+/** Summary of foreign namespace objects found (and optionally deleted). */
+export interface NamespaceContaminationSummary {
+  foreignNamespaces: ReadonlyArray<{
+    namespace: string;
+    objectCount: number;
+  }>;
+  totalForeignObjects: number;
+  /** Number of foreign objects deleted. Zero when dryRun is true. */
+  deleted: number;
+}
+
 /** Factory that produces the datastore's lock, verifier, and sync service. */
 export interface DatastoreProvider {
   /** Constructs a distributed lock scoped to `datastorePath`. */

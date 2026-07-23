@@ -37,7 +37,9 @@ import type {
   CatalogExportRow,
   DatastoreSyncOptions,
   DatastoreSyncService,
+  NamespaceContaminationSummary,
   PushManifest,
+  RepairNamespaceContaminationOptions,
   SyncCapabilities,
 } from "./interfaces.ts";
 import { GcsOperationError, NotFoundError } from "./gcs_client.ts";
@@ -2904,6 +2906,113 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       }
     }
     return results;
+  }
+
+  async repairNamespaceContamination(
+    options?: RepairNamespaceContaminationOptions,
+  ): Promise<NamespaceContaminationSummary> {
+    const signal = options?.signal;
+    const dryRun = options?.dryRun ?? true;
+
+    this.bindNamespace(options?.namespace);
+    if (!this.namespace) {
+      return { foreignNamespaces: [], totalForeignObjects: 0, deleted: 0 };
+    }
+
+    const nsPrefix = `${this.namespace}/`;
+
+    const [nsListing, fullListing] = await Promise.all([
+      retryWithBackoff(
+        () => this.gcs.listAllObjects(nsPrefix, signal),
+        { signal },
+      ),
+      retryWithBackoff(
+        () => this.gcs.listAllObjects(undefined, signal),
+        { signal },
+      ),
+    ]);
+
+    const knownNamespaces = new Set<string>();
+    for (const entry of nsListing) {
+      const rel = entry.key.substring(nsPrefix.length);
+      if (rel.endsWith("/.namespace.json")) {
+        const ns = rel.substring(0, rel.length - "/.namespace.json".length);
+        if (ns && !ns.includes("/")) knownNamespaces.add(ns);
+      }
+    }
+    for (const entry of fullListing) {
+      if (entry.key.endsWith("/.namespace.json")) {
+        const ns = entry.key.substring(
+          0,
+          entry.key.length - "/.namespace.json".length,
+        );
+        if (ns && ns !== this.namespace) knownNamespaces.add(ns);
+      }
+    }
+
+    const foreignByNs = new Map<string, string[]>();
+    for (const entry of nsListing) {
+      const rel = entry.key.substring(nsPrefix.length);
+      const slash = rel.indexOf("/");
+      if (slash === -1) continue;
+      const firstSeg = rel.substring(0, slash);
+      if (knownNamespaces.has(firstSeg)) {
+        const existing = foreignByNs.get(firstSeg);
+        if (existing) {
+          existing.push(entry.key);
+        } else {
+          foreignByNs.set(firstSeg, [entry.key]);
+        }
+      }
+    }
+
+    const foreignNamespaces: Array<{ namespace: string; objectCount: number }> =
+      [];
+    const allForeignKeys: string[] = [];
+    for (const [ns, keys] of foreignByNs) {
+      foreignNamespaces.push({ namespace: ns, objectCount: keys.length });
+      allForeignKeys.push(...keys);
+    }
+    const totalForeignObjects = allForeignKeys.length;
+
+    if (dryRun || totalForeignObjects === 0) {
+      return { foreignNamespaces, totalForeignObjects, deleted: 0 };
+    }
+
+    let deleted = 0;
+    for (let i = 0; i < allForeignKeys.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = allForeignKeys.slice(i, i + this.pushConcurrency);
+      const results = await Promise.allSettled(
+        batch.map((key) =>
+          retryWithBackoff(
+            () => this.gcs.deleteObject(key, undefined, signal),
+            { signal },
+          )
+        ),
+      );
+      for (const result of results) {
+        if (result.status === "fulfilled") deleted++;
+      }
+    }
+
+    try {
+      await retryWithBackoff(
+        () => this.gcs.deleteObject(this.indexKey(), undefined, signal),
+        { signal },
+      );
+    } catch { /* may not exist */ }
+    try {
+      await retryWithBackoff(
+        () => this.gcs.deleteObject(this.metaKey(), undefined, signal),
+        { signal },
+      );
+    } catch { /* may not exist */ }
+
+    this.index = null;
+    await this.pullIndex({ forceRemote: true, signal });
+
+    return { foreignNamespaces, totalForeignObjects, deleted };
   }
 
   async fetchForeignContent(
