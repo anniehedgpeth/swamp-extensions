@@ -131,7 +131,7 @@ export function generateCloudflareExtensionModel(
       `  email: z.string().meta({ sensitive: true }).describe("Cloudflare account email for the legacy key+email auth path; overrides the CLOUDFLARE_EMAIL environment variable. Requires apiKey.").optional(),`,
     );
   }
-  lines.push(`})${resource.scope === "both" ? buildDualScopeRefine() : ""};`);
+  lines.push(`});`);
   lines.push("");
 
   // --- ResourceSchema ---
@@ -548,6 +548,7 @@ function buildEndpointLines(
   }
   // dual-scope
   return [
+    `        if ((g.account_id == null) === (g.zone_id == null)) throw new Error("Exactly one of account_id or zone_id must be provided");`,
     `        const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;`,
     `        const endpoint = scopePrefix + "/${relPath}";`,
   ];
@@ -561,13 +562,6 @@ function buildScopePrefix(resource: CloudflareResource): string {
     return "zone";
   }
   return "both";
-}
-
-function buildDualScopeRefine(): string {
-  return `.refine(
-  (d) => (d.account_id != null) !== (d.zone_id != null),
-  "Exactly one of account_id or zone_id must be provided",
-)`;
 }
 
 function buildGlobalArgsProperties(

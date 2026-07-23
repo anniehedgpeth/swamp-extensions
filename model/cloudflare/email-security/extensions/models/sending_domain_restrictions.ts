@@ -51,7 +51,7 @@ const GlobalArgsSchema = z.object({
   domain: z.string().describe("Domain that requires TLS enforcement.")
     .optional(),
   exclude: z.array(z.string()).describe(
-    "Excluded subdomains that are exempt from TLS requirements.",
+    "Subdomains to exempt from TLS requirements.",
   ).optional(),
   id: z.string().describe("Sending domain restriction identifier.").optional(),
   last_modified: z.string().optional(),
@@ -97,7 +97,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Sending Domain Restrictions. Registered at `@swamp/cloudflare/email-security/sending-domain-restrictions`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/sending-domain-restrictions",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -116,6 +116,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -170,16 +170,23 @@ const GlobalArgsSchema = z.object({
   account_id: z.string().optional().describe("Cloudflare account ID"),
   zone_id: z.string().optional().describe("Cloudflare zone ID"),
   // ... resource-specific fields
-}).refine(
-  (d) => (d.account_id != null) !== (d.zone_id != null),
-  "Exactly one of account_id or zone_id must be provided",
-);
+});
 ```
 
-For Pattern A resources, the codegen generates a single model. The shared lib
-constructs the URL prefix from whichever scope parameter is provided:
+The mutual exclusion constraint ("exactly one of account_id or zone_id") is
+enforced at **method execution time**, not on the schema. The swamp runtime
+calls `.partial()` on the `globalArguments` schema for lenient validation during
+`sync`, `lookup`, and other non-create methods — Zod disallows `.partial()` on
+refined schemas, so a `.refine()` on `GlobalArgsSchema` would break those
+methods at runtime.
+
+Each generated method validates the scope parameters before constructing the
+URL:
 
 ```typescript
+if ((g.account_id == null) === (g.zone_id == null)) {
+  throw new Error("Exactly one of account_id or zone_id must be provided");
+}
 const scopePrefix = g.account_id
   ? `/accounts/${g.account_id}`
   : `/zones/${g.zone_id}`;
@@ -915,7 +922,7 @@ account_id: z.string().describe("Cloudflare account ID"),
 // Zone-only resource
 zone_id: z.string().describe("Cloudflare zone ID"),
 
-// Dual-scoped resource (both optional, refine enforces exactly one)
+// Dual-scoped resource (both optional, runtime check enforces exactly one)
 account_id: z.string().optional().describe("Cloudflare account ID"),
 zone_id: z.string().optional().describe("Cloudflare zone ID"),
 ```

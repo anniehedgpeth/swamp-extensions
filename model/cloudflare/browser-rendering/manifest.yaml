@@ -1,20 +1,18 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
-name: "@swamp/cloudflare/dns"
+name: "@swamp/cloudflare/browser-rendering"
 version: "2026.07.24.1"
-description: "Cloudflare dns infrastructure models"
+description: "Cloudflare browser-rendering infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
   - cloudflare
-  - dns
+  - browser-rendering
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: dns_records
+  - Added: crawl
 models:
-  - dns_firewall.ts
-  - dns_records.ts
-  - views.ts
+  - crawl.ts
 additionalFiles:
   - LICENSE.txt
   - README.md

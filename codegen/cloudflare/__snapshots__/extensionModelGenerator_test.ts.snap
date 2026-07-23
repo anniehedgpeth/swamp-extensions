@@ -477,10 +477,7 @@ const GlobalArgsSchema = z.object({
   apiToken: z.string().meta({ sensitive: true }).describe("Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),
   apiKey: z.string().meta({ sensitive: true }).describe("Cloudflare API key for the legacy key+email auth path; overrides the CLOUDFLARE_API_KEY environment variable. Wire with a vault.get(...) expression. Requires email.").optional(),
   email: z.string().meta({ sensitive: true }).describe("Cloudflare account email for the legacy key+email auth path; overrides the CLOUDFLARE_EMAIL environment variable. Requires apiKey.").optional(),
-}).refine(
-  (d) => (d.account_id != null) !== (d.zone_id != null),
-  "Exactly one of account_id or zone_id must be provided",
-);
+});
 
 const ResourceSchema = z.object({
   id: z.string(),
@@ -523,6 +520,7 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        if ((g.account_id == null) === (g.zone_id == null)) throw new Error("Exactly one of account_id or zone_id must be provided");
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
         const body: Record<string, unknown> = {};
@@ -540,6 +538,7 @@ export const model = {
       arguments: z.object({ id: z.string().describe("The ID of the Ruleset") }),
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
+        if ((g.account_id == null) === (g.zone_id == null)) throw new Error("Exactly one of account_id or zone_id must be provided");
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
         const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
@@ -553,6 +552,7 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        if ((g.account_id == null) === (g.zone_id == null)) throw new Error("Exactly one of account_id or zone_id must be provided");
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
         const filters: [string, string][] = [];
@@ -586,6 +586,7 @@ export const model = {
       arguments: z.object({ id: z.string().describe("The ID of the Ruleset to import") }),
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
+        if ((g.account_id == null) === (g.zone_id == null)) throw new Error("Exactly one of account_id or zone_id must be provided");
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
         const result = await read(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email }) as ResourceData;
@@ -599,6 +600,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe("Target a specific Ruleset by id (e.g. one discovered by list)").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        if ((g.account_id == null) === (g.zone_id == null)) throw new Error("Exactly one of account_id or zone_id must be provided");
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
         const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");
@@ -619,6 +621,7 @@ export const model = {
       arguments: z.object({ id: z.string().describe("The ID of the Ruleset") }),
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
+        if ((g.account_id == null) === (g.zone_id == null)) throw new Error("Exactly one of account_id or zone_id must be provided");
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
         const { existed } = await remove(endpoint, args.id, { apiToken: g.apiToken, apiKey: g.apiKey, email: g.email });
@@ -637,6 +640,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe("Target a specific Ruleset by id (e.g. one discovered by list)").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        if ((g.account_id == null) === (g.zone_id == null)) throw new Error("Exactly one of account_id or zone_id must be provided");
         const scopePrefix = g.account_id ? "/accounts/" + g.account_id : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/rulesets";
         const instanceName = (g.name?.toString() ?? args.identifier ?? "current").replace(/[\\\\/\\\\\\\\]/g, "_").replace(/\\\\.\\\\./g, "_").replace(/\\\\0/g, "");

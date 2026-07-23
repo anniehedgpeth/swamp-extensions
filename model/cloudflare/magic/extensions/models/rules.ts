@@ -43,6 +43,9 @@ import {
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
+  block_any_queries: z.boolean().describe(
+    "Whether to block DNS ANY queries. Optional. Defaults to true.",
+  ).optional(),
   burst_sensitivity: z.string().describe(
     "The burst sensitivity. Must be one of 'low', 'medium', 'high'.",
   ),
@@ -73,6 +76,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const ResourceSchema = z.object({
+  block_any_queries: z.boolean().optional(),
   burst_sensitivity: z.string().optional(),
   created_on: z.string().optional(),
   id: z.string(),
@@ -88,6 +92,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 
 const InputsSchema = z.object({
   account_id: z.string().optional(),
+  block_any_queries: z.boolean().optional(),
   burst_sensitivity: z.string().optional(),
   mode: z.string().optional(),
   profile_sensitivity: z.string().optional(),
@@ -102,7 +107,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Rules. Registered at `@swamp/cloudflare/magic/rules`. */
 export const model = {
   type: "@swamp/cloudflare/magic/rules",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -122,6 +127,11 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: block_any_queries",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -144,6 +154,9 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id +
           "/magic/advanced_dns_protection/configs/dns_protection/rules";
         const body: Record<string, unknown> = {};
+        if (g.block_any_queries !== undefined) {
+          body.block_any_queries = g.block_any_queries;
+        }
         if (g.burst_sensitivity !== undefined) {
           body.burst_sensitivity = g.burst_sensitivity;
         }
@@ -206,6 +219,9 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id +
           "/magic/advanced_dns_protection/configs/dns_protection/rules";
         const filters: [string, string][] = [];
+        if (g.block_any_queries !== undefined) {
+          filters.push(["block_any_queries", String(g.block_any_queries)]);
+        }
         if (g.burst_sensitivity !== undefined) {
           filters.push(["burst_sensitivity", String(g.burst_sensitivity)]);
         }
@@ -317,6 +333,9 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
+        if (g.block_any_queries !== undefined) {
+          body.block_any_queries = g.block_any_queries;
+        }
         if (g.burst_sensitivity !== undefined) {
           body.burst_sensitivity = g.burst_sensitivity;
         }

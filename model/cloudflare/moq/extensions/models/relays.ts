@@ -47,11 +47,11 @@ const GlobalArgsSchema = z.object({
     upstreams: z.object({
       enabled: z.boolean().optional(),
       upstreams: z.array(z.object({
-        url: z.string().optional(),
+        url: z.string(),
       })).optional(),
     }).optional(),
   }).optional(),
-  name: z.string().describe("Human-readable name for the relay."),
+  name: z.string().min(1).describe("Human-readable name for the relay."),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -88,11 +88,11 @@ const InputsSchema = z.object({
     upstreams: z.object({
       enabled: z.boolean().optional(),
       upstreams: z.array(z.object({
-        url: z.string().optional(),
+        url: z.string(),
       })).optional(),
     }).optional(),
   }).optional(),
-  name: z.string().optional(),
+  name: z.string().min(1).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -101,7 +101,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Relays. Registered at `@swamp/cloudflare/moq/relays`. */
 export const model = {
   type: "@swamp/cloudflare/moq/relays",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -130,6 +130,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -57,18 +57,21 @@ const GlobalArgsSchema = z.object({
     "List of use case or feature slugs to enroll (e.g., ['casb', 'ces', 'auto_remediation']).",
   ).optional(),
   application: z.enum([
+    "ANTHROPIC",
     "BITBUCKET",
     "BOX",
     "CONFLUENCE",
     "DROPBOX",
     "GITHUB",
+    "GOOGLE_CLOUD_PLATFORM",
     "GOOGLE_WORKSPACE",
     "JIRA",
     "MICROSOFT_INTERNAL",
+    "OPENAI",
     "SALESFORCE",
     "SLACK",
   ]).describe(
-    "Vendor/application slug (e.g., GOOGLE_WORKSPACE).\n\n* `BITBUCKET` - BITBUCKET\n* `BOX` - BOX\n* `CONFLUENCE` - CONFLUENCE\n* `DROPBOX` - DROPBOX\n* `GITHUB` - GITHUB\n* `GOOGLE_WORKSPACE` - GOOGLE_WORKSPACE\n* `JIRA` - JIRA\n* `MICROSOFT_INTERNAL` - MICROSOFT_INTERNAL\n* `SALESFORCE` - SALESFORCE\n* `SLACK` - SLACK",
+    "Vendor/application slug (e.g., GOOGLE_WORKSPACE).\n\n* `ANTHROPIC` - ANTHROPIC\n* `BITBUCKET` - BITBUCKET\n* `BOX` - BOX\n* `CONFLUENCE` - CONFLUENCE\n* `DROPBOX` - DROPBOX\n* `GITHUB` - GITHUB\n* `GOOGLE_CLOUD_PLATFORM` - GOOGLE_CLOUD_PLATFORM\n* `GOOGLE_WORKSPACE` - GOOGLE_WORKSPACE\n* `JIRA` - JIRA\n* `MICROSOFT_INTERNAL` - MICROSOFT_INTERNAL\n* `OPENAI` - OPENAI\n* `SALESFORCE` - SALESFORCE\n* `SLACK` - SLACK",
   ),
   auth_method: z.string().min(1).describe(
     "Authentication method slug (uses default if omitted).",
@@ -115,14 +118,17 @@ const InputsSchema = z.object({
   permissions: z.array(z.string().min(1)).optional(),
   use_cases: z.array(z.enum(["casb", "ces", "auto_remediation"])).optional(),
   application: z.enum([
+    "ANTHROPIC",
     "BITBUCKET",
     "BOX",
     "CONFLUENCE",
     "DROPBOX",
     "GITHUB",
+    "GOOGLE_CLOUD_PLATFORM",
     "GOOGLE_WORKSPACE",
     "JIRA",
     "MICROSOFT_INTERNAL",
+    "OPENAI",
     "SALESFORCE",
     "SLACK",
   ]).optional(),
@@ -135,7 +141,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Integrations. Registered at `@swamp/cloudflare/one/integrations`. */
 export const model = {
   type: "@swamp/cloudflare/one/integrations",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.07.16.1",
@@ -149,6 +155,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

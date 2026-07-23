@@ -49,7 +49,6 @@ const GlobalArgsSchema = z.object({
   allowed_delivery_modes: z.array(
     z.enum(["DIRECT", "BCC", "JOURNAL", "API", "RETRO_SCAN"]),
   ),
-  domain: z.string(),
   drop_dispositions: z.array(
     z.enum([
       "MALICIOUS",
@@ -72,6 +71,7 @@ const GlobalArgsSchema = z.object({
   require_tls_inbound: z.boolean().optional(),
   require_tls_outbound: z.boolean().optional(),
   transport: z.string().optional(),
+  domain: z.string(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -124,7 +124,6 @@ const InputsSchema = z.object({
   allowed_delivery_modes: z.array(
     z.enum(["DIRECT", "BCC", "JOURNAL", "API", "RETRO_SCAN"]),
   ).optional(),
-  domain: z.string().optional(),
   drop_dispositions: z.array(
     z.enum([
       "MALICIOUS",
@@ -147,6 +146,7 @@ const InputsSchema = z.object({
   require_tls_inbound: z.boolean().optional(),
   require_tls_outbound: z.boolean().optional(),
   transport: z.string().optional(),
+  domain: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -155,7 +155,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Domains. Registered at `@swamp/cloudflare/email-security/domains`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/domains",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.07.18.1",
@@ -164,6 +164,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -260,7 +265,6 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id +
           "/email-security/settings/domains";
         const filters: [string, string][] = [];
-        if (g.domain !== undefined) filters.push(["domain", String(g.domain)]);
         if (g.folder !== undefined) filters.push(["folder", String(g.folder)]);
         if (g.integration_id !== undefined) {
           filters.push(["integration_id", String(g.integration_id)]);
@@ -280,6 +284,7 @@ export const model = {
         if (g.transport !== undefined) {
           filters.push(["transport", String(g.transport)]);
         }
+        if (g.domain !== undefined) filters.push(["domain", String(g.domain)]);
         if (filters.length === 0) {
           throw new Error(
             "At least one global argument must be set to filter by",
@@ -382,7 +387,6 @@ export const model = {
         if (g.allowed_delivery_modes !== undefined) {
           body.allowed_delivery_modes = g.allowed_delivery_modes;
         }
-        if (g.domain !== undefined) body.domain = g.domain;
         if (g.drop_dispositions !== undefined) {
           body.drop_dispositions = g.drop_dispositions;
         }

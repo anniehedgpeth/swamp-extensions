@@ -36,7 +36,7 @@ import { create, listAll, read, remove, tryRead } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
-  name: z.string().describe("The name of the store"),
+  name: z.string().describe("The name of the store."),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -69,7 +69,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Stores. Registered at `@swamp/cloudflare/secrets-store/stores`. */
 export const model = {
   type: "@swamp/cloudflare/secrets-store/stores",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -88,6 +88,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

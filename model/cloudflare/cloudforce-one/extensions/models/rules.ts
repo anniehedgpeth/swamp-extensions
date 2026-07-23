@@ -43,6 +43,9 @@ import {
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
+  commit_message: z.string().max(1000).describe(
+    "Human-readable justification for this change. Required for internal-account submissions; optional for customer accounts and automated sync.",
+  ).optional(),
   content: z.string().min(1),
   description: z.string().max(1000).describe(
     "Human-readable description of the rule. Auto-extracted from YARA meta if present.",
@@ -52,6 +55,14 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   is_public: z.boolean().describe(
     "Whether this rule is visible to other internal accounts.",
+  ).optional(),
+  meta: z.array(z.object({
+    key: z.string().min(1).max(128).regex(
+      new RegExp("^[a-zA-Z_][a-zA-Z0-9_]*$"),
+    ),
+    value: z.string().max(10000),
+  })).describe(
+    "Additional YARA meta entries appended to the rule's meta block (and stored in rule_meta alongside meta parsed from the content). Keys must be valid YARA identifiers and must not be 'name', 'enabled', or 'description'. Duplicate keys are allowed.",
   ).optional(),
   name: z.string().min(1).max(255),
   namespaces: z.array(z.string().min(1).max(255)).describe(
@@ -93,7 +104,6 @@ const ResourceSchema = z.object({
   is_public: z.boolean().optional(),
   meta: z.array(z.object({
     key: z.string().optional(),
-    ordinal: z.number().optional(),
     type: z.string().optional(),
     value: z.string().optional(),
   })).optional(),
@@ -101,6 +111,7 @@ const ResourceSchema = z.object({
   namespaces: z.array(z.string()).optional(),
   path: z.string().optional(),
   pending_approval_id: z.number().optional(),
+  structured_source: z.string().optional(),
   updated_at: z.number().optional(),
   updated_by: z.string().optional(),
 }).passthrough();
@@ -109,10 +120,17 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 
 const InputsSchema = z.object({
   account_id: z.string().optional(),
+  commit_message: z.string().max(1000).optional(),
   content: z.string().min(1).optional(),
   description: z.string().max(1000).optional(),
   enabled: z.boolean().optional(),
   is_public: z.boolean().optional(),
+  meta: z.array(z.object({
+    key: z.string().min(1).max(128).regex(
+      new RegExp("^[a-zA-Z_][a-zA-Z0-9_]*$"),
+    ),
+    value: z.string().max(10000),
+  })).optional(),
   name: z.string().min(1).max(255).optional(),
   namespaces: z.array(z.string().min(1).max(255)).optional(),
   path: z.string().min(1).optional(),
@@ -138,7 +156,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Rules. Registered at `@swamp/cloudflare/cloudforce-one/rules`. */
 export const model = {
   type: "@swamp/cloudflare/cloudforce-one/rules",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -170,6 +188,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: commit_message, meta",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -190,10 +213,14 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id + "/cloudforce-one/rules";
         const body: Record<string, unknown> = {};
         if (g.actions !== undefined) body.actions = g.actions;
+        if (g.commit_message !== undefined) {
+          body.commit_message = g.commit_message;
+        }
         if (g.content !== undefined) body.content = g.content;
         if (g.description !== undefined) body.description = g.description;
         if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.is_public !== undefined) body.is_public = g.is_public;
+        if (g.meta !== undefined) body.meta = g.meta;
         if (g.name !== undefined) body.name = g.name;
         if (g.namespaces !== undefined) body.namespaces = g.namespaces;
         if (g.path !== undefined) body.path = g.path;
@@ -245,6 +272,9 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/cloudforce-one/rules";
         const filters: [string, string][] = [];
+        if (g.commit_message !== undefined) {
+          filters.push(["commit_message", String(g.commit_message)]);
+        }
         if (g.content !== undefined) {
           filters.push(["content", String(g.content)]);
         }
@@ -356,10 +386,14 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
+        if (g.commit_message !== undefined) {
+          body.commit_message = g.commit_message;
+        }
         if (g.content !== undefined) body.content = g.content;
         if (g.description !== undefined) body.description = g.description;
         if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.is_public !== undefined) body.is_public = g.is_public;
+        if (g.meta !== undefined) body.meta = g.meta;
         if (g.name !== undefined) body.name = g.name;
         if (g.namespaces !== undefined) body.namespaces = g.namespaces;
         if (g.path !== undefined) body.path = g.path;

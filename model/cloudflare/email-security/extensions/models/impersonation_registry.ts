@@ -49,7 +49,8 @@ const GlobalArgsSchema = z.object({
   directory_node_id: z.number().int().optional(),
   email: z.string().optional(),
   external_directory_node_id: z.string().optional(),
-  id: z.string().describe("Impersonation registry entry identifier").optional(),
+  id: z.string().describe("Impersonation registry entry identifier.")
+    .optional(),
   is_email_regex: z.boolean().optional(),
   last_modified: z.string().optional(),
   modified_at: z.string().optional(),
@@ -107,7 +108,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Impersonation Registry. Registered at `@swamp/cloudflare/email-security/impersonation-registry`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/impersonation-registry",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -126,6 +127,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

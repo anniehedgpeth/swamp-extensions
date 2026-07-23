@@ -65,13 +65,14 @@ const GlobalArgsSchema = z.object({
     "Enables private network routing to the origin.",
   ).optional(),
   type: z.enum(["A"]).describe("Record type.").optional(),
-  data: z.object({
-    priority: z.number().min(0).max(65535).optional(),
-    target: z.string().optional(),
-  }).describe("Components of a MX record.").optional(),
   priority: z.number().min(0).max(65535).describe(
     "Required for MX and URI records; ignored for other record types (but may still be returned by the API). Records with lower priorities are preferred. This field is to be deprecated in favor of the priority field within the data map.",
   ).optional(),
+  data: z.object({
+    flags: z.number().min(0).max(255).optional(),
+    tag: z.string().optional(),
+    value: z.string().optional(),
+  }).describe("Components of a CAA record.").optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -114,11 +115,12 @@ const InputsSchema = z.object({
   content: z.string().optional(),
   private_routing: z.boolean().optional(),
   type: z.enum(["A"]).optional(),
-  data: z.object({
-    priority: z.number().min(0).max(65535).optional(),
-    target: z.string().optional(),
-  }).optional(),
   priority: z.number().min(0).max(65535).optional(),
+  data: z.object({
+    flags: z.number().min(0).max(255).optional(),
+    tag: z.string().optional(),
+    value: z.string().optional(),
+  }).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -127,7 +129,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Dns Records. Registered at `@swamp/cloudflare/dns/dns-records`. */
 export const model = {
   type: "@swamp/cloudflare/dns/dns-records",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -151,6 +153,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -184,8 +191,8 @@ export const model = {
           body.private_routing = g.private_routing;
         }
         if (g.type !== undefined) body.type = g.type;
-        if (g.data !== undefined) body.data = g.data;
         if (g.priority !== undefined) body.priority = g.priority;
+        if (g.data !== undefined) body.data = g.data;
         const result = await create(endpoint, body, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -365,8 +372,8 @@ export const model = {
           body.private_routing = g.private_routing;
         }
         if (g.type !== undefined) body.type = g.type;
-        if (g.data !== undefined) body.data = g.data;
         if (g.priority !== undefined) body.priority = g.priority;
+        if (g.data !== undefined) body.data = g.data;
         const result = await update(endpoint, existing.id, body, "PATCH", {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
