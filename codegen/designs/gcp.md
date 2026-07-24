@@ -1202,14 +1202,18 @@ insertion point for adding new action methods.
 
 ```
 codegen/gcp/enrichments/
-├── types.ts                       # GcpEnrichment interface
-├── parser.ts                      # parseEnrichmentSource()
-├── parser_test.ts                 # Parser tests
-├── index.ts                       # Registry: getEnrichment(), getServiceEnrichmentImports()
-├── serviceaccounts.ts             # Metadata (resourceId, methodsExport, npmImports)
-├── serviceaccounts.enrich.ts      # Real TypeScript source
-├── storage-buckets.ts             # Metadata (resourceId, methodsExport, npmImports)
-└── storage-buckets.enrich.ts      # Real TypeScript source
+├── types.ts                                        # GcpEnrichment interface
+├── parser.ts                                       # parseEnrichmentSource()
+├── parser_test.ts                                  # Parser tests
+├── index.ts                                        # Registry: getEnrichment(), getServiceEnrichmentImports()
+├── cloudidentity-groups-memberships.ts             # Metadata
+├── cloudidentity-groups-memberships.enrich.ts      # Real TypeScript source
+├── cloudresourcemanager-projects.ts                # Metadata
+├── cloudresourcemanager-projects.enrich.ts         # Real TypeScript source
+├── serviceaccounts.ts                              # Metadata
+├── serviceaccounts.enrich.ts                       # Real TypeScript source
+├── storage-buckets.ts                              # Metadata
+└── storage-buckets.enrich.ts                       # Real TypeScript source
 ```
 
 ### Insertion points
@@ -1236,10 +1240,11 @@ The GCP extension model generator has four insertion points for enrichment:
 
 ### Current enrichments
 
-| Resource              | Methods                                 | Description                                                                         |
-| --------------------- | --------------------------------------- | ----------------------------------------------------------------------------------- |
-| `iam.serviceAccounts` | `add_iam_binding`, `remove_iam_binding` | Granular IAM binding management on service accounts via read-modify-write with etag |
-| `storage.buckets`     | `add_iam_binding`, `remove_iam_binding` | Granular IAM binding management via read-modify-write with etag concurrency         |
+| Resource                           | Methods                                 | Description                                                                         |
+| ---------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------- |
+| `cloudidentity.groups.memberships` | `set_members`                           | Authoritative group membership reconciliation — add missing, remove strays          |
+| `iam.serviceAccounts`              | `add_iam_binding`, `remove_iam_binding` | Granular IAM binding management on service accounts via read-modify-write with etag |
+| `storage.buckets`                  | `add_iam_binding`, `remove_iam_binding` | Granular IAM binding management via read-modify-write with etag concurrency         |
 
 ---
 
