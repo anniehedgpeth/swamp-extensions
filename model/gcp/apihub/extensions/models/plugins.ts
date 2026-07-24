@@ -249,6 +249,7 @@ const GlobalArgsSchema = z.object({
     "CLOUD_ENDPOINTS",
     "API_DISCOVERY",
     "OTHERS",
+    "AWS_API_GATEWAY",
   ]).describe("Optional. The type of the gateway.").optional(),
   hostingService: z.object({
     serviceUri: z.string().describe(
@@ -512,6 +513,7 @@ const InputsSchema = z.object({
     "CLOUD_ENDPOINTS",
     "API_DISCOVERY",
     "OTHERS",
+    "AWS_API_GATEWAY",
   ]).describe("Optional. The type of the gateway.").optional(),
   hostingService: z.object({
     serviceUri: z.string().describe(
@@ -609,7 +611,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub Plugins. Registered at `@swamp/gcp/apihub/plugins`. */
 export const model = {
   type: "@swamp/gcp/apihub/plugins",
-  version: "2026.07.21.3",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -733,6 +735,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

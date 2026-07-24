@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/bedrock"
-version: "2026.07.20.1"
+version: "2026.07.24.1"
 description: "AWS BEDROCK infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,6 +9,8 @@ labels:
   - bedrock
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: default_prompt_router
 models:
   - agent.ts
   - agent_alias.ts
@@ -19,6 +21,7 @@ models:
   - data_automation_library.ts
   - data_automation_project.ts
   - data_source.ts
+  - default_prompt_router.ts
   - enforced_guardrail_configuration.ts
   - flow.ts
   - flow_alias.ts

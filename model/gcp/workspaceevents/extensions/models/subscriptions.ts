@@ -138,6 +138,10 @@ const LIST_CONFIG = {
 } as const;
 
 const _defaultOAuthScopes: string[] = [
+  "https://www.googleapis.com/auth/chat.app.all.memberships.readonly",
+  "https://www.googleapis.com/auth/chat.app.all.messages.readonly",
+  "https://www.googleapis.com/auth/chat.app.all.spaces.readonly",
+  "https://www.googleapis.com/auth/chat.app.all.users.readstate.readonly",
   "https://www.googleapis.com/auth/chat.app.memberships",
   "https://www.googleapis.com/auth/chat.app.memberships.readonly",
   "https://www.googleapis.com/auth/chat.app.messages.readonly",
@@ -312,7 +316,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Workspace Events Subscriptions. Registered at `@swamp/gcp/workspaceevents/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/workspaceevents/subscriptions",
-  version: "2026.07.21.4",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -482,6 +486,11 @@ export const model = {
     {
       toVersion: "2026.07.21.4",
       description: "Added: driveOptions",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -760,7 +769,7 @@ export const model = {
       description: "List subscriptions resources",
       arguments: z.object({
         filter: z.string().describe(
-          'Required. A query filter. You can filter subscriptions by event type (`event_types`) and target resource (`target_resource`). You must specify at least one event type in your query. To filter for multiple event types, use the `OR` operator. To filter by both event type and target resource, use the `AND` operator and specify the full resource name, such as `//chat.googleapis.com/spaces/{space}`. For example, the following queries are valid: ``` event_types:"google.workspace.chat.membership.v1.updated" OR event_types:"google.workspace.chat.message.v1.created" event_types:"google.workspace.chat.message.v1.created" AND target_resource="//chat.googleapis.com/spaces/{space}" ( event_types:"google.workspace.chat.membership.v1.updated" OR event_types:"google.workspace.chat.message.v1.created" ) AND target_resource="//chat.googleapis.com/spaces/{space}" ``` The server rejects invalid queries with an `INVALID_ARGUMENT` error.',
+          'Required. A query filter. You can filter subscriptions by event type (`event_types`) and target resource (`target_resource`). You must specify at least one event type in your query. To filter for multiple event types, use the `OR` operator. To filter by both event type and target resource, use the `AND` operator and specify the full resource name, such as `//chat.googleapis.com/spaces/{space}`. For example, the following queries are valid: ``` event_types:"google.workspace.chat.membership.v1.updated" OR event_types:"google.workspace.chat.message.v1.created" event_types:"google.workspace.chat.message.v1.created" AND target_resource="//chat.googleapis.com/spaces/{space}" ( event_types:"google.workspace.chat.membership.v1.updated" OR event_types:"google.workspace.chat.message.v1.created" ) AND target_resource="//chat.googleapis.com/spaces/{space}" ``` The following query is available in [Developer Preview](https://developers.google.com/workspace/preview): ``` event_types:"google.workspace.chat.message.v1.created" AND target_resource="//admin.googleapis.com/customers/my_customer" ``` The server rejects invalid queries with an `INVALID_ARGUMENT` error.',
         ).optional(),
         pageSize: z.number().describe(
           "Optional. The maximum number of subscriptions to return. The service might return fewer than this value. If unspecified or set to `0`, up to 50 subscriptions are returned. The maximum value is 100. If you specify a value more than 100, the system only returns 100 subscriptions.",

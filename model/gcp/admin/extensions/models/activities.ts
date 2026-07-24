@@ -142,6 +142,14 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   actor: z.object({
+    agentAttributionInfo: z.object({
+      agentId: z.string(),
+      agentName: z.string(),
+      agentOwner: z.object({
+        email: z.string(),
+      }),
+      agentType: z.string(),
+    }),
     applicationInfo: z.object({
       applicationName: z.string(),
       impersonation: z.boolean(),
@@ -195,6 +203,7 @@ const StateSchema = z.object({
     uniqueQualifier: z.string(),
   }).optional(),
   ipAddress: z.string().optional(),
+  isAgenticAction: z.boolean().optional(),
   kind: z.string().optional(),
   networkInfo: z.object({
     ipAsn: z.array(z.number()),
@@ -224,6 +233,11 @@ const StateSchema = z.object({
     title: z.string(),
     type: z.string(),
   })).optional(),
+  userDeviceInfo: z.object({
+    deviceId: z.string(),
+    deviceOsVersion: z.string(),
+    deviceType: z.string(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -265,7 +279,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Activities. Registered at `@swamp/gcp/admin/activities`. */
 export const model = {
   type: "@swamp/gcp/admin/activities",
-  version: "2026.07.21.2",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -369,6 +383,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

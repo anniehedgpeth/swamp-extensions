@@ -134,7 +134,7 @@ const GlobalArgsSchema = z.object({
     "A boolean indicating whether to enable the deferred maintenance window.",
   ).optional(),
   NodeType: z.string().describe(
-    "The node type to be provisioned for the cluster.Valid Values: ds2.xlarge | ds2.8xlarge | dc1.large | dc1.8xlarge | dc2.large | dc2.8xlarge | ra3.large | ra3.4xlarge | ra3.16xlarge",
+    "The node type to be provisioned for the cluster.Valid Values: ds2.xlarge | ds2.8xlarge | dc1.large | dc1.8xlarge | dc2.large | dc2.8xlarge | ra3.large | ra3.4xlarge | ra3.16xlarge | rg.large | rg.xlarge | rg.4xlarge | rg.12xlarge",
   ),
   MasterUsername: z.string().max(128).describe(
     "The user name associated with the master user account for the cluster that is being created. The user name can't be PUBLIC and first character must be a letter.",
@@ -360,7 +360,7 @@ const InputsSchema = z.object({
     "A boolean indicating whether to enable the deferred maintenance window.",
   ).optional(),
   NodeType: z.string().describe(
-    "The node type to be provisioned for the cluster.Valid Values: ds2.xlarge | ds2.8xlarge | dc1.large | dc1.8xlarge | dc2.large | dc2.8xlarge | ra3.large | ra3.4xlarge | ra3.16xlarge",
+    "The node type to be provisioned for the cluster.Valid Values: ds2.xlarge | ds2.8xlarge | dc1.large | dc1.8xlarge | dc2.large | dc2.8xlarge | ra3.large | ra3.4xlarge | ra3.16xlarge | rg.large | rg.xlarge | rg.4xlarge | rg.12xlarge",
   ).optional(),
   MasterUsername: z.string().max(128).describe(
     "The user name associated with the master user account for the cluster that is being created. The user name can't be PUBLIC and first character must be a letter.",
@@ -461,7 +461,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Redshift Cluster. Registered at `@swamp/aws/redshift/cluster`. */
 export const model = {
   type: "@swamp/aws/redshift/cluster",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -505,6 +505,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

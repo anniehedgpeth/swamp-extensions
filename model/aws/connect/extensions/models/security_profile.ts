@@ -55,10 +55,10 @@ const TagSchema = z.object({
 const ApplicationSchema = z.object({
   ApplicationPermissions: z.array(z.string().min(1).max(128)).describe(
     "The permissions that the agent is granted on the application",
-  ),
+  ).optional(),
   Namespace: z.string().min(1).max(128).describe(
     "Namespace of the application that you want to give access to.",
-  ),
+  ).optional(),
   Type: z.enum(["MCP", "THIRD_PARTY_APPLICATION"]).describe(
     "The type of the application.",
   ).optional(),
@@ -67,32 +67,32 @@ const ApplicationSchema = z.object({
 const FlowModuleSchema = z.object({
   Type: z.string().min(1).max(128).describe(
     "The type of the first-party application",
-  ),
+  ).optional(),
   FlowModuleId: z.string().min(1).max(128).describe(
     "The identifier of the application that you want to give access to.",
-  ),
+  ).optional(),
 });
 
 const PrimaryAttributeValueSchema = z.object({
   AccessType: z.enum(["ALLOW"]).describe(
     'Specifies the type of access granted. Currently, only "ALLOW" is supported',
-  ),
+  ).optional(),
   AttributeName: z.string().min(1).max(127).regex(
     new RegExp("^(?!aws:|connect:)[\\p{L}\\p{Z}\\p{N}\\-_.:=@'|]+$", "u"),
-  ).describe("The name of the primary attribute."),
+  ).describe("The name of the primary attribute.").optional(),
   Values: z.array(
     z.string().min(1).max(1000).regex(
       new RegExp("^[\\u0009\\u000A\\u000D\\u0020-\\u007E\\u00A1-\\u00FF]+$"),
     ),
   ).describe(
     "An array of allowed primary values for the specified primary attribute.",
-  ),
+  ).optional(),
 });
 
 const PrimaryAttributeAccessControlConfigurationItemSchema = z.object({
   PrimaryAttributeValues: z.array(PrimaryAttributeValueSchema).describe(
     "An array of PrimaryAttributeValue objects.",
-  ),
+  ).optional(),
 });
 
 const DataTableAccessControlConfigurationSchema = z.object({
@@ -256,7 +256,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect SecurityProfile. Registered at `@swamp/aws/connect/security-profile`. */
 export const model = {
   type: "@swamp/aws/connect/security-profile",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -295,6 +295,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

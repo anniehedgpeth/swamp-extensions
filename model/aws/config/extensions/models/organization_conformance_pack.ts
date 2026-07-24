@@ -46,6 +46,15 @@ const ConformancePackInputParameterSchema = z.object({
   ParameterValue: z.string().min(0).max(4096),
 });
 
+const TagSchema = z.object({
+  Key: z.string().min(1).max(128).describe(
+    "The key name of the tag. You can specify a value that is 1 to 127 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
+  Value: z.string().min(0).max(256).describe(
+    "The value for the tag. You can specify a value that is 1 to 255 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
+});
+
 const GlobalArgsSchema = z.object({
   accessKeyId: z.string().meta({ sensitive: true }).describe(
     "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -78,6 +87,9 @@ const GlobalArgsSchema = z.object({
   ExcludedAccounts: z.array(z.string()).describe(
     "A list of AWS accounts to be excluded from an organization conformance pack while deploying a conformance pack.",
   ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags for the organization conformance pack.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -89,6 +101,8 @@ const StateSchema = z.object({
   ConformancePackInputParameters: z.array(ConformancePackInputParameterSchema)
     .optional(),
   ExcludedAccounts: z.array(z.string()).optional(),
+  OrganizationConformancePackArn: z.string().optional(),
+  Tags: z.array(TagSchema).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -117,6 +131,9 @@ const InputsSchema = z.object({
   ExcludedAccounts: z.array(z.string()).describe(
     "A list of AWS accounts to be excluded from an organization conformance pack while deploying a conformance pack.",
   ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags for the organization conformance pack.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -138,7 +155,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Config OrganizationConformancePack. Registered at `@swamp/aws/config/organization-conformance-pack`. */
 export const model = {
   type: "@swamp/aws/config/organization-conformance-pack",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -178,6 +195,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: Tags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

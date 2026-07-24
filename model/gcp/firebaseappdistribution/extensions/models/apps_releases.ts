@@ -124,6 +124,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  acceptedInvitationCount: z.number().int().describe(
+    "Output only. Number of testers with accepted invitations.",
+  ).optional(),
   androidPackageRegistrationState: z.enum([
     "ANDROID_PACKAGE_REGISTRATION_STATE_UNSPECIFIED",
     "REGISTERED",
@@ -134,6 +137,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   binaryDownloadUri: z.string().describe(
     "Output only. A signed link (which expires in one hour) to directly download the app binary (IPA/APK/AAB) file.",
+  ).optional(),
+  binaryType: z.enum(["BINARY_TYPE_UNSPECIFIED", "IPA", "APK", "AAB"]).describe(
+    "Output only. Type of binary.",
   ).optional(),
   buildVersion: z.string().describe(
     "Output only. Build version of the release. For an Android release, the build version is the `versionCode`. For an iOS release, the build version is the `CFBundleVersion`.",
@@ -147,15 +153,33 @@ const GlobalArgsSchema = z.object({
   expireTime: z.string().describe(
     "Output only. The time the release will expire.",
   ).optional(),
+  feedbackCount: z.number().int().describe(
+    "Output only. Number of feedback reports left by testers.",
+  ).optional(),
   firebaseConsoleUri: z.string().describe(
     "Output only. A link to the Firebase console displaying a single release.",
+  ).optional(),
+  installationCount: z.number().int().describe(
+    "Output only. Number of testers who have downloaded this release.",
   ).optional(),
   name: z.string().describe(
     "The name of the release resource. Format: `projects/{project_number}/apps/{app}/releases/{release}`",
   ).optional(),
+  openInvitationCount: z.number().int().describe(
+    "Output only. Number of testers who were invited (incl. expired invitations), but did not (yet) accept the invitation.",
+  ).optional(),
   releaseNotes: z.object({
     text: z.string().describe("The text of the release notes.").optional(),
   }).describe("Notes about the release.").optional(),
+  testState: z.enum([
+    "TEST_STATE_UNSPECIFIED",
+    "NO_TESTS_REQUESTED",
+    "IN_PROGRESS",
+    "PASSED",
+    "FAILED",
+    "INCONCLUSIVE",
+  ]).describe("Output only. The overall state of tests run on this release")
+    .optional(),
   testingUri: z.string().describe(
     "Output only. A link to the release in the tester web clip or Android app that lets testers (which were granted access to the app) view release notes and install the app onto their devices.",
   ).optional(),
@@ -171,17 +195,23 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  acceptedInvitationCount: z.number().optional(),
   androidPackageRegistrationState: z.string().optional(),
   binaryDownloadUri: z.string().optional(),
+  binaryType: z.string().optional(),
   buildVersion: z.string().optional(),
   createTime: z.string().optional(),
   displayVersion: z.string().optional(),
   expireTime: z.string().optional(),
+  feedbackCount: z.number().optional(),
   firebaseConsoleUri: z.string().optional(),
+  installationCount: z.number().optional(),
   name: z.string(),
+  openInvitationCount: z.number().optional(),
   releaseNotes: z.object({
     text: z.string(),
   }).optional(),
+  testState: z.string().optional(),
   testingUri: z.string().optional(),
   updateTime: z.string().optional(),
 }).passthrough();
@@ -193,6 +223,9 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  acceptedInvitationCount: z.number().int().describe(
+    "Output only. Number of testers with accepted invitations.",
+  ).optional(),
   androidPackageRegistrationState: z.enum([
     "ANDROID_PACKAGE_REGISTRATION_STATE_UNSPECIFIED",
     "REGISTERED",
@@ -203,6 +236,9 @@ const InputsSchema = z.object({
   ).optional(),
   binaryDownloadUri: z.string().describe(
     "Output only. A signed link (which expires in one hour) to directly download the app binary (IPA/APK/AAB) file.",
+  ).optional(),
+  binaryType: z.enum(["BINARY_TYPE_UNSPECIFIED", "IPA", "APK", "AAB"]).describe(
+    "Output only. Type of binary.",
   ).optional(),
   buildVersion: z.string().describe(
     "Output only. Build version of the release. For an Android release, the build version is the `versionCode`. For an iOS release, the build version is the `CFBundleVersion`.",
@@ -216,15 +252,33 @@ const InputsSchema = z.object({
   expireTime: z.string().describe(
     "Output only. The time the release will expire.",
   ).optional(),
+  feedbackCount: z.number().int().describe(
+    "Output only. Number of feedback reports left by testers.",
+  ).optional(),
   firebaseConsoleUri: z.string().describe(
     "Output only. A link to the Firebase console displaying a single release.",
+  ).optional(),
+  installationCount: z.number().int().describe(
+    "Output only. Number of testers who have downloaded this release.",
   ).optional(),
   name: z.string().describe(
     "The name of the release resource. Format: `projects/{project_number}/apps/{app}/releases/{release}`",
   ).optional(),
+  openInvitationCount: z.number().int().describe(
+    "Output only. Number of testers who were invited (incl. expired invitations), but did not (yet) accept the invitation.",
+  ).optional(),
   releaseNotes: z.object({
     text: z.string().describe("The text of the release notes.").optional(),
   }).describe("Notes about the release.").optional(),
+  testState: z.enum([
+    "TEST_STATE_UNSPECIFIED",
+    "NO_TESTS_REQUESTED",
+    "IN_PROGRESS",
+    "PASSED",
+    "FAILED",
+    "INCONCLUSIVE",
+  ]).describe("Output only. The overall state of tests run on this release")
+    .optional(),
   testingUri: z.string().describe(
     "Output only. A link to the release in the tester web clip or Android app that lets testers (which were granted access to the app) view release notes and install the app onto their devices.",
   ).optional(),
@@ -262,7 +316,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase App Distribution Apps.Releases. Registered at `@swamp/gcp/firebaseappdistribution/apps-releases`. */
 export const model = {
   type: "@swamp/gcp/firebaseappdistribution/apps-releases",
-  version: "2026.07.21.4",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -411,6 +465,12 @@ export const model = {
       description: "Added: androidPackageRegistrationState",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.24.1",
+      description:
+        "Added: acceptedInvitationCount, binaryType, feedbackCount, installationCount, openInvitationCount, testState",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -494,6 +554,9 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (g["acceptedInvitationCount"] !== undefined) {
+          body["acceptedInvitationCount"] = g["acceptedInvitationCount"];
+        }
         if (g["androidPackageRegistrationState"] !== undefined) {
           body["androidPackageRegistrationState"] =
             g["androidPackageRegistrationState"];
@@ -501,6 +564,7 @@ export const model = {
         if (g["binaryDownloadUri"] !== undefined) {
           body["binaryDownloadUri"] = g["binaryDownloadUri"];
         }
+        if (g["binaryType"] !== undefined) body["binaryType"] = g["binaryType"];
         if (g["buildVersion"] !== undefined) {
           body["buildVersion"] = g["buildVersion"];
         }
@@ -509,12 +573,22 @@ export const model = {
           body["displayVersion"] = g["displayVersion"];
         }
         if (g["expireTime"] !== undefined) body["expireTime"] = g["expireTime"];
+        if (g["feedbackCount"] !== undefined) {
+          body["feedbackCount"] = g["feedbackCount"];
+        }
         if (g["firebaseConsoleUri"] !== undefined) {
           body["firebaseConsoleUri"] = g["firebaseConsoleUri"];
+        }
+        if (g["installationCount"] !== undefined) {
+          body["installationCount"] = g["installationCount"];
+        }
+        if (g["openInvitationCount"] !== undefined) {
+          body["openInvitationCount"] = g["openInvitationCount"];
         }
         if (g["releaseNotes"] !== undefined) {
           body["releaseNotes"] = g["releaseNotes"];
         }
+        if (g["testState"] !== undefined) body["testState"] = g["testState"];
         if (g["testingUri"] !== undefined) body["testingUri"] = g["testingUri"];
         if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
         const updateMaskKeys = Object.keys(body);

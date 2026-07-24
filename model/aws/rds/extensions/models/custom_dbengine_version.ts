@@ -76,7 +76,7 @@ const GlobalArgsSchema = z.object({
     "An optional description of your CEV.",
   ).optional(),
   Engine: z.string().min(1).max(35).describe(
-    "The database engine to use for your custom engine version (CEV). Valid values: custom-oracle-ee custom-oracle-ee-cdb",
+    "The database engine to use for your custom engine version (CEV). Valid values: custom-oracle-ee custom-oracle-ee-cdb sqlserver-dev-ee sqlserver-ee sqlserver-se",
   ),
   EngineVersion: z.string().min(1).max(60).describe(
     "The name of your CEV. The name format is major version.customized_string. For example, a valid CEV name is 19.my_cev1. This setting is required for RDS Custom for Oracle, but optional for Amazon RDS. The combination of Engine and EngineVersion is unique per customer per Region. *Constraints:* Minimum length is 1. Maximum length is 60. *Pattern:* ^[a-z0-9_.-]{1,60$ }",
@@ -144,7 +144,7 @@ const InputsSchema = z.object({
     "An optional description of your CEV.",
   ).optional(),
   Engine: z.string().min(1).max(35).describe(
-    "The database engine to use for your custom engine version (CEV). Valid values: custom-oracle-ee custom-oracle-ee-cdb",
+    "The database engine to use for your custom engine version (CEV). Valid values: custom-oracle-ee custom-oracle-ee-cdb sqlserver-dev-ee sqlserver-ee sqlserver-se",
   ).optional(),
   EngineVersion: z.string().min(1).max(60).describe(
     "The name of your CEV. The name format is major version.customized_string. For example, a valid CEV name is 19.my_cev1. This setting is required for RDS Custom for Oracle, but optional for Amazon RDS. The combination of Engine and EngineVersion is unique per customer per Region. *Constraints:* Minimum length is 1. Maximum length is 60. *Pattern:* ^[a-z0-9_.-]{1,60$ }",
@@ -196,7 +196,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for RDS CustomDBEngineVersion. Registered at `@swamp/aws/rds/custom-dbengine-version`. */
 export const model = {
   type: "@swamp/aws/rds/custom-dbengine-version",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -245,6 +245,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

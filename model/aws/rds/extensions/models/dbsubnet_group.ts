@@ -81,6 +81,7 @@ const StateSchema = z.object({
   DBSubnetGroupName: z.string(),
   SubnetIds: z.array(z.string()).optional(),
   Tags: z.array(TagSchema).optional(),
+  DBSubnetGroupArn: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -122,7 +123,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for RDS DBSubnetGroup. Registered at `@swamp/aws/rds/dbsubnet-group`. */
 export const model = {
   type: "@swamp/aws/rds/dbsubnet-group",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -161,6 +162,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

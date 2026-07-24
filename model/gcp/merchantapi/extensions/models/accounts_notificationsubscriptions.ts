@@ -165,6 +165,7 @@ const GlobalArgsSchema = z.object({
   registeredEvent: z.enum([
     "NOTIFICATION_EVENT_TYPE_UNSPECIFIED",
     "PRODUCT_STATUS_CHANGE",
+    "ACCOUNT_SERVICE_CHANGE",
   ]).describe("The event that the merchant wants to be notified about.")
     .optional(),
   targetAccount: z.string().describe(
@@ -200,6 +201,7 @@ const InputsSchema = z.object({
   registeredEvent: z.enum([
     "NOTIFICATION_EVENT_TYPE_UNSPECIFIED",
     "PRODUCT_STATUS_CHANGE",
+    "ACCOUNT_SERVICE_CHANGE",
   ]).describe("The event that the merchant wants to be notified about.")
     .optional(),
   targetAccount: z.string().describe(
@@ -233,7 +235,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.Notificationsubscriptions. Registered at `@swamp/gcp/merchantapi/accounts-notificationsubscriptions`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-notificationsubscriptions",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

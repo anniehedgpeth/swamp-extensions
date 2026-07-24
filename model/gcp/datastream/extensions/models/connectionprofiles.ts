@@ -588,6 +588,42 @@ const GlobalArgsSchema = z.object({
   staticServiceIpConnectivity: z.object({}).describe(
     "Static Service IP connectivity.",
   ).optional(),
+  workdayProfile: z.object({
+    host: z.string().describe(
+      "Required. Host for the Workday connection. Must be a valid hostname (e.g., `wd3-impl-services1.workday.com`).",
+    ).optional(),
+    oauthRefreshTokenCredentials: z.object({
+      oauthClientCredentials: z.object({
+        clientId: z.string().describe(
+          "Required. Client ID for OAuth Client Credentials.",
+        ).optional(),
+        clientSecret: z.object({
+          rawValue: z.string().describe(
+            "Optional. Input only. The actual raw value of the secret as plain text.",
+          ).optional(),
+          secretVersion: z.string().describe(
+            "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
+          ).optional(),
+        }).describe("Required. Client secret for OAuth Client Credentials.")
+          .optional(),
+      }).describe("Required. Specifies the OAuth Client Credentials.")
+        .optional(),
+      refreshToken: z.object({
+        rawValue: z.string().describe(
+          "Optional. Input only. The actual raw value of the secret as plain text.",
+        ).optional(),
+        secretVersion: z.string().describe(
+          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
+        ).optional(),
+      }).describe("Required. Specifies the OAuth Refresh Token.").optional(),
+    }).describe(
+      "Required. Credentials for authenticating with the Workday API. OAuth Refresh Token credentials for authenticating with the Workday API.",
+    ).optional(),
+    tenant: z.string().describe(
+      "Required. Tenant for the Workday connection (e.g., `google12`).",
+    ).optional(),
+  }).describe("Optional. Profile for connecting to a Workday source.")
+    .optional(),
   connectionProfileId: z.string().describe(
     "Required. The connection profile identifier.",
   ).optional(),
@@ -786,6 +822,23 @@ const StateSchema = z.object({
   }).optional(),
   staticServiceIpConnectivity: z.object({}).optional(),
   updateTime: z.string().optional(),
+  workdayProfile: z.object({
+    host: z.string(),
+    oauthRefreshTokenCredentials: z.object({
+      oauthClientCredentials: z.object({
+        clientId: z.string(),
+        clientSecret: z.object({
+          rawValue: z.string(),
+          secretVersion: z.string(),
+        }),
+      }),
+      refreshToken: z.object({
+        rawValue: z.string(),
+        secretVersion: z.string(),
+      }),
+    }),
+    tenant: z.string(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -1202,6 +1255,42 @@ const InputsSchema = z.object({
   staticServiceIpConnectivity: z.object({}).describe(
     "Static Service IP connectivity.",
   ).optional(),
+  workdayProfile: z.object({
+    host: z.string().describe(
+      "Required. Host for the Workday connection. Must be a valid hostname (e.g., `wd3-impl-services1.workday.com`).",
+    ).optional(),
+    oauthRefreshTokenCredentials: z.object({
+      oauthClientCredentials: z.object({
+        clientId: z.string().describe(
+          "Required. Client ID for OAuth Client Credentials.",
+        ).optional(),
+        clientSecret: z.object({
+          rawValue: z.string().describe(
+            "Optional. Input only. The actual raw value of the secret as plain text.",
+          ).optional(),
+          secretVersion: z.string().describe(
+            "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
+          ).optional(),
+        }).describe("Required. Client secret for OAuth Client Credentials.")
+          .optional(),
+      }).describe("Required. Specifies the OAuth Client Credentials.")
+        .optional(),
+      refreshToken: z.object({
+        rawValue: z.string().describe(
+          "Optional. Input only. The actual raw value of the secret as plain text.",
+        ).optional(),
+        secretVersion: z.string().describe(
+          "Optional. A Secret Manager resource name storing the actual value of the secret. Supported formats: * projects/{project}/locations/{location}/secrets/{secret}/versions/{version} * projects/{project}/secrets/{secret}/versions/{version}",
+        ).optional(),
+      }).describe("Required. Specifies the OAuth Refresh Token.").optional(),
+    }).describe(
+      "Required. Credentials for authenticating with the Workday API. OAuth Refresh Token credentials for authenticating with the Workday API.",
+    ).optional(),
+    tenant: z.string().describe(
+      "Required. Tenant for the Workday connection (e.g., `google12`).",
+    ).optional(),
+  }).describe("Optional. Profile for connecting to a Workday source.")
+    .optional(),
   connectionProfileId: z.string().describe(
     "Required. The connection profile identifier.",
   ).optional(),
@@ -1239,7 +1328,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Datastream ConnectionProfiles. Registered at `@swamp/gcp/datastream/connectionprofiles`. */
 export const model = {
   type: "@swamp/gcp/datastream/connectionprofiles",
-  version: "2026.07.21.4",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1402,6 +1491,11 @@ export const model = {
         "Added: dataverseProfile, salesforceMarketingCloudProfile, serviceNowProfile",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: workdayProfile",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1475,6 +1569,9 @@ export const model = {
         if (g["staticServiceIpConnectivity"] !== undefined) {
           body["staticServiceIpConnectivity"] =
             g["staticServiceIpConnectivity"];
+        }
+        if (g["workdayProfile"] !== undefined) {
+          body["workdayProfile"] = g["workdayProfile"];
         }
         if (g["connectionProfileId"] !== undefined) {
           params["connectionProfileId"] = String(g["connectionProfileId"]);
@@ -1638,6 +1735,9 @@ export const model = {
         if (g["staticServiceIpConnectivity"] !== undefined) {
           body["staticServiceIpConnectivity"] =
             g["staticServiceIpConnectivity"];
+        }
+        if (g["workdayProfile"] !== undefined) {
+          body["workdayProfile"] = g["workdayProfile"];
         }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

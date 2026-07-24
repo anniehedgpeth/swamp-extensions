@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/glue"
-version: "2026.07.20.1"
+version: "2026.07.24.1"
 description: "AWS GLUE infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,7 +9,10 @@ labels:
   - glue
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: blueprint, user_defined_function
 models:
+  - blueprint.ts
   - catalog.ts
   - crawler.ts
   - data_catalog_encryption_settings.ts
@@ -24,6 +27,7 @@ models:
   - schema_version_metadata.ts
   - trigger.ts
   - usage_profile.ts
+  - user_defined_function.ts
 additionalFiles:
   - LICENSE.txt
   - README.md

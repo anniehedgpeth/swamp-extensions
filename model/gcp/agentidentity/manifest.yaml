@@ -1,0 +1,23 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/gcp/agentidentity"
+version: "2026.07.24.1"
+description: "Google Cloud agentidentity infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - gcp
+  - google-cloud
+  - agentidentity
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added: locations, accesssummaries, authproviders, authproviders_authorizations
+models:
+  - accesssummaries.ts
+  - authproviders.ts
+  - authproviders_authorizations.ts
+  - locations.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

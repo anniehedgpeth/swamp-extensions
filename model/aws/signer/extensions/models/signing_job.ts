@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/controlcatalog/control
+// Auto-generated extension model for @swamp/aws/signer/signing-job
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for ControlCatalog Control (AWS::ControlCatalog::Control).
+ * Swamp extension model for Signer SigningJob (AWS::Signer::SigningJob).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -34,6 +34,23 @@
 import { z } from "npm:zod@4.3.6";
 import { isResourceNotFoundError, readResource } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
+
+const S3SourceSchema = z.object({
+  BucketName: z.string().describe("Name of the S3 bucket."),
+  Key: z.string().describe(
+    "Key name of the bucket object that contains unsigned code.",
+  ),
+  Version: z.string().describe(
+    "Version of the source image in the version-enabled S3 bucket.",
+  ),
+});
+
+const S3SignedObjectSchema = z.object({
+  BucketName: z.string().describe("Name of the S3 bucket.").optional(),
+  Key: z.string().describe(
+    "Key name that uniquely identifies a signed code image in the bucket.",
+  ).optional(),
+});
 
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
@@ -51,43 +68,40 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  RegionConfiguration: z.object({
-    Scope: z.enum(["GLOBAL", "REGIONAL"]).describe("The scope of the control."),
-    DeployableRegions: z.array(
-      z.string().regex(new RegExp("^[a-zA-Z0-9-]{1,128}$")),
-    ).describe("Regions in which the control is available to be deployed.")
-      .optional(),
-  }).describe("Information about the control's region configuration.")
-    .optional(),
-  Implementation: z.object({
-    Type: z.string().min(7).max(2048).regex(
-      new RegExp("^[A-Za-z0-9]+(::[A-Za-z0-9_]+){2,3}$"),
-    ).describe("A string that describes a control's implementation type."),
-    Identifier: z.string().min(1).max(256).regex(
-      new RegExp("^[a-zA-Z0-9_\\.-]+$"),
-    ).describe("A service-specific identifier for the control.").optional(),
-  }).describe("An object that describes the implementation type for a control.")
-    .optional(),
+  Source: z.object({
+    S3: S3SourceSchema.describe(
+      "Information about the Amazon S3 bucket where unsigned code is stored.",
+    ).optional(),
+  }).describe("The S3 bucket that contains the object to sign.").optional(),
+  ProfileName: z.string().min(2).max(64).regex(new RegExp("^[a-zA-Z0-9_]{2,}$"))
+    .describe("The name of the signing profile."),
+  SignedObject: z.object({
+    S3: S3SignedObjectSchema.describe(
+      "The Amazon S3 bucket name and key where Signer saved the signed code image.",
+    ).optional(),
+  }).describe("The S3 location of the signed code image.").optional(),
 });
 
 const StateSchema = z.object({
   Arn: z.string(),
-  ControlId: z.string().optional(),
-  Name: z.string().optional(),
-  Description: z.string().optional(),
-  Behavior: z.string().optional(),
-  Severity: z.string().optional(),
-  RegionConfiguration: z.object({
-    Scope: z.string(),
-    DeployableRegions: z.array(z.string()),
+  JobId: z.string().optional(),
+  Source: z.object({
+    S3: S3SourceSchema,
   }).optional(),
-  Implementation: z.object({
-    Type: z.string(),
-    Identifier: z.string(),
+  ProfileName: z.string().optional(),
+  ProfileVersion: z.string().optional(),
+  PlatformId: z.string().optional(),
+  PlatformDisplayName: z.string().optional(),
+  CreatedAt: z.string().optional(),
+  CompletedAt: z.string().optional(),
+  SignatureExpiresAt: z.string().optional(),
+  RequestedBy: z.string().optional(),
+  Status: z.string().optional(),
+  JobOwner: z.string().optional(),
+  JobInvoker: z.string().optional(),
+  SignedObject: z.object({
+    S3: S3SignedObjectSchema,
   }).optional(),
-  Aliases: z.array(z.string()).optional(),
-  CreateTime: z.string().optional(),
-  GovernedResources: z.array(z.string()).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -98,25 +112,18 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  RegionConfiguration: z.object({
-    Scope: z.enum(["GLOBAL", "REGIONAL"]).describe("The scope of the control.")
-      .optional(),
-    DeployableRegions: z.array(
-      z.string().regex(new RegExp("^[a-zA-Z0-9-]{1,128}$")),
-    ).describe("Regions in which the control is available to be deployed.")
-      .optional(),
-  }).describe("Information about the control's region configuration.")
-    .optional(),
-  Implementation: z.object({
-    Type: z.string().min(7).max(2048).regex(
-      new RegExp("^[A-Za-z0-9]+(::[A-Za-z0-9_]+){2,3}$"),
-    ).describe("A string that describes a control's implementation type.")
-      .optional(),
-    Identifier: z.string().min(1).max(256).regex(
-      new RegExp("^[a-zA-Z0-9_\\.-]+$"),
-    ).describe("A service-specific identifier for the control.").optional(),
-  }).describe("An object that describes the implementation type for a control.")
-    .optional(),
+  Source: z.object({
+    S3: S3SourceSchema.describe(
+      "Information about the Amazon S3 bucket where unsigned code is stored.",
+    ).optional(),
+  }).describe("The S3 bucket that contains the object to sign.").optional(),
+  ProfileName: z.string().min(2).max(64).regex(new RegExp("^[a-zA-Z0-9_]{2,}$"))
+    .describe("The name of the signing profile.").optional(),
+  SignedObject: z.object({
+    S3: S3SignedObjectSchema.describe(
+      "The Amazon S3 bucket name and key where Signer saved the signed code image.",
+    ).optional(),
+  }).describe("The S3 location of the signed code image.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -135,22 +142,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for ControlCatalog Control. Registered at `@swamp/aws/controlcatalog/control`. */
+/** Swamp extension model for Signer SigningJob. Registered at `@swamp/aws/signer/signing-job`. */
 export const model = {
-  type: "@swamp/aws/controlcatalog/control",
-  version: "2026.07.18.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.18.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
+  type: "@swamp/aws/signer/signing-job",
+  version: "2026.07.24.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "ControlCatalog Control resource state",
+      description: "Signer SigningJob resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -158,16 +158,16 @@ export const model = {
   },
   methods: {
     get: {
-      description: "Get a ControlCatalog Control",
+      description: "Get a Signer SigningJob",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the ControlCatalog Control",
+          "The primary identifier of the Signer SigningJob",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::ControlCatalog::Control",
+          "AWS::Signer::SigningJob",
           args.identifier,
           credentials,
         ) as StateData;
@@ -185,7 +185,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync ControlCatalog Control state from AWS",
+      description: "Sync Signer SigningJob state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -209,7 +209,7 @@ export const model = {
         }
         try {
           const result = await readResource(
-            "AWS::ControlCatalog::Control",
+            "AWS::Signer::SigningJob",
             identifier,
             credentials,
           ) as StateData;

@@ -133,6 +133,10 @@ const LIST_CONFIG = {
 } as const;
 
 const _defaultOAuthScopes: string[] = [
+  "https://www.googleapis.com/auth/chat.app.all.memberships.readonly",
+  "https://www.googleapis.com/auth/chat.app.all.messages.readonly",
+  "https://www.googleapis.com/auth/chat.app.all.spaces.readonly",
+  "https://www.googleapis.com/auth/chat.app.all.users.readstate.readonly",
   "https://www.googleapis.com/auth/chat.app.memberships",
   "https://www.googleapis.com/auth/chat.app.memberships.readonly",
   "https://www.googleapis.com/auth/chat.app.messages.readonly",
@@ -272,7 +276,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Workspace Events Tasks.PushNotificationConfigs. Registered at `@swamp/gcp/workspaceevents/tasks-pushnotificationconfigs`. */
 export const model = {
   type: "@swamp/gcp/workspaceevents/tasks-pushnotificationconfigs",
-  version: "2026.07.21.4",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -391,6 +395,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

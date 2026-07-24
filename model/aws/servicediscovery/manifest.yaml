@@ -1,0 +1,19 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/aws/servicediscovery"
+version: "2026.07.24.1"
+description: "AWS SERVICEDISCOVERY infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - aws
+  - servicediscovery
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added: service
+models:
+  - service.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

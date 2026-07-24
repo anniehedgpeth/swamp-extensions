@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/fis"
-version: "2026.07.20.1"
+version: "2026.07.24.1"
 description: "AWS FIS infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,8 +9,11 @@ labels:
   - fis
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: safety_lever
 models:
   - experiment_template.ts
+  - safety_lever.ts
   - target_account_configuration.ts
 additionalFiles:
   - LICENSE.txt

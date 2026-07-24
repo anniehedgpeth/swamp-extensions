@@ -226,6 +226,28 @@ const GlobalArgsSchema = z.object({
   appEngineApis: z.boolean().describe(
     "Allows App Engine second generation runtimes to access the legacy bundled services.",
   ).optional(),
+  appEngineBundledServices: z.array(
+    z.enum([
+      "BUNDLED_SERVICE_TYPE_UNSPECIFIED",
+      "BUNDLED_SERVICE_TYPE_APP_IDENTITY_SERVICE",
+      "BUNDLED_SERVICE_TYPE_BLOBSTORE",
+      "BUNDLED_SERVICE_TYPE_CAPABILITY_SERVICE",
+      "BUNDLED_SERVICE_TYPE_DATASTORE_V3",
+      "BUNDLED_SERVICE_TYPE_DEFERRED",
+      "BUNDLED_SERVICE_TYPE_IMAGES",
+      "BUNDLED_SERVICE_TYPE_MAIL",
+      "BUNDLED_SERVICE_TYPE_MEMCACHE",
+      "BUNDLED_SERVICE_TYPE_MODULES",
+      "BUNDLED_SERVICE_TYPE_NAMESPACES",
+      "BUNDLED_SERVICE_TYPE_NDB",
+      "BUNDLED_SERVICE_TYPE_SEARCH",
+      "BUNDLED_SERVICE_TYPE_TASKQUEUES",
+      "BUNDLED_SERVICE_TYPE_URLFETCH",
+      "BUNDLED_SERVICE_TYPE_USERS",
+    ]),
+  ).describe(
+    "List of specific App Engine Bundled Services that are enabled for this Version.",
+  ).optional(),
   automaticScaling: z.object({
     coolDownPeriod: z.string().describe(
       "The time period that the Autoscaler (https://cloud.google.com/compute/docs/autoscaler/) should wait before it starts collecting information from a new instance. This prevents the autoscaler from collecting information when the instance is initializing, during which the collected usage would not be reliable. Only applicable in the App Engine flexible environment.",
@@ -717,6 +739,7 @@ const StateSchema = z.object({
     url: z.string(),
   }).optional(),
   appEngineApis: z.boolean().optional(),
+  appEngineBundledServices: z.array(z.string()).optional(),
   automaticScaling: z.object({
     coolDownPeriod: z.string(),
     cpuUtilization: z.object({
@@ -934,6 +957,28 @@ const InputsSchema = z.object({
   ).optional(),
   appEngineApis: z.boolean().describe(
     "Allows App Engine second generation runtimes to access the legacy bundled services.",
+  ).optional(),
+  appEngineBundledServices: z.array(
+    z.enum([
+      "BUNDLED_SERVICE_TYPE_UNSPECIFIED",
+      "BUNDLED_SERVICE_TYPE_APP_IDENTITY_SERVICE",
+      "BUNDLED_SERVICE_TYPE_BLOBSTORE",
+      "BUNDLED_SERVICE_TYPE_CAPABILITY_SERVICE",
+      "BUNDLED_SERVICE_TYPE_DATASTORE_V3",
+      "BUNDLED_SERVICE_TYPE_DEFERRED",
+      "BUNDLED_SERVICE_TYPE_IMAGES",
+      "BUNDLED_SERVICE_TYPE_MAIL",
+      "BUNDLED_SERVICE_TYPE_MEMCACHE",
+      "BUNDLED_SERVICE_TYPE_MODULES",
+      "BUNDLED_SERVICE_TYPE_NAMESPACES",
+      "BUNDLED_SERVICE_TYPE_NDB",
+      "BUNDLED_SERVICE_TYPE_SEARCH",
+      "BUNDLED_SERVICE_TYPE_TASKQUEUES",
+      "BUNDLED_SERVICE_TYPE_URLFETCH",
+      "BUNDLED_SERVICE_TYPE_USERS",
+    ]),
+  ).describe(
+    "List of specific App Engine Bundled Services that are enabled for this Version.",
   ).optional(),
   automaticScaling: z.object({
     coolDownPeriod: z.string().describe(
@@ -1440,7 +1485,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud App Engine Admin Apps.Services.Versions. Registered at `@swamp/gcp/appengine/apps-services-versions`. */
 export const model = {
   type: "@swamp/gcp/appengine/apps-services-versions",
-  version: "2026.07.21.3",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1562,6 +1607,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: appEngineBundledServices",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1591,6 +1641,9 @@ export const model = {
         if (g["apiConfig"] !== undefined) body["apiConfig"] = g["apiConfig"];
         if (g["appEngineApis"] !== undefined) {
           body["appEngineApis"] = g["appEngineApis"];
+        }
+        if (g["appEngineBundledServices"] !== undefined) {
+          body["appEngineBundledServices"] = g["appEngineBundledServices"];
         }
         if (g["automaticScaling"] !== undefined) {
           body["automaticScaling"] = g["automaticScaling"];
@@ -1772,6 +1825,9 @@ export const model = {
         if (g["apiConfig"] !== undefined) body["apiConfig"] = g["apiConfig"];
         if (g["appEngineApis"] !== undefined) {
           body["appEngineApis"] = g["appEngineApis"];
+        }
+        if (g["appEngineBundledServices"] !== undefined) {
+          body["appEngineBundledServices"] = g["appEngineBundledServices"];
         }
         if (g["automaticScaling"] !== undefined) {
           body["automaticScaling"] = g["automaticScaling"];

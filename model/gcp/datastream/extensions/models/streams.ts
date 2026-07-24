@@ -694,6 +694,31 @@ const GlobalArgsSchema = z.object({
         "CDC reader reads from transaction logs.",
       ).optional(),
     }).describe("SQLServer data source configuration.").optional(),
+    workdaySourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Optional. The objects to exclude from the stream.")
+        .optional(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Optional. The objects to retrieve from the source.")
+        .optional(),
+      pollingInterval: z.string().describe(
+        "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
+      ).optional(),
+    }).describe("Optional. Workday data source configuration.").optional(),
   }).describe("Required. Source connection profile configuration.").optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
@@ -1042,6 +1067,21 @@ const StateSchema = z.object({
       maxConcurrentBackfillTasks: z.number(),
       maxConcurrentCdcTasks: z.number(),
       transactionLogs: z.object({}),
+    }),
+    workdaySourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown(),
+          properties: z.unknown(),
+        })),
+      }),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown(),
+          properties: z.unknown(),
+        })),
+      }),
+      pollingInterval: z.string(),
     }),
   }).optional(),
   state: z.string().optional(),
@@ -1568,6 +1608,31 @@ const InputsSchema = z.object({
         "CDC reader reads from transaction logs.",
       ).optional(),
     }).describe("SQLServer data source configuration.").optional(),
+    workdaySourceConfig: z.object({
+      excludeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Optional. The objects to exclude from the stream.")
+        .optional(),
+      includeObjects: z.object({
+        objects: z.array(z.object({
+          objectName: z.unknown().describe("Required. The object name.")
+            .optional(),
+          properties: z.unknown().describe(
+            "Optional. Source properties. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.",
+          ).optional(),
+        })).describe("Optional. Source objects in the catalog.").optional(),
+      }).describe("Optional. The objects to retrieve from the source.")
+        .optional(),
+      pollingInterval: z.string().describe(
+        "Required. Incremental sync polling interval for all objects. If not set, a default value of `5 minutes` is used. The duration must be from `5 minutes` to `24 hours`, inclusive.",
+      ).optional(),
+    }).describe("Optional. Workday data source configuration.").optional(),
   }).describe("Required. Source connection profile configuration.").optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
@@ -1615,7 +1680,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Datastream Streams. Registered at `@swamp/gcp/datastream/streams`. */
 export const model = {
   type: "@swamp/gcp/datastream/streams",
-  version: "2026.07.21.4",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1754,6 +1819,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

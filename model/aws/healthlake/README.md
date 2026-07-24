@@ -14,8 +14,10 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/healthlake/fhirdatastore` to see the
-full list of configurable properties and available methods for this model.
+Use
+`swamp model type describe @swamp/aws/healthlake/data_transformation_profile` to
+see the full list of configurable properties and available methods for this
+model.
 
 ## Authentication
 
@@ -47,17 +49,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new fhirdatastore model
-swamp model create @swamp/aws/healthlake/fhirdatastore my-fhirdatastore
+# Create a new data_transformation_profile model
+swamp model create @swamp/aws/healthlake/data_transformation_profile my-data_transformation_profile
 
 # Edit the model to configure its properties
-swamp model edit my-fhirdatastore
+swamp model edit my-data_transformation_profile
 
 # Create the resource in AWS
-swamp model method run my-fhirdatastore create
+swamp model method run my-data_transformation_profile create
 
 # Sync current state from AWS
-swamp model method run my-fhirdatastore sync
+swamp model method run my-data_transformation_profile sync
 ```
 
 ## License

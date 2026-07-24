@@ -50,6 +50,46 @@ const SlurmCustomSettingSchema = z.object({
   ),
 });
 
+const ScriptSourceSchema = z.object({
+  Checksum: z.string().min(64).max(64).regex(new RegExp("^[a-fA-F0-9]{64}$"))
+    .describe(
+      "A 64-character hexadecimal SHA-256 digest used to verify script integrity.",
+    ).optional(),
+  S3VersionId: z.string().max(1024).describe(
+    "The S3 object version ID of the script, when stored in a versioned bucket.",
+  ).optional(),
+  ScriptLocation: z.string().min(1).max(1024).regex(
+    new RegExp("^(s3://[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]/.+|https://.+)$"),
+  ).describe("The S3 URI or HTTPS URL where the script is stored."),
+});
+
+const NodeLifecycleScriptSchema = z.object({
+  ExecutionPolicy: z.enum(["FIRST_BOOT_ONLY", "EVERY_BOOT"]).describe(
+    "Whether the script runs only on the node's first boot (FIRST_BOOT_ONLY) or on every boot including reboots (EVERY_BOOT). Defaults to FIRST_BOOT_ONLY.",
+  ).optional(),
+  Arguments: z.array(z.string().max(256)).describe(
+    "An ordered list of arguments passed to the script.",
+  ).optional(),
+  OnError: z.enum(["TERMINATE", "STOP_SEQUENCE", "CONTINUE"]).describe(
+    "The behavior when the script exits with an error. Defaults to TERMINATE.",
+  ).optional(),
+  ScriptSource: ScriptSourceSchema.describe(
+    "The external location of a lifecycle script.",
+  ),
+  Name: z.string().min(1).max(64).regex(
+    new RegExp("^[A-Za-z0-9][A-Za-z0-9 _-]*$"),
+  ).describe("A human-readable name that identifies the script."),
+});
+
+const NodeLifecycleStagesSchema = z.object({
+  NodeBootstrapped: z.array(NodeLifecycleScriptSchema).describe(
+    "Scripts to run after the node is bootstrapped, once the PCS configuration phase completes and before slurmd starts.",
+  ).optional(),
+  NodeReady: z.array(NodeLifecycleScriptSchema).describe(
+    "Scripts to execute when the node becomes ready (every boot).",
+  ).optional(),
+});
+
 const InstanceConfigSchema = z.object({
   InstanceType: z.string().describe(
     "The EC2 instance type that AWS PCS can provision in the compute node group.",
@@ -99,6 +139,16 @@ const GlobalArgsSchema = z.object({
   ),
   Name: z.string().describe("The name that identifies the compute node group.")
     .optional(),
+  NodeLifecycleActions: z.object({
+    ScriptCachingPolicy: z.enum(["CACHE_ONCE", "REFRESH_ON_REBOOT"]).describe(
+      "Controls whether lifecycle scripts are downloaded once at first boot (CACHE_ONCE) or re-downloaded on every reboot (REFRESH_ON_REBOOT). Defaults to CACHE_ONCE.",
+    ).optional(),
+    Stages: NodeLifecycleStagesSchema.describe(
+      "The ordered scripts to run at each compute node lifecycle stage.",
+    ),
+  }).describe(
+    "Custom scripts that run at defined points in a compute node's lifecycle.",
+  ).optional(),
   ScalingConfiguration: z.object({
     MaxInstanceCount: z.number().int().min(0).describe(
       "The upper bound of the number of instances allowed in the compute fleet.",
@@ -158,6 +208,10 @@ const StateSchema = z.object({
   }).optional(),
   SubnetIds: z.array(z.string()).optional(),
   Name: z.string().optional(),
+  NodeLifecycleActions: z.object({
+    ScriptCachingPolicy: z.string(),
+    Stages: NodeLifecycleStagesSchema,
+  }).optional(),
   ScalingConfiguration: z.object({
     MaxInstanceCount: z.number(),
     MinInstanceCount: z.number(),
@@ -209,6 +263,16 @@ const InputsSchema = z.object({
   ).optional(),
   Name: z.string().describe("The name that identifies the compute node group.")
     .optional(),
+  NodeLifecycleActions: z.object({
+    ScriptCachingPolicy: z.enum(["CACHE_ONCE", "REFRESH_ON_REBOOT"]).describe(
+      "Controls whether lifecycle scripts are downloaded once at first boot (CACHE_ONCE) or re-downloaded on every reboot (REFRESH_ON_REBOOT). Defaults to CACHE_ONCE.",
+    ).optional(),
+    Stages: NodeLifecycleStagesSchema.describe(
+      "The ordered scripts to run at each compute node lifecycle stage.",
+    ).optional(),
+  }).describe(
+    "Custom scripts that run at defined points in a compute node's lifecycle.",
+  ).optional(),
   ScalingConfiguration: z.object({
     MaxInstanceCount: z.number().int().min(0).describe(
       "The upper bound of the number of instances allowed in the compute fleet.",
@@ -271,7 +335,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for PCS ComputeNodeGroup. Registered at `@swamp/aws/pcs/compute-node-group`. */
 export const model = {
   type: "@swamp/aws/pcs/compute-node-group",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -321,6 +385,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: NodeLifecycleActions",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -175,6 +175,9 @@ const GlobalArgsSchema = z.object({
     RuleBasedProperties: RuleBasedPropertiesSchema.optional(),
     RuleConditionProperties: RuleConditionPropertiesSchema.optional(),
     ProviderProperties: ProviderPropertiesSchema.optional(),
+    EnableRealTimeMatching: z.boolean().describe(
+      "Enables the workflow to use real-time matching. Can only be set on creation for RULE_MATCHING workflows that define RuleConditionProperties.",
+    ).optional(),
   }),
   RoleArn: z.string().regex(
     new RegExp(
@@ -197,6 +200,7 @@ const StateSchema = z.object({
     RuleBasedProperties: RuleBasedPropertiesSchema,
     RuleConditionProperties: RuleConditionPropertiesSchema,
     ProviderProperties: ProviderPropertiesSchema,
+    EnableRealTimeMatching: z.boolean(),
   }).optional(),
   RoleArn: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
@@ -228,6 +232,9 @@ const InputsSchema = z.object({
     RuleBasedProperties: RuleBasedPropertiesSchema.optional(),
     RuleConditionProperties: RuleConditionPropertiesSchema.optional(),
     ProviderProperties: ProviderPropertiesSchema.optional(),
+    EnableRealTimeMatching: z.boolean().describe(
+      "Enables the workflow to use real-time matching. Can only be set on creation for RULE_MATCHING workflows that define RuleConditionProperties.",
+    ).optional(),
   }).optional(),
   RoleArn: z.string().regex(
     new RegExp(
@@ -259,7 +266,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EntityResolution MatchingWorkflow. Registered at `@swamp/aws/entityresolution/matching-workflow`. */
 export const model = {
   type: "@swamp/aws/entityresolution/matching-workflow",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -303,6 +310,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -411,7 +423,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["WorkflowName"],
+          ["WorkflowName", "EnableRealTimeMatching"],
           credentials,
         );
         const handle = await context.writeResource(

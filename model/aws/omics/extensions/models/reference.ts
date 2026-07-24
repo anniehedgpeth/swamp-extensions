@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/controlcatalog/common-control
+// Auto-generated extension model for @swamp/aws/omics/reference
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for ControlCatalog CommonControl (AWS::ControlCatalog::CommonControl).
+ * Swamp extension model for Omics Reference (AWS::Omics::Reference).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -51,23 +51,36 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
+  ReferenceStoreId: z.string().min(10).max(36).regex(new RegExp("^[0-9]+$"))
+    .describe("The reference's reference store ID.").optional(),
+  Name: z.string().min(3).max(255).regex(
+    new RegExp("^[\\p{L}||\\p{M}||\\p{Z}||\\p{S}||\\p{N}||\\p{P}]+$", "u"),
+  ).describe("The reference's name.").optional(),
+  Description: z.string().min(1).max(255).regex(
+    new RegExp("^[\\p{L}||\\p{M}||\\p{Z}||\\p{S}||\\p{N}||\\p{P}]+$", "u"),
+  ).describe("The reference's description.").optional(),
+  Tags: z.array(z.object({
+    Key: z.string().min(1).max(128),
+    Value: z.string().min(0).max(256),
+  })).describe("Tags for the reference.").optional(),
 });
 
 const StateSchema = z.object({
   Arn: z.string(),
-  CommonControlId: z.string().optional(),
+  Id: z.string().optional(),
+  ReferenceStoreId: z.string().optional(),
   Name: z.string().optional(),
   Description: z.string().optional(),
-  Domain: z.object({
-    Arn: z.string(),
-    Name: z.string(),
-  }).optional(),
-  Objective: z.object({
-    Arn: z.string(),
-    Name: z.string(),
-  }).optional(),
-  CreateTime: z.string().optional(),
-  LastUpdateTime: z.string().optional(),
+  Md5: z.string().optional(),
+  Status: z.string().optional(),
+  CreationTime: z.string().optional(),
+  UpdateTime: z.string().optional(),
+  CreationType: z.string().optional(),
+  CreationJobId: z.string().optional(),
+  Tags: z.array(z.object({
+    Key: z.string(),
+    Value: z.string(),
+  })).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -78,6 +91,18 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
+  ReferenceStoreId: z.string().min(10).max(36).regex(new RegExp("^[0-9]+$"))
+    .describe("The reference's reference store ID.").optional(),
+  Name: z.string().min(3).max(255).regex(
+    new RegExp("^[\\p{L}||\\p{M}||\\p{Z}||\\p{S}||\\p{N}||\\p{P}]+$", "u"),
+  ).describe("The reference's name.").optional(),
+  Description: z.string().min(1).max(255).regex(
+    new RegExp("^[\\p{L}||\\p{M}||\\p{Z}||\\p{S}||\\p{N}||\\p{P}]+$", "u"),
+  ).describe("The reference's description.").optional(),
+  Tags: z.array(z.object({
+    Key: z.string().min(1).max(128).optional(),
+    Value: z.string().min(0).max(256).optional(),
+  })).describe("Tags for the reference.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -96,22 +121,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for ControlCatalog CommonControl. Registered at `@swamp/aws/controlcatalog/common-control`. */
+/** Swamp extension model for Omics Reference. Registered at `@swamp/aws/omics/reference`. */
 export const model = {
-  type: "@swamp/aws/controlcatalog/common-control",
-  version: "2026.07.18.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.18.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
+  type: "@swamp/aws/omics/reference",
+  version: "2026.07.24.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "ControlCatalog CommonControl resource state",
+      description: "Omics Reference resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -119,16 +137,16 @@ export const model = {
   },
   methods: {
     get: {
-      description: "Get a ControlCatalog CommonControl",
+      description: "Get a Omics Reference",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the ControlCatalog CommonControl",
+          "The primary identifier of the Omics Reference",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::ControlCatalog::CommonControl",
+          "AWS::Omics::Reference",
           args.identifier,
           credentials,
         ) as StateData;
@@ -146,7 +164,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync ControlCatalog CommonControl state from AWS",
+      description: "Sync Omics Reference state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -170,7 +188,7 @@ export const model = {
         }
         try {
           const result = await readResource(
-            "AWS::ControlCatalog::CommonControl",
+            "AWS::Omics::Reference",
             identifier,
             credentials,
           ) as StateData;

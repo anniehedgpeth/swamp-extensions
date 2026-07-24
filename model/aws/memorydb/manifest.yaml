@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/memorydb"
-version: "2026.07.20.1"
+version: "2026.07.24.1"
 description: "AWS MEMORYDB infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,11 +9,15 @@ labels:
   - memorydb
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: multi_region_parameter_group, reserved_node
 models:
   - acl.ts
   - cluster.ts
   - multi_region_cluster.ts
+  - multi_region_parameter_group.ts
   - parameter_group.ts
+  - reserved_node.ts
   - subnet_group.ts
   - user.ts
 additionalFiles:

@@ -355,6 +355,42 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Configuration used to group Apigee proxies or remote services with resources, method types, and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources and how many calls can be made (using the `quota` setting). **Note:** The `api_resources` setting cannot be specified for both the API product and operation group; otherwise the call will fail.",
   ).optional(),
+  payloadOperationGroup: z.object({
+    operationConfigs: z.array(z.object({
+      apiSource: z.string().describe(
+        "Required. Name of the API proxy with which the payload operations and quota are associated.",
+      ).optional(),
+      attributes: z.array(z.object({
+        name: z.unknown().describe("API key of the attribute.").optional(),
+        value: z.unknown().describe("Value of the attribute.").optional(),
+      })).describe("Optional. Custom attributes associated with the operation.")
+        .optional(),
+      operations: z.array(z.object({
+        operation: z.unknown().describe(
+          'Required. The operation name extracted from the request payload at runtime by the ParsePayload policy. For example, for MCP protocol requests, this could be `"tools/list"` or `"tools/call/get_weather"`. Wildcards are not supported.',
+        ).optional(),
+      })).describe(
+        "Required. List of payload operations for the API proxy to which quota will be applied.",
+      ).optional(),
+      quota: z.object({
+        interval: z.string().describe(
+          "Required. Time interval over which the number of request messages is calculated.",
+        ).optional(),
+        limit: z.string().describe(
+          "Required. Upper limit allowed for the time interval and time unit specified. Requests exceeding this limit will be rejected.",
+        ).optional(),
+        timeUnit: z.string().describe(
+          "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
+        ).optional(),
+      }).describe(
+        "Optional. Quota parameters to be enforced for the operations and API source combination. If none are specified, quota enforcement will not be done unless a quota is defined at the API product level.",
+      ).optional(),
+    })).describe(
+      "Required. List of payload operation configurations for Apigee API proxies that are associated with this API product.",
+    ).optional(),
+  }).describe(
+    "Optional. Configuration used to group Apigee proxies with payload-based operations and quotas. Unlike `operation_group`, which matches on the URL path, this grouping matches on operation identifiers extracted from the request payload (for example, JSON-RPC method and tool names). This enables fine-grained authorization and quota enforcement for protocols such as MCP where multiple operations share a single endpoint. **Note:** The `proxies` and `api_resources` settings cannot be specified for both the API product and payload operation group; otherwise the call will fail.",
+  ).optional(),
   proxies: z.array(z.string()).describe(
     "Comma-separated list of API proxy names to which this API product is bound. By specifying API proxies, you can associate resources in the API product with specific API proxies, preventing developers from accessing those resources through other API proxies. Apigee rejects requests to API proxies that are not listed. **Note:** The API proxy names must already exist in the specified environment as they will be validated upon creation.",
   ).optional(),
@@ -467,6 +503,23 @@ const StateSchema = z.object({
       operations: z.array(z.object({
         methods: z.unknown(),
         resource: z.unknown(),
+      })),
+      quota: z.object({
+        interval: z.string(),
+        limit: z.string(),
+        timeUnit: z.string(),
+      }),
+    })),
+  }).optional(),
+  payloadOperationGroup: z.object({
+    operationConfigs: z.array(z.object({
+      apiSource: z.string(),
+      attributes: z.array(z.object({
+        name: z.unknown(),
+        value: z.unknown(),
+      })),
+      operations: z.array(z.object({
+        operation: z.unknown(),
       })),
       quota: z.object({
         interval: z.string(),
@@ -690,6 +743,42 @@ const InputsSchema = z.object({
   }).describe(
     "Configuration used to group Apigee proxies or remote services with resources, method types, and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources and how many calls can be made (using the `quota` setting). **Note:** The `api_resources` setting cannot be specified for both the API product and operation group; otherwise the call will fail.",
   ).optional(),
+  payloadOperationGroup: z.object({
+    operationConfigs: z.array(z.object({
+      apiSource: z.string().describe(
+        "Required. Name of the API proxy with which the payload operations and quota are associated.",
+      ).optional(),
+      attributes: z.array(z.object({
+        name: z.unknown().describe("API key of the attribute.").optional(),
+        value: z.unknown().describe("Value of the attribute.").optional(),
+      })).describe("Optional. Custom attributes associated with the operation.")
+        .optional(),
+      operations: z.array(z.object({
+        operation: z.unknown().describe(
+          'Required. The operation name extracted from the request payload at runtime by the ParsePayload policy. For example, for MCP protocol requests, this could be `"tools/list"` or `"tools/call/get_weather"`. Wildcards are not supported.',
+        ).optional(),
+      })).describe(
+        "Required. List of payload operations for the API proxy to which quota will be applied.",
+      ).optional(),
+      quota: z.object({
+        interval: z.string().describe(
+          "Required. Time interval over which the number of request messages is calculated.",
+        ).optional(),
+        limit: z.string().describe(
+          "Required. Upper limit allowed for the time interval and time unit specified. Requests exceeding this limit will be rejected.",
+        ).optional(),
+        timeUnit: z.string().describe(
+          "Time unit defined for the `interval`. Valid values include `minute`, `hour`, `day`, or `month`. If `limit` and `interval` are valid, the default value is `hour`; otherwise, the default is null.",
+        ).optional(),
+      }).describe(
+        "Optional. Quota parameters to be enforced for the operations and API source combination. If none are specified, quota enforcement will not be done unless a quota is defined at the API product level.",
+      ).optional(),
+    })).describe(
+      "Required. List of payload operation configurations for Apigee API proxies that are associated with this API product.",
+    ).optional(),
+  }).describe(
+    "Optional. Configuration used to group Apigee proxies with payload-based operations and quotas. Unlike `operation_group`, which matches on the URL path, this grouping matches on operation identifiers extracted from the request payload (for example, JSON-RPC method and tool names). This enables fine-grained authorization and quota enforcement for protocols such as MCP where multiple operations share a single endpoint. **Note:** The `proxies` and `api_resources` settings cannot be specified for both the API product and payload operation group; otherwise the call will fail.",
+  ).optional(),
   proxies: z.array(z.string()).describe(
     "Comma-separated list of API proxy names to which this API product is bound. By specifying API proxies, you can associate resources in the API product with specific API proxies, preventing developers from accessing those resources through other API proxies. Apigee rejects requests to API proxies that are not listed. **Note:** The API proxy names must already exist in the specified environment as they will be validated upon creation.",
   ).optional(),
@@ -739,7 +828,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Apiproducts. Registered at `@swamp/gcp/apigee/apiproducts`. */
 export const model = {
   type: "@swamp/gcp/apigee/apiproducts",
-  version: "2026.07.21.3",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -877,6 +966,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: payloadOperationGroup",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -939,6 +1033,9 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["operationGroup"] !== undefined) {
           body["operationGroup"] = g["operationGroup"];
+        }
+        if (g["payloadOperationGroup"] !== undefined) {
+          body["payloadOperationGroup"] = g["payloadOperationGroup"];
         }
         if (g["proxies"] !== undefined) body["proxies"] = g["proxies"];
         if (g["quota"] !== undefined) body["quota"] = g["quota"];
@@ -1095,6 +1192,9 @@ export const model = {
         }
         if (g["operationGroup"] !== undefined) {
           body["operationGroup"] = g["operationGroup"];
+        }
+        if (g["payloadOperationGroup"] !== undefined) {
+          body["payloadOperationGroup"] = g["payloadOperationGroup"];
         }
         if (g["proxies"] !== undefined) body["proxies"] = g["proxies"];
         if (g["quota"] !== undefined) body["quota"] = g["quota"];

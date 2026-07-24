@@ -1,0 +1,19 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/aws/usernotifications"
+version: "2026.07.24.1"
+description: "AWS USERNOTIFICATIONS infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - aws
+  - usernotifications
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added: managed_notification_configuration
+models:
+  - managed_notification_configuration.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

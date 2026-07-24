@@ -127,6 +127,7 @@ const StateSchema = z.object({
   productsManagement: z.object({}).optional(),
   provider: z.string().optional(),
   providerDisplayName: z.string().optional(),
+  ucpCheckoutManagement: z.object({}).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -165,7 +166,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.Services. Registered at `@swamp/gcp/merchantapi/accounts-services`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-services",
-  version: "2026.07.21.1",
+  version: "2026.07.24.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

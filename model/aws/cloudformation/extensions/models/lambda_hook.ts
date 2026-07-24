@@ -113,6 +113,22 @@ const GlobalArgsSchema = z.object({
   ExecutionRole: z.string().max(256).regex(
     new RegExp("arn:.+:iam::[0-9]{12}:role/.+"),
   ).describe("The execution role ARN assumed by Hooks to invoke Lambda."),
+  AutoUpdate: z.boolean().describe(
+    "Whether to automatically update the extension in this account and Region when a new minor version is published by the extension publisher.",
+  ).optional(),
+  LoggingConfig: z.object({
+    LogGroupName: z.string().min(1).max(512).regex(
+      new RegExp("^[\\.\\-_/#A-Za-z0-9]+$"),
+    ).describe(
+      "The Amazon CloudWatch Logs group to which CloudFormation sends error logging information when invoking the extension's handlers.",
+    ),
+    LogRoleArn: z.string().min(1).max(256).regex(
+      new RegExp("arn:.+:iam::[0-9]{12}:role/.+"),
+    ).describe(
+      "The ARN of the role that CloudFormation should assume when sending log entries to CloudWatch Logs.",
+    ),
+  }).describe("Contains logging configuration information for the hook.")
+    .optional(),
 });
 
 const StateSchema = z.object({
@@ -135,6 +151,11 @@ const StateSchema = z.object({
   Alias: z.string().optional(),
   HookArn: z.string(),
   ExecutionRole: z.string().optional(),
+  AutoUpdate: z.boolean().optional(),
+  LoggingConfig: z.object({
+    LogGroupName: z.string(),
+    LogRoleArn: z.string(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -202,6 +223,22 @@ const InputsSchema = z.object({
     new RegExp("arn:.+:iam::[0-9]{12}:role/.+"),
   ).describe("The execution role ARN assumed by Hooks to invoke Lambda.")
     .optional(),
+  AutoUpdate: z.boolean().describe(
+    "Whether to automatically update the extension in this account and Region when a new minor version is published by the extension publisher.",
+  ).optional(),
+  LoggingConfig: z.object({
+    LogGroupName: z.string().min(1).max(512).regex(
+      new RegExp("^[\\.\\-_/#A-Za-z0-9]+$"),
+    ).describe(
+      "The Amazon CloudWatch Logs group to which CloudFormation sends error logging information when invoking the extension's handlers.",
+    ).optional(),
+    LogRoleArn: z.string().min(1).max(256).regex(
+      new RegExp("arn:.+:iam::[0-9]{12}:role/.+"),
+    ).describe(
+      "The ARN of the role that CloudFormation should assume when sending log entries to CloudWatch Logs.",
+    ).optional(),
+  }).describe("Contains logging configuration information for the hook.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -223,7 +260,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudFormation LambdaHook. Registered at `@swamp/aws/cloudformation/lambda-hook`. */
 export const model = {
   type: "@swamp/aws/cloudformation/lambda-hook",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -268,6 +305,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: AutoUpdate, LoggingConfig",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -377,7 +419,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["Alias"],
+          ["Alias", "AutoUpdate", "LoggingConfig"],
           credentials,
         );
         const handle = await context.writeResource(

@@ -72,7 +72,7 @@ const GlobalArgsSchema = z.object({
   Parameters: z.record(z.string(), z.unknown()).describe(
     "Provides a list of parameters for the DB cluster parameter group.",
   ),
-  DBClusterParameterGroupName: z.string().regex(
+  DBClusterParameterGroupName: z.string().min(1).regex(
     new RegExp("^[a-zA-Z]{1}(?:-?[a-zA-Z0-9])*$"),
   ).describe(
     "The name of the DB cluster parameter group. Constraints: Must not match the name of an existing DB cluster parameter group. This value is stored as a lowercase string.",
@@ -106,7 +106,7 @@ const InputsSchema = z.object({
   Parameters: z.record(z.string(), z.unknown()).describe(
     "Provides a list of parameters for the DB cluster parameter group.",
   ).optional(),
-  DBClusterParameterGroupName: z.string().regex(
+  DBClusterParameterGroupName: z.string().min(1).regex(
     new RegExp("^[a-zA-Z]{1}(?:-?[a-zA-Z0-9])*$"),
   ).describe(
     "The name of the DB cluster parameter group. Constraints: Must not match the name of an existing DB cluster parameter group. This value is stored as a lowercase string.",
@@ -135,7 +135,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for RDS DBClusterParameterGroup. Registered at `@swamp/aws/rds/dbcluster-parameter-group`. */
 export const model = {
   type: "@swamp/aws/rds/dbcluster-parameter-group",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -179,6 +179,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

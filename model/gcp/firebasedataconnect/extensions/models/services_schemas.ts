@@ -202,6 +202,14 @@ const GlobalArgsSchema = z.object({
     }).describe("HTTP GraphQL server webhook configurations.").optional(),
     postgresql: z.object({
       cloudSql: z.object({
+        edition: z.enum([
+          "EDITION_UNSPECIFIED",
+          "EDITION_ENTERPRISE",
+          "EDITION_ENTERPRISE_PLUS",
+          "EDITION_DEVELOPER",
+        ]).describe(
+          "Output only. [Output only] The Cloud SQL instance edition.",
+        ).optional(),
         instance: z.string().describe(
           "Required. Name of the CloudSQL instance, in the format: ` projects/{project}/locations/{location}/instances/{instance} `",
         ).optional(),
@@ -279,6 +287,7 @@ const StateSchema = z.object({
     }),
     postgresql: z.object({
       cloudSql: z.object({
+        edition: z.string(),
         instance: z.string(),
       }),
       database: z.string(),
@@ -325,6 +334,14 @@ const InputsSchema = z.object({
     }).describe("HTTP GraphQL server webhook configurations.").optional(),
     postgresql: z.object({
       cloudSql: z.object({
+        edition: z.enum([
+          "EDITION_UNSPECIFIED",
+          "EDITION_ENTERPRISE",
+          "EDITION_ENTERPRISE_PLUS",
+          "EDITION_DEVELOPER",
+        ]).describe(
+          "Output only. [Output only] The Cloud SQL instance edition.",
+        ).optional(),
         instance: z.string().describe(
           "Required. Name of the CloudSQL instance, in the format: ` projects/{project}/locations/{location}/instances/{instance} `",
         ).optional(),
@@ -415,7 +432,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase SQL Connect Services.Schemas. Registered at `@swamp/gcp/firebasedataconnect/services-schemas`. */
 export const model = {
   type: "@swamp/gcp/firebasedataconnect/services-schemas",
-  version: "2026.07.21.4",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -574,6 +591,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/ssm"
-version: "2026.07.20.1"
+version: "2026.07.24.1"
 description: "AWS SSM infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,16 +9,20 @@ labels:
   - ssm
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: ops_item, session
 models:
   - association.ts
   - document.ts
   - maintenance_window.ts
   - maintenance_window_target.ts
   - maintenance_window_task.ts
+  - ops_item.ts
   - parameter.ts
   - patch_baseline.ts
   - resource_data_sync.ts
   - resource_policy.ts
+  - session.ts
 additionalFiles:
   - LICENSE.txt
   - README.md

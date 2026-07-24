@@ -1292,6 +1292,13 @@ const GlobalArgsSchema = z.object({
   subaccountId: z.string().describe(
     "Subaccount ID of this creative. This field, if left unset, will be auto-generated for both insert and update operations. Applicable to all creative types.",
   ).optional(),
+  syntheticContentAttestationStatus: z.enum([
+    "SYNTHETIC_CONTENT_ATTESTATION_STATUS_UNSPECIFIED",
+    "IS_SYNTHETIC",
+    "NOT_SYNTHETIC",
+  ]).describe(
+    "Optional. Whether to add a label to the creative as created or edited using AI when served in regions with local AI labeling regulations. [Learn more about labeling requirements in AI regulations.](https://support.google.com/campaignmanager/answer/17232030)",
+  ).optional(),
   thirdPartyBackupImageImpressionsUrl: z.string().describe(
     "Third-party URL used to record backup image impressions. Applicable to the following creative types: all RICH_MEDIA.",
   ).optional(),
@@ -1807,6 +1814,7 @@ const StateSchema = z.object({
   studioCreativeId: z.string().optional(),
   studioTraffickedCreativeId: z.string().optional(),
   subaccountId: z.string().optional(),
+  syntheticContentAttestationStatus: z.string().optional(),
   thirdPartyBackupImageImpressionsUrl: z.string().optional(),
   thirdPartyRichMediaImpressionsUrl: z.string().optional(),
   thirdPartyUrls: z.array(z.object({
@@ -2978,6 +2986,13 @@ const InputsSchema = z.object({
   subaccountId: z.string().describe(
     "Subaccount ID of this creative. This field, if left unset, will be auto-generated for both insert and update operations. Applicable to all creative types.",
   ).optional(),
+  syntheticContentAttestationStatus: z.enum([
+    "SYNTHETIC_CONTENT_ATTESTATION_STATUS_UNSPECIFIED",
+    "IS_SYNTHETIC",
+    "NOT_SYNTHETIC",
+  ]).describe(
+    "Optional. Whether to add a label to the creative as created or edited using AI when served in regions with local AI labeling regulations. [Learn more about labeling requirements in AI regulations.](https://support.google.com/campaignmanager/answer/17232030)",
+  ).optional(),
   thirdPartyBackupImageImpressionsUrl: z.string().describe(
     "Third-party URL used to record backup image impressions. Applicable to the following creative types: all RICH_MEDIA.",
   ).optional(),
@@ -3194,7 +3209,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Creatives. Registered at `@swamp/gcp/dfareporting/creatives`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/creatives",
-  version: "2026.07.21.4",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3339,6 +3354,11 @@ export const model = {
     {
       toVersion: "2026.07.21.4",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: syntheticContentAttestationStatus",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -3500,6 +3520,10 @@ export const model = {
         }
         if (g["subaccountId"] !== undefined) {
           body["subaccountId"] = g["subaccountId"];
+        }
+        if (g["syntheticContentAttestationStatus"] !== undefined) {
+          body["syntheticContentAttestationStatus"] =
+            g["syntheticContentAttestationStatus"];
         }
         if (g["thirdPartyBackupImageImpressionsUrl"] !== undefined) {
           body["thirdPartyBackupImageImpressionsUrl"] =
@@ -3744,6 +3768,10 @@ export const model = {
         }
         if (g["subaccountId"] !== undefined) {
           body["subaccountId"] = g["subaccountId"];
+        }
+        if (g["syntheticContentAttestationStatus"] !== undefined) {
+          body["syntheticContentAttestationStatus"] =
+            g["syntheticContentAttestationStatus"];
         }
         if (g["thirdPartyBackupImageImpressionsUrl"] !== undefined) {
           body["thirdPartyBackupImageImpressionsUrl"] =

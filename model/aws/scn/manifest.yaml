@@ -1,0 +1,20 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/aws/scn"
+version: "2026.07.24.1"
+description: "AWS SCN infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - aws
+  - scn
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added: dataset, namespace
+models:
+  - dataset.ts
+  - namespace.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

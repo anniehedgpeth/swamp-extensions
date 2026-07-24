@@ -168,6 +168,24 @@ const InstanceRequirementsSchema = z.object({
   ),
 });
 
+const PatchScheduleSchema = z.object({
+  NextPatchDate: z.string().describe(
+    "The date and time of the next scheduled patch, set by the system when a patch AMI is detected.",
+  ).optional(),
+});
+
+const AutoPatchConfigSchema = z.object({
+  PatchingStrategy: z.enum(["WhenIdle", "WhenAllIdle"]).describe(
+    "The patching strategy that determines when and how instances are patched. WhenIdle patches instances as they become idle. WhenAllIdle patches all instances when they are all idle.",
+  ),
+  PatchSchedule: PatchScheduleSchema.describe(
+    "The schedule configuration for automatic patching.",
+  ).optional(),
+  DeploymentConfig: DeploymentConfigSchema.describe(
+    "The configuration to use when updating the AMI versions.",
+  ).optional(),
+});
+
 const ClusterInstanceGroupSchema = z.object({
   SlurmConfig: ClusterSlurmConfigSchema.describe(
     "Slurm configuration for the instance group.",
@@ -227,6 +245,9 @@ const ClusterInstanceGroupSchema = z.object({
   ).optional(),
   InstanceType: z.string().describe(
     "The instance type of the instance group of a SageMaker HyperPod cluster.",
+  ).optional(),
+  AutoPatchConfig: AutoPatchConfigSchema.describe(
+    "The configuration for automatic patching of the instance group. Enables workload-aware, patch-level AMI updates.",
   ).optional(),
   ExecutionRole: z.string().min(20).max(2048).regex(
     new RegExp("^arn:aws[a-z\\-]*:iam::\\d{12}:role/?[a-zA-Z_0-9+=,.@\\-_/]+$"),
@@ -513,7 +534,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for SageMaker Cluster. Registered at `@swamp/aws/sagemaker/cluster`. */
 export const model = {
   type: "@swamp/aws/sagemaker/cluster",
-  version: "2026.06.17.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -593,6 +614,11 @@ export const model = {
     {
       toVersion: "2026.06.17.1",
       description: "Added: RestrictedInstanceGroupsConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

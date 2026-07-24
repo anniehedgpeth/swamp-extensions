@@ -395,6 +395,13 @@ const GlobalArgsSchema = z.object({
   skippable: z.boolean().describe(
     "Optional. Whether the user can choose to skip a video creative. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
+  syntheticContentAttestationStatus: z.enum([
+    "SYNTHETIC_CONTENT_ATTESTATION_STATUS_UNSPECIFIED",
+    "NOT_SYNTHETIC",
+    "IS_SYNTHETIC",
+  ]).describe(
+    "Optional. Whether the creative contains synthetic content or was created using AI.",
+  ).optional(),
   thirdPartyTag: z.string().describe(
     "Optional. The original third-party tag used for the creative. Required and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_STANDARD` * `CREATIVE_TYPE_EXPANDABLE`",
   ).optional(),
@@ -546,6 +553,7 @@ const StateSchema = z.object({
     seconds: z.string(),
   }).optional(),
   skippable: z.boolean().optional(),
+  syntheticContentAttestationStatus: z.string().optional(),
   thirdPartyTag: z.string().optional(),
   thirdPartyUrls: z.array(z.object({
     type: z.string(),
@@ -807,6 +815,13 @@ const InputsSchema = z.object({
   skippable: z.boolean().describe(
     "Optional. Whether the user can choose to skip a video creative. This field is only supported for the following creative_type: * `CREATIVE_TYPE_VIDEO`",
   ).optional(),
+  syntheticContentAttestationStatus: z.enum([
+    "SYNTHETIC_CONTENT_ATTESTATION_STATUS_UNSPECIFIED",
+    "NOT_SYNTHETIC",
+    "IS_SYNTHETIC",
+  ]).describe(
+    "Optional. Whether the creative contains synthetic content or was created using AI.",
+  ).optional(),
   thirdPartyTag: z.string().describe(
     "Optional. The original third-party tag used for the creative. Required and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_STANDARD` * `CREATIVE_TYPE_EXPANDABLE`",
   ).optional(),
@@ -892,7 +907,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.Creatives. Registered at `@swamp/gcp/displayvideo/advertisers-creatives`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-creatives",
-  version: "2026.07.21.3",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1016,6 +1031,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.24.1",
+      description: "Added: syntheticContentAttestationStatus",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1098,6 +1118,10 @@ export const model = {
         }
         if (g["skipOffset"] !== undefined) body["skipOffset"] = g["skipOffset"];
         if (g["skippable"] !== undefined) body["skippable"] = g["skippable"];
+        if (g["syntheticContentAttestationStatus"] !== undefined) {
+          body["syntheticContentAttestationStatus"] =
+            g["syntheticContentAttestationStatus"];
+        }
         if (g["thirdPartyTag"] !== undefined) {
           body["thirdPartyTag"] = g["thirdPartyTag"];
         }
@@ -1264,6 +1288,10 @@ export const model = {
         }
         if (g["skipOffset"] !== undefined) body["skipOffset"] = g["skipOffset"];
         if (g["skippable"] !== undefined) body["skippable"] = g["skippable"];
+        if (g["syntheticContentAttestationStatus"] !== undefined) {
+          body["syntheticContentAttestationStatus"] =
+            g["syntheticContentAttestationStatus"];
+        }
         if (g["thirdPartyTag"] !== undefined) {
           body["thirdPartyTag"] = g["thirdPartyTag"];
         }

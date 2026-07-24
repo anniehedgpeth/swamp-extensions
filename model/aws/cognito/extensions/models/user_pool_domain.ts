@@ -66,6 +66,7 @@ const GlobalArgsSchema = z.object({
   Domain: z.string(),
   CustomDomainConfig: z.object({
     CertificateArn: z.string().optional(),
+    SecurityPolicy: z.string().optional(),
   }).optional(),
   ManagedLoginVersion: z.number().int().optional(),
   Routing: z.object({
@@ -78,6 +79,7 @@ const StateSchema = z.object({
   Domain: z.string(),
   CustomDomainConfig: z.object({
     CertificateArn: z.string(),
+    SecurityPolicy: z.string(),
   }).optional(),
   CloudFrontDistribution: z.string().optional(),
   ManagedLoginVersion: z.number().optional(),
@@ -98,6 +100,7 @@ const InputsSchema = z.object({
   Domain: z.string().optional(),
   CustomDomainConfig: z.object({
     CertificateArn: z.string().optional(),
+    SecurityPolicy: z.string().optional(),
   }).optional(),
   ManagedLoginVersion: z.number().int().optional(),
   Routing: z.object({
@@ -124,7 +127,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Cognito UserPoolDomain. Registered at `@swamp/aws/cognito/user-pool-domain`. */
 export const model = {
   type: "@swamp/aws/cognito/user-pool-domain",
-  version: "2026.06.23.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -169,6 +172,11 @@ export const model = {
     {
       toVersion: "2026.06.23.1",
       description: "Added: Routing",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -82,6 +82,7 @@ const StateSchema = z.object({
   GroupName: z.string(),
   SpreadLevel: z.string().optional(),
   PartitionCount: z.number().optional(),
+  GroupId: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
 }).passthrough();
 
@@ -124,7 +125,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EC2 PlacementGroup. Registered at `@swamp/aws/ec2/placement-group`. */
 export const model = {
   type: "@swamp/aws/ec2/placement-group",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -163,6 +164,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

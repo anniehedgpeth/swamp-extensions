@@ -14,8 +14,9 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/imagebuilder/component` to see the
-full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/aws/imagebuilder/all_image_build_versions`
+to see the full list of configurable properties and available methods for this
+model.
 
 ## Authentication
 
@@ -47,17 +48,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new component model
-swamp model create @swamp/aws/imagebuilder/component my-component
+# Create a new all_image_build_versions model
+swamp model create @swamp/aws/imagebuilder/all_image_build_versions my-all_image_build_versions
 
 # Edit the model to configure its properties
-swamp model edit my-component
+swamp model edit my-all_image_build_versions
 
 # Create the resource in AWS
-swamp model method run my-component create
+swamp model method run my-all_image_build_versions create
 
 # Sync current state from AWS
-swamp model method run my-component sync
+swamp model method run my-all_image_build_versions sync
 ```
 
 ## License

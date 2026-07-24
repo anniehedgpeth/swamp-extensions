@@ -41,6 +41,7 @@ import {
   isResourceNotFoundError,
   listResources,
   readResource,
+  updateResource,
 } from "./_lib/gcp.ts";
 
 const BASE_URL = "https://displayvideo.googleapis.com/";
@@ -80,6 +81,29 @@ const INSERT_CONFIG = {
   },
 } as const;
 
+const PATCH_CONFIG = {
+  "id": "displayvideo.advertisers.adAssets.patch",
+  "path": "v4/advertisers/{+advertiserId}/adAssets/{+adAssetId}",
+  "httpMethod": "PATCH",
+  "parameterOrder": [
+    "advertiserId",
+    "adAssetId",
+  ],
+  "parameters": {
+    "adAssetId": {
+      "location": "path",
+      "required": true,
+    },
+    "advertiserId": {
+      "location": "path",
+      "required": true,
+    },
+    "updateMask": {
+      "location": "query",
+    },
+  },
+} as const;
+
 const LIST_CONFIG = {
   "id": "displayvideo.advertisers.adAssets.list",
   "path": "v4/advertisers/{+advertiserId}/adAssets",
@@ -115,9 +139,6 @@ const _defaultOAuthScopes: string[] = [
 ];
 
 const GlobalArgsSchema = z.object({
-  name: z.string().describe(
-    "Instance name for this resource (used as the unique identifier in the factory pattern)",
-  ),
   accessToken: z.string().meta({ sensitive: true }).describe(
     "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -149,6 +170,13 @@ const GlobalArgsSchema = z.object({
     ]).describe("Output only. The entity status of the ad asset.").optional(),
     name: z.string().describe("Identifier. The resource name of the ad asset.")
       .optional(),
+    syntheticContentAttestationStatus: z.enum([
+      "SYNTHETIC_CONTENT_ATTESTATION_STATUS_UNSPECIFIED",
+      "NOT_SYNTHETIC",
+      "IS_SYNTHETIC",
+    ]).describe(
+      "Optional. Whether the asset contains synthetic content or was created using AI.",
+    ).optional(),
     youtubeVideoAsset: z.object({
       youtubeVideoId: z.string().describe(
         "Required. The YouTube video id of the asset. This is the 11 char string value used in the YouTube video URL.",
@@ -157,6 +185,36 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Required. The ad asset to create. Only supports assets of AdAssetType `AD_ASSET_TYPE_YOUTUBE_VIDEO`.",
   ).optional(),
+  adAssetId: z.string().describe(
+    "Output only. The ID of the ad asset. Referred to as the asset ID when assigned to an ad.",
+  ).optional(),
+  adAssetType: z.enum([
+    "AD_ASSET_TYPE_UNSPECIFIED",
+    "AD_ASSET_TYPE_IMAGE",
+    "AD_ASSET_TYPE_YOUTUBE_VIDEO",
+  ]).describe("Required. The type of the ad asset.").optional(),
+  entityStatus: z.enum([
+    "ENTITY_STATUS_UNSPECIFIED",
+    "ENTITY_STATUS_ACTIVE",
+    "ENTITY_STATUS_ARCHIVED",
+    "ENTITY_STATUS_DRAFT",
+    "ENTITY_STATUS_PAUSED",
+    "ENTITY_STATUS_SCHEDULED_FOR_DELETION",
+  ]).describe("Output only. The entity status of the ad asset.").optional(),
+  name: z.string().describe("Identifier. The resource name of the ad asset.")
+    .optional(),
+  syntheticContentAttestationStatus: z.enum([
+    "SYNTHETIC_CONTENT_ATTESTATION_STATUS_UNSPECIFIED",
+    "NOT_SYNTHETIC",
+    "IS_SYNTHETIC",
+  ]).describe(
+    "Optional. Whether the asset contains synthetic content or was created using AI.",
+  ).optional(),
+  youtubeVideoAsset: z.object({
+    youtubeVideoId: z.string().describe(
+      "Required. The YouTube video id of the asset. This is the 11 char string value used in the YouTube video URL.",
+    ).optional(),
+  }).describe("Youtube video asset data.").optional(),
   advertiserId: z.string().describe(
     "Required. The ID of the advertiser this ad asset belongs to.",
   ),
@@ -167,6 +225,7 @@ const StateSchema = z.object({
   adAssetType: z.string().optional(),
   entityStatus: z.string().optional(),
   name: z.string(),
+  syntheticContentAttestationStatus: z.string().optional(),
   youtubeVideoAsset: z.object({
     youtubeVideoId: z.string(),
   }).optional(),
@@ -175,7 +234,6 @@ const StateSchema = z.object({
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
-  name: z.string().optional(),
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
@@ -199,6 +257,13 @@ const InputsSchema = z.object({
     ]).describe("Output only. The entity status of the ad asset.").optional(),
     name: z.string().describe("Identifier. The resource name of the ad asset.")
       .optional(),
+    syntheticContentAttestationStatus: z.enum([
+      "SYNTHETIC_CONTENT_ATTESTATION_STATUS_UNSPECIFIED",
+      "NOT_SYNTHETIC",
+      "IS_SYNTHETIC",
+    ]).describe(
+      "Optional. Whether the asset contains synthetic content or was created using AI.",
+    ).optional(),
     youtubeVideoAsset: z.object({
       youtubeVideoId: z.string().describe(
         "Required. The YouTube video id of the asset. This is the 11 char string value used in the YouTube video URL.",
@@ -207,6 +272,36 @@ const InputsSchema = z.object({
   }).describe(
     "Required. The ad asset to create. Only supports assets of AdAssetType `AD_ASSET_TYPE_YOUTUBE_VIDEO`.",
   ).optional(),
+  adAssetId: z.string().describe(
+    "Output only. The ID of the ad asset. Referred to as the asset ID when assigned to an ad.",
+  ).optional(),
+  adAssetType: z.enum([
+    "AD_ASSET_TYPE_UNSPECIFIED",
+    "AD_ASSET_TYPE_IMAGE",
+    "AD_ASSET_TYPE_YOUTUBE_VIDEO",
+  ]).describe("Required. The type of the ad asset.").optional(),
+  entityStatus: z.enum([
+    "ENTITY_STATUS_UNSPECIFIED",
+    "ENTITY_STATUS_ACTIVE",
+    "ENTITY_STATUS_ARCHIVED",
+    "ENTITY_STATUS_DRAFT",
+    "ENTITY_STATUS_PAUSED",
+    "ENTITY_STATUS_SCHEDULED_FOR_DELETION",
+  ]).describe("Output only. The entity status of the ad asset.").optional(),
+  name: z.string().describe("Identifier. The resource name of the ad asset.")
+    .optional(),
+  syntheticContentAttestationStatus: z.enum([
+    "SYNTHETIC_CONTENT_ATTESTATION_STATUS_UNSPECIFIED",
+    "NOT_SYNTHETIC",
+    "IS_SYNTHETIC",
+  ]).describe(
+    "Optional. Whether the asset contains synthetic content or was created using AI.",
+  ).optional(),
+  youtubeVideoAsset: z.object({
+    youtubeVideoId: z.string().describe(
+      "Required. The YouTube video id of the asset. This is the 11 char string value used in the YouTube video URL.",
+    ).optional(),
+  }).describe("Youtube video asset data.").optional(),
   advertiserId: z.string().describe(
     "Required. The ID of the advertiser this ad asset belongs to.",
   ).optional(),
@@ -235,7 +330,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.AdAssets. Registered at `@swamp/gcp/displayvideo/advertisers-adassets`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-adassets",
-  version: "2026.07.21.3",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -337,6 +432,12 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.24.1",
+      description:
+        "Added: adAssetId, adAssetType, entityStatus, syntheticContentAttestationStatus, youtubeVideoAsset",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -370,13 +471,16 @@ export const model = {
           body,
           GET_CONFIG,
           undefined,
-          undefined,
+          {
+            listConfig: LIST_CONFIG,
+            listParams: { "advertiserId": String(g["advertiserId"] ?? "") },
+            matchField: "name",
+            matchValue: String(g["name"] ?? ""),
+          },
           credentials,
         ) as StateData;
-        const instanceName = (g.name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName = ((g.name ?? result.name)?.toString() ?? "current")
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -405,10 +509,89 @@ export const model = {
           params,
           credentials,
         ) as StateData;
-        const instanceName = (g.name?.toString() ?? args.identifier).replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName =
+          ((g.name ?? result.name)?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update adAssets attributes",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific adAssets by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const params: Record<string, string> = { project: projectId };
+        if (g["advertiserId"] !== undefined) {
+          params["advertiserId"] = String(g["advertiserId"]);
+        } else if (existing["advertiserId"]) {
+          params["advertiserId"] = String(existing["advertiserId"]);
+        }
+        params["adAssetId"] = existing["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (g["adAssetType"] !== undefined) {
+          body["adAssetType"] = g["adAssetType"];
+        }
+        if (g["entityStatus"] !== undefined) {
+          body["entityStatus"] = g["entityStatus"];
+        }
+        if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["syntheticContentAttestationStatus"] !== undefined) {
+          body["syntheticContentAttestationStatus"] =
+            g["syntheticContentAttestationStatus"];
+        }
+        if (g["youtubeVideoAsset"] !== undefined) {
+          body["youtubeVideoAsset"] = g["youtubeVideoAsset"];
+        }
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
+        for (const key of Object.keys(existing)) {
+          if (
+            key === "fingerprint" || key === "labelFingerprint" ||
+            key === "etag" || key.endsWith("Fingerprint")
+          ) {
+            body[key] = existing[key];
+          }
+        }
+        const result = await updateResource(
+          BASE_URL,
+          PATCH_CONFIG,
+          params,
+          body,
+          GET_CONFIG,
+          undefined,
+          credentials,
+        ) as StateData;
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -581,6 +764,7 @@ export const model = {
       arguments: z.object({
         adAssetType: z.any().optional(),
         filename: z.any().optional(),
+        syntheticContentAttestationStatus: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
@@ -595,6 +779,10 @@ export const model = {
           body["adAssetType"] = args["adAssetType"];
         }
         if (args["filename"] !== undefined) body["filename"] = args["filename"];
+        if (args["syntheticContentAttestationStatus"] !== undefined) {
+          body["syntheticContentAttestationStatus"] =
+            args["syntheticContentAttestationStatus"];
+        }
         const result = await createResource(
           BASE_URL,
           {

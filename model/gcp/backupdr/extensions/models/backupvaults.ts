@@ -210,7 +210,7 @@ const GlobalArgsSchema = z.object({
     "UNRESTRICTED",
     "WITHIN_ORG_BUT_UNRESTRICTED_FOR_BA",
   ]).describe(
-    "Optional. Note: This field is added for future use case and will not be supported in the current release. Access restriction for the backup vault. Default value is WITHIN_ORGANIZATION if not provided during creation.",
+    "Optional. Restricts access to certain sources and destinations for data being sent into, or restored from, the backup vault. Defaults to WITHIN_ORGANIZATION if not provided during creation.",
   ).optional(),
   annotations: z.record(z.string(), z.string()).describe(
     "Optional. User annotations. See https://google.aip.dev/128#annotations Stores small amounts of arbitrary data.",
@@ -289,7 +289,7 @@ const InputsSchema = z.object({
     "UNRESTRICTED",
     "WITHIN_ORG_BUT_UNRESTRICTED_FOR_BA",
   ]).describe(
-    "Optional. Note: This field is added for future use case and will not be supported in the current release. Access restriction for the backup vault. Default value is WITHIN_ORGANIZATION if not provided during creation.",
+    "Optional. Restricts access to certain sources and destinations for data being sent into, or restored from, the backup vault. Defaults to WITHIN_ORGANIZATION if not provided during creation.",
   ).optional(),
   annotations: z.record(z.string(), z.string()).describe(
     "Optional. User annotations. See https://google.aip.dev/128#annotations Stores small amounts of arbitrary data.",
@@ -353,7 +353,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service BackupVaults. Registered at `@swamp/gcp/backupdr/backupvaults`. */
 export const model = {
   type: "@swamp/gcp/backupdr/backupvaults",
-  version: "2026.07.21.3",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -472,6 +472,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

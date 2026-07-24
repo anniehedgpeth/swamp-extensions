@@ -110,6 +110,28 @@ const CustomClaimValidationTypeSchema = z.object({
   ),
 });
 
+const HostingEnvironmentSchema = z.object({
+  Arn: z.string().min(20).max(1011).describe(
+    "The ARN of the bedrock-agentcore hosting environment",
+  ),
+});
+
+const AllowedWorkloadConfigurationSchema = z.object({
+  HostingEnvironments: z.array(HostingEnvironmentSchema).describe(
+    "List of allow-listed hosting environments",
+  ).optional(),
+  WorkloadIdentities: z.array(
+    z.string().min(3).max(255).regex(new RegExp("^[A-Za-z0-9_.-]+$")),
+  ).describe("List of allow-listed workload identity names").optional(),
+});
+
+const PrivateEndpointOverrideSchema = z.object({
+  Domain: z.string().min(1).max(253).describe("The domain to override"),
+  PrivateEndpoint: z.record(z.string(), z.unknown()).describe(
+    "Private endpoint configuration. Exactly one of SelfManagedLatticeResource or ManagedVpcResource must be specified.",
+  ),
+});
+
 const CustomJWTAuthorizerConfigurationSchema = z.object({
   DiscoveryUrl: z.string().regex(
     new RegExp("^.+/\\.well-known/openid-configuration$"),
@@ -123,6 +145,15 @@ const CustomJWTAuthorizerConfigurationSchema = z.object({
   ).describe("List of allowed scopes").optional(),
   CustomClaims: z.array(CustomClaimValidationTypeSchema).describe(
     "List of required custom claims",
+  ).optional(),
+  AllowedWorkloadConfiguration: AllowedWorkloadConfigurationSchema.describe(
+    "Allow-list of upstream workloads permitted to reach this resource via the workload identity chain. When set, the data plane enforces that the introspected workload chain's caller matches one of the configured hosting environments or workload identities; absent means no chain enforcement.",
+  ).optional(),
+  PrivateEndpoint: z.record(z.string(), z.unknown()).describe(
+    "Private endpoint configuration. Exactly one of SelfManagedLatticeResource or ManagedVpcResource must be specified.",
+  ).optional(),
+  PrivateEndpointOverrides: z.array(PrivateEndpointOverrideSchema).describe(
+    "List of private endpoint overrides",
   ).optional(),
 });
 
@@ -375,7 +406,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore Runtime. Registered at `@swamp/aws/bedrockagentcore/runtime`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/runtime",
-  version: "2026.06.15.1",
+  version: "2026.07.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -429,6 +460,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

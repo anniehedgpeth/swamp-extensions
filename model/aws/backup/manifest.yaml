@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/backup"
-version: "2026.07.20.1"
+version: "2026.07.24.1"
 description: "AWS BACKUP infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,11 +9,14 @@ labels:
   - backup
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: legal_hold
 models:
   - backup_plan.ts
   - backup_selection.ts
   - backup_vault.ts
   - framework.ts
+  - legal_hold.ts
   - logically_air_gapped_backup_vault.ts
   - report_plan.ts
   - restore_testing_plan.ts
