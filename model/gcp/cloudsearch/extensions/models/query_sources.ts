@@ -56,6 +56,9 @@ const LIST_CONFIG = {
     "requestOptions.clientDisplayLanguageCode": {
       "location": "query",
     },
+    "requestOptions.countryCode": {
+      "location": "query",
+    },
     "requestOptions.debugOptions.enableDebugging": {
       "location": "query",
     },
@@ -157,7 +160,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Search Query.Sources. Registered at `@swamp/gcp/cloudsearch/query-sources`. */
 export const model = {
   type: "@swamp/gcp/cloudsearch/query-sources",
-  version: "2026.07.21.3",
+  version: "2026.07.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -294,6 +297,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -404,6 +412,9 @@ export const model = {
         requestOptions_clientDisplayLanguageCode: z.string().describe(
           'The BCP-47 language code, such as "pt" or "en". It represents the user\'s preferred Display Language.',
         ).optional(),
+        requestOptions_countryCode: z.string().describe(
+          "Optional. Specifies where the query originated (9/2005: needed by navboost-mustang) Values are go/iii RegionCode (alpha-2 only), but lowercase and using 'uk' instead of 'gb' for the United Kingdom. Use CanonicalRegionConverter (C++) or RegionCode (Java) for parsing.",
+        ).optional(),
         requestOptions_debugOptions_enableDebugging: z.boolean().describe(
           "If you are asked by Google to help with debugging, set this field. Otherwise, ignore this field.",
         ).optional(),
@@ -428,6 +439,11 @@ export const model = {
         if (args["requestOptions_clientDisplayLanguageCode"] !== undefined) {
           params["requestOptions.clientDisplayLanguageCode"] = String(
             args["requestOptions_clientDisplayLanguageCode"],
+          );
+        }
+        if (args["requestOptions_countryCode"] !== undefined) {
+          params["requestOptions.countryCode"] = String(
+            args["requestOptions_countryCode"],
           );
         }
         if (args["requestOptions_debugOptions_enableDebugging"] !== undefined) {

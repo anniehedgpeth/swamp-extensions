@@ -179,6 +179,13 @@ const GlobalArgsSchema = z.object({
   publicationTosUrl: z.string().describe(
     "Optional. The URL to the publisher's own Terms of Service.",
   ).optional(),
+  publicationType: z.enum([
+    "PUBLICATION_TYPE_UNSPECIFIED",
+    "FOR_PROFIT",
+    "NON_PROFIT",
+  ]).describe(
+    "Optional. The publication entity type (for-profit vs non-profit). Defaults to FOR_PROFIT if omitted.",
+  ).optional(),
   regionCode: z.string().describe(
     'Required. The ISO 3166-1 alpha-2 region code where the publication is registered (e.g., "US").',
   ).optional(),
@@ -190,6 +197,9 @@ const GlobalArgsSchema = z.object({
       "Output only. The URL to the product-specific Terms of Service.",
     ).optional(),
     tosAcceptance: z.object({
+      emailOptIn: z.boolean().describe(
+        "Optional. Whether the user opted in to receive product updates and email communications.",
+      ).optional(),
       signer: z.string().describe(
         "Optional. The name of the person who accepted the TOS.",
       ).optional(),
@@ -239,11 +249,13 @@ const StateSchema = z.object({
   publicationId: z.string().optional(),
   publicationPrivacyPolicyUrl: z.string().optional(),
   publicationTosUrl: z.string().optional(),
+  publicationType: z.string().optional(),
   regionCode: z.string().optional(),
   rrmProduct: z.object({
     enabled: z.boolean(),
     productTosUrl: z.string(),
     tosAcceptance: z.object({
+      emailOptIn: z.boolean(),
       signer: z.string(),
       signerTitle: z.string(),
       userAccepted: z.boolean(),
@@ -297,6 +309,13 @@ const InputsSchema = z.object({
   publicationTosUrl: z.string().describe(
     "Optional. The URL to the publisher's own Terms of Service.",
   ).optional(),
+  publicationType: z.enum([
+    "PUBLICATION_TYPE_UNSPECIFIED",
+    "FOR_PROFIT",
+    "NON_PROFIT",
+  ]).describe(
+    "Optional. The publication entity type (for-profit vs non-profit). Defaults to FOR_PROFIT if omitted.",
+  ).optional(),
   regionCode: z.string().describe(
     'Required. The ISO 3166-1 alpha-2 region code where the publication is registered (e.g., "US").',
   ).optional(),
@@ -308,6 +327,9 @@ const InputsSchema = z.object({
       "Output only. The URL to the product-specific Terms of Service.",
     ).optional(),
     tosAcceptance: z.object({
+      emailOptIn: z.boolean().describe(
+        "Optional. Whether the user opted in to receive product updates and email communications.",
+      ).optional(),
       signer: z.string().describe(
         "Optional. The name of the person who accepted the TOS.",
       ).optional(),
@@ -357,7 +379,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Content Publisher Publications. Registered at `@swamp/gcp/webcontentpublisher/publications`. */
 export const model = {
   type: "@swamp/gcp/webcontentpublisher/publications",
-  version: "2026.07.21.2",
+  version: "2026.07.25.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -395,6 +417,11 @@ export const model = {
     {
       toVersion: "2026.07.21.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.25.1",
+      description: "Added: publicationType",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -439,6 +466,9 @@ export const model = {
         }
         if (g["publicationTosUrl"] !== undefined) {
           body["publicationTosUrl"] = g["publicationTosUrl"];
+        }
+        if (g["publicationType"] !== undefined) {
+          body["publicationType"] = g["publicationType"];
         }
         if (g["regionCode"] !== undefined) body["regionCode"] = g["regionCode"];
         if (g["rrmProduct"] !== undefined) body["rrmProduct"] = g["rrmProduct"];
@@ -565,6 +595,9 @@ export const model = {
         }
         if (g["publicationTosUrl"] !== undefined) {
           body["publicationTosUrl"] = g["publicationTosUrl"];
+        }
+        if (g["publicationType"] !== undefined) {
+          body["publicationType"] = g["publicationType"];
         }
         if (g["regionCode"] !== undefined) body["regionCode"] = g["regionCode"];
         if (g["rrmProduct"] !== undefined) body["rrmProduct"] = g["rrmProduct"];

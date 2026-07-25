@@ -278,7 +278,7 @@ const GlobalArgsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+        "Optional. Deprecated: Automatic Feature management is in Preview and is unavailable in version 1.21.0 and later, after which Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent but helps prevent compatibility issues with newer fields.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -638,7 +638,7 @@ const GlobalArgsSchema = z.object({
           "MANAGEMENT_AUTOMATIC",
           "MANAGEMENT_MANUAL",
         ]).describe(
-          "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+          "Optional. Deprecated: Automatic Feature management is in Preview and is unavailable in version 1.21.0 and later, after which Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent but helps prevent compatibility issues with newer fields.",
         ).optional(),
         policyController: z.object({
           auditIntervalSeconds: z.string().describe(
@@ -870,6 +870,13 @@ const GlobalArgsSchema = z.object({
         "VALIDATION_DISABLED",
       ]).describe(
         "Optional. Specifies modernization compatibility for the fleet.",
+      ).optional(),
+      modernizationStrategy: z.enum([
+        "MODERNIZATION_STRATEGY_UNSPECIFIED",
+        "AUTOMATIC",
+        "DEFERRED",
+      ]).describe(
+        "Optional. Declares your intended modernization strategy for the fleet.",
       ).optional(),
     }).describe("Servicemesh feature spec.").optional(),
     multiclusteringress: z.object({
@@ -1081,6 +1088,7 @@ const StateSchema = z.object({
     }),
     mesh: z.object({
       modernizationCompatibility: z.string(),
+      modernizationStrategy: z.string(),
     }),
     multiclusteringress: z.object({
       configMembership: z.string(),
@@ -1259,7 +1267,7 @@ const InputsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+        "Optional. Deprecated: Automatic Feature management is in Preview and is unavailable in version 1.21.0 and later, after which Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent but helps prevent compatibility issues with newer fields.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -1619,7 +1627,7 @@ const InputsSchema = z.object({
           "MANAGEMENT_AUTOMATIC",
           "MANAGEMENT_MANUAL",
         ]).describe(
-          "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+          "Optional. Deprecated: Automatic Feature management is in Preview and is unavailable in version 1.21.0 and later, after which Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent but helps prevent compatibility issues with newer fields.",
         ).optional(),
         policyController: z.object({
           auditIntervalSeconds: z.string().describe(
@@ -1852,6 +1860,13 @@ const InputsSchema = z.object({
       ]).describe(
         "Optional. Specifies modernization compatibility for the fleet.",
       ).optional(),
+      modernizationStrategy: z.enum([
+        "MODERNIZATION_STRATEGY_UNSPECIFIED",
+        "AUTOMATIC",
+        "DEFERRED",
+      ]).describe(
+        "Optional. Declares your intended modernization strategy for the fleet.",
+      ).optional(),
     }).describe("Servicemesh feature spec.").optional(),
     multiclusteringress: z.object({
       configMembership: z.string().describe(
@@ -1903,7 +1918,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Features. Registered at `@swamp/gcp/gkehub/features`. */
 export const model = {
   type: "@swamp/gcp/gkehub/features",
-  version: "2026.07.21.1",
+  version: "2026.07.25.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

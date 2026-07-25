@@ -244,6 +244,7 @@ const StateSchema = z.object({
     softFailoverStartTime: z.string(),
   }).optional(),
   reservationGroup: z.string().optional(),
+  reservationGroupPath: z.array(z.string()).optional(),
   scalingMode: z.string().optional(),
   schedulingPolicy: z.object({
     concurrency: z.string(),
@@ -350,7 +351,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Reservation Reservations. Registered at `@swamp/gcp/bigqueryreservation/reservations`. */
 export const model = {
   type: "@swamp/gcp/bigqueryreservation/reservations",
-  version: "2026.07.21.3",
+  version: "2026.07.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -472,6 +473,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

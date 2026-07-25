@@ -294,7 +294,7 @@ const GlobalArgsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+        "Optional. Deprecated: Automatic Feature management is in Preview and is unavailable in version 1.21.0 and later, after which Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent but helps prevent compatibility issues with newer fields.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -1136,7 +1136,7 @@ const InputsSchema = z.object({
         "MANAGEMENT_AUTOMATIC",
         "MANAGEMENT_MANUAL",
       ]).describe(
-        "Optional. Deprecated: In Preview, automatic Feature management is unavailable from version 1.21.0 onwards, and Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent.",
+        "Optional. Deprecated: Automatic Feature management is in Preview and is unavailable in version 1.21.0 and later, after which Config Sync only supports manual upgrades. If set to manual upgrades, clear this field instead, which is behaviorally equivalent but helps prevent compatibility issues with newer fields.",
       ).optional(),
       policyController: z.object({
         auditIntervalSeconds: z.string().describe(
@@ -1462,7 +1462,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Memberships.Features. Registered at `@swamp/gcp/gkehub/memberships-features`. */
 export const model = {
   type: "@swamp/gcp/gkehub/memberships-features",
-  version: "2026.07.21.4",
+  version: "2026.07.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1629,6 +1629,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

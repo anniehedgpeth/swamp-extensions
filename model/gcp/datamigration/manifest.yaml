@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/datamigration"
-version: "2026.07.21.4"
+version: "2026.07.25.1"
 description: "Google Cloud datamigration infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: locations, migrationjobs
+  - Updated: conversionworkspaces_mappingrules
 models:
   - connectionprofiles.ts
   - conversionworkspaces.ts
