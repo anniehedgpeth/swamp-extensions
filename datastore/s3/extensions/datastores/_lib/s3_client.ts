@@ -44,6 +44,8 @@ import {
   S3Client as AwsS3Client,
 } from "npm:@aws-sdk/client-s3@3.1090.0";
 import { Readable } from "node:stream";
+import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
+import { Attr, getTracer } from "./tracing.ts";
 
 export interface S3ClientConfig {
   bucket: string;
@@ -459,30 +461,75 @@ export class S3Client {
     | DeleteObjectCommandOutput
     | ListObjectsV2CommandOutput
   > {
-    const opts = signal ? { abortSignal: signal } : undefined;
-    try {
-      if (cmd instanceof HeadBucketCommand) {
-        return await this.client.send(cmd, opts);
+    return await getTracer().startActiveSpan(`S3 ${op}`, async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "aws-api",
+        [Attr.RPC_SERVICE]: "S3",
+        [Attr.RPC_METHOD]: op,
+        [Attr.AWS_S3_BUCKET]: this.bucket,
+      });
+
+      const inputKey = (cmd as { input?: { Key?: string } }).input?.Key;
+      if (inputKey) {
+        const logicalKey = this.prefix && inputKey.startsWith(this.prefix + "/")
+          ? inputKey.slice(this.prefix.length + 1)
+          : inputKey;
+        span.setAttribute(Attr.AWS_S3_KEY, logicalKey);
       }
-      if (cmd instanceof HeadObjectCommand) {
-        return await this.client.send(cmd, opts);
+
+      const opts = signal ? { abortSignal: signal } : undefined;
+      try {
+        let result:
+          | HeadBucketCommandOutput
+          | HeadObjectCommandOutput
+          | GetObjectCommandOutput
+          | PutObjectCommandOutput
+          | CopyObjectCommandOutput
+          | DeleteObjectCommandOutput
+          | ListObjectsV2CommandOutput;
+
+        if (cmd instanceof HeadBucketCommand) {
+          result = await this.client.send(cmd, opts);
+        } else if (cmd instanceof HeadObjectCommand) {
+          result = await this.client.send(cmd, opts);
+        } else if (cmd instanceof GetObjectCommand) {
+          result = await this.client.send(cmd, opts);
+        } else if (cmd instanceof PutObjectCommand) {
+          result = await this.client.send(cmd, opts);
+        } else if (cmd instanceof CopyObjectCommand) {
+          result = await this.client.send(cmd, opts);
+        } else if (cmd instanceof DeleteObjectCommand) {
+          result = await this.client.send(cmd, opts);
+        } else {
+          result = await this.client.send(cmd, opts);
+        }
+
+        const meta = (result as {
+          $metadata?: { httpStatusCode?: number; requestId?: string };
+        })
+          .$metadata;
+        if (meta?.httpStatusCode != null) {
+          span.setAttribute(
+            Attr.HTTP_RESPONSE_STATUS_CODE,
+            meta.httpStatusCode,
+          );
+        }
+        if (meta?.requestId) {
+          span.setAttribute(Attr.AWS_REQUEST_ID, meta.requestId);
+        }
+
+        return result;
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        throw this.wrapError(op, err);
+      } finally {
+        span.end();
       }
-      if (cmd instanceof GetObjectCommand) {
-        return await this.client.send(cmd, opts);
-      }
-      if (cmd instanceof PutObjectCommand) {
-        return await this.client.send(cmd, opts);
-      }
-      if (cmd instanceof CopyObjectCommand) {
-        return await this.client.send(cmd, opts);
-      }
-      if (cmd instanceof DeleteObjectCommand) {
-        return await this.client.send(cmd, opts);
-      }
-      return await this.client.send(cmd, opts);
-    } catch (err) {
-      throw this.wrapError(op, err);
-    }
+    });
   }
 
   private wrapError(op: string, err: unknown): Error {
@@ -565,38 +612,59 @@ export class S3Client {
    * terminates a hung connection.
    */
   async preflightCredentials(signal?: AbortSignal): Promise<void> {
-    const probe = this.headBucket(signal);
-    probe.catch(() => {});
+    return await getTracer().startActiveSpan(
+      "S3 preflightCredentials",
+      async (span) => {
+        try {
+          const probe = this.headBucket(signal);
+          probe.catch(() => {});
 
-    let timer: ReturnType<typeof setTimeout>;
-    const timeout = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () =>
-          reject(
-            new S3OperationError(
-              `Credential preflight timed out after ${PREFLIGHT_TIMEOUT_MS}ms — ` +
-                `verify that AWS credentials are configured ` +
-                `(AWS_ACCESS_KEY_ID, AWS_PROFILE, or attached IAM role) ` +
-                `and that the credential source is responsive`,
-              {
-                name: "TimeoutError",
-                cause: undefined,
-                httpStatusCode: undefined,
-                code: undefined,
-                requestId: undefined,
-                bodyPreview: undefined,
-              },
-            ),
-          ),
-        PREFLIGHT_TIMEOUT_MS,
-      );
-    });
+          let timer: ReturnType<typeof setTimeout>;
+          const timeout = new Promise<never>((_, reject) => {
+            timer = setTimeout(
+              () =>
+                reject(
+                  new S3OperationError(
+                    `Credential preflight timed out after ${PREFLIGHT_TIMEOUT_MS}ms — ` +
+                      `verify that AWS credentials are configured ` +
+                      `(AWS_ACCESS_KEY_ID, AWS_PROFILE, or attached IAM role) ` +
+                      `and that the credential source is responsive`,
+                    {
+                      name: "TimeoutError",
+                      cause: undefined,
+                      httpStatusCode: undefined,
+                      code: undefined,
+                      requestId: undefined,
+                      bodyPreview: undefined,
+                    },
+                  ),
+                ),
+              PREFLIGHT_TIMEOUT_MS,
+            );
+          });
 
-    try {
-      await Promise.race([probe, timeout]);
-    } finally {
-      clearTimeout(timer!);
-    }
+          try {
+            await Promise.race([probe, timeout]);
+          } finally {
+            clearTimeout(timer!);
+          }
+        } catch (err) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: err instanceof Error ? err.message : String(err),
+          });
+          span.recordException(
+            err instanceof Error ? err : new Error(String(err)),
+          );
+          if (err instanceof Error) {
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   /**
@@ -727,28 +795,35 @@ export class S3Client {
     body: Uint8Array,
     signal?: AbortSignal,
   ): Promise<boolean> {
-    try {
-      await this.run(
-        "putObjectConditional",
-        new PutObjectCommand({
-          Bucket: this.bucket,
-          Key: this.fullKey(key),
-          Body: body,
-          IfNoneMatch: "*",
-        }),
-        signal,
-      );
-      return true;
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        (error.name === "PreconditionFailed" ||
-          error.name === "ConditionalCheckFailed")
-      ) {
-        return false;
-      }
-      throw error;
-    }
+    return await getTracer().startActiveSpan(
+      "S3 putObjectConditional",
+      async (span) => {
+        try {
+          await this.run(
+            "putObjectConditional",
+            new PutObjectCommand({
+              Bucket: this.bucket,
+              Key: this.fullKey(key),
+              Body: body,
+              IfNoneMatch: "*",
+            }),
+            signal,
+          );
+          return true;
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            (error.name === "PreconditionFailed" ||
+              error.name === "ConditionalCheckFailed")
+          ) {
+            return false;
+          }
+          throw error;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   /** Lists objects in S3 with the configured prefix. */
@@ -793,21 +868,39 @@ export class S3Client {
     subPrefix?: string,
     signal?: AbortSignal,
   ): Promise<S3ListEntry[]> {
-    const all: S3ListEntry[] = [];
-    let continuationToken: string | undefined;
+    return await getTracer().startActiveSpan(
+      "S3 listAllObjects",
+      async (span) => {
+        try {
+          const all: S3ListEntry[] = [];
+          let continuationToken: string | undefined;
 
-    do {
-      const result = await this.listObjects(
-        subPrefix,
-        continuationToken,
-        signal,
-      );
-      all.push(...result.entries);
-      continuationToken = result.truncated
-        ? result.continuationToken
-        : undefined;
-    } while (continuationToken);
+          do {
+            const result = await this.listObjects(
+              subPrefix,
+              continuationToken,
+              signal,
+            );
+            all.push(...result.entries);
+            continuationToken = result.truncated
+              ? result.continuationToken
+              : undefined;
+          } while (continuationToken);
 
-    return all;
+          return all;
+        } catch (err) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: err instanceof Error ? err.message : String(err),
+          });
+          span.recordException(
+            err instanceof Error ? err : new Error(String(err)),
+          );
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 }

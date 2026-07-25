@@ -26,8 +26,10 @@
  */
 
 import { hostname } from "node:os";
+import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
 import type { DistributedLock, LockInfo, LockOptions } from "./interfaces.ts";
 import type { S3Client } from "./s3_client.ts";
+import { Attr, getTracer } from "./tracing.ts";
 
 const DEFAULT_TTL_MS = 30_000;
 const DEFAULT_RETRY_INTERVAL_MS = 1_000;
@@ -121,125 +123,226 @@ export class S3Lock implements DistributedLock {
   }
 
   async acquire(): Promise<void> {
-    const startTime = Date.now();
-    this.releasing = false;
-    const nonce = crypto.randomUUID();
+    return await getTracer().startActiveSpan(
+      "s3-datastore lock acquire",
+      async (span) => {
+        span.setAttributes({
+          [Attr.LOCK_KEY]: this.lockKey,
+          [Attr.LOCK_TIMEOUT_MS]: this.maxWaitMs,
+          [Attr.LOCK_TTL_MS]: this.ttlMs,
+        });
+        const startTime = Date.now();
+        this.releasing = false;
+        const nonce = crypto.randomUUID();
+        let contended = false;
 
-    while (true) {
-      // Check timeout on every iteration — including retries after stale lock cleanup
-      const elapsed = Date.now() - startTime;
-      if (elapsed >= this.maxWaitMs) {
-        const existing = await this.readLock();
-        throw new LockTimeoutError(this.lockKey, existing, elapsed);
-      }
-
-      const info = buildLockInfo(this.ttlMs, nonce);
-      const body = encodeLockInfo(info);
-
-      // Attempt conditional write — atomic create
-      const created = await this.s3.putObjectConditional(this.lockKey, body);
-      if (created) {
-        this.nonce = nonce;
-        this.held = true;
-        this.startHeartbeat();
-        return;
-      }
-
-      // Lock exists — check if stale.
-      const existing = await this.readLock();
-      if (existing) {
-        const head = await this.s3.headObject(this.lockKey);
-        if (head.exists && head.lastModified) {
-          const lockAge = Date.now() - head.lastModified.getTime();
-          if (lockAge > existing.ttlMs) {
-            try {
-              await this.s3.deleteObject(this.lockKey);
-            } catch {
-              // Another process may have already cleaned it up
+        try {
+          while (true) {
+            // Check timeout on every iteration — including retries after stale lock cleanup
+            const elapsed = Date.now() - startTime;
+            if (elapsed >= this.maxWaitMs) {
+              const existing = await this.readLock();
+              span.setAttribute(Attr.LOCK_CONTENDED, true);
+              if (existing) {
+                span.setAttribute(
+                  Attr.LOCK_HOLDER,
+                  `${existing.holder} (pid ${existing.pid})`,
+                );
+              }
+              const err = new LockTimeoutError(
+                this.lockKey,
+                existing,
+                elapsed,
+              );
+              span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: err.message,
+              });
+              span.recordException(err);
+              throw err;
             }
-            // Backoff before the next iteration regardless of delete
-            // outcome. Without this, a tight head/delete loop can
-            // livelock against the real holder's heartbeat: every
-            // iteration reads a fresh lock, sees it stale, deletes,
-            // the heartbeat writes it back, repeat. Jittered sleep
-            // also spreads multiple stealing processes apart so they
-            // don't hammer the same key in lockstep.
-            await randomSleep(
-              STALE_STEAL_BACKOFF_MIN_MS,
-              STALE_STEAL_BACKOFF_MAX_MS,
-            );
-            continue; // Retry conditional write (timeout checked at top of loop)
-          }
-        }
-      }
 
-      // Wait and retry
-      await new Promise((resolve) => setTimeout(resolve, this.retryIntervalMs));
-    }
+            const info = buildLockInfo(this.ttlMs, nonce);
+            const body = encodeLockInfo(info);
+
+            // Attempt conditional write — atomic create
+            const created = await this.s3.putObjectConditional(
+              this.lockKey,
+              body,
+            );
+            if (created) {
+              this.nonce = nonce;
+              this.held = true;
+              this.startHeartbeat();
+              span.setAttributes({
+                [Attr.LOCK_WAIT_DURATION_MS]: Date.now() - startTime,
+                [Attr.LOCK_CONTENDED]: contended,
+              });
+              return;
+            }
+
+            contended = true;
+
+            // Lock exists — check if stale.
+            const existing = await this.readLock();
+            if (existing) {
+              const head = await this.s3.headObject(this.lockKey);
+              if (head.exists && head.lastModified) {
+                const lockAge = Date.now() - head.lastModified.getTime();
+                if (lockAge > existing.ttlMs) {
+                  try {
+                    await this.s3.deleteObject(this.lockKey);
+                  } catch {
+                    // Another process may have already cleaned it up
+                  }
+                  // Backoff before the next iteration regardless of delete
+                  // outcome. Without this, a tight head/delete loop can
+                  // livelock against the real holder's heartbeat: every
+                  // iteration reads a fresh lock, sees it stale, deletes,
+                  // the heartbeat writes it back, repeat. Jittered sleep
+                  // also spreads multiple stealing processes apart so they
+                  // don't hammer the same key in lockstep.
+                  await randomSleep(
+                    STALE_STEAL_BACKOFF_MIN_MS,
+                    STALE_STEAL_BACKOFF_MAX_MS,
+                  );
+                  continue; // Retry conditional write (timeout checked at top of loop)
+                }
+              }
+            }
+
+            // Wait and retry
+            await new Promise((resolve) =>
+              setTimeout(resolve, this.retryIntervalMs)
+            );
+          }
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async release(): Promise<void> {
-    // Set releasing flag BEFORE stopping heartbeat so any in-flight
-    // extend() sees it and skips writing — prevents orphaned lock files.
-    this.releasing = true;
-    this.stopHeartbeat();
+    return await getTracer().startActiveSpan(
+      "s3-datastore lock release",
+      async (span) => {
+        span.setAttribute(Attr.LOCK_KEY, this.lockKey);
+        try {
+          // Set releasing flag BEFORE stopping heartbeat so any in-flight
+          // extend() sees it and skips writing — prevents orphaned lock files.
+          this.releasing = true;
+          this.stopHeartbeat();
 
-    if (!this.held) return;
-    this.held = false;
-    const ourNonce = this.nonce;
-    this.nonce = undefined;
+          if (!this.held) return;
+          this.held = false;
+          const ourNonce = this.nonce;
+          this.nonce = undefined;
 
-    // Re-verify ownership via the lock body's nonce before deleting.
-    // Without this, a process whose heartbeat stalled (GC pause, network
-    // blip) long enough for another process to legitimately steal the
-    // stale lock will, on resume, delete the successor's live lock —
-    // orphaning work. The heartbeat's own fencing at extend() covers
-    // cases where a heartbeat tick runs between the steal and release;
-    // this guard covers the window from "last successful heartbeat" to
-    // "release() call" where no heartbeat tick fires.
-    //
-    // Portable across AWS and DO Spaces — no conditional DELETE needed.
-    // Residual TOCTOU window (readLock → deleteObject, tens of ms) is
-    // two orders of magnitude narrower than the full heartbeat interval.
-    try {
-      const current = await this.readLock();
-      if (!current || current.nonce !== ourNonce) {
-        console.warn(
-          `Lock ${this.lockKey} was taken over during hold; skipping delete to avoid orphaning the successor's work`,
-        );
-        return;
-      }
-      await this.s3.deleteObject(this.lockKey);
-    } catch (error) {
-      // Best-effort release — if S3 is unreachable, the lock expires via TTL
-      console.warn(
-        `Failed to delete lock ${this.lockKey} during release: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-    }
+          // Re-verify ownership via the lock body's nonce before deleting.
+          // Without this, a process whose heartbeat stalled (GC pause, network
+          // blip) long enough for another process to legitimately steal the
+          // stale lock will, on resume, delete the successor's live lock —
+          // orphaning work. The heartbeat's own fencing at extend() covers
+          // cases where a heartbeat tick runs between the steal and release;
+          // this guard covers the window from "last successful heartbeat" to
+          // "release() call" where no heartbeat tick fires.
+          //
+          // Portable across AWS and DO Spaces — no conditional DELETE needed.
+          // Residual TOCTOU window (readLock → deleteObject, tens of ms) is
+          // two orders of magnitude narrower than the full heartbeat interval.
+          try {
+            const current = await this.readLock();
+            if (!current || current.nonce !== ourNonce) {
+              console.warn(
+                `Lock ${this.lockKey} was taken over during hold; skipping delete to avoid orphaning the successor's work`,
+              );
+              return;
+            }
+            await this.s3.deleteObject(this.lockKey);
+          } catch (error) {
+            // Best-effort release — if S3 is unreachable, the lock expires via TTL
+            console.warn(
+              `Failed to delete lock ${this.lockKey} during release: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          }
+        } catch (error) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: error instanceof Error ? error.message : String(error),
+          });
+          span.recordException(
+            error instanceof Error ? error : new Error(String(error)),
+          );
+          throw error;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async withLock<T>(fn: () => Promise<T>): Promise<T> {
-    await this.acquire();
-    try {
-      return await fn();
-    } finally {
-      await this.release();
-    }
+    return await getTracer().startActiveSpan(
+      "s3-datastore lock withLock",
+      async (span) => {
+        span.setAttribute(Attr.LOCK_KEY, this.lockKey);
+        try {
+          await this.acquire();
+          try {
+            return await fn();
+          } finally {
+            await this.release();
+          }
+        } catch (error) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: error instanceof Error ? error.message : String(error),
+          });
+          span.recordException(
+            error instanceof Error ? error : new Error(String(error)),
+          );
+          throw error;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async inspect(): Promise<LockInfo | null> {
-    return await this.readLock();
+    return await getTracer().startActiveSpan(
+      "s3-datastore lock inspect",
+      async (span) => {
+        span.setAttribute(Attr.LOCK_KEY, this.lockKey);
+        try {
+          return await this.readLock();
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async forceRelease(expectedNonce: string): Promise<boolean> {
-    const current = await this.readLock();
-    if (!current || current.nonce !== expectedNonce) {
-      return false;
-    }
-    await this.s3.deleteObject(this.lockKey);
-    return true;
+    return await getTracer().startActiveSpan(
+      "s3-datastore lock forceRelease",
+      async (span) => {
+        span.setAttribute(Attr.LOCK_KEY, this.lockKey);
+        try {
+          const current = await this.readLock();
+          if (!current || current.nonce !== expectedNonce) {
+            return false;
+          }
+          await this.s3.deleteObject(this.lockKey);
+          return true;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   private async extend(): Promise<void> {

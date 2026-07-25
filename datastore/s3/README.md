@@ -109,6 +109,15 @@ export SWAMP_S3_REQUEST_TIMEOUT_MS=120000
   different `repoId` is rejected). `listNamespaces` scans the bucket for all
   registered namespace manifests and returns the namespace slugs.
 
+## Observability
+
+The extension emits [OpenTelemetry](https://opentelemetry.io/) spans for S3
+operations, lock acquisition/release, and push/pull sync. Spans are no-ops
+when no `TracerProvider` is configured in the host process. When swamp is
+running with OTel enabled, datastore activity appears in traces with
+attributes following OTel semantic conventions (bucket, key, HTTP status,
+request ID).
+
 ## Backward compatibility
 
 - Pre-v2 repos continue to write the monolithic `.datastore-index.json`

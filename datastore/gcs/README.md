@@ -253,6 +253,14 @@ The cache sync service maintains a local cache directory and syncs with GCS:
   transient-5xx-affected file may be billed up to 3× on Cloud
   Storage PUT metrics — by design, not a regression.
 
+## Observability
+
+The extension emits [OpenTelemetry](https://opentelemetry.io/) spans for GCS
+operations, lock acquisition/release, and push/pull sync. Spans are no-ops
+when no `TracerProvider` is configured in the host process. When swamp is
+running with OTel enabled, datastore activity appears in traces with
+attributes following OTel semantic conventions (bucket, key, HTTP status).
+
 ## Backward compatibility
 
 - Pre-v2 repos continue to write the monolithic `.datastore-index.json`

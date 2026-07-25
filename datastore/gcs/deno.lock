@@ -8,6 +8,7 @@
     "jsr:@std/path@1.1.4": "1.1.4",
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@systeminit/swamp-testing@0.20260331.5": "0.20260331.5",
+    "npm:@opentelemetry/api@1.9.0": "1.9.0",
     "npm:zod@4.3.6": "4.3.6"
   },
   "jsr": {
@@ -41,6 +42,9 @@
     }
   },
   "npm": {
+    "@opentelemetry/api@1.9.0": {
+      "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
+    },
     "zod@4.3.6": {
       "integrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg=="
     }
@@ -50,6 +54,7 @@
       "jsr:@std/fs@1",
       "jsr:@std/path@1",
       "jsr:@systeminit/swamp-testing@0.20260331.5",
+      "npm:@opentelemetry/api@1.9.0",
       "npm:zod@4.3.6"
     ]
   }

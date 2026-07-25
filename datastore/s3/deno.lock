@@ -10,6 +10,7 @@
     "npm:@aws-sdk/client-s3@3.1024.0": "3.1024.0",
     "npm:@aws-sdk/client-s3@3.1046.0": "3.1046.0",
     "npm:@aws-sdk/client-s3@3.1090.0": "3.1090.0",
+    "npm:@opentelemetry/api@1.9.0": "1.9.0",
     "npm:zod@4.3.6": "4.3.6"
   },
   "jsr": {
@@ -535,6 +536,9 @@
     "@aws/lambda-invoke-store@0.3.0": {
       "integrity": "sha512-sl4Bm6yiMNYrZKkqqDFWN0UfnWhlS8ivKxrYl+6t0gCLrqr8y3B2IqZZbFRkfaVVp7C/baApyh71P+LeE1A2sQ=="
     },
+    "@opentelemetry/api@1.9.0": {
+      "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
+    },
     "@smithy/config-resolver@4.5.1": {
       "integrity": "sha512-abXk3LhODsvRHsk0ZS9ztrg/fZatTa9Z/z4pgx65YSLR+rY6kvUG/1IgcDKEUciR8MfdnkT5oPeHJTy/HhzDIQ==",
       "dependencies": [
@@ -820,6 +824,7 @@
       "jsr:@std/path@1",
       "jsr:@systeminit/swamp-testing@0.20260331.5",
       "npm:@aws-sdk/client-s3@3.1090.0",
+      "npm:@opentelemetry/api@1.9.0",
       "npm:zod@4.3.6"
     ]
   }

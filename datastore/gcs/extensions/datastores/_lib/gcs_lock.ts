@@ -27,8 +27,10 @@
  */
 
 import { hostname } from "node:os";
+import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
 import type { DistributedLock, LockInfo, LockOptions } from "./interfaces.ts";
 import type { GcsClient } from "./gcs_client.ts";
+import { Attr, getTracer } from "./tracing.ts";
 
 const DEFAULT_TTL_MS = 30_000;
 const DEFAULT_RETRY_INTERVAL_MS = 1_000;
@@ -107,138 +109,200 @@ export class GcsLock implements DistributedLock {
   }
 
   async acquire(): Promise<void> {
-    const startTime = Date.now();
-    this.releasing = false;
-    const nonce = crypto.randomUUID();
+    return await getTracer().startActiveSpan(
+      "gcs-datastore lock acquire",
+      async (span) => {
+        span.setAttributes({
+          [Attr.LOCK_KEY]: this.lockKey,
+          [Attr.LOCK_TIMEOUT_MS]: this.maxWaitMs,
+          [Attr.LOCK_TTL_MS]: this.ttlMs,
+        });
+        const startTime = Date.now();
+        this.releasing = false;
+        const nonce = crypto.randomUUID();
+        let contended = false;
 
-    while (true) {
-      const elapsed = Date.now() - startTime;
-      if (elapsed >= this.maxWaitMs) {
-        const existing = await this.readLock();
-        throw new LockTimeoutError(this.lockKey, existing, elapsed);
-      }
-
-      const info = buildLockInfo(this.ttlMs, nonce);
-      const body = encodeLockInfo(info);
-
-      // Attempt conditional create — ifGenerationMatch=0
-      const result = await this.gcs.putObjectConditional(this.lockKey, body);
-      if (result) {
-        this.nonce = nonce;
-        this.generation = result.generation;
-        this.held = true;
-        this.startHeartbeat();
-        return;
-      }
-
-      // Lock exists — check if stale
-      const existing = await this.readLock();
-      if (existing) {
-        const meta = await this.gcs.getMetadata(this.lockKey);
-        if (meta.exists && meta.updated) {
-          const lockAge = Date.now() - meta.updated.getTime();
-          if (lockAge > existing.ttlMs) {
-            try {
-              // Delete the stale lock — use generation to avoid racing
-              // with another process that's also cleaning up
-              if (meta.generation) {
-                await this.gcs.deleteObject(this.lockKey, {
-                  ifGenerationMatch: meta.generation,
-                });
-              } else {
-                await this.gcs.deleteObject(this.lockKey);
+        try {
+          while (true) {
+            const elapsed = Date.now() - startTime;
+            if (elapsed >= this.maxWaitMs) {
+              const existing = await this.readLock();
+              const err = new LockTimeoutError(
+                this.lockKey,
+                existing,
+                elapsed,
+              );
+              span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: err.message,
+              });
+              span.recordException(err);
+              span.setAttribute(Attr.LOCK_CONTENDED, true);
+              if (existing) {
+                span.setAttribute(
+                  Attr.LOCK_HOLDER,
+                  `${existing.holder} (pid ${existing.pid})`,
+                );
               }
-            } catch {
-              // Another process may have already cleaned it up
+              throw err;
             }
-            // DEF-3B (ref lab/166): jittered sleep after every steal
-            // attempt — success AND failure paths — to avoid
-            // tight-looping against the real holder's heartbeat when
-            // two contenders race to reclaim a stale lock. 200-500ms
-            // matches the S3 #102 range. Applies regardless of the
-            // conditional-delete outcome: if we lost the CAS, a
-            // successor already stole, and we still want to back off
-            // before the next acquire attempt.
-            await new Promise((resolve) =>
-              setTimeout(resolve, 200 + Math.floor(Math.random() * 300))
-            );
-            continue;
-          }
-        }
-      }
 
-      await new Promise((resolve) => setTimeout(resolve, this.retryIntervalMs));
-    }
+            const info = buildLockInfo(this.ttlMs, nonce);
+            const body = encodeLockInfo(info);
+
+            const result = await this.gcs.putObjectConditional(
+              this.lockKey,
+              body,
+            );
+            if (result) {
+              this.nonce = nonce;
+              this.generation = result.generation;
+              this.held = true;
+              this.startHeartbeat();
+              span.setAttributes({
+                [Attr.LOCK_WAIT_DURATION_MS]: Date.now() - startTime,
+                [Attr.LOCK_CONTENDED]: contended,
+              });
+              return;
+            }
+
+            contended = true;
+
+            const existing = await this.readLock();
+            if (existing) {
+              const meta = await this.gcs.getMetadata(this.lockKey);
+              if (meta.exists && meta.updated) {
+                const lockAge = Date.now() - meta.updated.getTime();
+                if (lockAge > existing.ttlMs) {
+                  try {
+                    if (meta.generation) {
+                      await this.gcs.deleteObject(this.lockKey, {
+                        ifGenerationMatch: meta.generation,
+                      });
+                    } else {
+                      await this.gcs.deleteObject(this.lockKey);
+                    }
+                  } catch {
+                    // Another process may have already cleaned it up
+                  }
+                  await new Promise((resolve) =>
+                    setTimeout(
+                      resolve,
+                      200 + Math.floor(Math.random() * 300),
+                    )
+                  );
+                  continue;
+                }
+              }
+            }
+
+            await new Promise((resolve) =>
+              setTimeout(resolve, this.retryIntervalMs)
+            );
+          }
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async release(): Promise<void> {
-    this.releasing = true;
-    this.stopHeartbeat();
+    return await getTracer().startActiveSpan(
+      "gcs-datastore lock release",
+      async (span) => {
+        span.setAttribute(Attr.LOCK_KEY, this.lockKey);
+        try {
+          this.releasing = true;
+          this.stopHeartbeat();
 
-    if (!this.held) return;
-    this.held = false;
-    const gen = this.generation;
-    this.nonce = undefined;
-    this.generation = undefined;
+          if (!this.held) return;
+          this.held = false;
+          const gen = this.generation;
+          this.nonce = undefined;
+          this.generation = undefined;
 
-    try {
-      // Conditional delete — only delete if we still own it (same generation).
-      //
-      // DEF-4 parity (ref lab/166): this is the structural equivalent of
-      // s3-datastore #102's nonce-GET-then-DELETE release pattern. GCS
-      // exposes a first-class conditional DELETE via `ifGenerationMatch`,
-      // so we can fuse the "check we still own it" and "delete" into one
-      // atomic call. S3 had no cheap conditional DELETE across AWS and
-      // DO Spaces, so #102 took the portable nonce-GET path. The
-      // invariant both defend is the same: a successor that legitimately
-      // stole our lock (TTL expiry + new acquire) must not have its
-      // lock deleted by our stale release.
-      if (gen) {
-        await this.gcs.deleteObject(this.lockKey, {
-          ifGenerationMatch: gen,
-        });
-      } else {
-        await this.gcs.deleteObject(this.lockKey);
-      }
-    } catch (error) {
-      // Best-effort release — lock will expire via TTL
-      console.warn(
-        `Failed to delete lock ${this.lockKey} during release: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-    }
+          try {
+            if (gen) {
+              await this.gcs.deleteObject(this.lockKey, {
+                ifGenerationMatch: gen,
+              });
+            } else {
+              await this.gcs.deleteObject(this.lockKey);
+            }
+          } catch (error) {
+            console.warn(
+              `Failed to delete lock ${this.lockKey} during release: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            );
+          }
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async withLock<T>(fn: () => Promise<T>): Promise<T> {
-    await this.acquire();
-    try {
-      return await fn();
-    } finally {
-      await this.release();
-    }
+    return await getTracer().startActiveSpan(
+      "gcs-datastore lock withLock",
+      async (span) => {
+        span.setAttribute(Attr.LOCK_KEY, this.lockKey);
+        try {
+          await this.acquire();
+          try {
+            return await fn();
+          } finally {
+            await this.release();
+          }
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async inspect(): Promise<LockInfo | null> {
-    return await this.readLock();
+    return await getTracer().startActiveSpan(
+      "gcs-datastore lock inspect",
+      async (span) => {
+        span.setAttribute(Attr.LOCK_KEY, this.lockKey);
+        try {
+          return await this.readLock();
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async forceRelease(expectedNonce: string): Promise<boolean> {
-    const result = await this.readLockWithGeneration();
-    if (!result || result.info.nonce !== expectedNonce) {
-      return false;
-    }
-    try {
-      await this.gcs.deleteObject(
-        this.lockKey,
-        result.generation
-          ? { ifGenerationMatch: result.generation }
-          : undefined,
-      );
-      return true;
-    } catch {
-      return false;
-    }
+    return await getTracer().startActiveSpan(
+      "gcs-datastore lock forceRelease",
+      async (span) => {
+        span.setAttribute(Attr.LOCK_KEY, this.lockKey);
+        try {
+          const result = await this.readLockWithGeneration();
+          if (!result || result.info.nonce !== expectedNonce) {
+            return false;
+          }
+          try {
+            await this.gcs.deleteObject(
+              this.lockKey,
+              result.generation
+                ? { ifGenerationMatch: result.generation }
+                : undefined,
+            );
+            return true;
+          } catch {
+            return false;
+          }
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   /**

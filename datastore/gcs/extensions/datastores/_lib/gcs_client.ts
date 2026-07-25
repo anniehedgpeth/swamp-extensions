@@ -17,6 +17,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
+import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
+import { Attr, getTracer } from "./tracing.ts";
+
 /**
  * Thin GCS client using the JSON REST API with fetch().
  *
@@ -741,67 +744,93 @@ export class GcsClient {
    */
   async preflightCredentials(signal?: AbortSignal): Promise<void> {
     if (!this.getToken) return;
-    if (signal?.aborted) {
-      throw new GcsOperationError("GCS credential preflight aborted", {
-        name: "AbortError",
-        httpStatusCode: null,
-        code: undefined,
-        bodyPreview: undefined,
-        uploadId: undefined,
-        cause: signal.reason,
-      });
-    }
+    const tokenFn = this.getToken;
+    return await getTracer().startActiveSpan(
+      "GCS preflightCredentials",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "gcp-api",
+          [Attr.RPC_SERVICE]: "GCS",
+          [Attr.RPC_METHOD]: "preflightCredentials",
+          [Attr.GCP_GCS_BUCKET]: this.bucket,
+        });
+        try {
+          if (signal?.aborted) {
+            throw new GcsOperationError("GCS credential preflight aborted", {
+              name: "AbortError",
+              httpStatusCode: null,
+              code: undefined,
+              bodyPreview: undefined,
+              uploadId: undefined,
+              cause: signal.reason,
+            });
+          }
 
-    const probe = this.getToken();
-    probe.catch(() => {});
+          const probe = tokenFn();
+          probe.catch(() => {});
 
-    let timer: ReturnType<typeof setTimeout>;
-    const timeout = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () =>
-          reject(
-            new GcsOperationError(
-              `Credential preflight timed out after ${ADC_CHAIN_TIMEOUT_MS}ms — ` +
-                `check GOOGLE_APPLICATION_CREDENTIALS, gcloud ADC, ` +
-                `or attached service account`,
-              {
-                name: "TimeoutError",
-                httpStatusCode: null,
-                code: undefined,
-                bodyPreview: undefined,
-                uploadId: undefined,
-              },
-            ),
-          ),
-        ADC_CHAIN_TIMEOUT_MS,
-      );
-    });
+          let timer: ReturnType<typeof setTimeout>;
+          const timeout = new Promise<never>((_, reject) => {
+            timer = setTimeout(
+              () =>
+                reject(
+                  new GcsOperationError(
+                    `Credential preflight timed out after ${ADC_CHAIN_TIMEOUT_MS}ms — ` +
+                      `check GOOGLE_APPLICATION_CREDENTIALS, gcloud ADC, ` +
+                      `or attached service account`,
+                    {
+                      name: "TimeoutError",
+                      httpStatusCode: null,
+                      code: undefined,
+                      bodyPreview: undefined,
+                      uploadId: undefined,
+                    },
+                  ),
+                ),
+              ADC_CHAIN_TIMEOUT_MS,
+            );
+          });
 
-    const racers: Promise<unknown>[] = [probe, timeout];
-    if (signal) {
-      racers.push(
-        new Promise<never>((_, reject) => {
-          signal.addEventListener("abort", () => {
-            reject(
-              new GcsOperationError("GCS credential preflight aborted", {
-                name: "AbortError",
-                httpStatusCode: null,
-                code: undefined,
-                bodyPreview: undefined,
-                uploadId: undefined,
-                cause: signal.reason,
+          const racers: Promise<unknown>[] = [probe, timeout];
+          if (signal) {
+            racers.push(
+              new Promise<never>((_, reject) => {
+                signal.addEventListener("abort", () => {
+                  reject(
+                    new GcsOperationError(
+                      "GCS credential preflight aborted",
+                      {
+                        name: "AbortError",
+                        httpStatusCode: null,
+                        code: undefined,
+                        bodyPreview: undefined,
+                        uploadId: undefined,
+                        cause: signal.reason,
+                      },
+                    ),
+                  );
+                }, { once: true });
               }),
             );
-          }, { once: true });
-        }),
-      );
-    }
+          }
 
-    try {
-      await Promise.race(racers);
-    } finally {
-      clearTimeout(timer!);
-    }
+          try {
+            await Promise.race(racers);
+          } finally {
+            clearTimeout(timer!);
+          }
+        } catch (err) {
+          span.setStatus({ code: SpanStatusCode.ERROR });
+          if (err instanceof Error) {
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   /**
@@ -827,111 +856,157 @@ export class GcsClient {
     url: string,
     init: RequestInit,
     userSignal: AbortSignal | undefined,
+    key?: string,
   ): Promise<Response> {
-    const signal = composeSignal(userSignal, this.defaultRequestTimeoutMs);
-    let response: Response;
-    try {
-      response = await fetch(url, { ...init, signal });
-    } catch (err) {
-      const isErr = err instanceof Error;
-      const name = isErr ? err.name : "Error";
-      const message = isErr ? err.message : String(err);
-      if (name === "TimeoutError") {
-        throw new GcsOperationError(
-          `GCS ${op} timed out after ${this.defaultRequestTimeoutMs}ms`,
-          {
-            name: "TimeoutError",
-            httpStatusCode: null,
-            code: undefined,
-            bodyPreview: undefined,
-            uploadId: undefined,
-            cause: err,
-          },
-        );
+    return await getTracer().startActiveSpan(`GCS ${op}`, async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "gcp-api",
+        [Attr.RPC_SERVICE]: "GCS",
+        [Attr.RPC_METHOD]: op,
+        [Attr.GCP_GCS_BUCKET]: this.bucket,
+      });
+      if (key !== undefined) {
+        span.setAttribute(Attr.GCP_GCS_KEY, key);
       }
-      if (name === "AbortError") {
-        throw new GcsOperationError(
-          `GCS ${op} aborted`,
-          {
-            name: "AbortError",
-            httpStatusCode: null,
-            code: undefined,
-            bodyPreview: undefined,
-            uploadId: undefined,
-            cause: err,
-          },
+      try {
+        const signal = composeSignal(userSignal, this.defaultRequestTimeoutMs);
+        let response: Response;
+        try {
+          response = await fetch(url, { ...init, signal });
+        } catch (err) {
+          const isErr = err instanceof Error;
+          const name = isErr ? err.name : "Error";
+          const message = isErr ? err.message : String(err);
+          if (name === "TimeoutError") {
+            throw new GcsOperationError(
+              `GCS ${op} timed out after ${this.defaultRequestTimeoutMs}ms`,
+              {
+                name: "TimeoutError",
+                httpStatusCode: null,
+                code: undefined,
+                bodyPreview: undefined,
+                uploadId: undefined,
+                cause: err,
+              },
+            );
+          }
+          if (name === "AbortError") {
+            throw new GcsOperationError(
+              `GCS ${op} aborted`,
+              {
+                name: "AbortError",
+                httpStatusCode: null,
+                code: undefined,
+                bodyPreview: undefined,
+                uploadId: undefined,
+                cause: err,
+              },
+            );
+          }
+          throw new GcsOperationError(
+            `GCS ${op} transport failure — ${message}`,
+            {
+              name,
+              httpStatusCode: null,
+              code: undefined,
+              bodyPreview: undefined,
+              uploadId: undefined,
+              cause: err,
+            },
+          );
+        }
+
+        if (response.ok) {
+          span.setAttribute(Attr.HTTP_RESPONSE_STATUS_CODE, response.status);
+          const successUploadId = response.headers.get("X-GUploader-UploadID");
+          if (successUploadId) {
+            span.setAttribute(Attr.GCP_UPLOAD_ID, successUploadId);
+          }
+          return response;
+        }
+
+        const uploadId = response.headers.get("X-GUploader-UploadID") ??
+          undefined;
+
+        if (response.status === 404) {
+          await response.body?.cancel().catch(() => {});
+          throw new NotFoundError(`GCS ${op} not found (404)`);
+        }
+        if (response.status === 412) {
+          await response.body?.cancel().catch(() => {});
+          throw new PreconditionFailedError(
+            `GCS ${op} precondition failed (412)`,
+          );
+        }
+
+        const { bytes, truncated } = await readCappedBody(
+          response,
+          MAX_ERROR_BODY_BYTES,
         );
+        const bodyText = new TextDecoder("utf-8", { fatal: false }).decode(
+          bytes,
+        );
+        const preview = decodePreview(
+          bytes,
+          ERROR_BODY_PREVIEW_BYTES,
+          truncated,
+        );
+        const code = extractErrorCode(
+          bodyText,
+          response.headers.get("content-type"),
+        );
+
+        const credentialKind = classifyGcpCredentialError(
+          undefined,
+          response.status,
+        );
+        const credentialHint = formatGcpCredentialHint(credentialKind);
+
+        const parts: string[] = [];
+        // Front-load the swamp-flavoured hint so the user sees the cause and
+        // remediation before the SDK's framing of the failure.
+        if (credentialHint) parts.push(credentialHint);
+        parts.push(`GCS ${op} failed`, `HTTP ${response.status}`);
+        if (code) parts.push(code);
+        // Existing generic 401/403 hint stays as fallback when the credential
+        // classifier did not produce a more specific hint. Currently
+        // `classifyGcpCredentialError` covers all 401/403 cases so this branch
+        // is dead today, but kept structurally for future kinds that might
+        // resolve to "other" with status 401/403.
+        if (
+          (response.status === 401 || response.status === 403) &&
+          credentialKind === "other"
+        ) {
+          parts.push(
+            "(check GCS credentials — GOOGLE_APPLICATION_CREDENTIALS, gcloud ADC, or attached service account — and project/bucket configuration)",
+          );
+        }
+        if (preview) parts.push(`bodyPreview=${JSON.stringify(preview)}`);
+
+        throw new GcsOperationError(parts.join(" "), {
+          name: "GcsOperationError",
+          httpStatusCode: response.status,
+          code,
+          bodyPreview: preview,
+          uploadId,
+        });
+      } catch (err) {
+        span.setStatus({ code: SpanStatusCode.ERROR });
+        if (err instanceof Error) {
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        if (err instanceof GcsOperationError && err.httpStatusCode !== null) {
+          span.setAttribute(Attr.HTTP_RESPONSE_STATUS_CODE, err.httpStatusCode);
+        } else if (err instanceof NotFoundError) {
+          span.setAttribute(Attr.HTTP_RESPONSE_STATUS_CODE, 404);
+        } else if (err instanceof PreconditionFailedError) {
+          span.setAttribute(Attr.HTTP_RESPONSE_STATUS_CODE, 412);
+        }
+        throw err;
+      } finally {
+        span.end();
       }
-      throw new GcsOperationError(
-        `GCS ${op} transport failure — ${message}`,
-        {
-          name,
-          httpStatusCode: null,
-          code: undefined,
-          bodyPreview: undefined,
-          uploadId: undefined,
-          cause: err,
-        },
-      );
-    }
-
-    if (response.ok) return response;
-
-    const uploadId = response.headers.get("X-GUploader-UploadID") ?? undefined;
-
-    if (response.status === 404) {
-      await response.body?.cancel().catch(() => {});
-      throw new NotFoundError(`GCS ${op} not found (404)`);
-    }
-    if (response.status === 412) {
-      await response.body?.cancel().catch(() => {});
-      throw new PreconditionFailedError(`GCS ${op} precondition failed (412)`);
-    }
-
-    const { bytes, truncated } = await readCappedBody(
-      response,
-      MAX_ERROR_BODY_BYTES,
-    );
-    const bodyText = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-    const preview = decodePreview(bytes, ERROR_BODY_PREVIEW_BYTES, truncated);
-    const code = extractErrorCode(
-      bodyText,
-      response.headers.get("content-type"),
-    );
-
-    const credentialKind = classifyGcpCredentialError(
-      undefined,
-      response.status,
-    );
-    const credentialHint = formatGcpCredentialHint(credentialKind);
-
-    const parts: string[] = [];
-    // Front-load the swamp-flavoured hint so the user sees the cause and
-    // remediation before the SDK's framing of the failure.
-    if (credentialHint) parts.push(credentialHint);
-    parts.push(`GCS ${op} failed`, `HTTP ${response.status}`);
-    if (code) parts.push(code);
-    // Existing generic 401/403 hint stays as fallback when the credential
-    // classifier did not produce a more specific hint. Currently
-    // `classifyGcpCredentialError` covers all 401/403 cases so this branch
-    // is dead today, but kept structurally for future kinds that might
-    // resolve to "other" with status 401/403.
-    if (
-      (response.status === 401 || response.status === 403) &&
-      credentialKind === "other"
-    ) {
-      parts.push(
-        "(check GCS credentials — GOOGLE_APPLICATION_CREDENTIALS, gcloud ADC, or attached service account — and project/bucket configuration)",
-      );
-    }
-    if (preview) parts.push(`bodyPreview=${JSON.stringify(preview)}`);
-
-    throw new GcsOperationError(parts.join(" "), {
-      name: "GcsOperationError",
-      httpStatusCode: response.status,
-      code,
-      bodyPreview: preview,
-      uploadId,
     });
   }
 
@@ -967,6 +1042,7 @@ export class GcsClient {
       url,
       { method: "POST", headers: hdrs, body: body as BodyInit },
       signal,
+      key,
     );
     const meta = await resp.json();
     return { generation: meta.generation };
@@ -997,6 +1073,7 @@ export class GcsClient {
       url,
       { method: "GET", headers: await this.headers() },
       signal,
+      key,
     );
     const generation = resp.headers.get("x-goog-generation") ?? undefined;
     return {
@@ -1028,6 +1105,7 @@ export class GcsClient {
         url,
         { method: "DELETE", headers: await this.headers() },
         signal,
+        key,
       );
       await resp.text();
     } catch (err) {
@@ -1054,6 +1132,7 @@ export class GcsClient {
         url,
         { method: "GET", headers: await this.headers() },
         signal,
+        key,
       );
       const meta = await resp.json();
       return {
@@ -1081,28 +1160,52 @@ export class GcsClient {
     body: Uint8Array,
     signal?: AbortSignal,
   ): Promise<GcsWriteResult | null> {
-    const objectName = this.fullKey(key);
-    const url = this.uploadUrl(
-      `/b/${encodeURIComponent(this.bucket)}/o?uploadType=media&name=${
-        encodeURIComponent(objectName)
-      }&ifGenerationMatch=0`,
-    );
-    const hdrs = await this.headers();
-    hdrs["Content-Type"] = "application/octet-stream";
+    return await getTracer().startActiveSpan(
+      "GCS putObjectConditional",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "gcp-api",
+          [Attr.RPC_SERVICE]: "GCS",
+          [Attr.RPC_METHOD]: "putObjectConditional",
+          [Attr.GCP_GCS_BUCKET]: this.bucket,
+          [Attr.GCP_GCS_KEY]: key,
+        });
+        try {
+          const objectName = this.fullKey(key);
+          const url = this.uploadUrl(
+            `/b/${encodeURIComponent(this.bucket)}/o?uploadType=media&name=${
+              encodeURIComponent(objectName)
+            }&ifGenerationMatch=0`,
+          );
+          const hdrs = await this.headers();
+          hdrs["Content-Type"] = "application/octet-stream";
 
-    try {
-      const resp = await this.send(
-        "putObjectConditional",
-        url,
-        { method: "POST", headers: hdrs, body: body as BodyInit },
-        signal,
-      );
-      const meta = await resp.json();
-      return { generation: meta.generation };
-    } catch (err) {
-      if (err instanceof PreconditionFailedError) return null;
-      throw err;
-    }
+          try {
+            const resp = await this.send(
+              "putObjectConditional",
+              url,
+              { method: "POST", headers: hdrs, body: body as BodyInit },
+              signal,
+              key,
+            );
+            const meta = await resp.json();
+            return { generation: meta.generation };
+          } catch (err) {
+            if (err instanceof PreconditionFailedError) return null;
+            throw err;
+          }
+        } catch (err) {
+          span.setStatus({ code: SpanStatusCode.ERROR });
+          if (err instanceof Error) {
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   /**
@@ -1119,28 +1222,52 @@ export class GcsClient {
     expectedGeneration: string,
     signal?: AbortSignal,
   ): Promise<GcsWriteResult | null> {
-    const objectName = this.fullKey(key);
-    const url = this.uploadUrl(
-      `/b/${encodeURIComponent(this.bucket)}/o?uploadType=media&name=${
-        encodeURIComponent(objectName)
-      }&ifGenerationMatch=${encodeURIComponent(expectedGeneration)}`,
-    );
-    const hdrs = await this.headers();
-    hdrs["Content-Type"] = "application/octet-stream";
+    return await getTracer().startActiveSpan(
+      "GCS putObjectCas",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "gcp-api",
+          [Attr.RPC_SERVICE]: "GCS",
+          [Attr.RPC_METHOD]: "putObjectCas",
+          [Attr.GCP_GCS_BUCKET]: this.bucket,
+          [Attr.GCP_GCS_KEY]: key,
+        });
+        try {
+          const objectName = this.fullKey(key);
+          const url = this.uploadUrl(
+            `/b/${encodeURIComponent(this.bucket)}/o?uploadType=media&name=${
+              encodeURIComponent(objectName)
+            }&ifGenerationMatch=${encodeURIComponent(expectedGeneration)}`,
+          );
+          const hdrs = await this.headers();
+          hdrs["Content-Type"] = "application/octet-stream";
 
-    try {
-      const resp = await this.send(
-        "putObjectCas",
-        url,
-        { method: "POST", headers: hdrs, body: body as BodyInit },
-        signal,
-      );
-      const meta = await resp.json();
-      return { generation: meta.generation };
-    } catch (err) {
-      if (err instanceof PreconditionFailedError) return null;
-      throw err;
-    }
+          try {
+            const resp = await this.send(
+              "putObjectCas",
+              url,
+              { method: "POST", headers: hdrs, body: body as BodyInit },
+              signal,
+              key,
+            );
+            const meta = await resp.json();
+            return { generation: meta.generation };
+          } catch (err) {
+            if (err instanceof PreconditionFailedError) return null;
+            throw err;
+          }
+        } catch (err) {
+          span.setStatus({ code: SpanStatusCode.ERROR });
+          if (err instanceof Error) {
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   /** Copies an object within the same bucket (server-side, no download). */
@@ -1163,6 +1290,7 @@ export class GcsClient {
       url,
       { method: "POST", headers: await this.headers() },
       signal,
+      sourceKey,
     );
     await resp.text();
   }
@@ -1226,15 +1354,37 @@ export class GcsClient {
     subPrefix?: string,
     signal?: AbortSignal,
   ): Promise<GcsListEntry[]> {
-    const all: GcsListEntry[] = [];
-    let pageToken: string | undefined;
+    return await getTracer().startActiveSpan(
+      "GCS listAllObjects",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "gcp-api",
+          [Attr.RPC_SERVICE]: "GCS",
+          [Attr.RPC_METHOD]: "listAllObjects",
+          [Attr.GCP_GCS_BUCKET]: this.bucket,
+        });
+        try {
+          const all: GcsListEntry[] = [];
+          let pageToken: string | undefined;
 
-    do {
-      const result = await this.listObjects(subPrefix, pageToken, signal);
-      all.push(...result.entries);
-      pageToken = result.truncated ? result.pageToken : undefined;
-    } while (pageToken);
+          do {
+            const result = await this.listObjects(subPrefix, pageToken, signal);
+            all.push(...result.entries);
+            pageToken = result.truncated ? result.pageToken : undefined;
+          } while (pageToken);
 
-    return all;
+          return all;
+        } catch (err) {
+          span.setStatus({ code: SpanStatusCode.ERROR });
+          if (err instanceof Error) {
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 }
