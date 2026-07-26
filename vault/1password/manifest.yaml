@@ -1,10 +1,13 @@
 manifestVersion: 1
 name: "@swamp/1password"
-version: "2026.06.24.1"
+version: "2026.07.26.1"
 description: |
   Read, write, delete, and annotate secrets stored in 1Password using the `op` CLI.
   Supports `swamp vault delete` for removing secrets and `swamp vault annotate`
   and `swamp vault inspect` for attaching metadata (URL, notes, labels) to secrets.
+  Emits OpenTelemetry spans for vault operations and per-CLI-invocation child spans
+  so failures and latency are attributable in traces when a TracerProvider is
+  configured.
 
   ## Prerequisites
 

@@ -48,6 +48,15 @@ swamp vault list-keys my-1password --json
 `put` creates a Secure Note if the item does not already exist, or updates the
 target field in place.
 
+## Observability
+
+The extension emits [OpenTelemetry](https://opentelemetry.io/) spans for vault
+operations (get, put, list, delete, and annotation CRUD) and per-CLI-invocation
+child spans for each `op` command. Spans are no-ops when no `TracerProvider` is
+configured in the host process. When swamp is running with OTel enabled, vault
+activity appears in traces with attributes following OTel semantic conventions
+(secret key, vault name, CLI subcommand).
+
 ## Annotations
 
 This provider supports `swamp vault annotate` and `swamp vault inspect` for

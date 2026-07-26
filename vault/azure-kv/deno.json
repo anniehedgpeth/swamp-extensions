@@ -15,6 +15,7 @@
     "@azure/core-auth": "npm:@azure/core-auth@1.9.0",
     "@azure/identity": "npm:@azure/identity@4.13.1",
     "@azure/keyvault-secrets": "npm:@azure/keyvault-secrets@4.11.2",
-    "@systeminit/swamp-testing": "jsr:@systeminit/swamp-testing@0.20260521.16"
+    "@systeminit/swamp-testing": "jsr:@systeminit/swamp-testing@0.20260521.16",
+    "@opentelemetry/api": "npm:@opentelemetry/api@1.9.0"
   }
 }

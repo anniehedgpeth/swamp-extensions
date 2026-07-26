@@ -8,6 +8,7 @@
     "npm:@aws-sdk/client-secrets-manager@3.1053.0": "3.1053.0",
     "npm:@aws-sdk/client-secrets-manager@3.1090.0": "3.1090.0",
     "npm:@marcbachmann/cel-js@7.6.1": "7.6.1",
+    "npm:@opentelemetry/api@1.9.0": "1.9.0",
     "npm:zod@4.3.6": "4.3.6",
     "npm:zod@^4.3.6": "4.3.6"
   },
@@ -388,6 +389,9 @@
       "integrity": "sha512-YyY8yiDU07ByKb2rJUoNgMAkYeeDvkdrONBREV2MP9siAW7yNft0KfbIoonWTIMY0fGtv8og0EhzKx3Xsi1Nmg==",
       "bin": true
     },
+    "@opentelemetry/api@1.9.0": {
+      "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
+    },
     "@smithy/config-resolver@4.5.1": {
       "integrity": "sha512-abXk3LhODsvRHsk0ZS9ztrg/fZatTa9Z/z4pgx65YSLR+rY6kvUG/1IgcDKEUciR8MfdnkT5oPeHJTy/HhzDIQ==",
       "dependencies": [
@@ -615,6 +619,7 @@
     "dependencies": [
       "jsr:@systeminit/swamp-testing@0.20260521.16",
       "npm:@aws-sdk/client-secrets-manager@3.1090.0",
+      "npm:@opentelemetry/api@1.9.0",
       "npm:zod@4.3.6"
     ]
   }

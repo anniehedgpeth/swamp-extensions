@@ -43,6 +43,14 @@ swamp vault delete my-azure-kv my-secret --json
 swamp vault list-keys my-azure-kv --json
 ```
 
+## Observability
+
+The extension emits [OpenTelemetry](https://opentelemetry.io/) spans for vault
+operations (get, put, list, delete, and annotation CRUD). Spans are no-ops when
+no `TracerProvider` is configured in the host process. When swamp is running with
+OTel enabled, vault activity appears in traces with attributes following OTel
+semantic conventions (secret key, vault name, RPC method).
+
 ## Secret key format
 
 Azure Key Vault only allows alphanumeric characters and hyphens, so the

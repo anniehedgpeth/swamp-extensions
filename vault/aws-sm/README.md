@@ -82,6 +82,14 @@ swamp vault annotate my-aws-sm API_KEY \
 swamp vault inspect my-aws-sm API_KEY --json
 ```
 
+## Observability
+
+The extension emits [OpenTelemetry](https://opentelemetry.io/) spans for vault
+operations (get, put, list, delete, and annotation CRUD). Spans are no-ops when
+no `TracerProvider` is configured in the host process. When swamp is running with
+OTel enabled, vault activity appears in traces with attributes following OTel
+semantic conventions (secret key, vault name, RPC method).
+
 ## Secret key format
 
 Secret keys map directly to AWS Secrets Manager secret names, including

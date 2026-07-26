@@ -29,6 +29,8 @@
  */
 
 import { z } from "npm:zod@4.3.6";
+import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
+import { Attr, getTracer } from "./_lib/tracing.ts";
 
 /**
  * Minimal contract implemented by swamp vault providers. Exported so that
@@ -212,31 +214,71 @@ class OnePasswordVaultProvider implements VaultProvider {
   }
 
   async get(secretKey: string): Promise<string> {
-    await this.checkOpInstalled();
-    const parsed = parseSecretKey(secretKey, this.opVault);
-    const args = ["read", parsed.uri];
-    if (this.opAccount) {
-      args.push("--account", this.opAccount);
-    }
-    const result = await this.runOp(args);
-    return result.trim();
+    return await getTracer().startActiveSpan("1password get", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "op-cli",
+        [Attr.RPC_SERVICE]: "1Password",
+        [Attr.RPC_METHOD]: "read",
+        [Attr.VAULT_NAME]: this.name,
+        [Attr.VAULT_SECRET_KEY]: secretKey,
+      });
+      try {
+        await this.checkOpInstalled();
+        const parsed = parseSecretKey(secretKey, this.opVault);
+        const args = ["read", parsed.uri];
+        if (this.opAccount) {
+          args.push("--account", this.opAccount);
+        }
+        const result = await this.runOp(args);
+        return result.trim();
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   async put(secretKey: string, secretValue: string): Promise<void> {
-    await this.checkOpInstalled();
-    const parsed = parseSecretKey(secretKey, this.opVault);
+    return await getTracer().startActiveSpan("1password put", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "op-cli",
+        [Attr.RPC_SERVICE]: "1Password",
+        [Attr.RPC_METHOD]: "put",
+        [Attr.VAULT_NAME]: this.name,
+        [Attr.VAULT_SECRET_KEY]: secretKey,
+      });
+      try {
+        await this.checkOpInstalled();
+        const parsed = parseSecretKey(secretKey, this.opVault);
 
-    if (parsed.isFullUri) {
-      throw new Error(
-        "Cannot use full op:// URI for put operations. Use a relative key (e.g., 'item-name' or 'item-name/field').",
-      );
-    }
+        if (parsed.isFullUri) {
+          throw new Error(
+            "Cannot use full op:// URI for put operations. Use a relative key (e.g., 'item-name' or 'item-name/field').",
+          );
+        }
 
-    if (secretValue.includes('"')) {
-      await this.putViaTemplate(parsed, secretValue);
-    } else {
-      await this.putViaFieldAssignment(parsed, secretValue);
-    }
+        if (secretValue.includes('"')) {
+          await this.putViaTemplate(parsed, secretValue);
+        } else {
+          await this.putViaFieldAssignment(parsed, secretValue);
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   private async putViaFieldAssignment(
@@ -410,60 +452,105 @@ class OnePasswordVaultProvider implements VaultProvider {
   }
 
   async delete(secretKey: string): Promise<void> {
-    await this.checkOpInstalled();
-    const parsed = parseSecretKey(secretKey, this.opVault);
+    return await getTracer().startActiveSpan(
+      "1password delete",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "op-cli",
+          [Attr.RPC_SERVICE]: "1Password",
+          [Attr.RPC_METHOD]: "item delete",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          await this.checkOpInstalled();
+          const parsed = parseSecretKey(secretKey, this.opVault);
 
-    if (parsed.isFullUri) {
-      throw new Error(
-        "Cannot use full op:// URI for delete operations. Use a relative key (e.g., 'item-name' or 'item-name/field').",
-      );
-    }
+          if (parsed.isFullUri) {
+            throw new Error(
+              "Cannot use full op:// URI for delete operations. Use a relative key (e.g., 'item-name' or 'item-name/field').",
+            );
+          }
 
-    const args = [
-      "item",
-      "delete",
-      parsed.item,
-      "--vault",
-      this.opVault,
-    ];
-    if (this.opAccount) {
-      args.push("--account", this.opAccount);
-    }
+          const args = [
+            "item",
+            "delete",
+            parsed.item,
+            "--vault",
+            this.opVault,
+          ];
+          if (this.opAccount) {
+            args.push("--account", this.opAccount);
+          }
 
-    try {
-      await this.runOp(args);
-    } catch (error: unknown) {
-      if (
-        error instanceof Error &&
-        error.message.includes("not found") &&
-        !error.message.startsWith("1Password vault")
-      ) {
-        return;
-      }
-      throw error;
-    }
+          try {
+            await this.runOp(args);
+          } catch (error: unknown) {
+            if (
+              error instanceof Error &&
+              error.message.includes("not found") &&
+              !error.message.startsWith("1Password vault")
+            ) {
+              return;
+            }
+            throw error;
+          }
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async list(): Promise<string[]> {
-    await this.checkOpInstalled();
-    const args = [
-      "item",
-      "list",
-      "--vault",
-      this.opVault,
-      "--format",
-      "json",
-    ];
-    if (this.opAccount) {
-      args.push("--account", this.opAccount);
-    }
+    return await getTracer().startActiveSpan("1password list", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "op-cli",
+        [Attr.RPC_SERVICE]: "1Password",
+        [Attr.RPC_METHOD]: "item list",
+        [Attr.VAULT_NAME]: this.name,
+      });
+      try {
+        await this.checkOpInstalled();
+        const args = [
+          "item",
+          "list",
+          "--vault",
+          this.opVault,
+          "--format",
+          "json",
+        ];
+        if (this.opAccount) {
+          args.push("--account", this.opAccount);
+        }
 
-    const result = await this.runOp(args);
-    if (!result.trim()) {
-      return [];
-    }
-    const items: Array<{ title: string }> = JSON.parse(result);
-    return items.map((item) => item.title).sort();
+        const result = await this.runOp(args);
+        if (!result.trim()) {
+          return [];
+        }
+        const items: Array<{ title: string }> = JSON.parse(result);
+        return items.map((item) => item.title).sort();
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   getName(): string {
@@ -473,59 +560,85 @@ class OnePasswordVaultProvider implements VaultProvider {
   async getAnnotation(
     secretKey: string,
   ): Promise<VaultAnnotation | null> {
-    await this.checkOpInstalled();
-    const parsed = parseSecretKey(secretKey, this.opVault);
-    const item = await this.getItemJson(parsed.item);
-    if (!item) return null;
+    return await getTracer().startActiveSpan(
+      "1password getAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "op-cli",
+          [Attr.RPC_SERVICE]: "1Password",
+          [Attr.RPC_METHOD]: "getAnnotation",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          await this.checkOpInstalled();
+          const parsed = parseSecretKey(secretKey, this.opVault);
+          const item = await this.getItemJson(parsed.item);
+          if (!item) return null;
 
-    let url: string | undefined;
-    let notes: string | undefined;
-    const labels: Record<string, string> = {};
+          let url: string | undefined;
+          let notes: string | undefined;
+          const labels: Record<string, string> = {};
 
-    if (item.fields) {
-      const annotationsSection = item.sections?.find(
-        (s) => s.label === SWAMP_ANNOTATIONS_SECTION,
-      );
-      const labelsSection = item.sections?.find(
-        (s) => s.label === SWAMP_LABELS_SECTION,
-      );
+          if (item.fields) {
+            const annotationsSection = item.sections?.find(
+              (s) => s.label === SWAMP_ANNOTATIONS_SECTION,
+            );
+            const labelsSection = item.sections?.find(
+              (s) => s.label === SWAMP_LABELS_SECTION,
+            );
 
-      for (const field of item.fields) {
-        if (field.purpose === "NOTES" && field.value) {
-          notes = field.value;
+            for (const field of item.fields) {
+              if (field.purpose === "NOTES" && field.value) {
+                notes = field.value;
+              }
+              if (
+                annotationsSection &&
+                field.section?.id === annotationsSection.id &&
+                field.label === "url" && field.value
+              ) {
+                url = field.value;
+              }
+              if (
+                labelsSection && field.section?.id === labelsSection.id &&
+                field.label && field.value
+              ) {
+                labels[field.label] = field.value;
+              }
+            }
+          }
+
+          if (
+            url === undefined && notes === undefined &&
+            Object.keys(labels).length === 0
+          ) {
+            return null;
+          }
+
+          if (item.updated_at) {
+            return VaultAnnotation.fromData({
+              url,
+              notes,
+              labels,
+              updatedAt: item.updated_at,
+            });
+          }
+          return VaultAnnotation.create({ url, notes, labels });
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
         }
-        if (
-          annotationsSection &&
-          field.section?.id === annotationsSection.id &&
-          field.label === "url" && field.value
-        ) {
-          url = field.value;
-        }
-        if (
-          labelsSection && field.section?.id === labelsSection.id &&
-          field.label && field.value
-        ) {
-          labels[field.label] = field.value;
-        }
-      }
-    }
-
-    if (
-      url === undefined && notes === undefined &&
-      Object.keys(labels).length === 0
-    ) {
-      return null;
-    }
-
-    if (item.updated_at) {
-      return VaultAnnotation.fromData({
-        url,
-        notes,
-        labels,
-        updatedAt: item.updated_at,
-      });
-    }
-    return VaultAnnotation.create({ url, notes, labels });
+      },
+    );
   }
 
   async putAnnotation(
@@ -536,116 +649,199 @@ class OnePasswordVaultProvider implements VaultProvider {
       labels?: Readonly<Record<string, string>>;
     },
   ): Promise<void> {
-    await this.checkOpInstalled();
-    const parsed = parseSecretKey(secretKey, this.opVault);
+    return await getTracer().startActiveSpan(
+      "1password putAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "op-cli",
+          [Attr.RPC_SERVICE]: "1Password",
+          [Attr.RPC_METHOD]: "putAnnotation",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          await this.checkOpInstalled();
+          const parsed = parseSecretKey(secretKey, this.opVault);
 
-    if (annotation.labels) {
-      for (const key of Object.keys(annotation.labels)) {
-        validateLabelKey(key);
-      }
-    }
+          if (annotation.labels) {
+            for (const key of Object.keys(annotation.labels)) {
+              validateLabelKey(key);
+            }
+          }
 
-    const fieldArgs: string[] = [];
+          const fieldArgs: string[] = [];
 
-    if (annotation.url !== undefined) {
-      fieldArgs.push(`${SWAMP_ANNOTATIONS_SECTION}.url[url]=${annotation.url}`);
-    }
+          if (annotation.url !== undefined) {
+            fieldArgs.push(
+              `${SWAMP_ANNOTATIONS_SECTION}.url[url]=${annotation.url}`,
+            );
+          }
 
-    if (annotation.notes !== undefined) {
-      fieldArgs.push(`notesPlain=${annotation.notes}`);
-    }
+          if (annotation.notes !== undefined) {
+            fieldArgs.push(`notesPlain=${annotation.notes}`);
+          }
 
-    if (annotation.labels) {
-      for (const [key, value] of Object.entries(annotation.labels)) {
-        fieldArgs.push(`${SWAMP_LABELS_SECTION}.${key}[text]=${value}`);
-      }
-    }
+          if (annotation.labels) {
+            for (const [key, value] of Object.entries(annotation.labels)) {
+              fieldArgs.push(
+                `${SWAMP_LABELS_SECTION}.${key}[text]=${value}`,
+              );
+            }
+          }
 
-    if (fieldArgs.length === 0) return;
+          if (fieldArgs.length === 0) return;
 
-    const args: string[] = [
-      "item",
-      "edit",
-      parsed.item,
-      "--vault",
-      this.opVault,
-      ...fieldArgs,
-    ];
+          const args: string[] = [
+            "item",
+            "edit",
+            parsed.item,
+            "--vault",
+            this.opVault,
+            ...fieldArgs,
+          ];
 
-    if (this.opAccount) {
-      args.push("--account", this.opAccount);
-    }
+          if (this.opAccount) {
+            args.push("--account", this.opAccount);
+          }
 
-    await this.runOp(args);
+          await this.runOp(args);
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async deleteAnnotation(secretKey: string): Promise<void> {
-    await this.checkOpInstalled();
-    const parsed = parseSecretKey(secretKey, this.opVault);
+    return await getTracer().startActiveSpan(
+      "1password deleteAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "op-cli",
+          [Attr.RPC_SERVICE]: "1Password",
+          [Attr.RPC_METHOD]: "deleteAnnotation",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          await this.checkOpInstalled();
+          const parsed = parseSecretKey(secretKey, this.opVault);
 
-    const item = await this.getItemJson(parsed.item);
-    if (!item) return;
+          const item = await this.getItemJson(parsed.item);
+          if (!item) return;
 
-    const args: string[] = [
-      "item",
-      "edit",
-      parsed.item,
-      "--vault",
-      this.opVault,
-    ];
-    let hasEdits = false;
+          const args: string[] = [
+            "item",
+            "edit",
+            parsed.item,
+            "--vault",
+            this.opVault,
+          ];
+          let hasEdits = false;
 
-    const annotationsSection = item.sections?.find(
-      (s) => s.label === SWAMP_ANNOTATIONS_SECTION,
-    );
-    if (annotationsSection && item.fields) {
-      for (const field of item.fields) {
-        if (field.section?.id === annotationsSection.id && field.label) {
-          args.push(`${SWAMP_ANNOTATIONS_SECTION}.${field.label}[delete]`);
-          hasEdits = true;
+          const annotationsSection = item.sections?.find(
+            (s) => s.label === SWAMP_ANNOTATIONS_SECTION,
+          );
+          if (annotationsSection && item.fields) {
+            for (const field of item.fields) {
+              if (field.section?.id === annotationsSection.id && field.label) {
+                args.push(
+                  `${SWAMP_ANNOTATIONS_SECTION}.${field.label}[delete]`,
+                );
+                hasEdits = true;
+              }
+            }
+          }
+
+          const hasNotes = item.fields?.some(
+            (f) => f.purpose === "NOTES" && f.value,
+          );
+          if (hasNotes) {
+            args.push("notesPlain=");
+            hasEdits = true;
+          }
+
+          const labelsSection = item.sections?.find(
+            (s) => s.label === SWAMP_LABELS_SECTION,
+          );
+          if (labelsSection && item.fields) {
+            for (const field of item.fields) {
+              if (field.section?.id === labelsSection.id && field.label) {
+                args.push(`${SWAMP_LABELS_SECTION}.${field.label}[delete]`);
+                hasEdits = true;
+              }
+            }
+          }
+
+          if (!hasEdits) return;
+
+          if (this.opAccount) {
+            args.push("--account", this.opAccount);
+          }
+
+          await this.runOp(args);
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
         }
-      }
-    }
-
-    const hasNotes = item.fields?.some(
-      (f) => f.purpose === "NOTES" && f.value,
+      },
     );
-    if (hasNotes) {
-      args.push("notesPlain=");
-      hasEdits = true;
-    }
-
-    const labelsSection = item.sections?.find(
-      (s) => s.label === SWAMP_LABELS_SECTION,
-    );
-    if (labelsSection && item.fields) {
-      for (const field of item.fields) {
-        if (field.section?.id === labelsSection.id && field.label) {
-          args.push(`${SWAMP_LABELS_SECTION}.${field.label}[delete]`);
-          hasEdits = true;
-        }
-      }
-    }
-
-    if (!hasEdits) return;
-
-    if (this.opAccount) {
-      args.push("--account", this.opAccount);
-    }
-
-    await this.runOp(args);
   }
 
   async listAnnotations(): Promise<Map<string, VaultAnnotation>> {
-    const annotations = new Map<string, VaultAnnotation>();
-    const items = await this.list();
-    for (const itemName of items) {
-      const annotation = await this.getAnnotation(itemName);
-      if (annotation) {
-        annotations.set(itemName, annotation);
-      }
-    }
-    return annotations;
+    return await getTracer().startActiveSpan(
+      "1password listAnnotations",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "op-cli",
+          [Attr.RPC_SERVICE]: "1Password",
+          [Attr.RPC_METHOD]: "listAnnotations",
+          [Attr.VAULT_NAME]: this.name,
+        });
+        try {
+          const annotations = new Map<string, VaultAnnotation>();
+          const items = await this.list();
+          for (const itemName of items) {
+            const annotation = await this.getAnnotation(itemName);
+            if (annotation) {
+              annotations.set(itemName, annotation);
+            }
+          }
+          return annotations;
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   private async getItemJson(itemName: string): Promise<OpItem | null> {
@@ -722,49 +918,75 @@ class OnePasswordVaultProvider implements VaultProvider {
   }
 
   private async runOp(args: string[]): Promise<string> {
-    const command = new Deno.Command("op", {
-      args,
-      stdin: "null",
-      stdout: "piped",
-      stderr: "piped",
-    });
+    const subcommand = args[0] === "item" ? `${args[0]} ${args[1]}` : args[0];
+    return await getTracer().startActiveSpan(
+      `1password op ${subcommand}`,
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "op-cli",
+          [Attr.RPC_SERVICE]: "1Password",
+          [Attr.RPC_METHOD]: subcommand ?? "unknown",
+        });
+        try {
+          const command = new Deno.Command("op", {
+            args,
+            stdin: "null",
+            stdout: "piped",
+            stderr: "piped",
+          });
 
-    const { success, stdout, stderr } = await command.output();
-    const stdoutText = new TextDecoder().decode(stdout);
-    const stderrText = new TextDecoder().decode(stderr);
+          const { success, stdout, stderr } = await command.output();
+          const stdoutText = new TextDecoder().decode(stdout);
+          const stderrText = new TextDecoder().decode(stderr);
 
-    if (!success) {
-      const errorMessage = stderrText.trim() || "Unknown error";
+          if (!success) {
+            const errorMessage = stderrText.trim() || "Unknown error";
 
-      if (
-        errorMessage.includes("not signed in") ||
-        errorMessage.includes("authorization") ||
-        errorMessage.includes("authenticate")
-      ) {
-        throw new Error(
-          `1Password authentication failed.\n\n` +
-            `Authenticate using one of:\n` +
-            `  - Service account: export OP_SERVICE_ACCOUNT_TOKEN=<token>\n` +
-            `  - Desktop app: enable CLI integration in 1Password settings\n` +
-            `  - Sign in: op signin\n\n` +
-            `Error: ${errorMessage}`,
-        );
-      }
+            if (
+              errorMessage.includes("not signed in") ||
+              errorMessage.includes("authorization") ||
+              errorMessage.includes("authenticate")
+            ) {
+              throw new Error(
+                `1Password authentication failed.\n\n` +
+                  `Authenticate using one of:\n` +
+                  `  - Service account: export OP_SERVICE_ACCOUNT_TOKEN=<token>\n` +
+                  `  - Desktop app: enable CLI integration in 1Password settings\n` +
+                  `  - Sign in: op signin\n\n` +
+                  `Error: ${errorMessage}`,
+              );
+            }
 
-      if (
-        errorMessage.includes("isn't a vault") ||
-        (errorMessage.includes("vault") && errorMessage.includes("not found"))
-      ) {
-        throw new Error(
-          `1Password vault '${this.opVault}' not found. Verify the vault name in your configuration.\n\n` +
-            `Error: ${errorMessage}`,
-        );
-      }
+            if (
+              errorMessage.includes("isn't a vault") ||
+              (errorMessage.includes("vault") &&
+                errorMessage.includes("not found"))
+            ) {
+              throw new Error(
+                `1Password vault '${this.opVault}' not found. Verify the vault name in your configuration.\n\n` +
+                  `Error: ${errorMessage}`,
+              );
+            }
 
-      throw new Error(`1Password CLI error: ${errorMessage}`);
-    }
+            throw new Error(`1Password CLI error: ${errorMessage}`);
+          }
 
-    return stdoutText;
+          return stdoutText;
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 }
 

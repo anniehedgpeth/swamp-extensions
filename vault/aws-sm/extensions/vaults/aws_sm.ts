@@ -40,7 +40,9 @@ import {
   UntagResourceCommand,
   UpdateSecretCommand,
 } from "npm:@aws-sdk/client-secrets-manager@3.1090.0";
+import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
 import { AwsSmOperationError, wrapAwsSmError } from "./aws_sm_errors.ts";
+import { Attr, getTracer } from "./_lib/tracing.ts";
 
 /**
  * Minimal contract implemented by swamp vault providers. Exported so that
@@ -247,92 +249,168 @@ class AwsSmVaultProvider
   }
 
   async get(secretKey: string): Promise<string> {
-    const command = new GetSecretValueCommand({ SecretId: secretKey });
-    let response;
-    try {
-      response = await this.client.send(command);
-    } catch (error) {
-      throw wrapAwsSmError("GetSecretValue", error);
-    }
+    return await getTracer().startActiveSpan("aws-sm get", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "aws-api",
+        [Attr.RPC_SERVICE]: "SecretsManager",
+        [Attr.RPC_METHOD]: "GetSecretValue",
+        [Attr.VAULT_NAME]: this.name,
+        [Attr.VAULT_SECRET_KEY]: secretKey,
+      });
+      try {
+        const command = new GetSecretValueCommand({ SecretId: secretKey });
+        const response = await this.client.send(command);
 
-    const secretValue = response.SecretString ||
-      (response.SecretBinary
-        ? new TextDecoder().decode(response.SecretBinary)
-        : "");
+        const secretValue = response.SecretString ||
+          (response.SecretBinary
+            ? new TextDecoder().decode(response.SecretBinary)
+            : "");
 
-    if (!secretValue) {
-      throw new Error(`Secret '${secretKey}' not found or has no value`);
-    }
+        if (!secretValue) {
+          throw new Error(`Secret '${secretKey}' not found or has no value`);
+        }
 
-    return secretValue;
+        return secretValue;
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        if (
+          !(err instanceof Error) ||
+          !err.message.startsWith("Secret '")
+        ) {
+          throw wrapAwsSmError("GetSecretValue", err);
+        }
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   async put(secretKey: string, secretValue: string): Promise<void> {
-    try {
-      const putCommand = new PutSecretValueCommand({
-        SecretId: secretKey,
-        SecretString: secretValue,
+    return await getTracer().startActiveSpan("aws-sm put", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "aws-api",
+        [Attr.RPC_SERVICE]: "SecretsManager",
+        [Attr.RPC_METHOD]: "PutSecretValue",
+        [Attr.VAULT_NAME]: this.name,
+        [Attr.VAULT_SECRET_KEY]: secretKey,
       });
-      await this.client.send(putCommand);
-    } catch (error) {
-      const wrapped = wrapAwsSmError("PutSecretValue", error);
-      // The wrapper preserves the SDK error's `name`, so name-matching
-      // keeps the create-on-missing fallback working without importing
-      // ResourceNotFoundException from the SDK.
-      if (
-        wrapped instanceof AwsSmOperationError &&
-        wrapped.name === "ResourceNotFoundException"
-      ) {
-        try {
-          const createCommand = new CreateSecretCommand({
-            Name: secretKey,
-            SecretString: secretValue,
-          });
-          await this.client.send(createCommand);
-        } catch (createError) {
-          throw wrapAwsSmError("CreateSecret", createError);
+      try {
+        const putCommand = new PutSecretValueCommand({
+          SecretId: secretKey,
+          SecretString: secretValue,
+        });
+        await this.client.send(putCommand);
+      } catch (error) {
+        const wrapped = wrapAwsSmError("PutSecretValue", error);
+        if (
+          wrapped instanceof AwsSmOperationError &&
+          wrapped.name === "ResourceNotFoundException"
+        ) {
+          try {
+            const createCommand = new CreateSecretCommand({
+              Name: secretKey,
+              SecretString: secretValue,
+            });
+            await this.client.send(createCommand);
+          } catch (createError) {
+            const createWrapped = wrapAwsSmError("CreateSecret", createError);
+            if (createWrapped instanceof Error) {
+              span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: createWrapped.message,
+              });
+              span.recordException(createWrapped);
+              span.setAttribute(Attr.ERROR_TYPE, createWrapped.name);
+            }
+            throw createWrapped;
+          }
+        } else {
+          if (wrapped instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: wrapped.message,
+            });
+            span.recordException(wrapped);
+            span.setAttribute(Attr.ERROR_TYPE, wrapped.name);
+          }
+          throw wrapped;
         }
-      } else {
-        throw wrapped;
+      } finally {
+        span.end();
       }
-    }
+    });
   }
 
   async list(): Promise<string[]> {
-    const secretNames: string[] = [];
-    let nextToken: string | undefined;
-
-    do {
-      const command = new ListSecretsCommand({ NextToken: nextToken });
-      let response;
+    return await getTracer().startActiveSpan("aws-sm list", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "aws-api",
+        [Attr.RPC_SERVICE]: "SecretsManager",
+        [Attr.RPC_METHOD]: "ListSecrets",
+        [Attr.VAULT_NAME]: this.name,
+      });
       try {
-        response = await this.client.send(command);
-      } catch (error) {
-        throw wrapAwsSmError("ListSecrets", error);
-      }
+        const secretNames: string[] = [];
+        let nextToken: string | undefined;
 
-      if (response.SecretList) {
-        for (const secret of response.SecretList) {
-          if (secret.Name) {
-            secretNames.push(secret.Name);
+        do {
+          const command = new ListSecretsCommand({ NextToken: nextToken });
+          const response = await this.client.send(command);
+
+          if (response.SecretList) {
+            for (const secret of response.SecretList) {
+              if (secret.Name) {
+                secretNames.push(secret.Name);
+              }
+            }
           }
+
+          nextToken = response.NextToken;
+        } while (nextToken);
+
+        return secretNames.sort();
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
         }
+        throw wrapAwsSmError("ListSecrets", err);
+      } finally {
+        span.end();
       }
-
-      nextToken = response.NextToken;
-    } while (nextToken);
-
-    return secretNames.sort();
+    });
   }
 
   async delete(secretKey: string): Promise<void> {
-    try {
-      await this.client.send(
-        new DeleteSecretCommand({ SecretId: secretKey }),
-      );
-    } catch (error) {
-      throw wrapAwsSmError("DeleteSecret", error);
-    }
+    return await getTracer().startActiveSpan("aws-sm delete", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "aws-api",
+        [Attr.RPC_SERVICE]: "SecretsManager",
+        [Attr.RPC_METHOD]: "DeleteSecret",
+        [Attr.VAULT_NAME]: this.name,
+        [Attr.VAULT_SECRET_KEY]: secretKey,
+      });
+      try {
+        await this.client.send(
+          new DeleteSecretCommand({ SecretId: secretKey }),
+        );
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        throw wrapAwsSmError("DeleteSecret", err);
+      } finally {
+        span.end();
+      }
+    });
   }
 
   getName(): string {
@@ -340,185 +418,273 @@ class AwsSmVaultProvider
   }
 
   async getAnnotation(secretKey: string): Promise<VaultAnnotation | null> {
-    let response;
-    try {
-      response = await this.client.send(
-        new DescribeSecretCommand({ SecretId: secretKey }),
-      );
-    } catch (error) {
-      throw wrapAwsSmError("DescribeSecret", error);
-    }
+    return await getTracer().startActiveSpan(
+      "aws-sm getAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "aws-api",
+          [Attr.RPC_SERVICE]: "SecretsManager",
+          [Attr.RPC_METHOD]: "DescribeSecret",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          const response = await this.client.send(
+            new DescribeSecretCommand({ SecretId: secretKey }),
+          );
 
-    const { notes, url, labels } = readAnnotationFields(
-      response.Description || undefined,
-      response.Tags ?? [],
+          const { notes, url, labels } = readAnnotationFields(
+            response.Description || undefined,
+            response.Tags ?? [],
+          );
+
+          const hasAnnotation = notes !== undefined ||
+            url !== undefined ||
+            Object.keys(labels).length > 0;
+          if (!hasAnnotation) return null;
+
+          return createVaultAnnotation({
+            url,
+            notes,
+            labels: Object.keys(labels).length > 0 ? labels : undefined,
+            updatedAt: response.LastChangedDate ?? undefined,
+          });
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw wrapAwsSmError("DescribeSecret", err);
+        } finally {
+          span.end();
+        }
+      },
     );
-
-    const hasAnnotation = notes !== undefined ||
-      url !== undefined ||
-      Object.keys(labels).length > 0;
-    if (!hasAnnotation) return null;
-
-    return createVaultAnnotation({
-      url,
-      notes,
-      labels: Object.keys(labels).length > 0 ? labels : undefined,
-      updatedAt: response.LastChangedDate ?? undefined,
-    });
   }
 
   async putAnnotation(
     secretKey: string,
     annotation: VaultAnnotation,
   ): Promise<void> {
-    // notes and url share the secret Description, so a partial update (e.g.
-    // only --url or only --notes) must read-modify-write to avoid clobbering
-    // the field the caller didn't set. Read the existing annotation first,
-    // recovering url from the Description or — for not-yet-migrated secrets —
-    // the legacy swamp:url tag.
-    let existing;
-    try {
-      existing = await this.client.send(
-        new DescribeSecretCommand({ SecretId: secretKey }),
-      );
-    } catch (error) {
-      throw wrapAwsSmError("DescribeSecret", error);
-    }
-    const current = readAnnotationFields(
-      existing.Description || undefined,
-      existing.Tags ?? [],
+    return await getTracer().startActiveSpan(
+      "aws-sm putAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "aws-api",
+          [Attr.RPC_SERVICE]: "SecretsManager",
+          [Attr.RPC_METHOD]: "putAnnotation",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          let existing;
+          try {
+            existing = await this.client.send(
+              new DescribeSecretCommand({ SecretId: secretKey }),
+            );
+          } catch (error) {
+            throw wrapAwsSmError("DescribeSecret", error);
+          }
+          const current = readAnnotationFields(
+            existing.Description || undefined,
+            existing.Tags ?? [],
+          );
+
+          const notes = annotation.notes !== undefined
+            ? annotation.notes
+            : current.notes;
+          const url = annotation.url !== undefined
+            ? annotation.url
+            : current.url;
+          const description = composeDescription(notes, url) ?? "";
+
+          if (description !== (existing.Description ?? "")) {
+            try {
+              await this.client.send(
+                new UpdateSecretCommand({
+                  SecretId: secretKey,
+                  Description: description,
+                }),
+              );
+            } catch (error) {
+              throw wrapAwsSmError("UpdateSecret", error);
+            }
+          }
+
+          const tagsToSet: { Key: string; Value: string }[] = [];
+          if (annotation.labels) {
+            for (const [key, value] of Object.entries(annotation.labels)) {
+              tagsToSet.push({ Key: key, Value: value });
+            }
+          }
+
+          if (tagsToSet.length > 0) {
+            try {
+              await this.client.send(
+                new TagResourceCommand({
+                  SecretId: secretKey,
+                  Tags: tagsToSet,
+                }),
+              );
+            } catch (error) {
+              throw wrapAwsSmError("TagResource", error);
+            }
+          }
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
     );
-
-    const notes = annotation.notes !== undefined
-      ? annotation.notes
-      : current.notes;
-    const url = annotation.url !== undefined ? annotation.url : current.url;
-    const description = composeDescription(notes, url) ?? "";
-
-    // Pass only SecretId and Description, never SecretString/SecretBinary, to
-    // avoid rotating the secret value. Skip the write when nothing changed so a
-    // labels-only update doesn't needlessly rewrite the Description.
-    if (description !== (existing.Description ?? "")) {
-      try {
-        await this.client.send(
-          new UpdateSecretCommand({
-            SecretId: secretKey,
-            Description: description,
-          }),
-        );
-      } catch (error) {
-        throw wrapAwsSmError("UpdateSecret", error);
-      }
-    }
-
-    // Labels are stored as tags. url is intentionally NOT written as a tag —
-    // AWS tag values reject URL characters; it lives in the Description above.
-    const tagsToSet: { Key: string; Value: string }[] = [];
-    if (annotation.labels) {
-      for (const [key, value] of Object.entries(annotation.labels)) {
-        tagsToSet.push({ Key: key, Value: value });
-      }
-    }
-
-    if (tagsToSet.length > 0) {
-      try {
-        await this.client.send(
-          new TagResourceCommand({
-            SecretId: secretKey,
-            Tags: tagsToSet,
-          }),
-        );
-      } catch (error) {
-        throw wrapAwsSmError("TagResource", error);
-      }
-    }
   }
 
   async deleteAnnotation(secretKey: string): Promise<void> {
-    try {
-      await this.client.send(
-        new UpdateSecretCommand({
-          SecretId: secretKey,
-          Description: "",
-        }),
-      );
-    } catch (error) {
-      throw wrapAwsSmError("UpdateSecret", error);
-    }
+    return await getTracer().startActiveSpan(
+      "aws-sm deleteAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "aws-api",
+          [Attr.RPC_SERVICE]: "SecretsManager",
+          [Attr.RPC_METHOD]: "deleteAnnotation",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          try {
+            await this.client.send(
+              new UpdateSecretCommand({
+                SecretId: secretKey,
+                Description: "",
+              }),
+            );
+          } catch (error) {
+            throw wrapAwsSmError("UpdateSecret", error);
+          }
 
-    let response;
-    try {
-      response = await this.client.send(
-        new DescribeSecretCommand({ SecretId: secretKey }),
-      );
-    } catch (error) {
-      throw wrapAwsSmError("DescribeSecret", error);
-    }
+          let response;
+          try {
+            response = await this.client.send(
+              new DescribeSecretCommand({ SecretId: secretKey }),
+            );
+          } catch (error) {
+            throw wrapAwsSmError("DescribeSecret", error);
+          }
 
-    const tagKeysToRemove: string[] = [];
-    for (const tag of response.Tags ?? []) {
-      if (!tag.Key) continue;
-      if (tag.Key === LEGACY_SWAMP_URL_TAG_KEY || !tag.Key.startsWith("aws:")) {
-        tagKeysToRemove.push(tag.Key);
-      }
-    }
+          const tagKeysToRemove: string[] = [];
+          for (const tag of response.Tags ?? []) {
+            if (!tag.Key) continue;
+            if (
+              tag.Key === LEGACY_SWAMP_URL_TAG_KEY ||
+              !tag.Key.startsWith("aws:")
+            ) {
+              tagKeysToRemove.push(tag.Key);
+            }
+          }
 
-    if (tagKeysToRemove.length > 0) {
-      try {
-        await this.client.send(
-          new UntagResourceCommand({
-            SecretId: secretKey,
-            TagKeys: tagKeysToRemove,
-          }),
-        );
-      } catch (error) {
-        throw wrapAwsSmError("UntagResource", error);
-      }
-    }
+          if (tagKeysToRemove.length > 0) {
+            try {
+              await this.client.send(
+                new UntagResourceCommand({
+                  SecretId: secretKey,
+                  TagKeys: tagKeysToRemove,
+                }),
+              );
+            } catch (error) {
+              throw wrapAwsSmError("UntagResource", error);
+            }
+          }
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   async listAnnotations(): Promise<Map<string, VaultAnnotation>> {
-    const annotations = new Map<string, VaultAnnotation>();
-    let nextToken: string | undefined;
+    return await getTracer().startActiveSpan(
+      "aws-sm listAnnotations",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "aws-api",
+          [Attr.RPC_SERVICE]: "SecretsManager",
+          [Attr.RPC_METHOD]: "ListSecrets",
+          [Attr.VAULT_NAME]: this.name,
+        });
+        try {
+          const annotations = new Map<string, VaultAnnotation>();
+          let nextToken: string | undefined;
 
-    do {
-      let response;
-      try {
-        response = await this.client.send(
-          new ListSecretsCommand({ NextToken: nextToken }),
-        );
-      } catch (error) {
-        throw wrapAwsSmError("ListSecrets", error);
-      }
+          do {
+            const response = await this.client.send(
+              new ListSecretsCommand({ NextToken: nextToken }),
+            );
 
-      for (const secret of response.SecretList ?? []) {
-        if (!secret.Name) continue;
+            for (const secret of response.SecretList ?? []) {
+              if (!secret.Name) continue;
 
-        const { notes, url, labels } = readAnnotationFields(
-          secret.Description || undefined,
-          secret.Tags ?? [],
-        );
+              const { notes, url, labels } = readAnnotationFields(
+                secret.Description || undefined,
+                secret.Tags ?? [],
+              );
 
-        const hasAnnotation = notes !== undefined ||
-          url !== undefined ||
-          Object.keys(labels).length > 0;
-        if (hasAnnotation) {
-          annotations.set(
-            secret.Name,
-            createVaultAnnotation({
-              url,
-              notes,
-              labels: Object.keys(labels).length > 0 ? labels : undefined,
-              updatedAt: secret.LastChangedDate ?? undefined,
-            }),
-          );
+              const hasAnnotation = notes !== undefined ||
+                url !== undefined ||
+                Object.keys(labels).length > 0;
+              if (hasAnnotation) {
+                annotations.set(
+                  secret.Name,
+                  createVaultAnnotation({
+                    url,
+                    notes,
+                    labels: Object.keys(labels).length > 0 ? labels : undefined,
+                    updatedAt: secret.LastChangedDate ?? undefined,
+                  }),
+                );
+              }
+            }
+
+            nextToken = response.NextToken;
+          } while (nextToken);
+
+          return annotations;
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw wrapAwsSmError("ListSecrets", err);
+        } finally {
+          span.end();
         }
-      }
-
-      nextToken = response.NextToken;
-    } while (nextToken);
-
-    return annotations;
+      },
+    );
   }
 }
 

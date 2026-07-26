@@ -34,6 +34,8 @@ import {
   type SecretClientOptions,
 } from "npm:@azure/keyvault-secrets@4.11.2";
 import type { TokenCredential } from "@azure/core-auth";
+import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
+import { Attr, getTracer } from "./_lib/tracing.ts";
 
 export interface VaultProvider {
   get(secretKey: string): Promise<string>;
@@ -247,85 +249,162 @@ class AzureKvVaultProvider
   }
 
   async get(secretKey: string): Promise<string> {
-    const azureSecretName = toAzureSecretName(
-      this.secretPrefix + secretKey,
-    );
-    const secret = await this.client.getSecret(azureSecretName);
+    return await getTracer().startActiveSpan("azure-kv get", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "azure-api",
+        [Attr.RPC_SERVICE]: "KeyVault",
+        [Attr.RPC_METHOD]: "getSecret",
+        [Attr.VAULT_NAME]: this.name,
+        [Attr.VAULT_SECRET_KEY]: secretKey,
+      });
+      try {
+        const azureSecretName = toAzureSecretName(
+          this.secretPrefix + secretKey,
+        );
+        const secret = await this.client.getSecret(azureSecretName);
 
-    if (!secret.value) {
-      throw new Error(
-        `Secret '${secretKey}' in vault '${this.name}' has no value`,
-      );
-    }
+        if (!secret.value) {
+          throw new Error(
+            `Secret '${secretKey}' in vault '${this.name}' has no value`,
+          );
+        }
 
-    return secret.value;
+        return secret.value;
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   async put(secretKey: string, secretValue: string): Promise<void> {
-    const azureSecretName = toAzureSecretName(
-      this.secretPrefix + secretKey,
-    );
-    // Azure KV tags are per-version. setSecret creates a new version with
-    // blank tags, so we must forward existing tags to preserve annotations.
-    let existingTags: Record<string, string> | undefined;
-    try {
-      const current = await this.client.getSecret(azureSecretName);
-      existingTags = current.properties.tags as
-        | Record<string, string>
-        | undefined;
-    } catch (error) {
-      const statusCode = (error as { statusCode?: number }).statusCode;
-      if (statusCode !== 404) {
-        throw error;
+    return await getTracer().startActiveSpan("azure-kv put", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "azure-api",
+        [Attr.RPC_SERVICE]: "KeyVault",
+        [Attr.RPC_METHOD]: "setSecret",
+        [Attr.VAULT_NAME]: this.name,
+        [Attr.VAULT_SECRET_KEY]: secretKey,
+      });
+      try {
+        const azureSecretName = toAzureSecretName(
+          this.secretPrefix + secretKey,
+        );
+        let existingTags: Record<string, string> | undefined;
+        try {
+          const current = await this.client.getSecret(azureSecretName);
+          existingTags = current.properties.tags as
+            | Record<string, string>
+            | undefined;
+        } catch (error) {
+          const statusCode = (error as { statusCode?: number }).statusCode;
+          if (statusCode !== 404) {
+            throw error;
+          }
+        }
+        await this.client.setSecret(
+          azureSecretName,
+          secretValue,
+          existingTags ? { tags: existingTags } : undefined,
+        );
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        throw err;
+      } finally {
+        span.end();
       }
-    }
-    await this.client.setSecret(
-      azureSecretName,
-      secretValue,
-      existingTags ? { tags: existingTags } : undefined,
-    );
+    });
   }
 
   async list(): Promise<string[]> {
-    const secretNames: string[] = [];
+    return await getTracer().startActiveSpan("azure-kv list", async (span) => {
+      span.setAttributes({
+        [Attr.RPC_SYSTEM]: "azure-api",
+        [Attr.RPC_SERVICE]: "KeyVault",
+        [Attr.RPC_METHOD]: "listPropertiesOfSecrets",
+        [Attr.VAULT_NAME]: this.name,
+      });
+      try {
+        const secretNames: string[] = [];
 
-    for await (
-      const secretProperties of this.client.listPropertiesOfSecrets()
-    ) {
-      if (secretProperties.name) {
-        const name = secretProperties.name;
-        if (this.secretPrefix && name.startsWith(this.secretPrefix)) {
-          secretNames.push(name.slice(this.secretPrefix.length));
-        } else if (!this.secretPrefix) {
-          secretNames.push(name);
+        for await (
+          const secretProperties of this.client.listPropertiesOfSecrets()
+        ) {
+          if (secretProperties.name) {
+            const name = secretProperties.name;
+            if (this.secretPrefix && name.startsWith(this.secretPrefix)) {
+              secretNames.push(name.slice(this.secretPrefix.length));
+            } else if (!this.secretPrefix) {
+              secretNames.push(name);
+            }
+          }
         }
-      }
-    }
 
-    return secretNames.sort();
+        return secretNames.sort();
+      } catch (err) {
+        if (err instanceof Error) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+        }
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   async delete(secretKey: string): Promise<void> {
-    const azureSecretName = toAzureSecretName(
-      this.secretPrefix + secretKey,
+    return await getTracer().startActiveSpan(
+      "azure-kv delete",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "azure-api",
+          [Attr.RPC_SERVICE]: "KeyVault",
+          [Attr.RPC_METHOD]: "beginDeleteSecret",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          const azureSecretName = toAzureSecretName(
+            this.secretPrefix + secretKey,
+          );
+          const poller = await this.client.beginDeleteSecret(azureSecretName);
+          await poller.pollUntilDone();
+        } catch (error) {
+          const statusCode = (error as { statusCode?: number }).statusCode;
+          let err: Error;
+          if (statusCode === 404) {
+            err = new Error(
+              `Secret '${secretKey}' not found in vault '${this.name}'`,
+            );
+          } else {
+            err = new Error(
+              `Failed to delete secret '${secretKey}': ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+              { cause: error },
+            );
+          }
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
     );
-    try {
-      const poller = await this.client.beginDeleteSecret(azureSecretName);
-      await poller.pollUntilDone();
-    } catch (error) {
-      const statusCode = (error as { statusCode?: number }).statusCode;
-      if (statusCode === 404) {
-        throw new Error(
-          `Secret '${secretKey}' not found in vault '${this.name}'`,
-        );
-      }
-      throw new Error(
-        `Failed to delete secret '${secretKey}': ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-        { cause: error },
-      );
-    }
   }
 
   getName(): string {
@@ -333,130 +412,209 @@ class AzureKvVaultProvider
   }
 
   async getAnnotation(secretKey: string): Promise<VaultAnnotation | null> {
-    const azureSecretName = toAzureSecretName(
-      this.secretPrefix + secretKey,
+    return await getTracer().startActiveSpan(
+      "azure-kv getAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "azure-api",
+          [Attr.RPC_SERVICE]: "KeyVault",
+          [Attr.RPC_METHOD]: "getAnnotation",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          const azureSecretName = toAzureSecretName(
+            this.secretPrefix + secretKey,
+          );
+          const secret = await this.client.getSecret(azureSecretName);
+          return tagsToAnnotation(
+            secret.properties.tags as Record<string, string> | undefined,
+          );
+        } catch (error) {
+          const err = new Error(
+            `Failed to read annotation for '${secretKey}': ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            { cause: error },
+          );
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
     );
-    try {
-      const secret = await this.client.getSecret(azureSecretName);
-      return tagsToAnnotation(
-        secret.properties.tags as Record<string, string> | undefined,
-      );
-    } catch (error) {
-      throw new Error(
-        `Failed to read annotation for '${secretKey}': ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-        { cause: error },
-      );
-    }
   }
 
-  // Read-modify-write: not atomic. Concurrent annotation writers or a
-  // concurrent put() (which creates a new secret version) can cause
-  // annotation loss — tags are per-version in Azure KV.
   async putAnnotation(
     secretKey: string,
     annotation: VaultAnnotation,
   ): Promise<void> {
-    const azureSecretName = toAzureSecretName(
-      this.secretPrefix + secretKey,
-    );
-    const secret = await this.client.getSecret(azureSecretName).catch(
-      (error) => {
-        throw new Error(
-          `Failed to write annotation for '${secretKey}': ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-          { cause: error },
-        );
+    return await getTracer().startActiveSpan(
+      "azure-kv putAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "azure-api",
+          [Attr.RPC_SERVICE]: "KeyVault",
+          [Attr.RPC_METHOD]: "putAnnotation",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          const azureSecretName = toAzureSecretName(
+            this.secretPrefix + secretKey,
+          );
+          const secret = await this.client.getSecret(azureSecretName).catch(
+            (error) => {
+              throw new Error(
+                `Failed to write annotation for '${secretKey}': ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+                { cause: error },
+              );
+            },
+          );
+          const version = secret.properties.version;
+          if (!version) {
+            throw new Error(`Secret '${secretKey}' has no version`);
+          }
+          const existingTags = secret.properties.tags as
+            | Record<string, string>
+            | undefined;
+          const newTags = _annotationToTags(annotation, existingTags);
+          try {
+            await this.client.updateSecretProperties(
+              azureSecretName,
+              version,
+              { tags: newTags },
+            );
+          } catch (error) {
+            throw new Error(
+              `Failed to write annotation for '${secretKey}': ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+              { cause: error },
+            );
+          }
+        } catch (err) {
+          if (err instanceof Error) {
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: err.message,
+            });
+            span.recordException(err);
+            span.setAttribute(Attr.ERROR_TYPE, err.name);
+          }
+          throw err;
+        } finally {
+          span.end();
+        }
       },
     );
-    const version = secret.properties.version;
-    if (!version) {
-      throw new Error(`Secret '${secretKey}' has no version`);
-    }
-    const existingTags = secret.properties.tags as
-      | Record<string, string>
-      | undefined;
-    const newTags = _annotationToTags(annotation, existingTags);
-    try {
-      await this.client.updateSecretProperties(
-        azureSecretName,
-        version,
-        { tags: newTags },
-      );
-    } catch (error) {
-      throw new Error(
-        `Failed to write annotation for '${secretKey}': ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-        { cause: error },
-      );
-    }
   }
 
-  // Read-modify-write: same non-atomic constraint as putAnnotation.
   async deleteAnnotation(secretKey: string): Promise<void> {
-    const azureSecretName = toAzureSecretName(
-      this.secretPrefix + secretKey,
+    return await getTracer().startActiveSpan(
+      "azure-kv deleteAnnotation",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "azure-api",
+          [Attr.RPC_SERVICE]: "KeyVault",
+          [Attr.RPC_METHOD]: "deleteAnnotation",
+          [Attr.VAULT_NAME]: this.name,
+          [Attr.VAULT_SECRET_KEY]: secretKey,
+        });
+        try {
+          const azureSecretName = toAzureSecretName(
+            this.secretPrefix + secretKey,
+          );
+          const secret = await this.client.getSecret(azureSecretName);
+          const version = secret.properties.version;
+          if (!version) {
+            throw new Error(`Secret '${secretKey}' has no version`);
+          }
+          const existingTags = secret.properties.tags as
+            | Record<string, string>
+            | undefined;
+          const cleaned = stripAnnotationTags(existingTags);
+          await this.client.updateSecretProperties(
+            azureSecretName,
+            version,
+            { tags: cleaned },
+          );
+        } catch (error) {
+          const err = error instanceof Error
+            ? new Error(
+              `Failed to delete annotation for '${secretKey}': ${error.message}`,
+              { cause: error },
+            )
+            : new Error(
+              `Failed to delete annotation for '${secretKey}': ${
+                String(error)
+              }`,
+            );
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
     );
-    try {
-      const secret = await this.client.getSecret(azureSecretName);
-      const version = secret.properties.version;
-      if (!version) {
-        throw new Error(`Secret '${secretKey}' has no version`);
-      }
-      const existingTags = secret.properties.tags as
-        | Record<string, string>
-        | undefined;
-      const cleaned = stripAnnotationTags(existingTags);
-      await this.client.updateSecretProperties(
-        azureSecretName,
-        version,
-        { tags: cleaned },
-      );
-    } catch (error) {
-      throw new Error(
-        `Failed to delete annotation for '${secretKey}': ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-        { cause: error },
-      );
-    }
   }
 
   async listAnnotations(): Promise<Map<string, VaultAnnotation>> {
-    const annotations = new Map<string, VaultAnnotation>();
-    try {
-      for await (
-        const secretProperties of this.client.listPropertiesOfSecrets()
-      ) {
-        if (secretProperties.name) {
-          const annotation = tagsToAnnotation(
-            secretProperties.tags as Record<string, string> | undefined,
-          );
-          if (annotation) {
-            let keyName = secretProperties.name;
-            if (
-              this.secretPrefix && keyName.startsWith(this.secretPrefix)
-            ) {
-              keyName = keyName.slice(this.secretPrefix.length);
-            } else if (this.secretPrefix) {
-              continue;
+    return await getTracer().startActiveSpan(
+      "azure-kv listAnnotations",
+      async (span) => {
+        span.setAttributes({
+          [Attr.RPC_SYSTEM]: "azure-api",
+          [Attr.RPC_SERVICE]: "KeyVault",
+          [Attr.RPC_METHOD]: "listAnnotations",
+          [Attr.VAULT_NAME]: this.name,
+        });
+        try {
+          const annotations = new Map<string, VaultAnnotation>();
+          for await (
+            const secretProperties of this.client.listPropertiesOfSecrets()
+          ) {
+            if (secretProperties.name) {
+              const annotation = tagsToAnnotation(
+                secretProperties.tags as Record<string, string> | undefined,
+              );
+              if (annotation) {
+                let keyName = secretProperties.name;
+                if (
+                  this.secretPrefix && keyName.startsWith(this.secretPrefix)
+                ) {
+                  keyName = keyName.slice(this.secretPrefix.length);
+                } else if (this.secretPrefix) {
+                  continue;
+                }
+                annotations.set(keyName, annotation);
+              }
             }
-            annotations.set(keyName, annotation);
           }
+          return annotations;
+        } catch (error) {
+          const err = new Error(
+            `Failed to list annotations in vault '${this.name}': ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            { cause: error },
+          );
+          span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+          span.recordException(err);
+          span.setAttribute(Attr.ERROR_TYPE, err.name);
+          throw err;
+        } finally {
+          span.end();
         }
-      }
-    } catch (error) {
-      throw new Error(
-        `Failed to list annotations in vault '${this.name}': ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-        { cause: error },
-      );
-    }
-    return annotations;
+      },
+    );
   }
 }
 
