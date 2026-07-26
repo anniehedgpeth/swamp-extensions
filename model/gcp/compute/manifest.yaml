@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/compute"
-version: "2026.07.21.4"
+version: "2026.07.26.1"
 description: "Google Cloud compute infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,8 +11,8 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Added: globalvmextensionpolicies, instantsnapshotgroups, regionbackendbuckets, regioninstancegroupmanagerresizerequests, regioninstantsnapshotgroups, regionsnapshotsettings, regionsnapshots, rolloutplans, rollouts, zonevmextensionpolicies
-  - Updated: addresses, autoscalers, backendbuckets, backendservices, disks, firewallpolicies, forwardingrules, futurereservations, globaladdresses, globalforwardingrules, globalnetworkendpointgroups, images, instancegroupmanagerresizerequests, instancegroupmanagers, instancetemplates, instances, instantsnapshots, interconnects, licensecodes, licenses, machineimages, networkattachments, networkendpointgroups, networkfirewallpolicies, networks, organizationsecuritypolicies, regionautoscalers, regionbackendservices, regioncommitments, regioncompositehealthchecks, regiondisks, regionhealthsources, regioninstancegroupmanagers, regioninstancetemplates, regioninstantsnapshots, regionnetworkendpointgroups, regionnetworkfirewallpolicies, regionsecuritypolicies, regionsslpolicies, regiontargettcpproxies, regionurlmaps, regionzones, reservations, routers, securitypolicies, serviceattachments, snapshotsettings, snapshots, sslpolicies, storagepools, subnetworks, targettcpproxies, urlmaps, zones
+  - Added: hosts, reliabilityrisks
+  - Updated: addresses, backendservices, disks, globaladdresses, healthchecks, images, instancetemplates, instances, machineimages, regionbackendservices, regioncommitments, regiondisks, regionhealthchecks, regioninstancetemplates, regionsnapshots, snapshots, storagepools
 models:
   - acceleratortypes.ts
   - addresses.ts
@@ -33,6 +33,7 @@ models:
   - globalpublicdelegatedprefixes.ts
   - globalvmextensionpolicies.ts
   - healthchecks.ts
+  - hosts.ts
   - httphealthchecks.ts
   - httpshealthchecks.ts
   - imagefamilyviews.ts
@@ -101,6 +102,7 @@ models:
   - regiontargettcpproxies.ts
   - regionurlmaps.ts
   - regionzones.ts
+  - reliabilityrisks.ts
   - reservationblocks.ts
   - reservations.ts
   - reservationslots.ts

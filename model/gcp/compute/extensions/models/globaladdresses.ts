@@ -160,7 +160,7 @@ const GlobalArgsSchema = z.object({
     "An optional description of this resource. Provide this field when you create the resource.",
   ).optional(),
   ipCollection: z.string().describe(
-    "Reference to the source of IP addresses. It supports the following cases: - Case 1: PublicDelegatedPrefix (PDP) for BYOIP external IPv4 addresses. The PDP must support enhanced IPv4 allocations. - Case 2: Internal Range for global internal addresses. Use one of the following formats to specify the resource: For a Public Delegated Prefix: - Full resource URL:https://www.googleapis.com/compute/v1/projects/projectId/regions/region/publicDelegatedPrefixes/pdp - Partial URL: - projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - regions/region/publicDelegatedPrefixes/pdp-name For an Internal Range: - Full URL:https://networkconnectivity.googleapis.com/v1/projects/project/locations/global/internalRanges/internal-range - Partial URL:projects/project/locations/global/internalRanges/internal-range",
+    "Reference to the source of IP addresses. It supports the following cases: - Case 1: PublicDelegatedPrefix (PDP) for BYOIP external addresses. If an IPv4 PDP is used, the PDP must support enhanced IPv4 allocations. If an IPv6 PDP is used, the PDP must be in EXTERNAL_IPV6_FORWARDING_RULE_CREATION mode. - Case 2: Internal Range for global internal addresses. Use one of the following formats to specify the resource: For a Public Delegated Prefix: - Full resource URL:https://www.googleapis.com/compute/v1/projects/projectId/regions/region/publicDelegatedPrefixes/pdp - Partial URL: - projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - regions/region/publicDelegatedPrefixes/pdp-name For an Internal Range: - Full URL:https://networkconnectivity.googleapis.com/v1/projects/project/locations/global/internalRanges/internal-range - Partial URL:projects/project/locations/global/internalRanges/internal-range",
   ).optional(),
   ipVersion: z.enum(["IPV4", "IPV6", "UNSPECIFIED_VERSION"]).describe(
     "The IP version that will be used by this address. Valid options areIPV4 or IPV6.",
@@ -202,7 +202,7 @@ const GlobalArgsSchema = z.object({
     "SHARED_LOADBALANCER_VIP",
     "VPC_PEERING",
   ]).describe(
-    "The purpose of this resource, which can be one of the following values: - GCE_ENDPOINT for addresses that are used by VM instances, alias IP ranges, load balancers, and similar resources. - DNS_RESOLVER for a DNS resolver address in a subnetwork for a Cloud DNS inbound forwarder IP addresses (regional internal IP address in a subnet of a VPC network) - VPC_PEERING for global internal IP addresses used for private services access allocated ranges. - NAT_AUTO for the regional external IP addresses used by Cloud NAT when allocating addresses using automatic NAT IP address allocation. - IPSEC_INTERCONNECT for addresses created from a private IP range that are reserved for a VLAN attachment in an *HA VPN over Cloud Interconnect* configuration. These addresses are regional resources. - `SHARED_LOADBALANCER_VIP` for an internal IP address that is assigned to multiple internal forwarding rules. - `PRIVATE_SERVICE_CONNECT` for a private network address that is used to configure Private Service Connect. Only global internal addresses can use this purpose.",
+    "The purpose of this resource, which can be one of the following values: - GCE_ENDPOINT for addresses that are used by VM instances, alias IP ranges, load balancers, and similar resources. - DNS_RESOLVER for a DNS resolver address in a subnetwork for a Cloud DNS inbound forwarder IP addresses (regional internal IP address in a subnet of a VPC network) - VPC_PEERING for global internal IP addresses used for private services access allocated ranges. - NAT_AUTO for the regional external IP addresses used by Cloud NAT when allocating addresses using automatic NAT IP address allocation. - IPSEC_INTERCONNECT for addresses created from a private IP range that are reserved for a VLAN attachment in an *HA VPN over Cloud Interconnect* configuration. These addresses are regional resources. - `SHARED_LOADBALANCER_VIP` for an internal IP address that is assigned to multiple internal forwarding rules. - `PRIVATE_SERVICE_CONNECT` for a private network address that is used to configure Private Service Connect. Only global internal addresses can use this purpose. - `PASSTHROUGH_LOAD_BALANCER_AVAILABILITY_GROUP0` for addresses that can only be assigned to global external Passthrough Network Load Balancer forwarding rules, as an Availability Group 0 address. - `PASSTHROUGH_LOAD_BALANCER_AVAILABILITY_GROUP1` for addresses that can only be assigned to global external Passthrough Network Load Balancer forwarding rules, as an Availability Group 1 address.",
   ).optional(),
   subnetwork: z.string().describe(
     "The URL of the subnetwork in which to reserve the address. If an IP address is specified, it must be within the subnetwork's IP range. This field can only be used with INTERNAL type with aGCE_ENDPOINT or DNS_RESOLVER purpose.",
@@ -253,7 +253,7 @@ const InputsSchema = z.object({
     "An optional description of this resource. Provide this field when you create the resource.",
   ).optional(),
   ipCollection: z.string().describe(
-    "Reference to the source of IP addresses. It supports the following cases: - Case 1: PublicDelegatedPrefix (PDP) for BYOIP external IPv4 addresses. The PDP must support enhanced IPv4 allocations. - Case 2: Internal Range for global internal addresses. Use one of the following formats to specify the resource: For a Public Delegated Prefix: - Full resource URL:https://www.googleapis.com/compute/v1/projects/projectId/regions/region/publicDelegatedPrefixes/pdp - Partial URL: - projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - regions/region/publicDelegatedPrefixes/pdp-name For an Internal Range: - Full URL:https://networkconnectivity.googleapis.com/v1/projects/project/locations/global/internalRanges/internal-range - Partial URL:projects/project/locations/global/internalRanges/internal-range",
+    "Reference to the source of IP addresses. It supports the following cases: - Case 1: PublicDelegatedPrefix (PDP) for BYOIP external addresses. If an IPv4 PDP is used, the PDP must support enhanced IPv4 allocations. If an IPv6 PDP is used, the PDP must be in EXTERNAL_IPV6_FORWARDING_RULE_CREATION mode. - Case 2: Internal Range for global internal addresses. Use one of the following formats to specify the resource: For a Public Delegated Prefix: - Full resource URL:https://www.googleapis.com/compute/v1/projects/projectId/regions/region/publicDelegatedPrefixes/pdp - Partial URL: - projects/projectId/regions/region/publicDelegatedPrefixes/pdp-name - regions/region/publicDelegatedPrefixes/pdp-name For an Internal Range: - Full URL:https://networkconnectivity.googleapis.com/v1/projects/project/locations/global/internalRanges/internal-range - Partial URL:projects/project/locations/global/internalRanges/internal-range",
   ).optional(),
   ipVersion: z.enum(["IPV4", "IPV6", "UNSPECIFIED_VERSION"]).describe(
     "The IP version that will be used by this address. Valid options areIPV4 or IPV6.",
@@ -295,7 +295,7 @@ const InputsSchema = z.object({
     "SHARED_LOADBALANCER_VIP",
     "VPC_PEERING",
   ]).describe(
-    "The purpose of this resource, which can be one of the following values: - GCE_ENDPOINT for addresses that are used by VM instances, alias IP ranges, load balancers, and similar resources. - DNS_RESOLVER for a DNS resolver address in a subnetwork for a Cloud DNS inbound forwarder IP addresses (regional internal IP address in a subnet of a VPC network) - VPC_PEERING for global internal IP addresses used for private services access allocated ranges. - NAT_AUTO for the regional external IP addresses used by Cloud NAT when allocating addresses using automatic NAT IP address allocation. - IPSEC_INTERCONNECT for addresses created from a private IP range that are reserved for a VLAN attachment in an *HA VPN over Cloud Interconnect* configuration. These addresses are regional resources. - `SHARED_LOADBALANCER_VIP` for an internal IP address that is assigned to multiple internal forwarding rules. - `PRIVATE_SERVICE_CONNECT` for a private network address that is used to configure Private Service Connect. Only global internal addresses can use this purpose.",
+    "The purpose of this resource, which can be one of the following values: - GCE_ENDPOINT for addresses that are used by VM instances, alias IP ranges, load balancers, and similar resources. - DNS_RESOLVER for a DNS resolver address in a subnetwork for a Cloud DNS inbound forwarder IP addresses (regional internal IP address in a subnet of a VPC network) - VPC_PEERING for global internal IP addresses used for private services access allocated ranges. - NAT_AUTO for the regional external IP addresses used by Cloud NAT when allocating addresses using automatic NAT IP address allocation. - IPSEC_INTERCONNECT for addresses created from a private IP range that are reserved for a VLAN attachment in an *HA VPN over Cloud Interconnect* configuration. These addresses are regional resources. - `SHARED_LOADBALANCER_VIP` for an internal IP address that is assigned to multiple internal forwarding rules. - `PRIVATE_SERVICE_CONNECT` for a private network address that is used to configure Private Service Connect. Only global internal addresses can use this purpose. - `PASSTHROUGH_LOAD_BALANCER_AVAILABILITY_GROUP0` for addresses that can only be assigned to global external Passthrough Network Load Balancer forwarding rules, as an Availability Group 0 address. - `PASSTHROUGH_LOAD_BALANCER_AVAILABILITY_GROUP1` for addresses that can only be assigned to global external Passthrough Network Load Balancer forwarding rules, as an Availability Group 1 address.",
   ).optional(),
   subnetwork: z.string().describe(
     "The URL of the subnetwork in which to reserve the address. If an IP address is specified, it must be within the subnetwork's IP range. This field can only be used with INTERNAL type with aGCE_ENDPOINT or DNS_RESOLVER purpose.",
@@ -328,7 +328,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine GlobalAddresses. Registered at `@swamp/gcp/compute/globaladdresses`. */
 export const model = {
   type: "@swamp/gcp/compute/globaladdresses",
-  version: "2026.07.21.3",
+  version: "2026.07.26.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -457,6 +457,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.26.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

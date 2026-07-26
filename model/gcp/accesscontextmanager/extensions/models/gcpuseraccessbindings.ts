@@ -164,14 +164,15 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     'Immutable. Assigned by the server during creation. The last segment has an arbitrary length and has only URI unreserved characters (as defined by [RFC 3986 Section 2.3](https://tools.ietf.org/html/rfc3986#section-2.3)). Should not be specified by the client during creation. Example: "organizations/256/gcpUserAccessBindings/b3-BhcX_Ud5N"',
   ).optional(),
-  restrictedClientApplications: z.array(z.object({
-    clientId: z.string().describe("The OAuth client ID of the application.")
-      .optional(),
-    name: z.string().describe(
-      'The name of the application. Example: "Cloud Console"',
+  principal: z.object({
+    serviceAccount: z.string().describe(
+      "Immutable. Service account email used to assign policies to a specific service account. If a service account is subject to multiple policies (e.g., if there is a policy for all service accounts in a project and a policy for the service account), the closest (i.e. the most specific) dry-run policy will be used for the dry-run functionality and the closest policy will be used for the enforcement.",
     ).optional(),
-  })).describe(
-    "Optional. A list of applications that are subject to this binding's restrictions. If the list is empty, the binding restrictions will universally apply to all applications.",
+    serviceAccountProjectNumber: z.string().describe(
+      "Immutable. Cloud project number used to assign policies to all service accounts owned by the project.",
+    ).optional(),
+  }).describe(
+    "Optional. Immutable. The principal that is subject to the access policies in this policy binding.",
   ).optional(),
   scopedAccessSettings: z.array(z.object({
     activeSettings: z.object({
@@ -289,6 +290,10 @@ const StateSchema = z.object({
   dryRunAccessLevels: z.array(z.string()).optional(),
   groupKey: z.string().optional(),
   name: z.string(),
+  principal: z.object({
+    serviceAccount: z.string(),
+    serviceAccountProjectNumber: z.string(),
+  }).optional(),
   restrictedClientApplications: z.array(z.object({
     clientId: z.string(),
     name: z.string(),
@@ -351,14 +356,15 @@ const InputsSchema = z.object({
   name: z.string().describe(
     'Immutable. Assigned by the server during creation. The last segment has an arbitrary length and has only URI unreserved characters (as defined by [RFC 3986 Section 2.3](https://tools.ietf.org/html/rfc3986#section-2.3)). Should not be specified by the client during creation. Example: "organizations/256/gcpUserAccessBindings/b3-BhcX_Ud5N"',
   ).optional(),
-  restrictedClientApplications: z.array(z.object({
-    clientId: z.string().describe("The OAuth client ID of the application.")
-      .optional(),
-    name: z.string().describe(
-      'The name of the application. Example: "Cloud Console"',
+  principal: z.object({
+    serviceAccount: z.string().describe(
+      "Immutable. Service account email used to assign policies to a specific service account. If a service account is subject to multiple policies (e.g., if there is a policy for all service accounts in a project and a policy for the service account), the closest (i.e. the most specific) dry-run policy will be used for the dry-run functionality and the closest policy will be used for the enforcement.",
     ).optional(),
-  })).describe(
-    "Optional. A list of applications that are subject to this binding's restrictions. If the list is empty, the binding restrictions will universally apply to all applications.",
+    serviceAccountProjectNumber: z.string().describe(
+      "Immutable. Cloud project number used to assign policies to all service accounts owned by the project.",
+    ).optional(),
+  }).describe(
+    "Optional. Immutable. The principal that is subject to the access policies in this policy binding.",
   ).optional(),
   scopedAccessSettings: z.array(z.object({
     activeSettings: z.object({
@@ -494,7 +500,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Access Context Manager GcpUserAccessBindings. Registered at `@swamp/gcp/accesscontextmanager/gcpuseraccessbindings`. */
 export const model = {
   type: "@swamp/gcp/accesscontextmanager/gcpuseraccessbindings",
-  version: "2026.07.21.3",
+  version: "2026.07.26.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -616,6 +622,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.26.1",
+      description: "Added: principal. Removed: restrictedClientApplications",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          restrictedClientApplications: _restrictedClientApplications,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -647,10 +664,7 @@ export const model = {
         }
         if (g["groupKey"] !== undefined) body["groupKey"] = g["groupKey"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["restrictedClientApplications"] !== undefined) {
-          body["restrictedClientApplications"] =
-            g["restrictedClientApplications"];
-        }
+        if (g["principal"] !== undefined) body["principal"] = g["principal"];
         if (g["scopedAccessSettings"] !== undefined) {
           body["scopedAccessSettings"] = g["scopedAccessSettings"];
         }
@@ -768,10 +782,6 @@ export const model = {
         }
         if (g["dryRunAccessLevels"] !== undefined) {
           body["dryRunAccessLevels"] = g["dryRunAccessLevels"];
-        }
-        if (g["restrictedClientApplications"] !== undefined) {
-          body["restrictedClientApplications"] =
-            g["restrictedClientApplications"];
         }
         if (g["scopedAccessSettings"] !== undefined) {
           body["scopedAccessSettings"] = g["scopedAccessSettings"];

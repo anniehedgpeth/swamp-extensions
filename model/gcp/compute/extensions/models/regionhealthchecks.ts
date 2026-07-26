@@ -327,7 +327,7 @@ const GlobalArgsSchema = z.object({
     "Output only. [Output Only] Region where the health check resides. Not applicable to global health checks.",
   ).optional(),
   sourceRegions: z.array(z.string()).describe(
-    "The list of cloud regions from which health checks are performed. If any regions are specified, then exactly 3 regions should be specified. The region names must be valid names of Google Cloud regions. This can only be set for global health check. If this list is non-empty, then there are restrictions on what other health check fields are supported and what other resources can use this health check: - SSL, HTTP2, and GRPC protocols are not supported. - The TCP request field is not supported. - The proxyHeader field for HTTP, HTTPS, and TCP is not supported. - The checkIntervalSec field must be at least 30. - The health check cannot be used with BackendService nor with managed instance group auto-healing.",
+    "The list of cloud regions from which health checks are performed. If any regions are specified, then exactly 3 regions should be specified. The region names must be valid names of Google Cloud regions. This can only be set for global health check. If this list is non-empty, then there are restrictions on what other health check fields are supported and what other resources can use this health check: - SSL, HTTP2, GRPC, and GRPC_WITH_TLS protocols are not supported. - The TCP request field is not supported. - The proxyHeader field for HTTP, HTTPS, and TCP is not supported. - The checkIntervalSec field must be at least 30. - The health check cannot be used with BackendService nor with managed instance group auto-healing.",
   ).optional(),
   sslHealthCheck: z.object({
     port: z.number().int().describe(
@@ -386,7 +386,7 @@ const GlobalArgsSchema = z.object({
     "SSL",
     "TCP",
   ]).describe(
-    "Specifies the type of the healthCheck, either TCP,SSL, HTTP, HTTPS,HTTP2 or GRPC. Exactly one of the protocol-specific health check fields must be specified, which must matchtype field.",
+    "Specifies the type of the healthCheck, either TCP,SSL, HTTP, HTTPS,HTTP2, GRPC or GRPC_WITH_TLS. Exactly one of the protocol-specific health check fields must be specified, which must match type field.",
   ).optional(),
   unhealthyThreshold: z.number().int().describe(
     "A so-far healthy instance will be marked unhealthy after this many consecutive failures. The default value is 2.",
@@ -604,7 +604,7 @@ const InputsSchema = z.object({
     "Output only. [Output Only] Region where the health check resides. Not applicable to global health checks.",
   ).optional(),
   sourceRegions: z.array(z.string()).describe(
-    "The list of cloud regions from which health checks are performed. If any regions are specified, then exactly 3 regions should be specified. The region names must be valid names of Google Cloud regions. This can only be set for global health check. If this list is non-empty, then there are restrictions on what other health check fields are supported and what other resources can use this health check: - SSL, HTTP2, and GRPC protocols are not supported. - The TCP request field is not supported. - The proxyHeader field for HTTP, HTTPS, and TCP is not supported. - The checkIntervalSec field must be at least 30. - The health check cannot be used with BackendService nor with managed instance group auto-healing.",
+    "The list of cloud regions from which health checks are performed. If any regions are specified, then exactly 3 regions should be specified. The region names must be valid names of Google Cloud regions. This can only be set for global health check. If this list is non-empty, then there are restrictions on what other health check fields are supported and what other resources can use this health check: - SSL, HTTP2, GRPC, and GRPC_WITH_TLS protocols are not supported. - The TCP request field is not supported. - The proxyHeader field for HTTP, HTTPS, and TCP is not supported. - The checkIntervalSec field must be at least 30. - The health check cannot be used with BackendService nor with managed instance group auto-healing.",
   ).optional(),
   sslHealthCheck: z.object({
     port: z.number().int().describe(
@@ -663,7 +663,7 @@ const InputsSchema = z.object({
     "SSL",
     "TCP",
   ]).describe(
-    "Specifies the type of the healthCheck, either TCP,SSL, HTTP, HTTPS,HTTP2 or GRPC. Exactly one of the protocol-specific health check fields must be specified, which must matchtype field.",
+    "Specifies the type of the healthCheck, either TCP,SSL, HTTP, HTTPS,HTTP2, GRPC or GRPC_WITH_TLS. Exactly one of the protocol-specific health check fields must be specified, which must match type field.",
   ).optional(),
   unhealthyThreshold: z.number().int().describe(
     "A so-far healthy instance will be marked unhealthy after this many consecutive failures. The default value is 2.",
@@ -696,7 +696,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionHealthChecks. Registered at `@swamp/gcp/compute/regionhealthchecks`. */
 export const model = {
   type: "@swamp/gcp/compute/regionhealthchecks",
-  version: "2026.07.21.3",
+  version: "2026.07.26.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -810,6 +810,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.26.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
