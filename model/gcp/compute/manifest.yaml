@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/compute"
-version: "2026.07.26.1"
+version: "2026.07.27.1"
 description: "Google Cloud compute infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,6 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Added: hosts, reliabilityrisks
   - Updated: addresses, backendservices, disks, globaladdresses, healthchecks, images, instancetemplates, instances, machineimages, regionbackendservices, regioncommitments, regiondisks, regionhealthchecks, regioninstancetemplates, regionsnapshots, snapshots, storagepools
 models:
   - acceleratortypes.ts
@@ -33,7 +32,6 @@ models:
   - globalpublicdelegatedprefixes.ts
   - globalvmextensionpolicies.ts
   - healthchecks.ts
-  - hosts.ts
   - httphealthchecks.ts
   - httpshealthchecks.ts
   - imagefamilyviews.ts
@@ -102,7 +100,6 @@ models:
   - regiontargettcpproxies.ts
   - regionurlmaps.ts
   - regionzones.ts
-  - reliabilityrisks.ts
   - reservationblocks.ts
   - reservations.ts
   - reservationslots.ts

@@ -410,7 +410,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform IndexEndpoints. Registered at `@swamp/gcp/aiplatform/indexendpoints`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/indexendpoints",
-  version: "2026.07.21.4",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -564,6 +564,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1110,6 +1115,7 @@ export const model = {
             "parameterOrder": ["indexEndpoint"],
             "parameters": {
               "indexEndpoint": { "location": "path", "required": true },
+              "updateMask": { "location": "query" },
             },
           },
           params,

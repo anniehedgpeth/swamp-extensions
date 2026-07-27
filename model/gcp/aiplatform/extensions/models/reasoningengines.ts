@@ -273,6 +273,9 @@ const GlobalArgsSchema = z.object({
       'Optional. The OSS agent framework used to develop the agent. Currently supported values: "google-adk", "langchain", "langgraph", "ag2", "llama-index", "custom".',
     ).optional(),
     buildSpec: z.object({
+      serviceAccount: z.string().describe(
+        "Optional. The service account that Cloud Build uses to run the build. This field is only applicable when `worker_pool` is specified (i.e., for custom worker pools). If `worker_pool` is not specified, this field is ignored and the build runs using the Google-managed service agent. Format: `projects/{project}/serviceAccounts/{service_account}` or `{service_account}@{project}.iam.gserviceaccount.com`",
+      ).optional(),
       workerPool: z.string().describe(
         "Optional. Identifier. The resource name of the Cloud Build WorkerPool to use for the build. Format: `projects/{project}/locations/{location}/workerPools/{worker_pool}`",
       ).optional(),
@@ -284,6 +287,9 @@ const GlobalArgsSchema = z.object({
     containerSpec: z.object({
       imageUri: z.string().describe(
         "Required. The Artifact Registry Docker image URI (e.g., us-central1-docker.pkg.dev/my-project/my-repo/my-image:tag) of the container image that is to be run on each worker replica.",
+      ).optional(),
+      port: z.number().int().describe(
+        "Optional. The port the container listens on. Defaults to 8080 if unset.",
       ).optional(),
     }).describe(
       "Deploy from a container image with a defined entrypoint and commands.",
@@ -530,11 +536,13 @@ const StateSchema = z.object({
   spec: z.object({
     agentFramework: z.string(),
     buildSpec: z.object({
+      serviceAccount: z.string(),
       workerPool: z.string(),
     }),
     classMethods: z.array(z.record(z.string(), z.unknown())),
     containerSpec: z.object({
       imageUri: z.string(),
+      port: z.number(),
     }),
     deploymentSpec: z.object({
       agentGatewayConfig: z.object({
@@ -743,6 +751,9 @@ const InputsSchema = z.object({
       'Optional. The OSS agent framework used to develop the agent. Currently supported values: "google-adk", "langchain", "langgraph", "ag2", "llama-index", "custom".',
     ).optional(),
     buildSpec: z.object({
+      serviceAccount: z.string().describe(
+        "Optional. The service account that Cloud Build uses to run the build. This field is only applicable when `worker_pool` is specified (i.e., for custom worker pools). If `worker_pool` is not specified, this field is ignored and the build runs using the Google-managed service agent. Format: `projects/{project}/serviceAccounts/{service_account}` or `{service_account}@{project}.iam.gserviceaccount.com`",
+      ).optional(),
       workerPool: z.string().describe(
         "Optional. Identifier. The resource name of the Cloud Build WorkerPool to use for the build. Format: `projects/{project}/locations/{location}/workerPools/{worker_pool}`",
       ).optional(),
@@ -754,6 +765,9 @@ const InputsSchema = z.object({
     containerSpec: z.object({
       imageUri: z.string().describe(
         "Required. The Artifact Registry Docker image URI (e.g., us-central1-docker.pkg.dev/my-project/my-repo/my-image:tag) of the container image that is to be run on each worker replica.",
+      ).optional(),
+      port: z.number().int().describe(
+        "Optional. The port the container listens on. Defaults to 8080 if unset.",
       ).optional(),
     }).describe(
       "Deploy from a container image with a defined entrypoint and commands.",
@@ -972,7 +986,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines. Registered at `@swamp/gcp/aiplatform/reasoningengines`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines",
-  version: "2026.07.21.4",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1156,6 +1170,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -520,7 +520,7 @@ const GlobalArgsSchema = z.object({
       }).describe("Immutable. Specification for Kubernetes startup probe.")
         .optional(),
     }).describe(
-      "Input only. The specification of the container that is to be used when deploying this Model. The specification is ingested upon ModelService.UploadModel, and all binaries it contains are copied and stored internally by Vertex AI. Not required for AutoML Models.",
+      "The specification of the container that is to be used when deploying this Model. The specification is ingested upon ModelService.UploadModel, and all binaries it contains are copied and stored internally by Vertex AI. Not required for AutoML Models.",
     ).optional(),
     createTime: z.string().describe(
       "Output only. Timestamp when this Model was uploaded into Vertex AI.",
@@ -1540,7 +1540,7 @@ const InputsSchema = z.object({
       }).describe("Immutable. Specification for Kubernetes startup probe.")
         .optional(),
     }).describe(
-      "Input only. The specification of the container that is to be used when deploying this Model. The specification is ingested upon ModelService.UploadModel, and all binaries it contains are copied and stored internally by Vertex AI. Not required for AutoML Models.",
+      "The specification of the container that is to be used when deploying this Model. The specification is ingested upon ModelService.UploadModel, and all binaries it contains are copied and stored internally by Vertex AI. Not required for AutoML Models.",
     ).optional(),
     createTime: z.string().describe(
       "Output only. Timestamp when this Model was uploaded into Vertex AI.",
@@ -1915,7 +1915,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform TrainingPipelines. Registered at `@swamp/gcp/aiplatform/trainingpipelines`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/trainingpipelines",
-  version: "2026.07.21.4",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2067,6 +2067,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

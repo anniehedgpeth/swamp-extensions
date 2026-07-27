@@ -283,6 +283,13 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "Required. The display name of the EvaluationSet.",
   ).optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string().describe(
+      "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
+    ).optional(),
+  }).describe(
+    "Optional. Customer-managed encryption key spec for this EvaluationSet. If set, this EvaluationSet and its sub-resources will be secured by this key.",
+  ).optional(),
   evaluationItems: z.array(z.string()).describe(
     "Required. The EvaluationItems that are part of this dataset.",
   ).optional(),
@@ -300,6 +307,9 @@ const StateSchema = z.object({
   agentConfigs: z.record(z.string(), z.unknown()).optional(),
   createTime: z.string().optional(),
   displayName: z.string().optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string(),
+  }).optional(),
   evaluationItems: z.array(z.string()).optional(),
   metadata: z.string().optional(),
   name: z.string(),
@@ -441,6 +451,13 @@ const InputsSchema = z.object({
   displayName: z.string().describe(
     "Required. The display name of the EvaluationSet.",
   ).optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string().describe(
+      "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
+    ).optional(),
+  }).describe(
+    "Optional. Customer-managed encryption key spec for this EvaluationSet. If set, this EvaluationSet and its sub-resources will be secured by this key.",
+  ).optional(),
   evaluationItems: z.array(z.string()).describe(
     "Required. The EvaluationItems that are part of this dataset.",
   ).optional(),
@@ -477,7 +494,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationSets. Registered at `@swamp/gcp/aiplatform/evaluationsets`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationsets",
-  version: "2026.07.21.4",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -650,6 +667,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.27.1",
+      description: "Added: encryptionSpec",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -680,6 +702,9 @@ export const model = {
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
+        }
+        if (g["encryptionSpec"] !== undefined) {
+          body["encryptionSpec"] = g["encryptionSpec"];
         }
         if (g["evaluationItems"] !== undefined) {
           body["evaluationItems"] = g["evaluationItems"];
@@ -797,6 +822,9 @@ export const model = {
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
+        }
+        if (g["encryptionSpec"] !== undefined) {
+          body["encryptionSpec"] = g["encryptionSpec"];
         }
         if (g["evaluationItems"] !== undefined) {
           body["evaluationItems"] = g["evaluationItems"];

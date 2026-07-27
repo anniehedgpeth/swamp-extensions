@@ -196,6 +196,28 @@ const GlobalArgsSchema = z.object({
           audioTimestamp: z.boolean().describe(
             "Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.",
           ).optional(),
+          audioTranscriptionConfig: z.object({
+            adaptationPhrases: z.unknown().describe(
+              "Optional. A list of phrases to bias the ASR model towards.",
+            ).optional(),
+            customVocabulary: z.unknown().describe(
+              "Optional. A list of custom vocabulary phrases to bias the speech recognition model toward recognizing specific terms.",
+            ).optional(),
+            diarization: z.unknown().describe(
+              "Optional. Configures speaker diarization.",
+            ).optional(),
+            languageAuto: z.unknown().describe(
+              "Optional. The model will detect the language automatically.",
+            ).optional(),
+            languageHints: z.unknown().describe(
+              "Optional. Specifies one or more languages in the audio.",
+            ).optional(),
+            wordTimestamp: z.unknown().describe(
+              "Optional. Configures word-level timestamp generation.",
+            ).optional(),
+          }).describe(
+            "Optional. Config for audio transcription (speech recognition).",
+          ).optional(),
           candidateCount: z.number().int().describe(
             "Optional. The number of candidate responses to generate. A higher `candidate_count` can provide more options to choose from, but it also consumes more resources. This can be useful for generating a variety of responses and selecting the best one.",
           ).optional(),
@@ -401,6 +423,31 @@ const GlobalArgsSchema = z.object({
       inferenceGenerationConfig: z.object({
         audioTimestamp: z.boolean().describe(
           "Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.",
+        ).optional(),
+        audioTranscriptionConfig: z.object({
+          adaptationPhrases: z.array(z.unknown()).describe(
+            "Optional. A list of phrases to bias the ASR model towards.",
+          ).optional(),
+          customVocabulary: z.array(z.unknown()).describe(
+            "Optional. A list of custom vocabulary phrases to bias the speech recognition model toward recognizing specific terms.",
+          ).optional(),
+          diarization: z.boolean().describe(
+            "Optional. Configures speaker diarization.",
+          ).optional(),
+          languageAuto: z.object({}).describe(
+            "Optional. The model will detect the language automatically.",
+          ).optional(),
+          languageHints: z.object({
+            languageCodes: z.unknown().describe(
+              "Required. BCP-47 language codes. At least one must be specified.",
+            ).optional(),
+          }).describe("Optional. Specifies one or more languages in the audio.")
+            .optional(),
+          wordTimestamp: z.boolean().describe(
+            "Optional. Configures word-level timestamp generation.",
+          ).optional(),
+        }).describe(
+          "Optional. Config for audio transcription (speech recognition).",
         ).optional(),
         candidateCount: z.number().int().describe(
           "Optional. The number of candidate responses to generate. A higher `candidate_count` can provide more options to choose from, but it also consumes more resources. This can be useful for generating a variety of responses and selecting the best one.",
@@ -860,6 +907,14 @@ const StateSchema = z.object({
         flipEnabled: z.boolean(),
         generationConfig: z.object({
           audioTimestamp: z.boolean(),
+          audioTranscriptionConfig: z.object({
+            adaptationPhrases: z.unknown(),
+            customVocabulary: z.unknown(),
+            diarization: z.unknown(),
+            languageAuto: z.unknown(),
+            languageHints: z.unknown(),
+            wordTimestamp: z.unknown(),
+          }),
           candidateCount: z.number(),
           enableAffectiveDialog: z.boolean(),
           frequencyPenalty: z.number(),
@@ -934,6 +989,16 @@ const StateSchema = z.object({
       })),
       inferenceGenerationConfig: z.object({
         audioTimestamp: z.boolean(),
+        audioTranscriptionConfig: z.object({
+          adaptationPhrases: z.array(z.unknown()),
+          customVocabulary: z.array(z.unknown()),
+          diarization: z.boolean(),
+          languageAuto: z.object({}),
+          languageHints: z.object({
+            languageCodes: z.unknown(),
+          }),
+          wordTimestamp: z.boolean(),
+        }),
         candidateCount: z.number(),
         enableAffectiveDialog: z.boolean(),
         frequencyPenalty: z.number(),
@@ -1308,6 +1373,28 @@ const InputsSchema = z.object({
           audioTimestamp: z.boolean().describe(
             "Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.",
           ).optional(),
+          audioTranscriptionConfig: z.object({
+            adaptationPhrases: z.unknown().describe(
+              "Optional. A list of phrases to bias the ASR model towards.",
+            ).optional(),
+            customVocabulary: z.unknown().describe(
+              "Optional. A list of custom vocabulary phrases to bias the speech recognition model toward recognizing specific terms.",
+            ).optional(),
+            diarization: z.unknown().describe(
+              "Optional. Configures speaker diarization.",
+            ).optional(),
+            languageAuto: z.unknown().describe(
+              "Optional. The model will detect the language automatically.",
+            ).optional(),
+            languageHints: z.unknown().describe(
+              "Optional. Specifies one or more languages in the audio.",
+            ).optional(),
+            wordTimestamp: z.unknown().describe(
+              "Optional. Configures word-level timestamp generation.",
+            ).optional(),
+          }).describe(
+            "Optional. Config for audio transcription (speech recognition).",
+          ).optional(),
           candidateCount: z.number().int().describe(
             "Optional. The number of candidate responses to generate. A higher `candidate_count` can provide more options to choose from, but it also consumes more resources. This can be useful for generating a variety of responses and selecting the best one.",
           ).optional(),
@@ -1513,6 +1600,31 @@ const InputsSchema = z.object({
       inferenceGenerationConfig: z.object({
         audioTimestamp: z.boolean().describe(
           "Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.",
+        ).optional(),
+        audioTranscriptionConfig: z.object({
+          adaptationPhrases: z.array(z.unknown()).describe(
+            "Optional. A list of phrases to bias the ASR model towards.",
+          ).optional(),
+          customVocabulary: z.array(z.unknown()).describe(
+            "Optional. A list of custom vocabulary phrases to bias the speech recognition model toward recognizing specific terms.",
+          ).optional(),
+          diarization: z.boolean().describe(
+            "Optional. Configures speaker diarization.",
+          ).optional(),
+          languageAuto: z.object({}).describe(
+            "Optional. The model will detect the language automatically.",
+          ).optional(),
+          languageHints: z.object({
+            languageCodes: z.unknown().describe(
+              "Required. BCP-47 language codes. At least one must be specified.",
+            ).optional(),
+          }).describe("Optional. Specifies one or more languages in the audio.")
+            .optional(),
+          wordTimestamp: z.boolean().describe(
+            "Optional. Configures word-level timestamp generation.",
+          ).optional(),
+        }).describe(
+          "Optional. Config for audio transcription (speech recognition).",
         ).optional(),
         candidateCount: z.number().int().describe(
           "Optional. The number of candidate responses to generate. A higher `candidate_count` can provide more options to choose from, but it also consumes more resources. This can be useful for generating a variety of responses and selecting the best one.",
@@ -1931,7 +2043,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform TuningJobs. Registered at `@swamp/gcp/aiplatform/tuningjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/tuningjobs",
-  version: "2026.07.21.4",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2108,6 +2220,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

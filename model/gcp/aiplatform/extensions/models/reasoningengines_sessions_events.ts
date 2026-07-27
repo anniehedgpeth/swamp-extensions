@@ -107,6 +107,11 @@ const StateSchema = z.object({
   author: z.string().optional(),
   content: z.object({
     parts: z.array(z.object({
+      audioTranscription: z.object({
+        speakerLabel: z.string(),
+        text: z.string(),
+        words: z.array(z.unknown()),
+      }),
       codeExecutionResult: z.object({
         outcome: z.string(),
         output: z.string(),
@@ -270,7 +275,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.Sessions.Events. Registered at `@swamp/gcp/aiplatform/reasoningengines-sessions-events`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sessions-events",
-  version: "2026.07.21.3",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -419,6 +424,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

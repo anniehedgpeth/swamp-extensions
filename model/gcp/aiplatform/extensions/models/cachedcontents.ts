@@ -151,6 +151,19 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   contents: z.array(z.object({
     parts: z.array(z.object({
+      audioTranscription: z.object({
+        speakerLabel: z.unknown().describe(
+          'Optional. A label identifying the speaker of this audio segment (e.g. "spk_1", "spk_2"). Present when diarization is set.',
+        ).optional(),
+        text: z.unknown().describe(
+          "Required. The transcription text of this audio segment.",
+        ).optional(),
+        words: z.unknown().describe(
+          "Optional. Detailed word-level transcriptions and timing details. Present when word_timestamp is set.",
+        ).optional(),
+      }).describe(
+        "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data.",
+      ).optional(),
       codeExecutionResult: z.object({
         outcome: z.unknown().describe(
           "Required. Outcome of the code execution.",
@@ -284,6 +297,19 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   systemInstruction: z.object({
     parts: z.array(z.object({
+      audioTranscription: z.object({
+        speakerLabel: z.string().describe(
+          'Optional. A label identifying the speaker of this audio segment (e.g. "spk_1", "spk_2"). Present when diarization is set.',
+        ).optional(),
+        text: z.string().describe(
+          "Required. The transcription text of this audio segment.",
+        ).optional(),
+        words: z.array(z.unknown()).describe(
+          "Optional. Detailed word-level transcriptions and timing details. Present when word_timestamp is set.",
+        ).optional(),
+      }).describe(
+        "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data.",
+      ).optional(),
       codeExecutionResult: z.object({
         outcome: z.enum([
           "OUTCOME_UNSPECIFIED",
@@ -831,6 +857,11 @@ const GlobalArgsSchema = z.object({
 const StateSchema = z.object({
   contents: z.array(z.object({
     parts: z.array(z.object({
+      audioTranscription: z.object({
+        speakerLabel: z.unknown(),
+        text: z.unknown(),
+        words: z.unknown(),
+      }),
       codeExecutionResult: z.object({
         outcome: z.unknown(),
         output: z.unknown(),
@@ -885,6 +916,11 @@ const StateSchema = z.object({
   name: z.string(),
   systemInstruction: z.object({
     parts: z.array(z.object({
+      audioTranscription: z.object({
+        speakerLabel: z.string(),
+        text: z.string(),
+        words: z.array(z.unknown()),
+      }),
       codeExecutionResult: z.object({
         outcome: z.string(),
         output: z.string(),
@@ -1105,6 +1141,19 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   contents: z.array(z.object({
     parts: z.array(z.object({
+      audioTranscription: z.object({
+        speakerLabel: z.unknown().describe(
+          'Optional. A label identifying the speaker of this audio segment (e.g. "spk_1", "spk_2"). Present when diarization is set.',
+        ).optional(),
+        text: z.unknown().describe(
+          "Required. The transcription text of this audio segment.",
+        ).optional(),
+        words: z.unknown().describe(
+          "Optional. Detailed word-level transcriptions and timing details. Present when word_timestamp is set.",
+        ).optional(),
+      }).describe(
+        "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data.",
+      ).optional(),
       codeExecutionResult: z.object({
         outcome: z.unknown().describe(
           "Required. Outcome of the code execution.",
@@ -1238,6 +1287,19 @@ const InputsSchema = z.object({
   ).optional(),
   systemInstruction: z.object({
     parts: z.array(z.object({
+      audioTranscription: z.object({
+        speakerLabel: z.string().describe(
+          'Optional. A label identifying the speaker of this audio segment (e.g. "spk_1", "spk_2"). Present when diarization is set.',
+        ).optional(),
+        text: z.string().describe(
+          "Required. The transcription text of this audio segment.",
+        ).optional(),
+        words: z.array(z.unknown()).describe(
+          "Optional. Detailed word-level transcriptions and timing details. Present when word_timestamp is set.",
+        ).optional(),
+      }).describe(
+        "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data.",
+      ).optional(),
       codeExecutionResult: z.object({
         outcome: z.enum([
           "OUTCOME_UNSPECIFIED",
@@ -1805,7 +1867,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform CachedContents. Registered at `@swamp/gcp/aiplatform/cachedcontents`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/cachedcontents",
-  version: "2026.07.21.4",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1987,6 +2049,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

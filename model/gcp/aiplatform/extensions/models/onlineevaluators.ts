@@ -205,7 +205,7 @@ const GlobalArgsSchema = z.object({
     }).describe("Random sampling method.").optional(),
   }).describe("Required. Configuration for the OnlineEvaluator.").optional(),
   displayName: z.string().describe(
-    "Optional. Human-readable name for the `OnlineEvaluator`. The name doesn't have to be unique. The name can consist of any UTF-8 characters. The maximum length is `63` characters. If the display name exceeds max characters, an `INVALID_ARGUMENT` error is returned.",
+    "Optional. Human-readable name for the OnlineEvaluator. The name doesn't have to be unique. The name can consist of any UTF-8 characters. The maximum length is `63` characters. If the display name exceeds max characters, an `INVALID_ARGUMENT` error is returned.",
   ).optional(),
   metricSources: z.array(z.object({
     metric: z.object({
@@ -575,7 +575,7 @@ const InputsSchema = z.object({
     }).describe("Random sampling method.").optional(),
   }).describe("Required. Configuration for the OnlineEvaluator.").optional(),
   displayName: z.string().describe(
-    "Optional. Human-readable name for the `OnlineEvaluator`. The name doesn't have to be unique. The name can consist of any UTF-8 characters. The maximum length is `63` characters. If the display name exceeds max characters, an `INVALID_ARGUMENT` error is returned.",
+    "Optional. Human-readable name for the OnlineEvaluator. The name doesn't have to be unique. The name can consist of any UTF-8 characters. The maximum length is `63` characters. If the display name exceeds max characters, an `INVALID_ARGUMENT` error is returned.",
   ).optional(),
   metricSources: z.array(z.object({
     metric: z.object({
@@ -797,10 +797,15 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform OnlineEvaluators. Registered at `@swamp/gcp/aiplatform/onlineevaluators`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/onlineevaluators",
-  version: "2026.07.21.2",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

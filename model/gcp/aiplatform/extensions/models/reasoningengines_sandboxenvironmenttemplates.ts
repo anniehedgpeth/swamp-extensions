@@ -166,6 +166,7 @@ const GlobalArgsSchema = z.object({
     defaultContainerCategory: z.enum([
       "DEFAULT_CONTAINER_CATEGORY_UNSPECIFIED",
       "DEFAULT_CONTAINER_CATEGORY_COMPUTER_USE",
+      "DEFAULT_CONTAINER_CATEGORY_SHELL_SANDBOX",
     ]).describe("Required. The category of the default container image.")
       .optional(),
     resources: z.object({
@@ -184,8 +185,27 @@ const GlobalArgsSchema = z.object({
     "Required. The display name of the SandboxEnvironmentTemplate.",
   ).optional(),
   egressControlConfig: z.object({
+    customerVpcNetwork: z.string().describe(
+      "Optional. The customer VPC network that sandbox egress is routed into.",
+    ).optional(),
+    dnsPeeringConfigs: z.array(z.object({
+      domain: z.string().describe(
+        'Required. The DNS name suffix of the zone being peered to, e.g., "my-internal-domain.corp.". Must end with a dot.',
+      ).optional(),
+      targetNetwork: z.string().describe(
+        "Required. The VPC network name in the target_project where the DNS zone specified by 'domain' is visible.",
+      ).optional(),
+      targetProject: z.string().describe(
+        "Required. The project ID hosting the Cloud DNS managed zone that contains the 'domain'. The Vertex AI Service Agent requires the dns.peer role on this project.",
+      ).optional(),
+    })).describe(
+      "Optional. DNS peering configurations that allow sandbox egress to resolve customer-internal domains via the customer VPC.",
+    ).optional(),
     internetAccess: z.boolean().describe(
       "Optional. Whether to allow internet access.",
+    ).optional(),
+    networkAttachment: z.string().describe(
+      "Optional. The name of the customer VPC NetworkAttachment used to draw a PSC interface IP into the customer VPC for sandbox egress.",
     ).optional(),
   }).describe(
     "Optional. The configuration for egress control of this template.",
@@ -225,7 +245,14 @@ const StateSchema = z.object({
   }).optional(),
   displayName: z.string().optional(),
   egressControlConfig: z.object({
+    customerVpcNetwork: z.string(),
+    dnsPeeringConfigs: z.array(z.object({
+      domain: z.string(),
+      targetNetwork: z.string(),
+      targetProject: z.string(),
+    })),
     internetAccess: z.boolean(),
+    networkAttachment: z.string(),
   }).optional(),
   name: z.string(),
   state: z.string().optional(),
@@ -268,6 +295,7 @@ const InputsSchema = z.object({
     defaultContainerCategory: z.enum([
       "DEFAULT_CONTAINER_CATEGORY_UNSPECIFIED",
       "DEFAULT_CONTAINER_CATEGORY_COMPUTER_USE",
+      "DEFAULT_CONTAINER_CATEGORY_SHELL_SANDBOX",
     ]).describe("Required. The category of the default container image.")
       .optional(),
     resources: z.object({
@@ -286,8 +314,27 @@ const InputsSchema = z.object({
     "Required. The display name of the SandboxEnvironmentTemplate.",
   ).optional(),
   egressControlConfig: z.object({
+    customerVpcNetwork: z.string().describe(
+      "Optional. The customer VPC network that sandbox egress is routed into.",
+    ).optional(),
+    dnsPeeringConfigs: z.array(z.object({
+      domain: z.string().describe(
+        'Required. The DNS name suffix of the zone being peered to, e.g., "my-internal-domain.corp.". Must end with a dot.',
+      ).optional(),
+      targetNetwork: z.string().describe(
+        "Required. The VPC network name in the target_project where the DNS zone specified by 'domain' is visible.",
+      ).optional(),
+      targetProject: z.string().describe(
+        "Required. The project ID hosting the Cloud DNS managed zone that contains the 'domain'. The Vertex AI Service Agent requires the dns.peer role on this project.",
+      ).optional(),
+    })).describe(
+      "Optional. DNS peering configurations that allow sandbox egress to resolve customer-internal domains via the customer VPC.",
+    ).optional(),
     internetAccess: z.boolean().describe(
       "Optional. Whether to allow internet access.",
+    ).optional(),
+    networkAttachment: z.string().describe(
+      "Optional. The name of the customer VPC NetworkAttachment used to draw a PSC interface IP into the customer VPC for sandbox egress.",
     ).optional(),
   }).describe(
     "Optional. The configuration for egress control of this template.",
@@ -326,10 +373,15 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.SandboxEnvironmentTemplates. Registered at `@swamp/gcp/aiplatform/reasoningengines-sandboxenvironmenttemplates`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sandboxenvironmenttemplates",
-  version: "2026.07.21.2",
+  version: "2026.07.27.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
