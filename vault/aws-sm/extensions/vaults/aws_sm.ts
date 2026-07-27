@@ -155,6 +155,8 @@ const LEGACY_SWAMP_URL_TAG_KEY = "swamp:url";
 // Sentinel prefix for the URL trailer line appended to the secret Description.
 const URL_TRAILER_PREFIX = "swamp:url=";
 
+const SWAMP_TAG_PREFIX = "swamp:";
+
 /**
  * Serialize `notes` and `url` into a single secret Description string. The URL
  * is appended as a trailing `swamp:url=<url>` line so it stays human-readable
@@ -226,15 +228,21 @@ function readAnnotationFields(
 } {
   const { notes, url: descriptionUrl } = parseDescription(description);
   let url = descriptionUrl;
-  const labels: Record<string, string> = {};
+  const prefixed: Record<string, string> = {};
+  const bare: Record<string, string> = {};
   for (const tag of tags) {
     if (!tag.Key) continue;
     if (tag.Key === LEGACY_SWAMP_URL_TAG_KEY) {
       if (url === undefined) url = tag.Value ?? undefined;
+    } else if (tag.Key.startsWith(SWAMP_TAG_PREFIX)) {
+      prefixed[tag.Key.slice(SWAMP_TAG_PREFIX.length)] = tag.Value ?? "";
     } else if (!tag.Key.startsWith("aws:")) {
-      labels[tag.Key] = tag.Value ?? "";
+      bare[tag.Key] = tag.Value ?? "";
     }
   }
+  // Prefixed labels win; bare tags are back-compat for labels written before
+  // the swamp: prefix was introduced.
+  const labels = Object.keys(prefixed).length > 0 ? prefixed : bare;
   return { notes, url, labels };
 }
 
@@ -518,7 +526,10 @@ class AwsSmVaultProvider
           const tagsToSet: { Key: string; Value: string }[] = [];
           if (annotation.labels) {
             for (const [key, value] of Object.entries(annotation.labels)) {
-              tagsToSet.push({ Key: key, Value: value });
+              tagsToSet.push({
+                Key: `${SWAMP_TAG_PREFIX}${key}`,
+                Value: value,
+              });
             }
           }
 
@@ -586,10 +597,7 @@ class AwsSmVaultProvider
           const tagKeysToRemove: string[] = [];
           for (const tag of response.Tags ?? []) {
             if (!tag.Key) continue;
-            if (
-              tag.Key === LEGACY_SWAMP_URL_TAG_KEY ||
-              !tag.Key.startsWith("aws:")
-            ) {
+            if (tag.Key.startsWith("swamp:")) {
               tagKeysToRemove.push(tag.Key);
             }
           }

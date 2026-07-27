@@ -671,7 +671,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "aws-sm vault: deleteAnnotation removes all annotation data",
+  name: "aws-sm vault: deleteAnnotation clears notes and url",
   sanitizeResources: false,
   fn: async () => {
     await withMockAws(async () => {
@@ -684,7 +684,6 @@ Deno.test({
         createVaultAnnotation({
           url: "https://example.com",
           notes: "Will be deleted",
-          labels: { env: "prod" },
         }),
       );
 
@@ -695,6 +694,116 @@ Deno.test({
 
       const after = await ap.getAnnotation("to-delete");
       assertEquals(after, null);
+    });
+  },
+});
+
+Deno.test({
+  name: "aws-sm vault: deleteAnnotation preserves non-swamp tags (issue #1406)",
+  sanitizeResources: false,
+  fn: async () => {
+    await withMockAws(async (secrets, metadata) => {
+      const provider = vault.createProvider("test", { region: "us-east-1" });
+      secrets.set("tagged-secret", "value");
+      metadata.set("tagged-secret", {
+        description: "Some notes\n\nswamp:url=https://example.com",
+        tags: new Map([
+          ["env", "prod"],
+          ["team", "infra"],
+          ["swamp:url", "https://old.example.com"],
+          ["swamp:managed", "true"],
+        ]),
+      });
+
+      const ap = asAnnotationProvider(provider);
+      await ap.deleteAnnotation("tagged-secret");
+
+      const after = metadata.get("tagged-secret")!;
+      assertEquals(after.description, "");
+      assertEquals(after.tags.has("swamp:url"), false);
+      assertEquals(after.tags.has("swamp:managed"), false);
+      assertEquals(after.tags.get("env"), "prod");
+      assertEquals(after.tags.get("team"), "infra");
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "aws-sm vault: deleteAnnotation removes labels written by putAnnotation",
+  sanitizeResources: false,
+  fn: async () => {
+    await withMockAws(async () => {
+      const provider = vault.createProvider("test", { region: "us-east-1" });
+      await provider.put("labeled-secret", "value");
+
+      const ap = asAnnotationProvider(provider);
+      await ap.putAnnotation(
+        "labeled-secret",
+        createVaultAnnotation({
+          url: "https://example.com",
+          notes: "Some notes",
+          labels: { env: "prod" },
+        }),
+      );
+
+      await ap.deleteAnnotation("labeled-secret");
+
+      const after = await ap.getAnnotation("labeled-secret");
+      assertEquals(after, null);
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "aws-sm vault: putAnnotation writes labels with swamp: prefix and reads them back",
+  sanitizeResources: false,
+  fn: async () => {
+    await withMockAws(async (_secrets, metadata) => {
+      const provider = vault.createProvider("test", { region: "us-east-1" });
+      await provider.put("prefixed", "value");
+
+      const ap = asAnnotationProvider(provider);
+      await ap.putAnnotation(
+        "prefixed",
+        createVaultAnnotation({ labels: { env: "prod", team: "infra" } }),
+      );
+
+      const meta = metadata.get("prefixed")!;
+      assertEquals(meta.tags.has("swamp:env"), true);
+      assertEquals(meta.tags.has("swamp:team"), true);
+      assertEquals(meta.tags.has("env"), false);
+
+      const annotation = await ap.getAnnotation("prefixed");
+      assert(annotation !== null);
+      assertEquals(annotation.labels.env, "prod");
+      assertEquals(annotation.labels.team, "infra");
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "aws-sm vault: readAnnotationFields reads bare tags as labels (back-compat)",
+  sanitizeResources: false,
+  fn: async () => {
+    await withMockAws(async (secrets, metadata) => {
+      const provider = vault.createProvider("test", { region: "us-east-1" });
+      secrets.set("legacy-labels", "value");
+      metadata.set("legacy-labels", {
+        description: "",
+        tags: new Map([
+          ["env", "staging"],
+          ["team", "platform"],
+        ]),
+      });
+
+      const ap = asAnnotationProvider(provider);
+      const annotation = await ap.getAnnotation("legacy-labels");
+      assert(annotation !== null);
+      assertEquals(annotation.labels.env, "staging");
+      assertEquals(annotation.labels.team, "platform");
     });
   },
 });
