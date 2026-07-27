@@ -1,5 +1,10 @@
 {
-  "exclude": ["../model/", "../vault/", "../datastore"],
+  "exclude": [
+    "../model/",
+    "../vault/",
+    "../datastore",
+    "cloudflare/standalone/"
+  ],
   "tasks": {
     "check": "deno check main.ts",
     "lint": "deno lint",

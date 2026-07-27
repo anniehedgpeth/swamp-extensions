@@ -1168,3 +1168,79 @@ Specific resource paths excluded from codegen:
 | Zone-scoped grouping    | SERVICE_MAP (manual)                    | N/A                           | N/A                   | N/A                            |
 | Dual-scoped resources   | Single model, mutually exclusive params | N/A                           | N/A                   | N/A                            |
 | Empty POST bodies       | 22 skipped                              | None                          | None                  | ~201 skipped (no read handler) |
+
+---
+
+## 19. Standalone Models
+
+Some Cloudflare APIs are not covered by the OpenAPI spec and cannot be
+auto-generated. The pipeline supports **standalone models** — hand-written
+TypeScript source files that live in `codegen/cloudflare/standalone/` and are
+copied into the `model/cloudflare/` output during generation.
+
+### How it works
+
+The `STANDALONE_MODELS` array in `pipeline.ts` declares each standalone model:
+
+```typescript
+const STANDALONE_MODELS: StandaloneModelConfig[] = [
+  {
+    service: "analytics",        // creates model/cloudflare/analytics/
+    models: [{ outputPath, sourcePath }],
+    libFiles: [{ outputPath, sourcePath }],
+    description: "...",
+    labels: [...],
+  },
+];
+```
+
+During `generateCloudflareModels()`, after processing OpenAPI-derived services,
+the pipeline processes each standalone config:
+
+1. Reads the source file from `codegen/cloudflare/standalone/<service>/`
+2. Substitutes `VERSION_PLACEHOLDER` with the computed CalVer version
+3. Writes the model to `model/cloudflare/<service>/extensions/models/`
+4. Writes lib files to `extensions/models/_lib/`
+5. Generates manifest, README, LICENSE, and deno.json
+
+The standalone model files appear in `generatedFileNames`, so they survive the
+orphan-removal step that deletes stale `.ts` files from service directories.
+
+### Source directory structure
+
+```
+codegen/cloudflare/standalone/<service>/
+├── deno.json              # Local config (lint rule exclusions, import map)
+├── <model>.ts             # Model source (uses VERSION_PLACEHOLDER)
+├── <model>_test.ts        # Tests (run from this directory)
+└── _lib/
+    └── <helper>.ts        # Shared helpers (e.g., graphql.ts)
+```
+
+The directory structure mirrors the output layout so that import paths (e.g.,
+`./_lib/graphql.ts`) resolve correctly in both the source and output locations.
+
+### When to use standalone models
+
+Use a standalone model when the API:
+
+- Is not in the Cloudflare OpenAPI spec (e.g., GraphQL Analytics)
+- Does not follow the CRUD pattern (POST create + GET read)
+- Uses a different protocol (GraphQL vs REST)
+- Is read-only or query-oriented
+
+### Current standalone models
+
+| Service     | Model                  | API                                                  |
+| ----------- | ---------------------- | ---------------------------------------------------- |
+| `analytics` | `graphql_analytics.ts` | GraphQL Analytics (all zone-level adaptive datasets) |
+
+### Adding a new standalone model
+
+1. Create the source directory: `codegen/cloudflare/standalone/<service>/`
+2. Write the model source with `VERSION_PLACEHOLDER` for the version
+3. Write any lib helpers in `_lib/`
+4. Add tests alongside the source
+5. Add a `deno.json` with lint/import config
+6. Register in `STANDALONE_MODELS` in `pipeline.ts`
+7. Run `deno task generate:cloudflare <service>` and verify output

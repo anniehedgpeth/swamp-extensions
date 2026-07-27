@@ -18,6 +18,58 @@ import {
 import { computeUpgradesBlock } from "../shared/upgradesGenerator.ts";
 import { serializeWithCycleDetection } from "../shared/serialize.ts";
 
+// --- Standalone models ---
+// Hand-written model source files that the pipeline copies into the output
+// alongside auto-generated models. Source lives in codegen/cloudflare/standalone/
+// and is emitted to model/cloudflare/<service>/ during generation, surviving
+// orphan removal because the files are included in generatedFileNames.
+
+interface StandaloneModelFile {
+  /** Relative path within the service output dir (e.g. "extensions/models/http_requests.ts") */
+  outputPath: string;
+  /** Absolute path to the source file in codegen/cloudflare/standalone/ */
+  sourcePath: string;
+}
+
+interface StandaloneModelConfig {
+  /** Service name (creates model/cloudflare/<service>/) */
+  service: string;
+  /** Model files to copy */
+  models: StandaloneModelFile[];
+  /** Lib files to copy (replaces the standard cloudflare.ts for this service) */
+  libFiles: StandaloneModelFile[];
+  /** Description for the manifest */
+  description: string;
+  /** Labels for the manifest */
+  labels: string[];
+}
+
+const STANDALONE_MODELS: StandaloneModelConfig[] = [
+  {
+    service: "analytics",
+    models: [
+      {
+        outputPath: "extensions/models/graphql_analytics.ts",
+        sourcePath: new URL(
+          "./standalone/analytics/graphql_analytics.ts",
+          import.meta.url,
+        ).pathname,
+      },
+    ],
+    libFiles: [
+      {
+        outputPath: "extensions/models/_lib/graphql.ts",
+        sourcePath: new URL(
+          "./standalone/analytics/_lib/graphql.ts",
+          import.meta.url,
+        ).pathname,
+      },
+    ],
+    description: "Cloudflare GraphQL Analytics models",
+    labels: ["cloudflare", "analytics", "graphql", "cloud", "infrastructure"],
+  },
+];
+
 const CLOUDFLARE_SPEC_URL =
   "https://raw.githubusercontent.com/cloudflare/api-schemas/refs/heads/main/openapi.json";
 
@@ -468,6 +520,173 @@ export async function generateCloudflareModels(options: {
 
     services.set(serviceName, {
       serviceName,
+      models,
+      libFile,
+      manifest: { filePath: "manifest.yaml", sourceCode: manifest },
+      readmeFile: { filePath: "README.md", sourceCode: readmeCode },
+      licenseFile: { filePath: "LICENSE.txt", sourceCode: licenseCode },
+      denoConfigFile: { filePath: "deno.json", sourceCode: denoConfigCode },
+      modelChanges,
+      hasChanges,
+    });
+  }
+
+  // --- Standalone models ---
+  // Process hand-written model sources that live in codegen/cloudflare/standalone/
+  for (const standalone of STANDALONE_MODELS) {
+    // Skip if filtered out
+    if (
+      options.services && options.services.length > 0 &&
+      !options.services.includes(standalone.service)
+    ) {
+      continue;
+    }
+
+    // Skip if an OpenAPI-derived service already has this name (would conflict)
+    if (services.has(standalone.service)) {
+      errors.push(
+        `Standalone model "${standalone.service}" conflicts with an OpenAPI-derived service of the same name`,
+      );
+      continue;
+    }
+
+    const extensionName = `@swamp/cloudflare/${standalone.service}`;
+    const placeholderVersion = "VERSION_PLACEHOLDER";
+    const serviceOutputDir =
+      `${options.outputDir}/cloudflare/${standalone.service}`;
+
+    const models: CloudflareGeneratedFile[] = [];
+    const modelChanges: CloudflareModelChange[] = [];
+    let hasChanges = false;
+
+    for (const modelFile of standalone.models) {
+      try {
+        const candidateCode = await Deno.readTextFile(modelFile.sourcePath);
+        const fileName = modelFile.outputPath.split("/").pop()!;
+
+        const { version, status } = await computeModelVersion(
+          serviceOutputDir,
+          modelFile.outputPath,
+          datePrefix,
+          candidateCode,
+          placeholderVersion,
+        );
+
+        if (status !== "unchanged") hasChanges = true;
+
+        const finalCode = candidateCode.replaceAll(
+          placeholderVersion,
+          version,
+        );
+
+        models.push({ filePath: modelFile.outputPath, sourceCode: finalCode });
+        modelChanges.push({ fileName, status });
+      } catch (err) {
+        errors.push(
+          `standalone/${standalone.service}/${modelFile.outputPath}: ${
+            (err as Error).message
+          }`,
+        );
+      }
+    }
+
+    // Lib files — read from source
+    const libFiles: CloudflareGeneratedFile[] = [];
+    for (const libFile of standalone.libFiles) {
+      try {
+        const code = await Deno.readTextFile(libFile.sourcePath);
+        libFiles.push({ filePath: libFile.outputPath, sourceCode: code });
+      } catch (err) {
+        errors.push(
+          `standalone/${standalone.service}/${libFile.outputPath}: ${
+            (err as Error).message
+          }`,
+        );
+      }
+    }
+
+    // Use the first lib file as the service's libFile (required by CloudflareServiceResult)
+    const libFile = libFiles[0] ?? {
+      filePath: "extensions/models/_lib/graphql.ts",
+      sourceCode: "",
+    };
+
+    const firstSlug = standalone.models[0]?.outputPath
+      .split("/").pop()?.replace(".ts", "") ?? standalone.service;
+    const firstType = `${extensionName}/${firstSlug.replace(/_/g, "-")}`;
+    const readmeCode = generateCloudflareReadme(
+      standalone.service,
+      extensionName,
+      firstSlug.replace(/_/g, "-"),
+      firstType,
+    );
+    const readmePath = `${serviceOutputDir}/README.md`;
+    try {
+      const existingReadme = await Deno.readTextFile(readmePath);
+      const formattedReadme = await formatFile(readmeCode, ".md");
+      if (existingReadme !== formattedReadme) hasChanges = true;
+    } catch {
+      hasChanges = true;
+    }
+
+    const licenseCode = generateLicense();
+    const licensePath = `${serviceOutputDir}/LICENSE.txt`;
+    try {
+      const existingLicense = await Deno.readTextFile(licensePath);
+      if (existingLicense !== licenseCode) hasChanges = true;
+    } catch {
+      hasChanges = true;
+    }
+
+    const modelFileNames = models.map((m) =>
+      m.filePath.replace("extensions/models/", "")
+    );
+    const releaseNotes = modelChanges
+      .filter((c) => c.status !== "unchanged")
+      .map((c) =>
+        `- ${c.status === "new" ? "Added" : "Updated"}: ${
+          c.fileName.replace(".ts", "")
+        }`
+      )
+      .join("\n");
+
+    const candidateManifest = generateManifest({
+      name: extensionName,
+      version: placeholderVersion,
+      description: standalone.description,
+      labels: standalone.labels,
+      modelFiles: modelFileNames,
+      additionalFiles: ["LICENSE.txt", "README.md"],
+      releaseNotes: releaseNotes || undefined,
+      repository: "https://github.com/swamp-club/swamp-extensions",
+      platforms: [],
+    });
+
+    const manifestVersion = await computeManifestVersion(
+      serviceOutputDir,
+      "manifest.yaml",
+      datePrefix,
+      candidateManifest,
+      placeholderVersion,
+      hasChanges,
+    );
+
+    const manifest = generateManifest({
+      name: extensionName,
+      version: manifestVersion,
+      description: standalone.description,
+      labels: standalone.labels,
+      modelFiles: modelFileNames,
+      additionalFiles: ["LICENSE.txt", "README.md"],
+      releaseNotes: releaseNotes || undefined,
+      repository: "https://github.com/swamp-club/swamp-extensions",
+      platforms: [],
+    });
+
+    const denoConfigCode = generateCloudflareDenoConfig();
+
+    services.set(standalone.service, {
+      serviceName: standalone.service,
       models,
       libFile,
       manifest: { filePath: "manifest.yaml", sourceCode: manifest },
