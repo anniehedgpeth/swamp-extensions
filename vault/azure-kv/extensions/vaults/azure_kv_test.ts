@@ -20,6 +20,7 @@
 import {
   assertEquals,
   assertExists,
+  assertInstanceOf,
   assertRejects,
   assertThrows,
 } from "jsr:@std/assert@1.0.19";
@@ -33,6 +34,7 @@ import {
   type VaultDeleteProvider,
   type VaultProvider,
 } from "./azure_kv.ts";
+import { AzureKvOperationError } from "./azure_kv_errors.ts";
 
 Deno.test("vault export conforms to VaultProvider contract", () => {
   assertVaultExportConformance(vault, {
@@ -234,6 +236,307 @@ Deno.test("annotationToTags accepts exactly 15 tags", () => {
   // 3 metadata + 12 labels = 15, exactly at limit
   const tags = _annotationToTags(annotation, undefined);
   assertEquals(Object.keys(tags).length, 15);
+});
+
+// --- Error type preservation tests ---
+// Uses a local HTTP mock to trigger SDK errors and verify error type is preserved.
+
+function createMockServer(
+  handler: (req: Request) => Response,
+): { server: Deno.HttpServer; port: number } {
+  const server = Deno.serve({ port: 0, onListen: () => {} }, handler);
+  const port = (server.addr as Deno.NetAddr).port;
+  return { server, port };
+}
+
+Deno.test({
+  name: "getAnnotation preserves SDK error type on 403",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port } = createMockServer(() =>
+      new Response(
+        JSON.stringify({
+          error: { code: "Forbidden", message: "Access denied" },
+        }),
+        { status: 403, headers: { "content-type": "application/json" } },
+      )
+    );
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+      );
+
+      const err = await assertRejects(
+        () => provider.getAnnotation("my-secret"),
+      );
+      assertInstanceOf(err, AzureKvOperationError);
+      assertEquals(err.name !== "Error", true);
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name: "putAnnotation preserves SDK error type when getSecret fails",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port } = createMockServer(() =>
+      new Response(
+        JSON.stringify({
+          error: { code: "Forbidden", message: "Access denied" },
+        }),
+        { status: 403, headers: { "content-type": "application/json" } },
+      )
+    );
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+      );
+
+      const err = await assertRejects(
+        () =>
+          provider.putAnnotation(
+            "my-secret",
+            VaultAnnotation.create({ url: "https://example.com" }),
+          ),
+      );
+      assertInstanceOf(err, AzureKvOperationError);
+      assertEquals(err.name !== "Error", true);
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "putAnnotation preserves SDK error type when updateSecretProperties fails",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    let requestCount = 0;
+    const { server, port } = createMockServer((req) => {
+      requestCount++;
+      const url = new URL(req.url);
+      // First request(s): getSecret succeeds with a valid secret response
+      if (url.pathname.includes("/secrets/") && req.method === "GET") {
+        return new Response(
+          JSON.stringify({
+            value: "secret-value",
+            id: `http://localhost:${port}/secrets/my-secret/abc123`,
+            attributes: { enabled: true },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      // updateSecretProperties (PATCH) fails with 403
+      return new Response(
+        JSON.stringify({
+          error: { code: "Forbidden", message: "Access denied" },
+        }),
+        { status: 403, headers: { "content-type": "application/json" } },
+      );
+    });
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+      );
+
+      const err = await assertRejects(
+        () =>
+          provider.putAnnotation(
+            "my-secret",
+            VaultAnnotation.create({ url: "https://example.com" }),
+          ),
+      );
+      assertInstanceOf(err, AzureKvOperationError);
+      assertEquals(err.name !== "Error", true);
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name: "deleteAnnotation preserves SDK error type on 403",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port } = createMockServer(() =>
+      new Response(
+        JSON.stringify({
+          error: { code: "Forbidden", message: "Access denied" },
+        }),
+        { status: 403, headers: { "content-type": "application/json" } },
+      )
+    );
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+      );
+
+      const err = await assertRejects(
+        () => provider.deleteAnnotation("my-secret"),
+      );
+      assertInstanceOf(err, AzureKvOperationError);
+      assertEquals(err.name !== "Error", true);
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name: "listAnnotations preserves SDK error type on 403",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port } = createMockServer(() =>
+      new Response(
+        JSON.stringify({
+          error: { code: "Forbidden", message: "Access denied" },
+        }),
+        { status: 403, headers: { "content-type": "application/json" } },
+      )
+    );
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+      );
+
+      const err = await assertRejects(
+        () => provider.listAnnotations(),
+      );
+      assertInstanceOf(err, AzureKvOperationError);
+      assertEquals(err.name !== "Error", true);
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name: "delete preserves SDK error type on non-404 error",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port } = createMockServer(() =>
+      new Response(
+        JSON.stringify({
+          error: { code: "Forbidden", message: "Access denied" },
+        }),
+        { status: 403, headers: { "content-type": "application/json" } },
+      )
+    );
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+      );
+
+      const err = await assertRejects(
+        () => provider.delete("my-secret"),
+      );
+      assertInstanceOf(err, AzureKvOperationError);
+      assertEquals(err.name !== "Error", true);
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name: "delete wraps 404 as AzureKvOperationError",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port } = createMockServer(() =>
+      new Response(
+        JSON.stringify({
+          error: { code: "SecretNotFound", message: "Secret not found" },
+        }),
+        { status: 404, headers: { "content-type": "application/json" } },
+      )
+    );
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+      );
+
+      const err = await assertRejects(
+        () => provider.delete("my-secret"),
+      );
+      assertInstanceOf(err, AzureKvOperationError);
+      assertEquals(err.name !== "Error", true);
+    } finally {
+      await server.shutdown();
+    }
+  },
 });
 
 // --- Emulator-backed behavioral tests ---

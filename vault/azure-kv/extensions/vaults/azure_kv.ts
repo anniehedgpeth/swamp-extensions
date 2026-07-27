@@ -36,6 +36,7 @@ import {
 import type { TokenCredential } from "@azure/core-auth";
 import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
 import { Attr, getTracer } from "./_lib/tracing.ts";
+import { AzureKvOperationError, wrapAzureKvError } from "./azure_kv_errors.ts";
 
 export interface VaultProvider {
   get(secretKey: string): Promise<string>;
@@ -383,19 +384,15 @@ class AzureKvVaultProvider
           await poller.pollUntilDone();
         } catch (error) {
           const statusCode = (error as { statusCode?: number }).statusCode;
-          let err: Error;
-          if (statusCode === 404) {
-            err = new Error(
+          const err = statusCode === 404
+            ? new AzureKvOperationError(
               `Secret '${secretKey}' not found in vault '${this.name}'`,
+              { name: "SecretNotFound", httpStatusCode: 404 },
+            )
+            : wrapAzureKvError(
+              `Failed to delete secret '${secretKey}'`,
+              error,
             );
-          } else {
-            err = new Error(
-              `Failed to delete secret '${secretKey}': ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-              { cause: error },
-            );
-          }
           span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
           span.recordException(err);
           span.setAttribute(Attr.ERROR_TYPE, err.name);
@@ -431,11 +428,9 @@ class AzureKvVaultProvider
             secret.properties.tags as Record<string, string> | undefined,
           );
         } catch (error) {
-          const err = new Error(
-            `Failed to read annotation for '${secretKey}': ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-            { cause: error },
+          const err = wrapAzureKvError(
+            `Failed to read annotation for '${secretKey}'`,
+            error,
           );
           span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
           span.recordException(err);
@@ -468,11 +463,9 @@ class AzureKvVaultProvider
           );
           const secret = await this.client.getSecret(azureSecretName).catch(
             (error) => {
-              throw new Error(
-                `Failed to write annotation for '${secretKey}': ${
-                  error instanceof Error ? error.message : String(error)
-                }`,
-                { cause: error },
+              throw wrapAzureKvError(
+                `Failed to write annotation for '${secretKey}'`,
+                error,
               );
             },
           );
@@ -491,11 +484,9 @@ class AzureKvVaultProvider
               { tags: newTags },
             );
           } catch (error) {
-            throw new Error(
-              `Failed to write annotation for '${secretKey}': ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-              { cause: error },
+            throw wrapAzureKvError(
+              `Failed to write annotation for '${secretKey}'`,
+              error,
             );
           }
         } catch (err) {
@@ -545,16 +536,10 @@ class AzureKvVaultProvider
             { tags: cleaned },
           );
         } catch (error) {
-          const err = error instanceof Error
-            ? new Error(
-              `Failed to delete annotation for '${secretKey}': ${error.message}`,
-              { cause: error },
-            )
-            : new Error(
-              `Failed to delete annotation for '${secretKey}': ${
-                String(error)
-              }`,
-            );
+          const err = wrapAzureKvError(
+            `Failed to delete annotation for '${secretKey}'`,
+            error,
+          );
           span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
           span.recordException(err);
           span.setAttribute(Attr.ERROR_TYPE, err.name);
@@ -600,11 +585,9 @@ class AzureKvVaultProvider
           }
           return annotations;
         } catch (error) {
-          const err = new Error(
-            `Failed to list annotations in vault '${this.name}': ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-            { cause: error },
+          const err = wrapAzureKvError(
+            `Failed to list annotations in vault '${this.name}'`,
+            error,
           );
           span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
           span.recordException(err);
