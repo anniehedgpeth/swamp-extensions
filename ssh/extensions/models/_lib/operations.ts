@@ -209,6 +209,14 @@ export function resolveSelection(
   return selected;
 }
 
+const STDERR_CAP = 512;
+
+function truncateStderr(stderr: string): string {
+  const trimmed = stderr.trimEnd();
+  if (trimmed.length <= STDERR_CAP) return trimmed;
+  return trimmed.slice(0, STDERR_CAP) + "…";
+}
+
 /**
  * Throw an aggregate error when any host in the result set experienced a
  * genuine failure: non-zero exit, killed by signal, or a spawn/timeout
@@ -232,7 +240,7 @@ function throwOnHostFailures(
   const details = failed.map((r) => {
     const reason = r.error ??
       (r.signal !== null ? `killed by ${r.signal}` : `exit ${r.exitCode}`);
-    const stderr = r.stderr ? `: ${r.stderr.trimEnd().split("\n").at(-1)}` : "";
+    const stderr = r.stderr ? `: ${truncateStderr(r.stderr)}` : "";
     return `${r.host} (${reason}${stderr})`;
   });
   throw new Error(

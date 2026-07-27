@@ -27,9 +27,19 @@
  * @module
  */
 
-import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1.0.19";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  assertThrows,
+} from "jsr:@std/assert@1.0.19";
 import { createModelTestContext } from "@systeminit/swamp-testing";
-import { type FleetContext, resolveSelection, runOpen } from "./operations.ts";
+import {
+  type FleetContext,
+  resolveSelection,
+  runExec,
+  runOpen,
+} from "./operations.ts";
 import { type GlobalArgs, GlobalArgsSchema } from "./schemas.ts";
 import {
   type ExecRequest,
@@ -193,5 +203,86 @@ Deno.test("runOpen: key-auth host argv is NOT wrapped in sshpass", async () => {
       Deno.env.delete("TMPDIR");
     }
     await Deno.remove(tmpDir, { recursive: true }).catch(() => {});
+  }
+});
+
+// ---------------------------------------------------------------------------
+// throwOnHostFailures — full stderr in error messages (#1423)
+// ---------------------------------------------------------------------------
+
+function execContext(globalArgs: GlobalArgs) {
+  const { ctx } = fakeContext();
+  return {
+    ...ctx,
+    globalArgs: globalArgs as unknown as Record<string, unknown>,
+    methodName: "exec",
+  } as unknown as FleetContext;
+}
+
+Deno.test("exec error includes full multi-line stderr, not just last line", async () => {
+  setCommandExecutor(() =>
+    Promise.resolve({
+      code: 1,
+      signal: null,
+      stdout: "",
+      stderr:
+        "WARNING: host key mismatch\n# To authenticate, visit: https://login.ts.com/a/tok\nfinal line\n",
+    })
+  );
+  try {
+    const g = GlobalArgsSchema.parse({
+      name: "test-fleet",
+      transport: { kind: "ssh" },
+      hosts: [{ name: "err-host", address: "10.0.0.1" }],
+    });
+    try {
+      await runExec(
+        { hosts: "all", command: "echo ok" },
+        execContext(g),
+      );
+      assert(false, "should have thrown");
+    } catch (e) {
+      const msg = (e as Error).message;
+      assertStringIncludes(msg, "host key mismatch");
+      assertStringIncludes(msg, "To authenticate");
+      assertStringIncludes(msg, "final line");
+    }
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("exec error truncates stderr beyond 512 chars", async () => {
+  const longStderr = "x".repeat(600) + "\n";
+  setCommandExecutor(() =>
+    Promise.resolve({
+      code: 1,
+      signal: null,
+      stdout: "",
+      stderr: longStderr,
+    })
+  );
+  try {
+    const g = GlobalArgsSchema.parse({
+      name: "test-fleet",
+      transport: { kind: "ssh" },
+      hosts: [{ name: "err-host", address: "10.0.0.1" }],
+    });
+    try {
+      await runExec(
+        { hosts: "all", command: "echo ok" },
+        execContext(g),
+      );
+      assert(false, "should have thrown");
+    } catch (e) {
+      const msg = (e as Error).message;
+      assertStringIncludes(msg, "…");
+      assert(
+        msg.length < longStderr.length,
+        "error should be shorter than raw stderr",
+      );
+    }
+  } finally {
+    resetCommandExecutor();
   }
 });

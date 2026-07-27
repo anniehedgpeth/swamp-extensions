@@ -373,6 +373,13 @@ export interface ExecRequest {
   capture: boolean;
   /** Cancellation/timeout signal. */
   signal: AbortSignal;
+  /**
+   * When set and capture=true, stderr is streamed incrementally and
+   * checked against this pattern after each chunk. On match the child
+   * is killed immediately (SIGTERM). The matched substring is returned
+   * in ExecOutcome.stderrSentinelMatch.
+   */
+  stderrSentinel?: RegExp;
 }
 
 /** Raw process outcome. stdout/stderr are empty strings when not captured. */
@@ -381,6 +388,8 @@ export interface ExecOutcome {
   signal: string | null;
   stdout: string;
   stderr: string;
+  /** The matched substring when stderrSentinel fired. */
+  stderrSentinelMatch?: string;
 }
 
 /** Injectable process executor. The default shells out via Deno.Command. */
@@ -390,6 +399,12 @@ export type CommandExecutor = (req: ExecRequest) => Promise<ExecOutcome>;
  * Production executor. Always uses `.spawn()` (so stdin can be piped) and
  * honors the abort signal by killing the child. Capture controls whether
  * stdout/stderr are collected into the result or inherited by the runner.
+ *
+ * When `stderrSentinel` is set and capture=true, stderr is streamed
+ * incrementally instead of buffered via `child.output()`. Each chunk is
+ * accumulated and tested against the sentinel; on match the child is
+ * killed immediately so the caller gets sub-second detection of
+ * interactive prompts (e.g. tailscale SSH auth URLs).
  */
 export const denoExecutor: CommandExecutor = async (req) => {
   const command = new Deno.Command(req.command, {
@@ -421,6 +436,10 @@ export const denoExecutor: CommandExecutor = async (req) => {
       await writer.close();
     }
 
+    if (req.capture && req.stderrSentinel) {
+      return await execWithSentinel(child, req);
+    }
+
     const status = await child.output();
     const decoder = new TextDecoder();
     return {
@@ -433,6 +452,83 @@ export const denoExecutor: CommandExecutor = async (req) => {
     req.signal.removeEventListener("abort", onAbort);
   }
 };
+
+function concatBytes(chunks: Uint8Array[]): Uint8Array {
+  let total = 0;
+  for (const c of chunks) total += c.length;
+  const result = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    result.set(c, offset);
+    offset += c.length;
+  }
+  return result;
+}
+
+async function execWithSentinel(
+  child: Deno.ChildProcess,
+  req: ExecRequest,
+): Promise<ExecOutcome> {
+  const stdoutChunks: Uint8Array[] = [];
+  const stderrChunks: Uint8Array[] = [];
+  let sentinelMatch: string | undefined;
+
+  // Acquire the stdout reader up front so the sentinel handler can
+  // cancel it.  When the child is killed, orphaned subprocesses (e.g.
+  // `sleep`) may keep the stdout pipe open indefinitely; cancelling the
+  // reader unblocks the drain immediately.
+  const stdoutReader = child.stdout!.getReader();
+
+  const drainStdout = async (): Promise<void> => {
+    try {
+      while (true) {
+        const { done, value } = await stdoutReader.read();
+        if (done) break;
+        stdoutChunks.push(value);
+      }
+    } catch {
+      // Cancelled or errored after sentinel kill — expected.
+    }
+  };
+
+  const drainStderrWithSentinel = async (): Promise<void> => {
+    const sentinel = req.stderrSentinel!;
+    try {
+      for await (const chunk of child.stderr!) {
+        stderrChunks.push(chunk);
+        const text = new TextDecoder().decode(concatBytes(stderrChunks));
+        const match = sentinel.exec(text);
+        if (match) {
+          sentinelMatch = match[0];
+          await stdoutReader.cancel();
+          try {
+            child.kill("SIGTERM");
+          } catch {
+            // Already exited.
+          }
+          break;
+        }
+      }
+    } catch {
+      // Stream errors when child is killed — expected.
+    }
+  };
+
+  await Promise.allSettled([
+    drainStdout(),
+    drainStderrWithSentinel(),
+  ]);
+
+  const status = await child.status;
+  const decoder = new TextDecoder();
+  return {
+    code: status.code,
+    signal: status.signal ?? null,
+    stdout: decoder.decode(concatBytes(stdoutChunks)),
+    stderr: decoder.decode(concatBytes(stderrChunks)),
+    stderrSentinelMatch: sentinelMatch,
+  };
+}
 
 // Module-level executor seam. Tests swap this to intercept every spawn the
 // runner performs — including stdin and env, which the standard
@@ -449,6 +545,8 @@ export function setCommandExecutor(executor: CommandExecutor): void {
 export function resetCommandExecutor(): void {
   activeExecutor = denoExecutor;
 }
+
+export const TAILSCALE_AUTH_RE = /To authenticate, visit:\s*(https?:\/\/\S+)/i;
 
 /** A unit of work: one host, its argv, env, and optional stdin. */
 export interface HostPlan {
@@ -572,6 +670,11 @@ async function runSingle(
     argv: plan.argv,
   };
 
+  const stderrSentinel =
+    plan.host.transport.kind === "tailscale" && opts.capture
+      ? TAILSCALE_AUTH_RE
+      : undefined;
+
   try {
     const outcome = await activeExecutor({
       command: plan.argv[0],
@@ -580,8 +683,27 @@ async function runSingle(
       stdin: plan.stdin,
       capture: opts.capture,
       signal: combined,
+      stderrSentinel,
     });
     const finishedAt = new Date();
+
+    if (outcome.stderrSentinelMatch) {
+      const urlMatch = outcome.stderrSentinelMatch.match(
+        /https?:\/\/\S+/,
+      );
+      const url = urlMatch ? urlMatch[0] : outcome.stderrSentinelMatch;
+      return {
+        ...base,
+        finishedAt: finishedAt.toISOString(),
+        durationMs: finishedAt.getTime() - startedAt.getTime(),
+        exitCode: null,
+        signal: null,
+        stdout: opts.capture ? outcome.stdout : undefined,
+        stderr: opts.capture ? outcome.stderr : undefined,
+        error: `tailscale SSH requires re-authentication: visit ${url}`,
+      };
+    }
+
     // A process killed by a signal (our timeout/fail-fast SIGTERM, or any
     // other signal) reports a non-null `signal`. Normalize the exit code to
     // null in that case so the RunResult reads "killed by <signal>" rather

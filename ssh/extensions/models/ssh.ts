@@ -95,7 +95,7 @@ const SELECTOR_METHODS = [
  */
 export const model = {
   type: "@swamp/ssh",
-  version: "2026.07.24.1",
+  version: "2026.07.27.1",
   globalArguments: GlobalArgsSchema,
 
   upgrades: [
@@ -192,6 +192,19 @@ export const model = {
         "open spawned bare ssh which ignored the SSHPASS env var, causing " +
         "ControlMaster establishment to fail with 'Permission denied' on " +
         "any password-auth host. No globalArguments schema change.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.27.1",
+      description:
+        "Fix (#1423): tailscale SSH check-mode auth prompts are now " +
+        "detected immediately via streaming stderr. When tailscale ssh " +
+        "prints an authentication URL, the process is killed within " +
+        "milliseconds and the error surfaces the URL structured as " +
+        "'tailscale SSH requires re-authentication: visit <url>'. " +
+        "Also: method error messages now include full stderr (capped " +
+        "at 512 chars per host) instead of only the last line. " +
+        "No globalArguments schema change.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

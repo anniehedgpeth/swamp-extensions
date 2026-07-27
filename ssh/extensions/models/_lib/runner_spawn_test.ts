@@ -17,7 +17,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+} from "jsr:@std/assert@1.0.19";
 import {
   type CommandExecutor,
   denoExecutor,
@@ -26,6 +30,7 @@ import {
   resetCommandExecutor,
   runHosts,
   setCommandExecutor,
+  TAILSCALE_AUTH_RE,
 } from "./runner.ts";
 import type { EffectiveHost } from "./hosts.ts";
 
@@ -75,6 +80,7 @@ function recordingExecutor(
     signal?: string | null;
     stdout?: string;
     stderr?: string;
+    stderrSentinelMatch?: string;
     delayMs?: number;
     throwMsg?: string;
   },
@@ -90,6 +96,7 @@ function recordingExecutor(
       signal: r.signal ?? null,
       stdout: r.stdout ?? "",
       stderr: r.stderr ?? "",
+      stderrSentinelMatch: r.stderrSentinelMatch,
     };
   };
   return { executor, requests };
@@ -361,4 +368,151 @@ Deno.test("denoExecutor: pipes stdin to a real command", async () => {
   });
   assertEquals(outcome.code, 0);
   assertEquals(outcome.stdout, "piped-content");
+});
+
+// ---------------------------------------------------------------------------
+// tailscale auth sentinel — mock executor (wiring through runSingle)
+// ---------------------------------------------------------------------------
+
+function tailscaleHost(name: string): EffectiveHost {
+  return {
+    name,
+    address: `${name}.ts.example.com`,
+    tags: [],
+    attrs: {},
+    env: {},
+    transport: {
+      kind: "tailscale",
+      sshExtraArgs: [],
+    },
+  };
+}
+
+function tailscalePlan(name: string): HostPlan {
+  return {
+    host: tailscaleHost(name),
+    argv: ["tailscale", "ssh", "--", `root@${name}`, "echo ok"],
+    env: {},
+  };
+}
+
+Deno.test("runHosts: tailscale host with auth URL in stderr produces structured error", async () => {
+  const authUrl = "https://login.tailscale.com/a/abc123def456";
+  const { executor } = recordingExecutor(() => ({
+    code: null,
+    signal: "SIGTERM",
+    stderr: `# To authenticate, visit: ${authUrl}\n`,
+    stderrSentinelMatch: `To authenticate, visit: ${authUrl}`,
+  }));
+  setCommandExecutor(executor);
+  try {
+    const results = await runHosts([tailscalePlan("ts-1")], baseOpts());
+    assertEquals(results.length, 1);
+    assertStringIncludes(
+      results[0].error ?? "",
+      "tailscale SSH requires re-authentication",
+    );
+    assertStringIncludes(results[0].error ?? "", authUrl);
+    assertEquals(results[0].exitCode, null);
+    assertEquals(results[0].signal, null);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("runHosts: tailscale host without auth URL reports normally", async () => {
+  const { executor } = recordingExecutor(() => ({
+    code: 1,
+    stderr: "Connection refused\n",
+  }));
+  setCommandExecutor(executor);
+  try {
+    const results = await runHosts([tailscalePlan("ts-1")], baseOpts());
+    assertEquals(results.length, 1);
+    assertEquals(results[0].exitCode, 1);
+    assertEquals(results[0].error, undefined);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("runHosts: ssh host ignores tailscale auth pattern in stderr", async () => {
+  const { executor } = recordingExecutor(() => ({
+    code: 1,
+    stderr: "# To authenticate, visit: https://login.tailscale.com/a/abc\n",
+  }));
+  setCommandExecutor(executor);
+  try {
+    const results = await runHosts([plan("web-1")], baseOpts());
+    assertEquals(results[0].exitCode, 1);
+    assertEquals(results[0].error, undefined);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// tailscale auth sentinel — real subprocess (streaming detection)
+// ---------------------------------------------------------------------------
+
+Deno.test({
+  name:
+    "denoExecutor: sentinel kills child immediately on stderr match (real subprocess)",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  fn: async () => {
+    const start = Date.now();
+    const outcome = await denoExecutor({
+      command: "sh",
+      args: [
+        "-c",
+        'echo "# To authenticate, visit: https://example.com/a/token123" >&2; sleep 60',
+      ],
+      env: {},
+      capture: true,
+      signal: AbortSignal.timeout(10_000),
+      stderrSentinel: TAILSCALE_AUTH_RE,
+    });
+    const elapsed = Date.now() - start;
+
+    assert(
+      outcome.stderrSentinelMatch !== undefined,
+      "sentinel should have matched",
+    );
+    assertStringIncludes(
+      outcome.stderrSentinelMatch!,
+      "https://example.com/a/token123",
+    );
+    assert(elapsed < 5_000, `expected fast kill, took ${elapsed}ms`);
+  },
+});
+
+Deno.test("denoExecutor: no sentinel match when pattern absent from stderr", async () => {
+  const outcome = await denoExecutor({
+    command: "sh",
+    args: ["-c", 'echo "all good" >&2'],
+    env: {},
+    capture: true,
+    signal: new AbortController().signal,
+    stderrSentinel: TAILSCALE_AUTH_RE,
+  });
+  assertEquals(outcome.stderrSentinelMatch, undefined);
+  assertEquals(outcome.code, 0);
+  assertStringIncludes(outcome.stderr, "all good");
+});
+
+Deno.test("denoExecutor: without sentinel, stderr is still captured normally", async () => {
+  const outcome = await denoExecutor({
+    command: "sh",
+    args: [
+      "-c",
+      'echo "# To authenticate, visit: https://x.com/a/t" >&2; exit 1',
+    ],
+    env: {},
+    capture: true,
+    signal: new AbortController().signal,
+  });
+  assertEquals(outcome.code, 1);
+  assertStringIncludes(outcome.stderr, "To authenticate");
+  assertEquals(outcome.stderrSentinelMatch, undefined);
 });
