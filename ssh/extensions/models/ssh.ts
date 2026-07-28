@@ -95,7 +95,7 @@ const SELECTOR_METHODS = [
  */
 export const model = {
   type: "@swamp/ssh",
-  version: "2026.07.27.1",
+  version: "2026.07.27.2",
   globalArguments: GlobalArgsSchema,
 
   upgrades: [
@@ -207,6 +207,23 @@ export const model = {
         "No globalArguments schema change.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.27.2",
+      description:
+        "Feature: two additive changes, both back-compatible. (1) `exec` and " +
+        "`script` accept an optional `okExitCodes` argument — an array of " +
+        "exit codes replacing the default [0], or 'any'. Allowed exits no " +
+        "longer fail the method and no longer trigger fail-fast; spawn " +
+        "errors, timeouts, and signal kills still fail regardless. Omitting " +
+        "the argument preserves the 2026.06.01.1 behavior exactly. Use it " +
+        "for guard/probe commands where a non-zero exit is the answer. " +
+        "(2) runResult writes are now tagged with `fleet`, `host`, `method`, " +
+        "and `exitCode` (string values; `exitCode` omitted when the process " +
+        "died by signal or failed to spawn), so callers can branch on " +
+        "`handle.tags.exitCode` and the audit trail is queryable by tag. " +
+        "No globalArguments schema change.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
 
   resources: {
@@ -221,7 +238,9 @@ export const model = {
     runResult: {
       description:
         "Per-host outcome of a single method invocation (exec/script/copy). " +
-        "Captured stdout/stderr land here verbatim when capture is on.",
+        "Captured stdout/stderr land here verbatim when capture is on. " +
+        "Tagged with fleet, host, method, and exitCode (omitted when the " +
+        "process was killed by a signal or failed to spawn).",
       schema: RunResultSchema,
       lifetime: "infinite" as const,
       garbageCollection: 50,

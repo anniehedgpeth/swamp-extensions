@@ -27,6 +27,7 @@ import {
   denoExecutor,
   type ExecRequest,
   type HostPlan,
+  isExitAllowed,
   resetCommandExecutor,
   runHosts,
   setCommandExecutor,
@@ -285,6 +286,139 @@ Deno.test("runHosts: failFast skips not-yet-started hosts", async () => {
       started < 20,
       `expected fail-fast to stop early, started ${started}`,
     );
+    const skipped = results.filter((r) => r.error?.includes("fail-fast"));
+    assert(skipped.length > 0, "expected some hosts marked skipped");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// isExitAllowed — the shared success predicate
+// ---------------------------------------------------------------------------
+
+Deno.test("isExitAllowed: undefined okExitCodes means only 0 succeeds", () => {
+  assert(isExitAllowed(0, undefined));
+  assert(!isExitAllowed(1, undefined));
+  assert(!isExitAllowed(255, undefined));
+});
+
+Deno.test("isExitAllowed: an array replaces the default rather than extending it", () => {
+  assert(isExitAllowed(0, [0, 1]));
+  assert(isExitAllowed(1, [0, 1]));
+  assert(!isExitAllowed(2, [0, 1]));
+  // [1] without 0 means exit 0 is NOT a success — the array is the whole
+  // allow-list, not an addition to it.
+  assert(isExitAllowed(1, [1]));
+  assert(!isExitAllowed(0, [1]));
+});
+
+Deno.test("isExitAllowed: 'any' accepts every exit code", () => {
+  for (const code of [0, 1, 77, 255]) {
+    assert(isExitAllowed(code, "any"), `expected ${code} to be allowed`);
+  }
+});
+
+Deno.test("isExitAllowed: a null code is never allowed, even under 'any'", () => {
+  // null means the process never exited normally (signal kill or spawn
+  // failure) — there is no status for the caller to have opted into.
+  assert(!isExitAllowed(null, "any"));
+  assert(!isExitAllowed(null, [0, 1]));
+  assert(!isExitAllowed(null, undefined));
+});
+
+// ---------------------------------------------------------------------------
+// fail-fast interaction with okExitCodes
+// ---------------------------------------------------------------------------
+
+Deno.test("runHosts: failFast does not abort on an allowed non-zero exit", async () => {
+  let started = 0;
+  const executor: CommandExecutor = async () => {
+    started++;
+    await new Promise((res) => setTimeout(res, 1));
+    // Every host exits non-zero — all allowed by okExitCodes: "any".
+    return { code: 3, signal: null, stdout: "", stderr: "" };
+  };
+  setCommandExecutor(executor);
+  try {
+    const plans = Array.from({ length: 6 }, (_, i) => plan(`h-${i}`));
+    const results = await runHosts(plans, {
+      ...baseOpts(),
+      parallel: 1,
+      failFast: true,
+      okExitCodes: "any",
+    });
+    assertEquals(started, 6, "every host should have run");
+    assertEquals(results.filter((r) => r.error).length, 0);
+    assertEquals(results.map((r) => r.exitCode), [3, 3, 3, 3, 3, 3]);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("runHosts: failFast still aborts on an exit outside okExitCodes", async () => {
+  let started = 0;
+  const executor: CommandExecutor = async (req) => {
+    started++;
+    await new Promise((res) => setTimeout(res, 1));
+    // h-0 exits 1 (allowed), h-1 exits 9 (not allowed → abort the rest).
+    const isFirst = req.args.some((a) => a.includes("h-0"));
+    return {
+      code: isFirst ? 1 : 9,
+      signal: null,
+      stdout: "",
+      stderr: "",
+    };
+  };
+  setCommandExecutor(executor);
+  try {
+    const plans = Array.from({ length: 20 }, (_, i) => plan(`h-${i}`));
+    const results = await runHosts(plans, {
+      ...baseOpts(),
+      parallel: 1,
+      failFast: true,
+      okExitCodes: [0, 1],
+    });
+    assert(
+      started < 20,
+      `expected fail-fast to stop early, started ${started}`,
+    );
+    assertEquals(results[0].exitCode, 1);
+    assertEquals(results[0].error, undefined, "allowed exit is not an error");
+    const skipped = results.filter((r) => r.error?.includes("fail-fast"));
+    assert(skipped.length > 0, "expected some hosts marked skipped");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("runHosts: okExitCodes never suppresses a signal kill for failFast", async () => {
+  let started = 0;
+  const executor: CommandExecutor = async (req) => {
+    started++;
+    await new Promise((res) => setTimeout(res, 1));
+    const isFirst = req.args.some((a) => a.includes("h-0"));
+    return {
+      code: null,
+      signal: isFirst ? "SIGKILL" : null,
+      stdout: "",
+      stderr: "",
+    };
+  };
+  setCommandExecutor(executor);
+  try {
+    const plans = Array.from({ length: 20 }, (_, i) => plan(`h-${i}`));
+    const results = await runHosts(plans, {
+      ...baseOpts(),
+      parallel: 1,
+      failFast: true,
+      okExitCodes: "any",
+    });
+    assert(
+      started < 20,
+      `expected fail-fast to stop early, started ${started}`,
+    );
+    assertEquals(results[0].signal, "SIGKILL");
     const skipped = results.filter((r) => r.error?.includes("fail-fast"));
     assert(skipped.length > 0, "expected some hosts marked skipped");
   } finally {

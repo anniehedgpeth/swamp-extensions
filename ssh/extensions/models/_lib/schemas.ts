@@ -249,10 +249,35 @@ export const OpenArgsSchema = TargetingSchema;
 export const CheckArgsSchema = TargetingSchema;
 export const CloseArgsSchema = TargetingSchema;
 
+/**
+ * Exit codes a host may return without failing the method.
+ *
+ * Deliberately NOT on `TargetingSchema`: only `exec` and `script` run a
+ * caller-supplied command whose non-zero exit can be a legitimate answer
+ * (`test -f`, `command -v`, an `onlyIf` guard). `copy` and the connectivity
+ * methods have no such notion, so widening their success criteria would only
+ * hide real failures.
+ */
+export const OkExitCodesSchema = z.union([
+  z.literal("any"),
+  z.array(z.number().int().min(0).max(255)).min(1),
+]);
+export type OkExitCodes = z.infer<typeof OkExitCodesSchema>;
+
+// Shared by exec and script. Omitting the argument keeps the historical
+// behavior exactly: only exit 0 succeeds.
+const okExitCodesArg = OkExitCodesSchema.optional().describe(
+  "Exit codes to treat as success. An array replaces the default of [0] " +
+    "(include 0 explicitly if it is acceptable); 'any' accepts every exit " +
+    "code. Spawn errors, timeouts, and signals still fail the host. Use for " +
+    "guard/probe commands where non-zero exit is an expected answer.",
+);
+
 export const ExecArgsSchema = TargetingSchema.extend({
   command: z.string().min(1),
   stdin: z.string().optional(),
   sudo: z.boolean().optional(),
+  okExitCodes: okExitCodesArg,
 });
 export type ExecArgs = z.infer<typeof ExecArgsSchema>;
 
@@ -260,6 +285,7 @@ export const ScriptArgsSchema = TargetingSchema.extend({
   script: z.string().min(1),
   interpreter: z.enum(["sh", "bash", "python3"]).default("sh"),
   sudo: z.boolean().optional(),
+  okExitCodes: okExitCodesArg,
 });
 export type ScriptArgs = z.infer<typeof ScriptArgsSchema>;
 

@@ -32,6 +32,7 @@ import {
   type ForwardArgs,
   type GlobalArgs,
   GlobalArgsSchema,
+  type OkExitCodes,
   type ScriptArgs,
   type Selector,
   type Targeting,
@@ -58,6 +59,7 @@ import {
   forwardedEnv,
   type HostPlan,
   type HostRunResult,
+  isExitAllowed,
   maybeWrapSshpass,
   runHosts,
   type RunnerBinaries,
@@ -109,7 +111,7 @@ export interface FleetContext {
     name: string,
     data: Record<string, unknown>,
     overrides?: { tags?: Record<string, string>; garbageCollection?: number },
-  ) => Promise<{ name: string }>;
+  ) => Promise<DataHandle>;
   readResource: (
     name: string,
     version?: number,
@@ -118,9 +120,14 @@ export interface FleetContext {
   dataRepository: FleetDataRepository;
 }
 
-/** A resource handle the model returns to swamp. */
+/**
+ * A resource handle the model returns to swamp. Structural subset of swamp's
+ * own DataHandle — `tags` echoes back the write's tag overrides, which is how
+ * a `runModel` caller reads a run's outcome without fetching the resource.
+ */
 export interface DataHandle {
   name: string;
+  tags?: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -219,18 +226,29 @@ function truncateStderr(stderr: string): string {
 
 /**
  * Throw an aggregate error when any host in the result set experienced a
- * genuine failure: non-zero exit, killed by signal, or a spawn/timeout
- * error. Fail-fast "skipped" entries are informational and excluded.
+ * genuine failure: a disallowed exit code, killed by signal, or a
+ * spawn/timeout error. Fail-fast "skipped" entries are informational and
+ * excluded.
+ *
+ * `okExitCodes` widens which exit codes are allowed (see `isExitAllowed`);
+ * omitted, only 0 succeeds. It never suppresses a signal kill or a spawn
+ * error — those hosts produced no answer at all, so a guard command can't
+ * treat them as one.
  *
  * Called AFTER RunResult resources are written so diagnostic data is
  * always persisted regardless of whether the method succeeds or fails.
+ *
+ * Exported for direct unit testing.
  */
-function throwOnHostFailures(
+export function throwOnHostFailures(
   results: HostRunResult[],
   method: string,
+  okExitCodes?: OkExitCodes,
 ): void {
   const failed = results.filter((r) => {
-    if (r.exitCode !== null && r.exitCode !== 0) return true;
+    if (r.exitCode !== null && !isExitAllowed(r.exitCode, okExitCodes)) {
+      return true;
+    }
     if (r.signal !== null) return true;
     if (r.error !== undefined && !r.error.startsWith("skipped:")) return true;
     return false;
@@ -250,12 +268,17 @@ function throwOnHostFailures(
   );
 }
 
-/** Per-call run options shared by exec/script/copy. */
+/**
+ * Per-call run options shared by exec/script/copy. `okExitCodes` is passed
+ * separately because it lives on the exec/script arg schemas, not on the
+ * shared `Targeting` shape.
+ */
 function runOptions(
   g: GlobalArgs,
   t: Targeting,
   method: string,
   recordedArgs: Record<string, unknown>,
+  okExitCodes?: OkExitCodes,
 ) {
   return {
     method,
@@ -264,6 +287,7 @@ function runOptions(
     failFast: t.failFast ?? g.failFast,
     capture: t.captureOutput ?? g.captureOutput,
     recordedArgs,
+    okExitCodes,
   };
 }
 
@@ -357,19 +381,38 @@ async function cleanupTempKeys(
   }
 }
 
-/** Persist one RunResult resource and return its handle. */
+/**
+ * Persist one RunResult resource and return its handle.
+ *
+ * The write is tagged with the run's outcome metadata so a `runModel` caller
+ * holding the returned handle can branch on `handle.tags.exitCode` without
+ * reading resource content, and so the audit trail is queryable by tag
+ * (e.g. every non-zero exec on a given host). Tag values are always strings.
+ *
+ * `exitCode` is omitted when the process produced none — killed by a signal
+ * or failed to spawn. An absent tag is the honest encoding: there was no
+ * exit status, which is not the same as exit 0 or any other number.
+ */
 async function writeRunResult(
   ctx: FleetContext,
   result: HostRunResult,
   runHistory: number,
+  fleet: string,
 ): Promise<DataHandle> {
+  const tags: Record<string, string> = {
+    fleet,
+    host: result.host,
+    method: result.method,
+  };
+  if (result.exitCode !== null) tags.exitCode = String(result.exitCode);
+
   return await ctx.writeResource(
     "runResult",
     `run-${result.method}-${result.host}`,
     result as unknown as Record<string, unknown>,
     // Honor the fleet's runHistory knob as a per-write gc override; the
     // static resource declaration can't read globalArgs.
-    { garbageCollection: runHistory },
+    { garbageCollection: runHistory, tags },
   );
 }
 
@@ -392,6 +435,9 @@ export async function runExec(
       command: args.command,
       sudo: args.sudo ?? false,
       hasStdin: args.stdin !== undefined,
+      ...(args.okExitCodes !== undefined
+        ? { okExitCodes: args.okExitCodes }
+        : {}),
     };
 
     const plans: HostPlan[] = [];
@@ -408,13 +454,13 @@ export async function runExec(
 
     const results = await runHosts(
       plans,
-      runOptions(g, args, "exec", recordedArgs),
+      runOptions(g, args, "exec", recordedArgs, args.okExitCodes),
     );
     const handles: DataHandle[] = [];
     for (const r of results) {
-      handles.push(await writeRunResult(ctx, r, g.runHistory));
+      handles.push(await writeRunResult(ctx, r, g.runHistory, g.name));
     }
-    throwOnHostFailures(results, "exec");
+    throwOnHostFailures(results, "exec", args.okExitCodes);
     return { dataHandles: handles };
   } finally {
     await cleanupTempKeys(tempPaths);
@@ -440,6 +486,9 @@ export async function runScript(
       interpreter: args.interpreter,
       sudo: args.sudo ?? false,
       scriptBytes: new TextEncoder().encode(args.script).length,
+      ...(args.okExitCodes !== undefined
+        ? { okExitCodes: args.okExitCodes }
+        : {}),
     };
 
     const plans: HostPlan[] = [];
@@ -456,13 +505,13 @@ export async function runScript(
 
     const results = await runHosts(
       plans,
-      runOptions(g, args, "script", recordedArgs),
+      runOptions(g, args, "script", recordedArgs, args.okExitCodes),
     );
     const handles: DataHandle[] = [];
     for (const r of results) {
-      handles.push(await writeRunResult(ctx, r, g.runHistory));
+      handles.push(await writeRunResult(ctx, r, g.runHistory, g.name));
     }
-    throwOnHostFailures(results, "script");
+    throwOnHostFailures(results, "script", args.okExitCodes);
     return { dataHandles: handles };
   } finally {
     await cleanupTempKeys(tempPaths);
@@ -514,7 +563,7 @@ export async function runCopy(
     );
     const handles: DataHandle[] = [];
     for (const r of results) {
-      handles.push(await writeRunResult(ctx, r, g.runHistory));
+      handles.push(await writeRunResult(ctx, r, g.runHistory, g.name));
     }
     throwOnHostFailures(results, "copy");
     return { dataHandles: handles };
@@ -1048,7 +1097,7 @@ export async function runCollectHostPublicKey(
 
     const handles: DataHandle[] = [];
     for (const r of results) {
-      handles.push(await writeRunResult(ctx, r, g.runHistory));
+      handles.push(await writeRunResult(ctx, r, g.runHistory, g.name));
     }
 
     throwOnHostFailures(results, "collect-host-public-key");

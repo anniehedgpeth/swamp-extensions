@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/ssh"
-version: "2026.07.27.1"
+version: "2026.07.27.2"
 description: |
   Run commands, copy files, and open port forwards across a declared set of
   hosts over SSH. Define the hosts once on the model, then target any subset
@@ -20,7 +20,12 @@ description: |
     override the fleet-default transport (kind, user, port, identity, etc.).
   - Mix OpenSSH and Tailscale hosts in the same fleet.
   - Per-host operations land as one resource each — `run-<method>-<name>` —
-    so you can diff, gate workflows, and audit individual hosts.
+    tagged `fleet` / `host` / `method` / `exitCode`, so you can diff, gate
+    workflows, query the audit trail by tag, and read a run's outcome
+    straight off the returned data handle.
+  - `exec` and `script` take an optional `okExitCodes` for guard commands
+    whose non-zero exit is an answer, not a failure — an array replacing the
+    default `[0]`, or `"any"`.
   - Selector forms: `"all"`, an explicit name list `["web-1"]`, a bare
     host name or tag (`controlplane`), `name:`/`tag:`/`cel:` prefixes, or a
     `cel:` predicate (e.g. `'cel:"prod" in host.tags'`). A bare CEL string
@@ -39,11 +44,67 @@ description: |
   | `open`   | Establish ControlMaster sockets for selected `ssh` hosts (no-op for tailscale). |
   | `check`  | Probe ControlMaster (`ssh -O check`) or run `true` over `tailscale ssh`. |
   | `close`  | Tear down ControlMaster sockets (`ssh -O exit`). |
-  | `exec`   | Run a single shell command on each selected host; optional `sudo: true` prefixes `sudo -n --`. |
-  | `script` | Pipe a multi-line script over stdin to `sh -s --` (or chosen interpreter) — no remote-side shell-quoting from us. |
+  | `exec`   | Run a single shell command on each selected host; optional `sudo: true` prefixes `sudo -n --`; optional `okExitCodes` widens which exits count as success. |
+  | `script` | Pipe a multi-line script over stdin to `sh -s --` (or chosen interpreter) — no remote-side shell-quoting from us. Takes `okExitCodes` too. |
   | `copy`   | `scp` (or `rsync -e ssh`) files to/from each selected host. |
   | `forward`| Local/remote port forwarding via the master, or detached `tailscale ssh -N -L` child for tailscale hosts. |
   | `collect-host-public-key` | Read and validate a remote host's SSH public key file; emit algorithm, fingerprint, and raw key as a `hostPublicKey` resource. |
+
+  ## Exit codes
+
+  A host fails when it exits with a code that isn't allowed, is killed by a
+  signal, or fails to spawn — and one failed host fails the method. By
+  default the only allowed code is `0`.
+
+  `exec` and `script` take an optional `okExitCodes` to widen that:
+
+  | Value    | Meaning |
+  | -------- | ------- |
+  | omitted  | Only exit `0` succeeds. The default. |
+  | `[0, 1]` | Exit `0` and `1` succeed; everything else fails. |
+  | `[1]`    | Exit `1` succeeds and exit `0` fails — the array *replaces* the default, it does not extend it. |
+  | `"any"`  | Every exit code succeeds. |
+
+  Codes must be integers in `0..255`. Spawn errors, timeouts, and signal
+  kills still fail the host whatever the setting — they produce no exit
+  status for a guard command to interpret. An allowed exit code is not a
+  failure and does not trip `failFast`. Prefer an explicit list to `"any"`:
+  OpenSSH reports its own errors (unreachable host, rejected key) as exit
+  `255`, and `"any"` accepts those too.
+
+  ```bash
+  # `test -f` answers 0 or 1; both are legitimate answers, not failures.
+  swamp model method run awesome exec \
+    --input hosts=all \
+    --input command='test -f /etc/nginx/nginx.conf' \
+    --input okExitCodes:json='[0, 1]' --json
+  ```
+
+  ## Results and tags
+
+  Each selected host records a `run-<method>-<host>` resource with the
+  verbatim `exitCode`, and the method returns one data handle per host in
+  fleet order. An allowed non-zero exit leaves the resource's `error` field
+  unset. Resources are written before any error is raised, so they are there
+  whether the method succeeded or failed.
+
+  Every `run-<method>-<host>` write is tagged:
+
+  | Tag        | Value |
+  | ---------- | ----- |
+  | `fleet`    | `globalArguments.name`. |
+  | `host`     | Host name from the fleet definition. |
+  | `method`   | `exec`, `script`, or `copy`. |
+  | `exitCode` | Exit code as a string (`"0"`, `"1"`). Absent when the process was killed by a signal or failed to spawn. |
+
+  A model calling this one via `context.runModel()` gets those handles back
+  as `result.resources` on success, and can branch on
+  `handle.tags.exitCode === "0"` without fetching resource content — which is
+  the point of `okExitCodes`, since a thrown method returns
+  `{ ok: false, error }` with no handles at all. In workflow CEL,
+  `data.findByTag("host", "web-1")` selects by the same tags.
+
+  See the bundled README for worked examples and per-command recipes.
 
   ## Output capture
 

@@ -40,8 +40,32 @@
  */
 
 import type { EffectiveHost, EffectiveTransport } from "./hosts.ts";
+import type { OkExitCodes } from "./schemas.ts";
 
 const SSHPASS_ENV_VAR = "SSHPASS";
+
+/**
+ * Is `code` an acceptable exit status under `okExitCodes`?
+ *
+ * The single source of truth for "did this host succeed", shared by the
+ * fail-fast decision here and by `throwOnHostFailures` in operations.ts —
+ * the two must never disagree about which exits count as failures.
+ *
+ * `okExitCodes` undefined reproduces the historical rule exactly: only 0
+ * succeeds. A null `code` means the process never exited normally (killed by
+ * a signal, or failed to spawn); that is a failure regardless of
+ * `okExitCodes`, and callers detect it via `signal`/`error` before consulting
+ * this predicate.
+ */
+export function isExitAllowed(
+  code: number | null,
+  okExitCodes: OkExitCodes | undefined,
+): boolean {
+  if (code === null) return false;
+  if (okExitCodes === undefined) return code === 0;
+  if (okExitCodes === "any") return true;
+  return okExitCodes.includes(code);
+}
 
 /** Narrow an EffectiveTransport to its ssh variant. */
 type SshEffective = Extract<EffectiveTransport, { kind: "ssh" }>;
@@ -565,6 +589,12 @@ export interface RunOptions {
   capture: boolean;
   /** The args object recorded into each RunResult (post-redaction). */
   recordedArgs: Record<string, unknown>;
+  /**
+   * Exit codes that count as success for the fail-fast decision. Omitted →
+   * only 0. Methods that never widen their success criteria (open, check,
+   * close, forward, copy) simply leave this unset.
+   */
+  okExitCodes?: OkExitCodes;
 }
 
 /** Per-host result mirroring RunResultSchema (minus serialization). */
@@ -588,9 +618,12 @@ export interface HostRunResult {
  * Run a batch of host plans with bounded concurrency.
  *
  * - `parallel` caps the number of in-flight processes.
- * - `failFast` aborts not-yet-started hosts on the first non-zero exit or
- *   error; in-flight processes are allowed to finish (killing mid-flight
- *   ssh tends to orphan remote work).
+ * - `failFast` aborts not-yet-started hosts on the first failed host — an
+ *   exit code disallowed by `okExitCodes` (by default anything but 0), a
+ *   signal kill, or a spawn error. An exit code the caller declared
+ *   acceptable is not a failure and does not abort the batch. In-flight
+ *   processes are allowed to finish (killing mid-flight ssh tends to orphan
+ *   remote work).
  * - Each host gets its own timeout via `AbortSignal.timeout`. A timed-out
  *   process is killed and surfaces `signal: "SIGTERM"`.
  *
@@ -615,7 +648,8 @@ export async function runHosts(
       results[i] = result;
 
       const failed = result.error !== undefined ||
-        (result.exitCode !== null && result.exitCode !== 0) ||
+        (result.exitCode !== null &&
+          !isExitAllowed(result.exitCode, opts.okExitCodes)) ||
         result.signal !== null;
       if (opts.failFast && failed) {
         failFastController.abort();

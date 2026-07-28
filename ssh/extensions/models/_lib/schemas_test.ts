@@ -26,6 +26,7 @@ import {
   ForwardArgsSchema,
   GlobalArgsSchema,
   HostSchema,
+  OkExitCodesSchema,
   ScriptArgsSchema,
   SelectorSchema,
   TargetingSchema,
@@ -354,6 +355,115 @@ Deno.test("ScriptArgsSchema: rejects unknown interpreter", () => {
       interpreter: "fish",
     }).success,
   );
+});
+
+// ---------------------------------------------------------------------------
+// okExitCodes (exec + script only)
+// ---------------------------------------------------------------------------
+
+Deno.test("okExitCodes: omitted leaves the field undefined on both methods", () => {
+  const e = ExecArgsSchema.parse({ hosts: "all", command: "uptime" });
+  assertEquals(e.okExitCodes, undefined);
+  const s = ScriptArgsSchema.parse({ hosts: "all", script: "echo hi" });
+  assertEquals(s.okExitCodes, undefined);
+});
+
+Deno.test("okExitCodes: accepts 'any' on both methods", () => {
+  const e = ExecArgsSchema.parse({
+    hosts: "all",
+    command: "uptime",
+    okExitCodes: "any",
+  });
+  assertEquals(e.okExitCodes, "any");
+  const s = ScriptArgsSchema.parse({
+    hosts: "all",
+    script: "echo hi",
+    okExitCodes: "any",
+  });
+  assertEquals(s.okExitCodes, "any");
+});
+
+Deno.test("okExitCodes: accepts a code array on both methods", () => {
+  const e = ExecArgsSchema.parse({
+    hosts: "all",
+    command: "test -f /etc/hosts",
+    okExitCodes: [0, 1],
+  });
+  assertEquals(e.okExitCodes, [0, 1]);
+  const s = ScriptArgsSchema.parse({
+    hosts: "all",
+    script: "exit 2",
+    okExitCodes: [0, 2],
+  });
+  assertEquals(s.okExitCodes, [0, 2]);
+});
+
+Deno.test("okExitCodes: empty array rejected", () => {
+  assert(
+    !ExecArgsSchema.safeParse({
+      hosts: "all",
+      command: "uptime",
+      okExitCodes: [],
+    }).success,
+  );
+});
+
+Deno.test("okExitCodes: non-integer and out-of-range codes rejected", () => {
+  for (const bad of [[1.5], [-1], [256], ["1"], [null]]) {
+    assert(
+      !ExecArgsSchema.safeParse({
+        hosts: "all",
+        command: "uptime",
+        okExitCodes: bad,
+      }).success,
+      `expected ${JSON.stringify(bad)} to be rejected`,
+    );
+  }
+  // Boundary values are legal.
+  assertEquals(
+    ExecArgsSchema.parse({
+      hosts: "all",
+      command: "uptime",
+      okExitCodes: [0, 255],
+    }).okExitCodes,
+    [0, 255],
+  );
+});
+
+Deno.test("okExitCodes: rejects unknown string literals", () => {
+  assert(
+    !ExecArgsSchema.safeParse({
+      hosts: "all",
+      command: "uptime",
+      okExitCodes: "all",
+    }).success,
+  );
+});
+
+Deno.test("okExitCodes: OkExitCodesSchema validates standalone values", () => {
+  assertEquals(OkExitCodesSchema.parse("any"), "any");
+  assertEquals(OkExitCodesSchema.parse([0, 1, 255]), [0, 1, 255]);
+  assert(!OkExitCodesSchema.safeParse([]).success);
+  assert(!OkExitCodesSchema.safeParse(0).success);
+});
+
+Deno.test("okExitCodes: not accepted on copy or the shared targeting shape", () => {
+  // Zod objects strip unknown keys rather than erroring, so assert absence:
+  // widening success criteria must not leak to methods that never opted in.
+  const c = CopyArgsSchema.parse({
+    hosts: "all",
+    src: "a",
+    dst: "b",
+    direction: "to",
+    okExitCodes: "any",
+  }) as Record<string, unknown>;
+  assertEquals(c.okExitCodes, undefined);
+
+  const t = TargetingSchema.parse({
+    hosts: "all",
+    okExitCodes: [0, 1],
+  }) as Record<string, unknown>;
+  assertEquals(t.okExitCodes, undefined);
 });
 
 Deno.test("CopyArgsSchema: direction required", () => {
