@@ -44,8 +44,10 @@ import {
   HostResourceSchema,
   MasterAuditSchema,
   OpenArgsSchema,
+  ResolveArgsSchema,
   RunResultSchema,
   ScriptArgsSchema,
+  SelectionSchema,
   TargetingSchema,
 } from "./_lib/schemas.ts";
 import {
@@ -53,6 +55,7 @@ import {
   type CopyArgs,
   type ExecArgs,
   type ForwardArgs,
+  type ResolveArgs,
   type ScriptArgs,
   type Targeting,
 } from "./_lib/schemas.ts";
@@ -66,6 +69,7 @@ import {
   runExec,
   runForward,
   runOpen,
+  runResolve,
   runScript,
 } from "./_lib/operations.ts";
 import {
@@ -75,8 +79,10 @@ import {
   checkSshpassAvailable,
 } from "./_lib/checks.ts";
 
-// Methods that take a host selector — used to scope the fleet-wide
-// sshpass check. `apply` operates on the whole fleet and takes no selector.
+// Methods that take a host selector AND spawn ssh — used to scope the
+// fleet-wide sshpass check. `apply` operates on the whole fleet and takes no
+// selector; `resolve` takes a selector but never connects, so the check
+// would be noise there and it is deliberately excluded.
 const SELECTOR_METHODS = [
   "open",
   "check",
@@ -95,7 +101,7 @@ const SELECTOR_METHODS = [
  */
 export const model = {
   type: "@swamp/ssh",
-  version: "2026.07.27.2",
+  version: "2026.07.28.1",
   globalArguments: GlobalArgsSchema,
 
   upgrades: [
@@ -224,6 +230,22 @@ export const model = {
         "No globalArguments schema change.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.28.1",
+      description:
+        "Feature: added `resolve` method — resolves a host selector to the " +
+        "matching fleet members and records the result as data, without " +
+        "spawning ssh/scp/tailscale. Zero matches is a success (empty host " +
+        "list, `count: 0`), giving callers the structured 'matched nothing' " +
+        "answer the connecting methods can't; a malformed selector still " +
+        "throws, and exec/script/copy/etc. keep their throw-on-empty " +
+        "behavior. New additive resource spec `selection` (gc 10), instance " +
+        "`resolve-<hash>` (stable per selector), tagged fleet/method/count " +
+        "so a runModel caller can branch on `handle.tags.count` without a " +
+        "read. Selection records carry addressing + metadata only, never " +
+        "credentials. No globalArguments schema change.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
 
   resources: {
@@ -266,6 +288,17 @@ export const model = {
       lifetime: "infinite" as const,
       garbageCollection: 10,
     },
+    selection: {
+      description:
+        "Result of a `resolve` call: the selector, its matched fleet " +
+        "members (addressing + tags/attrs only, never credentials), and the " +
+        "match count. Instance `resolve-<hash>` is stable per selector; " +
+        "zero matches writes an empty list rather than failing. Tagged " +
+        "with fleet, method, and count.",
+      schema: SelectionSchema,
+      lifetime: "infinite" as const,
+      garbageCollection: 10,
+    },
   },
 
   // Pre-flight checks can only see `globalArgs` + `definition` — swamp does
@@ -299,6 +332,13 @@ export const model = {
       arguments: ApplyArgsSchema,
       execute: (_args: Record<string, never>, ctx: FleetContext) =>
         runApply(ctx),
+    },
+    resolve: {
+      description:
+        "Resolve a host selector to the matching fleet members without " +
+        "connecting — zero matches is data, not an error.",
+      arguments: ResolveArgsSchema,
+      execute: (args: ResolveArgs, ctx: FleetContext) => runResolve(args, ctx),
     },
     open: {
       description:

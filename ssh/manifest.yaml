@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/ssh"
-version: "2026.07.27.2"
+version: "2026.07.28.1"
 description: |
   Run commands, copy files, and open port forwards across a declared set of
   hosts over SSH. Define the hosts once on the model, then target any subset
@@ -32,6 +32,10 @@ description: |
     is deprecated — prefix it with `cel:`.
   - CEL helpers bundled on every call: `matchesRegex(s, pat)`,
     `cidrContains(cidr, addr)`.
+  - `resolve` answers "which hosts does this selector match?" as pure data —
+    no SSH connection, zero matches is a success with `count: 0`, and the
+    write's `count` tag lets a `runModel` caller gate without reading the
+    resource.
   - Auth modes: key-based (file, agent, `IdentityAgent`, inline content
     via `identityContent`) and password-based via `sshpass -e` with the
     password supplied through `${{ vault.get('<vault>', '<key>') }}`.
@@ -41,6 +45,7 @@ description: |
   | Method   | What it does |
   | -------- | ------------ |
   | `apply`  | Materialise the host list as `host-*` resources; deletes stale entries that disappeared from `hosts[]`. |
+  | `resolve` | Resolve a host selector to the matching fleet members without connecting — writes a `selection` resource (addressing + tags/attrs, never credentials). Zero matches is data (`count: 0`), not an error. |
   | `open`   | Establish ControlMaster sockets for selected `ssh` hosts (no-op for tailscale). |
   | `check`  | Probe ControlMaster (`ssh -O check`) or run `true` over `tailscale ssh`. |
   | `close`  | Tear down ControlMaster sockets (`ssh -O exit`). |

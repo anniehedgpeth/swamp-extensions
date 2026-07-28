@@ -242,7 +242,9 @@ Missing `host.attrs.<key>` references make the host not match; a debug-level log
 line names the host and the missing key. A malformed expression, or a selector
 that matches no hosts, fails the method with a clear error before any connection
 is attempted (validated when the method runs — swamp does not pass method
-arguments to pre-flight checks).
+arguments to pre-flight checks). The [`resolve`](#resolve) method is the one
+exception to the empty-match rule: it records zero matches as data
+(`count: 0`) instead of failing — a malformed expression still fails it.
 
 ## Methods
 
@@ -251,6 +253,55 @@ arguments to pre-flight checks).
 Synchronizes `host-<name>` resources with the current `hosts[]`. Writes one
 `host` resource per entry and deletes stale `host-*` resources whose names have
 disappeared from `hosts[]` since the last apply. Idempotent — safe to re-run.
+
+### `resolve`
+
+```yaml
+arguments:
+  hosts: tag:prod # any selector form — see Selectors above
+```
+
+Resolves the selector against the fleet and records the answer as data —
+nothing is spawned, no connection is made. Writes one `selection` resource
+named `resolve-<hash>`, where the hash is stable per selector so repeated
+resolves version the same resource instead of proliferating. The resource
+contains the normalized selector text, the match `count`, and one record per
+matched host with `name`, `address`, `port` (ssh only), `user`, `tags`,
+`attrs`, and `transport` — never credential material (auth, identity files or
+content, proxy settings).
+
+**Zero matches is a success**, not an error: the resource records an empty
+`hosts` list with `count: 0`. That is the structured "matched nothing" answer
+the connecting methods cannot give — they throw on an empty selection, and
+still do. A malformed selector (e.g. bad CEL) still fails the method.
+
+The write is tagged `{fleet, method: "resolve", count}` (string values), so a
+`runModel` caller can gate on zero matches straight off the returned handle,
+without reading resource content:
+
+```ts
+const run = await ctx.runModel?.({
+  definition: "awesome",
+  method: "resolve",
+  arguments: { hosts: "tag:prod" },
+});
+if (!run) throw new Error("runModel is unavailable in this context");
+if (!run.ok) throw new Error(`resolve failed: ${run.error.message}`);
+
+if (run.resources[0].tags.count === "0") {
+  // Nothing matched — skip the rollout instead of erroring.
+}
+const selection = await ctx.readResource(run.resources[0].name);
+// selection.hosts: [{ name, address, port?, user?, tags, attrs, transport }]
+```
+
+Use it for planning and per-host templating downstream (the member list plus
+each host's `attrs`/`tags`), or to gate a workflow on "does `tag:prod` match
+anything?" before acting.
+
+```bash
+swamp model method run awesome resolve --input hosts='tag:prod' --json
+```
 
 ### `open` / `check` / `close`
 
@@ -552,6 +603,7 @@ timing reach the resource.
 | `forwardState`  | one per (host, type, spec)   | 50                | pid for tailscale; ControlPath for ssh.                                                                                         |
 | `masterAudit`   | append per host              | 100               | `open` / `check` / `exit` events.                                                                                               |
 | `hostPublicKey` | one per host                 | 10                | Written by `collect-host-public-key`. Raw key, algorithm, fingerprint.                                                          |
+| `selection`     | one per distinct selector    | 10                | Written by `resolve`. Instance `resolve-<hash>`, stable per selector. Tagged `{fleet, method, count}`; no credential material.   |
 
 ## License
 

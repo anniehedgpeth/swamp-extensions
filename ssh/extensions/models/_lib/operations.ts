@@ -33,6 +33,7 @@ import {
   type GlobalArgs,
   GlobalArgsSchema,
   type OkExitCodes,
+  type ResolveArgs,
   type ScriptArgs,
   type Selector,
   type Targeting,
@@ -179,26 +180,20 @@ function noMatchMessage(selector: Selector): string {
 }
 
 /**
- * Resolve the selector to matched effective hosts.
- *
- * This is the execute-time home for two validations that can't live in
- * pre-flight checks (checks don't receive method args in swamp): a malformed
- * CEL selector surfaces as a clear error, and an empty match is rejected with
- * a form-aware message. Both run before any process is spawned. Exported for
- * direct unit testing.
+ * Evaluate a selector against the fleet, wrapping a malformed expression
+ * (typically a CEL parse error) in a clear message. The result may be empty —
+ * `resolve` records that as data, while the connecting methods reject it via
+ * `resolveSelection`.
  */
-export function resolveSelection(
+function matchSelection(
   ctx: FleetContext,
   g: GlobalArgs,
   selector: Selector,
 ): EffectiveHost[] {
-  const hosts = effectiveHosts(g);
-
-  let selected: EffectiveHost[];
   try {
-    selected = selectHosts(
+    return selectHosts(
       selector,
-      hosts,
+      effectiveHosts(g),
       ctx.createCelEnvironment(),
       ctx.logger,
     );
@@ -209,7 +204,25 @@ export function resolveSelection(
       }`,
     );
   }
+}
 
+/**
+ * Resolve the selector to matched effective hosts, rejecting an empty match.
+ *
+ * This is the execute-time home for two validations that can't live in
+ * pre-flight checks (checks don't receive method args in swamp): a malformed
+ * CEL selector surfaces as a clear error, and an empty match is rejected with
+ * a form-aware message. Both run before any process is spawned. Every
+ * connecting method funnels through here — zero hosts is only a success for
+ * `resolve`, which asks the question without acting on the answer. Exported
+ * for direct unit testing.
+ */
+export function resolveSelection(
+  ctx: FleetContext,
+  g: GlobalArgs,
+  selector: Selector,
+): EffectiveHost[] {
+  const selected = matchSelection(ctx, g, selector);
   if (selected.length === 0) {
     throw new Error(noMatchMessage(selector));
   }
@@ -1132,4 +1145,86 @@ export async function runCollectHostPublicKey(
   } finally {
     await cleanupTempKeys(tempPaths);
   }
+}
+
+// ---------------------------------------------------------------------------
+// resolve
+// ---------------------------------------------------------------------------
+
+/** Normalized textual form of a selector, recorded in the selection resource
+ * and hashed for the instance name. Arrays are JSON-encoded; string forms
+ * (including "all") are already text. */
+function normalizeSelector(selector: Selector): string {
+  return Array.isArray(selector) ? JSON.stringify(selector) : selector;
+}
+
+/**
+ * Short stable hash of the normalized selector. Selectors can contain
+ * characters that aren't valid in data names (spaces, quotes, colons), so the
+ * instance name carries a digest instead. Stability matters: the same
+ * selector must map to the same instance so repeated resolves version one
+ * resource rather than proliferate.
+ */
+async function selectorHash(normalized: string): Promise<string> {
+  const digest = new Uint8Array(
+    await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(normalized),
+    ),
+  );
+  return [...digest.slice(0, 6)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Resolve a selector against the fleet and record the result as data — no
+ * ssh/scp/tailscale is ever spawned. Zero matches is a SUCCESS here: the
+ * empty list with `count: 0` is exactly the structured answer a planner or
+ * workflow gate needs, which the connecting methods can't give (they throw).
+ * A malformed selector still throws via `matchSelection`.
+ *
+ * The host records are built from an explicit field allowlist so credential
+ * material (auth, identityFile/Content/Agent, proxy settings) can never leak
+ * into the selection resource. The write is tagged with the match count so a
+ * `runModel` caller can branch on `handle.tags.count === "0"` without a
+ * subsequent read.
+ */
+export async function runResolve(
+  args: ResolveArgs,
+  ctx: FleetContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  const g = parseGlobals(ctx);
+  const selected = matchSelection(ctx, g, args.hosts);
+  const selector = normalizeSelector(args.hosts);
+
+  const hosts = selected.map((h) => ({
+    name: h.name,
+    address: h.address,
+    ...(h.transport.kind === "ssh" ? { port: h.transport.port } : {}),
+    ...(h.transport.user !== undefined ? { user: h.transport.user } : {}),
+    tags: h.tags,
+    attrs: h.attrs,
+    transport: h.transport.kind,
+  }));
+
+  const handle = await ctx.writeResource(
+    "selection",
+    `resolve-${await selectorHash(selector)}`,
+    {
+      fleet: g.name,
+      selector,
+      count: hosts.length,
+      hosts,
+      resolvedAt: new Date().toISOString(),
+    },
+    {
+      tags: {
+        fleet: g.name,
+        method: "resolve",
+        count: String(hosts.length),
+      },
+    },
+  );
+  return { dataHandles: [handle] };
 }

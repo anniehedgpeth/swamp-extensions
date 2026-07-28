@@ -33,6 +33,7 @@ import {
 } from "./_lib/forwarding.ts";
 import type { CelEnvLike } from "./_lib/selectors.ts";
 import type { FleetContext } from "./_lib/operations.ts";
+import { SelectionSchema } from "./_lib/schemas.ts";
 
 // ---------------------------------------------------------------------------
 // Test harness
@@ -166,6 +167,7 @@ Deno.test("model: declares expected type, methods, resources, checks", () => {
   for (
     const m of [
       "apply",
+      "resolve",
       "open",
       "check",
       "close",
@@ -185,6 +187,7 @@ Deno.test("model: declares expected type, methods, resources, checks", () => {
       "forwardState",
       "masterAudit",
       "hostPublicKey",
+      "selection",
     ]
   ) {
     assert(r in model.resources, `missing resource ${r}`);
@@ -192,6 +195,12 @@ Deno.test("model: declares expected type, methods, resources, checks", () => {
   for (const c of ["master-writable", "sshpass-available"]) {
     assert(c in model.checks, `missing check ${c}`);
   }
+  // `resolve` never spawns ssh, so the fleet-wide sshpass pre-flight check
+  // must not gate it.
+  assert(
+    !model.checks["sshpass-available"].appliesTo.includes("resolve"),
+    "resolve must not be gated by the sshpass-available check",
+  );
   // These were removed: their validation needs method args, which swamp
   // does not pass to check contexts. The spec is validated by the schema;
   // selector syntax / empty-selection are validated inside execute.
@@ -802,6 +811,252 @@ Deno.test("apply: prunes stale host-* resources", async () => {
   assert(!h.resources.has("host-ghost"));
   // Non-host resources are untouched.
   assert(h.resources.has("run-exec-web-1"));
+});
+
+// ---------------------------------------------------------------------------
+// resolve
+// ---------------------------------------------------------------------------
+
+/**
+ * Fleet exercising every resolve edge at once: a host NAMED "prod" while two
+ * other hosts carry the "prod" TAG (bare-string precedence), credential
+ * material in three forms (password, identityContent, fleet identityFile)
+ * that must never reach a selection record, and a tailscale host (no port).
+ */
+const RESOLVE_FLEET = {
+  name: "resolve-fleet",
+  transport: {
+    kind: "ssh",
+    user: "deploy",
+    identityFile: "/secret/fleet-key",
+  },
+  hosts: [
+    {
+      name: "web-1",
+      address: "10.0.0.11",
+      tags: ["web", "prod"],
+      attrs: { region: "us-east-1" },
+      transport: { auth: { kind: "password", password: "hunter2" } },
+    },
+    {
+      name: "web-2",
+      address: "10.0.0.12",
+      tags: ["web", "staging"],
+      attrs: { region: "us-east-1" },
+      transport: {
+        identityContent: "-----BEGIN OPENSSH PRIVATE KEY-----\nsecretbytes\n",
+      },
+    },
+    {
+      name: "prod", // collides with the "prod" tag on web-1/edge-1
+      address: "10.0.0.13",
+      tags: ["db"],
+      attrs: { region: "eu-west-1" },
+    },
+    {
+      name: "edge-1",
+      address: "edge-1",
+      tags: ["edge", "prod"],
+      attrs: { region: "eu-west-1" },
+      transport: { kind: "tailscale", user: "deploy" },
+    },
+  ],
+};
+
+/** Run resolve through the model surface and return the selection write. */
+async function runResolveOn(
+  h: Harness,
+  hosts: unknown,
+): Promise<
+  { name: string; data: Record<string, unknown>; tags?: Record<string, string> }
+> {
+  const args = model.methods.resolve.arguments.parse({ hosts });
+  const out = await model.methods.resolve.execute(args, h.ctx);
+  assertEquals(out.dataHandles.length, 1);
+  const write = h.writes.filter((w) => w.specName === "selection").at(-1);
+  assert(write, "expected a selection write");
+  return write;
+}
+
+function selectionNames(write: { data: Record<string, unknown> }): string[] {
+  return (write.data.hosts as { name: string }[]).map((x) => x.name);
+}
+
+Deno.test("resolve: 'all' matches every host, spawns nothing, validates", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const { executor, requests } = okExecutor();
+  setCommandExecutor(executor);
+  try {
+    const write = await runResolveOn(h, "all");
+    assertEquals(requests.length, 0, "resolve must never spawn a process");
+    // The written record round-trips through the declared resource schema.
+    const parsed = SelectionSchema.parse(write.data);
+    assertEquals(parsed.fleet, "resolve-fleet");
+    assertEquals(parsed.selector, "all");
+    assertEquals(parsed.count, 4);
+    assertEquals(
+      parsed.hosts.map((x) => x.name),
+      ["web-1", "web-2", "prod", "edge-1"],
+    );
+    // ssh host: full addressing; tailscale host: no port.
+    const web = parsed.hosts.find((x) => x.name === "web-1");
+    assertEquals(web?.port, 22);
+    assertEquals(web?.user, "deploy");
+    assertEquals(web?.transport, "ssh");
+    assertEquals(web?.tags, ["web", "prod"]);
+    assertEquals(web?.attrs, { region: "us-east-1" });
+    const edge = parsed.hosts.find((x) => x.name === "edge-1");
+    assertEquals(edge?.port, undefined);
+    assertEquals(edge?.transport, "tailscale");
+    // Write tags mirror the runResult convention; count is the gate value.
+    assertEquals(write.tags, {
+      fleet: "resolve-fleet",
+      method: "resolve",
+      count: "4",
+    });
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("resolve: explicit name array records a JSON selector", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const write = await runResolveOn(h, ["web-1", "web-2"]);
+  assertEquals(write.data.count, 2);
+  assertEquals(selectionNames(write), ["web-1", "web-2"]);
+  assertEquals(write.data.selector, '["web-1","web-2"]');
+});
+
+Deno.test("resolve: bare string prefers exact host name over tag", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const write = await runResolveOn(h, "prod");
+  // The host NAMED "prod" wins over the two hosts TAGGED "prod".
+  assertEquals(selectionNames(write), ["prod"]);
+});
+
+Deno.test("resolve: bare string falls back to tag when no name matches", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const write = await runResolveOn(h, "web");
+  assertEquals(selectionNames(write), ["web-1", "web-2"]);
+});
+
+Deno.test("resolve: name: prefix selects exactly one host", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const write = await runResolveOn(h, "name:web-2");
+  assertEquals(selectionNames(write), ["web-2"]);
+});
+
+Deno.test("resolve: tag: prefix ignores the colliding host name", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const write = await runResolveOn(h, "tag:prod");
+  assertEquals(selectionNames(write), ["web-1", "edge-1"]);
+});
+
+Deno.test("resolve: cel: predicate with attrs and matchesRegex", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const write = await runResolveOn(
+    h,
+    'cel:host.attrs.region == "us-east-1" && matchesRegex(host.name, "^web-")',
+  );
+  assertEquals(selectionNames(write), ["web-1", "web-2"]);
+});
+
+Deno.test("resolve: zero matches succeeds with empty hosts and count tag '0'", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const { executor, requests } = okExecutor();
+  setCommandExecutor(executor);
+  try {
+    const write = await runResolveOn(h, "tag:nope");
+    const parsed = SelectionSchema.parse(write.data);
+    assertEquals(parsed.count, 0);
+    assertEquals(parsed.hosts, []);
+    assertEquals(write.tags?.count, "0");
+    assertEquals(requests.length, 0);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("resolve: malformed CEL still throws", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const args = model.methods.resolve.arguments.parse({
+    hosts: "cel:size(host.tags",
+  });
+  let msg = "";
+  try {
+    await model.methods.resolve.execute(args, h.ctx);
+  } catch (e) {
+    msg = e instanceof Error ? e.message : String(e);
+  }
+  assert(msg.includes("Invalid selector expression"), msg);
+  assertEquals(
+    h.writes.filter((w) => w.specName === "selection").length,
+    0,
+    "an invalid selector must not write a selection",
+  );
+});
+
+Deno.test("resolve: selection records carry no credential material", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const write = await runResolveOn(h, "all");
+  const serialized = JSON.stringify(write.data);
+  for (
+    const leak of [
+      "hunter2",
+      "password",
+      "auth",
+      "identity",
+      "PRIVATE KEY",
+      "/secret/fleet-key",
+      "proxy",
+    ]
+  ) {
+    assert(
+      !serialized.includes(leak),
+      `selection record must not contain '${leak}'`,
+    );
+  }
+});
+
+Deno.test("resolve: same selector reuses one instance, different selectors do not", async () => {
+  const h = makeHarness(RESOLVE_FLEET, "resolve");
+  const first = await runResolveOn(h, "tag:prod");
+  const again = await runResolveOn(h, "tag:prod");
+  const other = await runResolveOn(h, "tag:staging");
+  assert(
+    /^resolve-[0-9a-f]{12}$/.test(first.name),
+    `unexpected instance name: ${first.name}`,
+  );
+  assertEquals(first.name, again.name, "same selector must reuse the instance");
+  assert(
+    other.name !== first.name,
+    "different selectors must get different instances",
+  );
+});
+
+Deno.test("exec: empty selection still throws (regression for the resolve refactor)", async () => {
+  // `resolve` treating zero matches as data must not leak into the
+  // connecting methods — they share the selection funnel.
+  const h = makeHarness(RESOLVE_FLEET, "exec");
+  const { executor, requests } = okExecutor();
+  setCommandExecutor(executor);
+  try {
+    const args = model.methods.exec.arguments.parse({
+      hosts: "tag:nope",
+      command: "uptime",
+    });
+    let msg = "";
+    try {
+      await model.methods.exec.execute(args, h.ctx);
+    } catch (e) {
+      msg = e instanceof Error ? e.message : String(e);
+    }
+    assert(msg.includes("No host carrying tag 'nope'"), msg);
+    assertEquals(requests.length, 0, "no process may spawn on empty selection");
+    assertEquals(h.writes.length, 0, "no resource may be written");
+  } finally {
+    resetCommandExecutor();
+  }
 });
 
 // ---------------------------------------------------------------------------

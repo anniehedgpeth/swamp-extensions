@@ -322,6 +322,16 @@ export type CollectHostPublicKeyArgs = z.infer<
   typeof CollectHostPublicKeyArgsSchema
 >;
 
+/**
+ * `resolve` takes only the selector — deliberately NOT `TargetingSchema`.
+ * The method never connects, so `parallel`/`timeoutSec`/`failFast`/`env`/
+ * `captureOutput` would be dead knobs suggesting behavior that doesn't exist.
+ */
+export const ResolveArgsSchema = z.object({
+  hosts: SelectorSchema,
+});
+export type ResolveArgs = z.infer<typeof ResolveArgsSchema>;
+
 // ---------------------------------------------------------------------------
 // Resource record schemas
 // ---------------------------------------------------------------------------
@@ -376,6 +386,30 @@ export const MasterAuditSchema = z.object({
   recordedAt: z.string(),
 });
 export type MasterAudit = z.infer<typeof MasterAuditSchema>;
+
+/**
+ * Result of a `resolve` call: which fleet members a selector matched.
+ * Addressing and metadata only — never credential material (auth, identity
+ * files/content, proxy commands), so the record is safe to hand to any
+ * downstream planner. `port` is present only for ssh-transport hosts;
+ * tailscale addressing has no port.
+ */
+export const SelectionSchema = z.object({
+  fleet: z.string(),
+  selector: z.string(),
+  count: z.number().int(),
+  hosts: z.array(z.object({
+    name: z.string(),
+    address: z.string(),
+    port: z.number().int().optional(),
+    user: z.string().optional(),
+    tags: z.array(z.string()),
+    attrs: z.record(z.string(), z.unknown()),
+    transport: z.enum(["ssh", "tailscale"]),
+  })),
+  resolvedAt: z.string(),
+});
+export type Selection = z.infer<typeof SelectionSchema>;
 
 export const HostPublicKeySchema = z.object({
   name: z.string(),
