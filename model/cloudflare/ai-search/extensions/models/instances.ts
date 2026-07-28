@@ -208,7 +208,7 @@ const GlobalArgsSchema = z.object({
         specific_sitemaps: z.array(z.string()).optional(),
         use_browser_rendering: z.boolean().optional(),
       }).optional(),
-      parse_type: z.enum(["sitemap", "crawl"]).optional(),
+      parse_type: z.enum(["sitemap", "discover"]).optional(),
     }).optional(),
   }).optional(),
   summarization: z.boolean().optional(),
@@ -531,7 +531,7 @@ const InputsSchema = z.object({
         specific_sitemaps: z.array(z.string()).optional(),
         use_browser_rendering: z.boolean().optional(),
       }).optional(),
-      parse_type: z.enum(["sitemap", "crawl"]).optional(),
+      parse_type: z.enum(["sitemap", "discover"]).optional(),
     }).optional(),
   }).optional(),
   summarization: z.boolean().optional(),
@@ -585,7 +585,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Instances. Registered at `@swamp/cloudflare/ai-search/instances`. */
 export const model = {
   type: "@swamp/cloudflare/ai-search/instances",
-  version: "2026.07.21.1",
+  version: "2026.07.28.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -619,6 +619,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

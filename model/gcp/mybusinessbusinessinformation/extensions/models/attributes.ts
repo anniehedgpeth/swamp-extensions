@@ -138,7 +138,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud My Business Business Information Attributes. Registered at `@swamp/gcp/mybusinessbusinessinformation/attributes`. */
 export const model = {
   type: "@swamp/gcp/mybusinessbusinessinformation/attributes",
-  version: "2026.07.21.2",
+  version: "2026.07.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -242,6 +242,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -353,22 +358,22 @@ export const model = {
       description: "List attributes resources",
       arguments: z.object({
         categoryName: z.string().describe(
-          "The primary category stable ID to find available attributes. Must be of the format categories/{category_id}.",
+          "Optional. The primary category stable ID to find available attributes. Must be of the format `categories/{category_id}` (e.g., `categories/gcid:restaurant`). Required if `parent` is not set and `show_all` is false.",
         ).optional(),
         languageCode: z.string().describe(
-          "The BCP 47 code of language to get attribute display names in. If this language is not available, they will be provided in English.",
+          "Optional. The BCP 47 code of language to get attribute display names in. If this language is not available, they will be provided in English.",
         ).optional(),
         pageSize: z.number().describe(
           "How many attributes to include per page. Default is 200, minimum is 1.",
         ).optional(),
         parent: z.string().describe(
-          "Resource name of the location to look up available attributes. If this field is set, category_name, region_code, language_code and show_all are not required and must not be set.",
+          "Optional. Resource name of the location to look up available attributes. If this field is set, `category_name`, `region_code`, `language_code` and `show_all` are not required and must not be set. Format: `locations/{location_id}` (e.g., `locations/1234567890`).",
         ).optional(),
         regionCode: z.string().describe(
-          "The ISO 3166-1 alpha-2 country code to find available attributes.",
+          "Optional. The ISO 3166-1 alpha-2 country code to find available attributes. Required if `parent` is not set.",
         ).optional(),
         showAll: z.boolean().describe(
-          "Metadata for all available attributes are returned when this field is set to true, disregarding parent and category_name fields. language_code and region_code are required when show_all is set to true.",
+          "Optional. If set to true, metadata for all available attributes are returned, disregarding `parent` and `category_name` fields. `language_code` and `region_code` are required when `show_all` is set to true.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

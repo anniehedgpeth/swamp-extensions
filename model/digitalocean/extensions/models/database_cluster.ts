@@ -157,7 +157,7 @@ const GlobalArgsSchema = z.object({
     description: z.array(z.string()).optional(),
   }).optional(),
   project_id: z.string().describe(
-    "The ID of the project that the database cluster is assigned to. If excluded when creating a new database cluster, it will be assigned to your default project.<br><br>Requires `project:update` scope.",
+    "The ID of the project that the database cluster is assigned to. If excluded when creating a new database cluster, it will be assigned to your default project.<br><br>Requires `project:assign_resource` scope.",
   ).optional(),
   rules: z.array(z.object({
     uuid: z.string().regex(
@@ -468,7 +468,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for DigitalOcean database cluster. Registered at `@swamp/digitalocean/database-cluster`. */
 export const model = {
   type: "@swamp/digitalocean/database-cluster",
-  version: "2026.06.30.1",
+  version: "2026.07.28.1",
   upgrades: [
     {
       toVersion: "2026.03.27.1",
@@ -527,6 +527,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.30.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

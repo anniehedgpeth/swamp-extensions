@@ -772,7 +772,7 @@ const GlobalArgsSchema = z.object({
     "URLs of networkservices.ServiceBinding resources. Can only be set if load balancing scheme is INTERNAL_SELF_MANAGED. If set, lists of backends and health checks must be both empty.",
   ).optional(),
   serviceLbPolicy: z.string().describe(
-    "URL to networkservices.ServiceLbPolicy resource. Can only be set if load balancing scheme is EXTERNAL_MANAGED, INTERNAL_MANAGED or INTERNAL_SELF_MANAGED and the scope is global.",
+    "URL to networkservices.ServiceLbPolicy resource. Can only be set if load balancing scheme is EXTERNAL_MANAGED, INTERNAL_MANAGED or INTERNAL_SELF_MANAGED for a global backend service, and EXTERNAL_MANAGED or INTERNAL_MANAGED for a regional backend service. For a global backend service, the service lb policy must be global. For a regional backend service, the service lb policy must be regional and in the same region.",
   ).optional(),
   sessionAffinity: z.enum([
     "CLIENT_IP",
@@ -1635,7 +1635,7 @@ const InputsSchema = z.object({
     "URLs of networkservices.ServiceBinding resources. Can only be set if load balancing scheme is INTERNAL_SELF_MANAGED. If set, lists of backends and health checks must be both empty.",
   ).optional(),
   serviceLbPolicy: z.string().describe(
-    "URL to networkservices.ServiceLbPolicy resource. Can only be set if load balancing scheme is EXTERNAL_MANAGED, INTERNAL_MANAGED or INTERNAL_SELF_MANAGED and the scope is global.",
+    "URL to networkservices.ServiceLbPolicy resource. Can only be set if load balancing scheme is EXTERNAL_MANAGED, INTERNAL_MANAGED or INTERNAL_SELF_MANAGED for a global backend service, and EXTERNAL_MANAGED or INTERNAL_MANAGED for a regional backend service. For a global backend service, the service lb policy must be global. For a regional backend service, the service lb policy must be regional and in the same region.",
   ).optional(),
   sessionAffinity: z.enum([
     "CLIENT_IP",
@@ -1717,7 +1717,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionBackendServices. Registered at `@swamp/gcp/compute/regionbackendservices`. */
 export const model = {
   type: "@swamp/gcp/compute/regionbackendservices",
-  version: "2026.07.27.1",
+  version: "2026.07.28.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1901,6 +1901,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.27.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -72,6 +72,9 @@ const GlobalArgsSchema = z.object({
   PartitionCount: z.number().int().describe(
     "The number of partitions. Valid only when **Strategy** is set to `partition`",
   ).optional(),
+  ParentGroupId: z.string().describe(
+    "The ID of a parent placement group. Valid for strategies that support parent group linking.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
   ).optional(),
@@ -82,6 +85,7 @@ const StateSchema = z.object({
   GroupName: z.string(),
   SpreadLevel: z.string().optional(),
   PartitionCount: z.number().optional(),
+  ParentGroupId: z.string().optional(),
   GroupId: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
 }).passthrough();
@@ -100,6 +104,9 @@ const InputsSchema = z.object({
   ).optional(),
   PartitionCount: z.number().int().describe(
     "The number of partitions. Valid only when **Strategy** is set to `partition`",
+  ).optional(),
+  ParentGroupId: z.string().describe(
+    "The ID of a parent placement group. Valid for strategies that support parent group linking.",
   ).optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
@@ -125,7 +132,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EC2 PlacementGroup. Registered at `@swamp/aws/ec2/placement-group`. */
 export const model = {
   type: "@swamp/aws/ec2/placement-group",
-  version: "2026.07.24.1",
+  version: "2026.07.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -170,6 +177,11 @@ export const model = {
     {
       toVersion: "2026.07.24.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.28.1",
+      description: "Added: ParentGroupId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
