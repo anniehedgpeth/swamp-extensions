@@ -478,6 +478,25 @@ const GlobalArgsSchema = z.object({
   credentialsConfigDisabled: z.boolean().describe(
     "Whether configuring user credentials is disabled.",
   ).optional(),
+  crossDevicePolicies: z.object({
+    nearbyAppStreaming: z.enum([
+      "NEARBY_APP_STREAMING_UNSPECIFIED",
+      "NEARBY_APP_STREAMING_USER_CHOICE",
+      "NEARBY_APP_STREAMING_DISABLED",
+      "NEARBY_APP_STREAMING_USER_CHOICE_SAME_MANAGED_ACCOUNT",
+    ]).describe(
+      "Optional. Manages video streaming of apps on the device for fully managed devices or in the work profile for devices with work profiles to nearby devices. This is supported on Android 13 and above.",
+    ).optional(),
+    nearbyNotificationStreaming: z.enum([
+      "NEARBY_NOTIFICATION_STREAMING_UNSPECIFIED",
+      "NEARBY_NOTIFICATION_STREAMING_USER_CHOICE",
+      "NEARBY_NOTIFICATION_STREAMING_DISABLED",
+      "NEARBY_NOTIFICATION_STREAMING_USER_CHOICE_SAME_MANAGED_ACCOUNT",
+    ]).describe(
+      "Optional. Manages streaming of notifications from apps on the device for fully managed devices or in the work profile for devices with work profiles to nearby devices. This is supported on Android 13 and above.",
+    ).optional(),
+  }).describe("Optional. Policies controlling cross-device communication.")
+    .optional(),
   crossProfilePolicies: z.object({
     crossProfileAppFunctions: z.enum([
       "CROSS_PROFILE_APP_FUNCTIONS_UNSPECIFIED",
@@ -1615,6 +1634,10 @@ const StateSchema = z.object({
   createWindowsDisabled: z.boolean().optional(),
   credentialProviderPolicyDefault: z.string().optional(),
   credentialsConfigDisabled: z.boolean().optional(),
+  crossDevicePolicies: z.object({
+    nearbyAppStreaming: z.string(),
+    nearbyNotificationStreaming: z.string(),
+  }).optional(),
   crossProfilePolicies: z.object({
     crossProfileAppFunctions: z.string(),
     crossProfileCopyPaste: z.string(),
@@ -2264,6 +2287,25 @@ const InputsSchema = z.object({
   credentialsConfigDisabled: z.boolean().describe(
     "Whether configuring user credentials is disabled.",
   ).optional(),
+  crossDevicePolicies: z.object({
+    nearbyAppStreaming: z.enum([
+      "NEARBY_APP_STREAMING_UNSPECIFIED",
+      "NEARBY_APP_STREAMING_USER_CHOICE",
+      "NEARBY_APP_STREAMING_DISABLED",
+      "NEARBY_APP_STREAMING_USER_CHOICE_SAME_MANAGED_ACCOUNT",
+    ]).describe(
+      "Optional. Manages video streaming of apps on the device for fully managed devices or in the work profile for devices with work profiles to nearby devices. This is supported on Android 13 and above.",
+    ).optional(),
+    nearbyNotificationStreaming: z.enum([
+      "NEARBY_NOTIFICATION_STREAMING_UNSPECIFIED",
+      "NEARBY_NOTIFICATION_STREAMING_USER_CHOICE",
+      "NEARBY_NOTIFICATION_STREAMING_DISABLED",
+      "NEARBY_NOTIFICATION_STREAMING_USER_CHOICE_SAME_MANAGED_ACCOUNT",
+    ]).describe(
+      "Optional. Manages streaming of notifications from apps on the device for fully managed devices or in the work profile for devices with work profiles to nearby devices. This is supported on Android 13 and above.",
+    ).optional(),
+  }).describe("Optional. Policies controlling cross-device communication.")
+    .optional(),
   crossProfilePolicies: z.object({
     crossProfileAppFunctions: z.enum([
       "CROSS_PROFILE_APP_FUNCTIONS_UNSPECIFIED",
@@ -3328,7 +3370,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises.Policies. Registered at `@swamp/gcp/androidmanagement/enterprises-policies`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises-policies",
-  version: "2026.07.21.4",
+  version: "2026.07.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3505,6 +3547,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.28.1",
+      description: "Added: crossDevicePolicies",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -3652,6 +3699,9 @@ export const model = {
         }
         if (g["credentialsConfigDisabled"] !== undefined) {
           body["credentialsConfigDisabled"] = g["credentialsConfigDisabled"];
+        }
+        if (g["crossDevicePolicies"] !== undefined) {
+          body["crossDevicePolicies"] = g["crossDevicePolicies"];
         }
         if (g["crossProfilePolicies"] !== undefined) {
           body["crossProfilePolicies"] = g["crossProfilePolicies"];

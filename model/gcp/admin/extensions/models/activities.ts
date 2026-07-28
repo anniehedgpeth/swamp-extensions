@@ -58,9 +58,6 @@ const LIST_CONFIG = {
     "actorIpAddress": {
       "location": "query",
     },
-    "agentInfoFilter": {
-      "location": "query",
-    },
     "applicationInfoFilter": {
       "location": "query",
     },
@@ -282,7 +279,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Activities. Registered at `@swamp/gcp/admin/activities`. */
 export const model = {
   type: "@swamp/gcp/admin/activities",
-  version: "2026.07.28.1",
+  version: "2026.07.28.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -396,6 +393,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.28.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.28.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -524,9 +526,6 @@ export const model = {
         actorIpAddress: z.string().describe(
           "The Internet Protocol (IP) Address of host where the event was performed. This is an additional way to filter a report's summary using the IP address of the user whose activity is being reported. This IP address may or may not reflect the user's physical location. For example, the IP address can be the user's proxy server's address or a virtual private network (VPN) address. This parameter supports both IPv4 and IPv6 address versions.",
         ).optional(),
-        agentInfoFilter: z.string().describe(
-          'Optional. Filters on agent info fields in the activity. This filter gets applied in conjunction(AND) with other filters. Example: "agentInfoFilter=agentId=\\"agent-id\\" AND agentName=\\"agent-name\\" AND agentOwnerEmail=\\"agent-owner-email\\""',
-        ).optional(),
         applicationInfoFilter: z.string().describe(
           'Optional. Used to filter on the `oAuthClientId` field present in [`ApplicationInfo`](#applicationinfo) message. **Usage** ``` GET...&applicationInfoFilter=oAuthClientId="clientId" GET...&applicationInfoFilter=oAuthClientId=%22clientId%22 ```',
         ).optional(),
@@ -583,9 +582,6 @@ export const model = {
         }
         if (args["actorIpAddress"] !== undefined) {
           params["actorIpAddress"] = String(args["actorIpAddress"]);
-        }
-        if (args["agentInfoFilter"] !== undefined) {
-          params["agentInfoFilter"] = String(args["agentInfoFilter"]);
         }
         if (args["applicationInfoFilter"] !== undefined) {
           params["applicationInfoFilter"] = String(

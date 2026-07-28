@@ -813,6 +813,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     securityConfig: z.object({
       identityConfig: z.object({
+        enableSsh: z.boolean().describe(
+          "Optional. Whether to enable SSH access for the cluster. The default is true for image versions prior to 3.1 and false for image versions 3.1 and later. The default behavior can be changed when creating clusters using image versions 2.3.30 and later.",
+        ).optional(),
         userServiceAccountMapping: z.record(z.string(), z.string()).describe(
           "Required. Map of user to service account.",
         ).optional(),
@@ -1377,6 +1380,7 @@ const StateSchema = z.object({
     }),
     securityConfig: z.object({
       identityConfig: z.object({
+        enableSsh: z.boolean(),
         userServiceAccountMapping: z.record(z.string(), z.unknown()),
       }),
       kerberosConfig: z.object({
@@ -2122,6 +2126,9 @@ const InputsSchema = z.object({
     ).optional(),
     securityConfig: z.object({
       identityConfig: z.object({
+        enableSsh: z.boolean().describe(
+          "Optional. Whether to enable SSH access for the cluster. The default is true for image versions prior to 3.1 and false for image versions 3.1 and later. The default behavior can be changed when creating clusters using image versions 2.3.30 and later.",
+        ).optional(),
         userServiceAccountMapping: z.record(z.string(), z.string()).describe(
           "Required. Map of user to service account.",
         ).optional(),
@@ -2479,7 +2486,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Clusters. Registered at `@swamp/gcp/dataproc/clusters`. */
 export const model = {
   type: "@swamp/gcp/dataproc/clusters",
-  version: "2026.07.21.4",
+  version: "2026.07.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2661,6 +2668,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

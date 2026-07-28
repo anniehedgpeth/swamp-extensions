@@ -211,7 +211,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) ServiceAccounts.Keys. Registered at `@swamp/gcp/iam/serviceaccounts-keys`. */
 export const model = {
   type: "@swamp/gcp/iam/serviceaccounts-keys",
-  version: "2026.07.21.1",
+  version: "2026.07.28.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.28.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -431,24 +438,13 @@ export const model = {
     },
     disable: {
       description: "disable",
-      arguments: z.object({
-        extendedStatusMessage: z.any().optional(),
-        serviceAccountKeyDisableReason: z.any().optional(),
-      }),
-      execute: async (args: Record<string, unknown>, context: any) => {
+      arguments: z.object({}),
+      execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
-        const body: Record<string, unknown> = {};
-        if (args["extendedStatusMessage"] !== undefined) {
-          body["extendedStatusMessage"] = args["extendedStatusMessage"];
-        }
-        if (args["serviceAccountKeyDisableReason"] !== undefined) {
-          body["serviceAccountKeyDisableReason"] =
-            args["serviceAccountKeyDisableReason"];
-        }
         const result = await createResource(
           BASE_URL,
           {
@@ -459,7 +455,7 @@ export const model = {
             "parameters": { "name": { "location": "path", "required": true } },
           },
           params,
-          body,
+          {},
           undefined,
           undefined,
           undefined,
