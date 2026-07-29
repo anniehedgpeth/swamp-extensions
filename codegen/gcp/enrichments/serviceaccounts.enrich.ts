@@ -24,12 +24,14 @@ export const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
+      const credentials = _buildGcpCredentials(g);
       const resource = g["name"]?.toString() ?? "";
 
       const getResp = await request(
         "POST",
         `${BASE_URL}v1/${resource}:getIamPolicy`,
         { options: { requestedPolicyVersion: 3 } },
+        credentials,
       );
       if (!getResp.ok) {
         const body = await getResp.text();
@@ -93,6 +95,7 @@ export const iamBindingMethods = {
             version: 3,
           },
         },
+        credentials,
       );
       if (!setResp.ok) {
         const body = await setResp.text();
@@ -125,12 +128,14 @@ export const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
+      const credentials = _buildGcpCredentials(g);
       const resource = g["name"]?.toString() ?? "";
 
       const getResp = await request(
         "POST",
         `${BASE_URL}v1/${resource}:getIamPolicy`,
         { options: { requestedPolicyVersion: 3 } },
+        credentials,
       );
       if (!getResp.ok) {
         const body = await getResp.text();
@@ -192,6 +197,7 @@ export const iamBindingMethods = {
             version: 3,
           },
         },
+        credentials,
       );
       if (!setResp.ok) {
         const body = await setResp.text();

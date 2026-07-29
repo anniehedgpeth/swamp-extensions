@@ -36,6 +36,8 @@ export const iamBindingMethods = {
         }/iam?optionsRequestedPolicyVersion=3&userProject=${
           encodeURIComponent(userProject)
         }`,
+        undefined,
+        credentials,
       );
       if (!getResp.ok) {
         const body = await getResp.text();
@@ -99,6 +101,7 @@ export const iamBindingMethods = {
           etag: policy.etag,
           version: 3,
         },
+        credentials,
       );
       if (!setResp.ok) {
         const body = await setResp.text();
@@ -143,6 +146,8 @@ export const iamBindingMethods = {
         }/iam?optionsRequestedPolicyVersion=3&userProject=${
           encodeURIComponent(userProject)
         }`,
+        undefined,
+        credentials,
       );
       if (!getResp.ok) {
         const body = await getResp.text();
@@ -204,6 +209,7 @@ export const iamBindingMethods = {
           etag: policy.etag,
           version: 3,
         },
+        credentials,
       );
       if (!setResp.ok) {
         const body = await setResp.text();

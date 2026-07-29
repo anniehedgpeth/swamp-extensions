@@ -223,12 +223,14 @@ const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
+      const credentials = _buildGcpCredentials(g);
       const resource = g["name"]?.toString() ?? "";
 
       const getResp = await request(
         "POST",
         `${BASE_URL}v1/${resource}:getIamPolicy`,
         { options: { requestedPolicyVersion: 3 } },
+        credentials,
       );
       if (!getResp.ok) {
         const body = await getResp.text();
@@ -292,6 +294,7 @@ const iamBindingMethods = {
             version: 3,
           },
         },
+        credentials,
       );
       if (!setResp.ok) {
         const body = await setResp.text();
@@ -324,12 +327,14 @@ const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
+      const credentials = _buildGcpCredentials(g);
       const resource = g["name"]?.toString() ?? "";
 
       const getResp = await request(
         "POST",
         `${BASE_URL}v1/${resource}:getIamPolicy`,
         { options: { requestedPolicyVersion: 3 } },
+        credentials,
       );
       if (!getResp.ok) {
         const body = await getResp.text();
@@ -391,6 +396,7 @@ const iamBindingMethods = {
             version: 3,
           },
         },
+        credentials,
       );
       if (!setResp.ok) {
         const body = await setResp.text();
@@ -503,7 +509,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) ServiceAccounts. Registered at `@swamp/gcp/iam/serviceaccounts`. */
 export const model = {
   type: "@swamp/gcp/iam/serviceaccounts",
-  version: "2026.07.21.1",
+  version: "2026.07.28.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.28.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

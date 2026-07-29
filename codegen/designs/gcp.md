@@ -515,14 +515,6 @@ needs). When `scopes` collides, the user-overridable global arg is skipped but
 the `_defaultOAuthScopes` constant still applies — the API's default scopes are
 always used.
 
-**Enrichment limitation:** Enrichment methods (e.g., serviceaccounts, storage-
-buckets) call `request()` directly without explicit credentials; HTTP
-authentication falls back to the env-var chain even when vault-expression
-credentials are configured. The storage-buckets enrichment threads credentials
-to `getProjectId()` so the `project` global arg is honored for project ID
-resolution, but the underlying `request()` calls do not yet forward explicit
-credentials.
-
 ### OAuth scopes
 
 Each generated model includes a `_defaultOAuthScopes` constant populated from
