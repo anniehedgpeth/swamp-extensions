@@ -591,6 +591,9 @@ const GlobalArgsSchema = z.object({
     ]).describe(
       "Controls whether result extract is display and how (snippet or extractive answer). Default to no result if unspecified.",
     ).optional(),
+    sourceAdminDisplayNameEnabled: z.boolean().describe(
+      "Optional. Whether to show the admin-configured display name for data connectors in the widget sources UI (instead of the connector kind). Opt-in; defaults to false.",
+    ).optional(),
   }).describe(
     "Describes general widget search settings as seen in cloud console widget configuration page. Replaces top deprecated top level properties.",
   ).optional(),
@@ -792,6 +795,7 @@ const StateSchema = z.object({
     modelConfigs: z.record(z.string(), z.unknown()),
     onedrivePickerEnabled: z.boolean(),
     resultDescriptionType: z.string(),
+    sourceAdminDisplayNameEnabled: z.boolean(),
   }).optional(),
   updateTime: z.string().optional(),
 }).passthrough();
@@ -1292,6 +1296,9 @@ const InputsSchema = z.object({
     ]).describe(
       "Controls whether result extract is display and how (snippet or extractive answer). Default to no result if unspecified.",
     ).optional(),
+    sourceAdminDisplayNameEnabled: z.boolean().describe(
+      "Optional. Whether to show the admin-configured display name for data connectors in the widget sources UI (instead of the connector kind). Opt-in; defaults to false.",
+    ).optional(),
   }).describe(
     "Describes general widget search settings as seen in cloud console widget configuration page. Replaces top deprecated top level properties.",
   ).optional(),
@@ -1323,7 +1330,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/datastores-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores-widgetconfigs",
-  version: "2026.07.28.2",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1543,6 +1550,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.28.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

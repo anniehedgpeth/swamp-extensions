@@ -219,11 +219,14 @@ const StateSchema = z.object({
         maxLimit: z.string(),
         metric: z.string(),
         name: z.string(),
+        trafficSource: z.string(),
         unit: z.string(),
         values: z.record(z.string(), z.unknown()),
       })),
       metricRules: z.array(z.object({
+        agenticMetricCosts: z.record(z.string(), z.unknown()),
         metricCosts: z.record(z.string(), z.unknown()),
+        nonagenticMetricCosts: z.record(z.string(), z.unknown()),
         selector: z.string(),
       })),
     }),
@@ -279,7 +282,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Service Usage Services. Registered at `@swamp/gcp/serviceusage/services`. */
 export const model = {
   type: "@swamp/gcp/serviceusage/services",
-  version: "2026.07.28.2",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -398,6 +401,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.28.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

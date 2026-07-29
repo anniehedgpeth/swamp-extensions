@@ -1734,7 +1734,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.Messages. Registered at `@swamp/gcp/chat/spaces-messages`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-messages",
-  version: "2026.07.28.1",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1950,6 +1950,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.28.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -2319,6 +2324,50 @@ export const model = {
           dataHandles.push(handle);
         }
         return { dataHandles, result: { count: items.length, nextPageToken } };
+      },
+    },
+    search: {
+      description: "search",
+      arguments: z.object({
+        filter: z.any().optional(),
+        orderBy: z.any().optional(),
+        pageSize: z.any().optional(),
+        pageToken: z.any().optional(),
+        view: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
+        const body: Record<string, unknown> = {};
+        if (args["filter"] !== undefined) body["filter"] = args["filter"];
+        if (args["orderBy"] !== undefined) body["orderBy"] = args["orderBy"];
+        if (args["pageSize"] !== undefined) body["pageSize"] = args["pageSize"];
+        if (args["pageToken"] !== undefined) {
+          body["pageToken"] = args["pageToken"];
+        }
+        if (args["view"] !== undefined) body["view"] = args["view"];
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id": "chat.spaces.messages.search",
+            "path": "v1/{+parent}/messages:search",
+            "httpMethod": "POST",
+            "parameterOrder": ["parent"],
+            "parameters": {
+              "parent": { "location": "path", "required": true },
+            },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
       },
     },
   },

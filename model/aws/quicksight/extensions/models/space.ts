@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/cognito/user-pool-regional-configuration-attachment
+// Auto-generated extension model for @swamp/aws/quicksight/space
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Cognito UserPoolRegionalConfigurationAttachment (AWS::Cognito::UserPoolRegionalConfigurationAttachment).
+ * Swamp extension model for QuickSight Space (AWS::QuickSight::Space).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,37 +41,35 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const CustomEmailSenderSchema = z.object({
-  LambdaVersion: z.string().optional(),
-  LambdaArn: z.string().optional(),
+const ResourcePermissionSchema = z.object({
+  Principal: z.string().min(1).max(256).describe(
+    "The ARN of the principal (user or group) receiving the permission.",
+  ),
+  Actions: z.array(z.string()).describe(
+    "The list of actions granted to the principal.",
+  ),
 });
 
-const CustomSMSSenderSchema = z.object({
-  LambdaVersion: z.string().optional(),
-  LambdaArn: z.string().optional(),
+const SpaceResourceSchema = z.object({
+  ResourceType: z.enum([
+    "TOPIC",
+    "DASHBOARD",
+    "KNOWLEDGE_BASE",
+    "ACTION_CONNECTOR",
+    "DATA_SET",
+  ]).describe("The type of QuickSight resource."),
+  ResourceArn: z.string().describe("The ARN of the QuickSight resource."),
 });
 
-const PreTokenGenerationConfigSchema = z.object({
-  LambdaVersion: z.string().optional(),
-  LambdaArn: z.string().optional(),
-});
-
-const InboundFederationSchema = z.object({
-  LambdaVersion: z.string().optional(),
-  LambdaArn: z.string().optional(),
-});
-
-const EumsSmsConfigurationSchema = z.object({
-  CallerArn: z.string(),
-  ExternalId: z.string().optional(),
-  OriginationIdentity: z.string().optional(),
-  ConfigurationSetName: z.string().optional(),
-  InEntityId: z.string().optional(),
-  InTemplateId: z.string().optional(),
-  Region: z.string().optional(),
+const TagSchema = z.object({
+  Key: z.string().min(1).max(128).describe("The key name of the tag."),
+  Value: z.string().min(0).max(256).describe("The value for the tag."),
 });
 
 const GlobalArgsSchema = z.object({
+  name: z.string().describe(
+    "Instance name for this resource (used as the unique identifier in the factory pattern)",
+  ),
   accessKeyId: z.string().meta({ sensitive: true }).describe(
     "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -84,121 +82,71 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  UserPoolId: z.string(),
-  Status: z.string().describe(
-    "The status of the replica. Set to ACTIVE or INACTIVE.",
+  AwsAccountId: z.string().min(12).max(12).regex(new RegExp("^[0-9]{12}$"))
+    .describe(
+      "The ID of the Amazon Web Services account where the space is being created.",
+    ),
+  SpaceId: z.string().min(1).max(256).describe(
+    "The unique identifier for the space.",
+  ),
+  Name: z.string().min(1).max(128).describe("The display name of the space."),
+  Description: z.string().min(0).max(512).describe(
+    "A description of the space.",
   ).optional(),
-  EmailConfiguration: z.object({
-    ReplyToEmailAddress: z.string().optional(),
-    SourceArn: z.string().optional(),
-    From: z.string().optional(),
-    ConfigurationSet: z.string().optional(),
-    EmailSendingAccount: z.string().optional(),
-  }).optional(),
-  LambdaConfig: z.object({
-    CreateAuthChallenge: z.string().optional(),
-    CustomMessage: z.string().optional(),
-    DefineAuthChallenge: z.string().optional(),
-    PostAuthentication: z.string().optional(),
-    PostConfirmation: z.string().optional(),
-    PreAuthentication: z.string().optional(),
-    PreSignUp: z.string().optional(),
-    VerifyAuthChallengeResponse: z.string().optional(),
-    UserMigration: z.string().optional(),
-    PreTokenGeneration: z.string().optional(),
-    CustomEmailSender: CustomEmailSenderSchema.optional(),
-    CustomSMSSender: CustomSMSSenderSchema.optional(),
-    PreTokenGenerationConfig: PreTokenGenerationConfigSchema.optional(),
-    InboundFederation: InboundFederationSchema.optional(),
-    KMSKeyID: z.string().optional(),
-  }).optional(),
-  SmsConfiguration: z.object({
-    ExternalId: z.string().optional(),
-    SnsCallerArn: z.string().optional(),
-    SnsRegion: z.string().optional(),
-    EumsSms: EumsSmsConfigurationSchema.optional(),
-  }).optional(),
-  UserPoolTags: z.record(z.string(), z.string()).optional(),
+  Permissions: z.array(ResourcePermissionSchema).describe(
+    "A list of permissions granted on the space.",
+  ).optional(),
+  Resources: z.array(SpaceResourceSchema).describe(
+    "A list of QuickSight resources attached to the space.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "A list of key-value pairs to associate with the space resource.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
-  UserPoolId: z.string(),
-  Status: z.string().optional(),
-  EmailConfiguration: z.object({
-    ReplyToEmailAddress: z.string(),
-    SourceArn: z.string(),
-    From: z.string(),
-    ConfigurationSet: z.string(),
-    EmailSendingAccount: z.string(),
-  }).optional(),
-  LambdaConfig: z.object({
-    CreateAuthChallenge: z.string(),
-    CustomMessage: z.string(),
-    DefineAuthChallenge: z.string(),
-    PostAuthentication: z.string(),
-    PostConfirmation: z.string(),
-    PreAuthentication: z.string(),
-    PreSignUp: z.string(),
-    VerifyAuthChallengeResponse: z.string(),
-    UserMigration: z.string(),
-    PreTokenGeneration: z.string(),
-    CustomEmailSender: CustomEmailSenderSchema,
-    CustomSMSSender: CustomSMSSenderSchema,
-    PreTokenGenerationConfig: PreTokenGenerationConfigSchema,
-    InboundFederation: InboundFederationSchema,
-    KMSKeyID: z.string(),
-  }).optional(),
-  SmsConfiguration: z.object({
-    ExternalId: z.string(),
-    SnsCallerArn: z.string(),
-    SnsRegion: z.string(),
-    EumsSms: EumsSmsConfigurationSchema,
-  }).optional(),
-  UserPoolTags: z.record(z.string(), z.unknown()).optional(),
+  AwsAccountId: z.string(),
+  SpaceId: z.string(),
+  Name: z.string().optional(),
+  Description: z.string().optional(),
+  Permissions: z.array(ResourcePermissionSchema).optional(),
+  Resources: z.array(SpaceResourceSchema).optional(),
+  Tags: z.array(TagSchema).optional(),
+  Arn: z.string().optional(),
+  CreatedAt: z.string().optional(),
+  UpdatedAt: z.string().optional(),
+  CreatedBy: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  name: z.string().optional(),
   accessKeyId: z.string().meta({ sensitive: true }).optional(),
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  UserPoolId: z.string().optional(),
-  Status: z.string().describe(
-    "The status of the replica. Set to ACTIVE or INACTIVE.",
+  AwsAccountId: z.string().min(12).max(12).regex(new RegExp("^[0-9]{12}$"))
+    .describe(
+      "The ID of the Amazon Web Services account where the space is being created.",
+    ).optional(),
+  SpaceId: z.string().min(1).max(256).describe(
+    "The unique identifier for the space.",
   ).optional(),
-  EmailConfiguration: z.object({
-    ReplyToEmailAddress: z.string().optional(),
-    SourceArn: z.string().optional(),
-    From: z.string().optional(),
-    ConfigurationSet: z.string().optional(),
-    EmailSendingAccount: z.string().optional(),
-  }).optional(),
-  LambdaConfig: z.object({
-    CreateAuthChallenge: z.string().optional(),
-    CustomMessage: z.string().optional(),
-    DefineAuthChallenge: z.string().optional(),
-    PostAuthentication: z.string().optional(),
-    PostConfirmation: z.string().optional(),
-    PreAuthentication: z.string().optional(),
-    PreSignUp: z.string().optional(),
-    VerifyAuthChallengeResponse: z.string().optional(),
-    UserMigration: z.string().optional(),
-    PreTokenGeneration: z.string().optional(),
-    CustomEmailSender: CustomEmailSenderSchema.optional(),
-    CustomSMSSender: CustomSMSSenderSchema.optional(),
-    PreTokenGenerationConfig: PreTokenGenerationConfigSchema.optional(),
-    InboundFederation: InboundFederationSchema.optional(),
-    KMSKeyID: z.string().optional(),
-  }).optional(),
-  SmsConfiguration: z.object({
-    ExternalId: z.string().optional(),
-    SnsCallerArn: z.string().optional(),
-    SnsRegion: z.string().optional(),
-    EumsSms: EumsSmsConfigurationSchema.optional(),
-  }).optional(),
-  UserPoolTags: z.record(z.string(), z.string()).optional(),
+  Name: z.string().min(1).max(128).describe("The display name of the space.")
+    .optional(),
+  Description: z.string().min(0).max(512).describe(
+    "A description of the space.",
+  ).optional(),
+  Permissions: z.array(ResourcePermissionSchema).describe(
+    "A list of permissions granted on the space.",
+  ).optional(),
+  Resources: z.array(SpaceResourceSchema).describe(
+    "A list of QuickSight resources attached to the space.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "A list of key-value pairs to associate with the space resource.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -217,23 +165,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for Cognito UserPoolRegionalConfigurationAttachment. Registered at `@swamp/aws/cognito/user-pool-regional-configuration-attachment`. */
+/** Swamp extension model for QuickSight Space. Registered at `@swamp/aws/quicksight/space`. */
 export const model = {
-  type: "@swamp/aws/cognito/user-pool-regional-configuration-attachment",
+  type: "@swamp/aws/quicksight/space",
   version: "2026.07.29.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.29.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description:
-        "Cognito UserPoolRegionalConfigurationAttachment resource state",
+      description: "QuickSight Space resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -241,24 +181,26 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a Cognito UserPoolRegionalConfigurationAttachment",
+      description: "Create a QuickSight Space",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildCredentials(g);
         const desiredState: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
           if (_credentialKeys.has(key)) continue;
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::Cognito::UserPoolRegionalConfigurationAttachment",
+          "AWS::QuickSight::Space",
           desiredState,
           credentials,
         ) as StateData;
-        const instanceName =
-          ((result.UserPoolId ?? g.UserPoolId)?.toString() ?? "current")
-            .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -268,23 +210,24 @@ export const model = {
       },
     },
     get: {
-      description: "Get a Cognito UserPoolRegionalConfigurationAttachment",
+      description: "Get a QuickSight Space",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Cognito UserPoolRegionalConfigurationAttachment",
+          "The primary identifier of the QuickSight Space",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::Cognito::UserPoolRegionalConfigurationAttachment",
+          "AWS::QuickSight::Space",
           args.identifier,
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.UserPoolId ?? context.globalArgs.UserPoolId)?.toString() ??
-            args.identifier).replace(/[\/\\]/g, "_").replace(/\.\./g, "_")
-            .replace(/\0/g, "");
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -294,12 +237,12 @@ export const model = {
       },
     },
     update: {
-      description: "Update a Cognito UserPoolRegionalConfigurationAttachment",
+      description: "Update a QuickSight Space",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildCredentials(g);
-        const instanceName = (g.UserPoolId?.toString() ?? "current").replace(
+        const instanceName = (g.name?.toString() ?? "current").replace(
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -312,26 +255,33 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.UserPoolId?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.AwsAccountId?.toString(),
+          existing.SpaceId?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         const currentState = await readResource(
-          "AWS::Cognito::UserPoolRegionalConfigurationAttachment",
+          "AWS::QuickSight::Space",
           identifier,
           credentials,
         ) as StateData;
         const desiredState: Record<string, unknown> = { ...currentState };
         for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
           if (_credentialKeys.has(key)) continue;
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::Cognito::UserPoolRegionalConfigurationAttachment",
+          "AWS::QuickSight::Space",
           identifier,
           currentState,
           desiredState,
-          ["UserPoolId"],
+          ["AwsAccountId", "SpaceId"],
           credentials,
         );
         const handle = await context.writeResource(
@@ -343,22 +293,24 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a Cognito UserPoolRegionalConfigurationAttachment",
+      description: "Delete a QuickSight Space",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the Cognito UserPoolRegionalConfigurationAttachment",
+          "The primary identifier of the QuickSight Space",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::Cognito::UserPoolRegionalConfigurationAttachment",
+          "AWS::QuickSight::Space",
           args.identifier,
           credentials,
         );
         const instanceName =
-          (context.globalArgs.UserPoolId?.toString() ?? args.identifier)
-            .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource("state", instanceName, {
           identifier: args.identifier,
           existed,
@@ -369,13 +321,12 @@ export const model = {
       },
     },
     sync: {
-      description:
-        "Sync Cognito UserPoolRegionalConfigurationAttachment state from AWS",
+      description: "Sync QuickSight Space state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildCredentials(g);
-        const instanceName = (g.UserPoolId?.toString() ?? "current").replace(
+        const instanceName = (g.name?.toString() ?? "current").replace(
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -388,13 +339,19 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.UserPoolId?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.AwsAccountId?.toString(),
+          existing.SpaceId?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::Cognito::UserPoolRegionalConfigurationAttachment",
+            "AWS::QuickSight::Space",
             identifier,
             credentials,
           ) as StateData;

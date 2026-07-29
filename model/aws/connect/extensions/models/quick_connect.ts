@@ -50,7 +50,7 @@ const PhoneNumberQuickConnectConfigSchema = z.object({
 const QueueQuickConnectConfigSchema = z.object({
   ContactFlowArn: z.string().regex(
     new RegExp(
-      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$",
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*(:[a-zA-Z0-9-]+)?$",
     ),
   ).describe("The identifier of the contact flow."),
   QueueArn: z.string().regex(
@@ -63,7 +63,7 @@ const QueueQuickConnectConfigSchema = z.object({
 const UserQuickConnectConfigSchema = z.object({
   ContactFlowArn: z.string().regex(
     new RegExp(
-      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$",
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*(:[a-zA-Z0-9-]+)?$",
     ),
   ).describe("The identifier of the contact flow."),
   UserArn: z.string().regex(
@@ -71,6 +71,14 @@ const UserQuickConnectConfigSchema = z.object({
       "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/agent/[-a-zA-Z0-9]*$",
     ),
   ).describe("The identifier of the user."),
+});
+
+const FlowQuickConnectConfigSchema = z.object({
+  ContactFlowArn: z.string().regex(
+    new RegExp(
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*(:[a-zA-Z0-9-]+)?$",
+    ),
+  ).describe("The identifier of the contact flow."),
 });
 
 const TagSchema = z.object({
@@ -119,6 +127,9 @@ const GlobalArgsSchema = z.object({
     UserConfig: UserQuickConnectConfigSchema.describe(
       "The user configuration. This is required only if QuickConnectType is USER.",
     ).optional(),
+    FlowConfig: FlowQuickConnectConfigSchema.describe(
+      "The flow configuration. This is required only if QuickConnectType is FLOW.",
+    ).optional(),
   }).describe("Configuration settings for the quick connect."),
   Tags: z.array(TagSchema).describe("One or more tags.").optional(),
 });
@@ -132,6 +143,7 @@ const StateSchema = z.object({
     PhoneConfig: PhoneNumberQuickConnectConfigSchema,
     QueueConfig: QueueQuickConnectConfigSchema,
     UserConfig: UserQuickConnectConfigSchema,
+    FlowConfig: FlowQuickConnectConfigSchema,
   }).optional(),
   QuickConnectArn: z.string(),
   Tags: z.array(TagSchema).optional(),
@@ -166,6 +178,9 @@ const InputsSchema = z.object({
     UserConfig: UserQuickConnectConfigSchema.describe(
       "The user configuration. This is required only if QuickConnectType is USER.",
     ).optional(),
+    FlowConfig: FlowQuickConnectConfigSchema.describe(
+      "The flow configuration. This is required only if QuickConnectType is FLOW.",
+    ).optional(),
   }).describe("Configuration settings for the quick connect.").optional(),
   Tags: z.array(TagSchema).describe("One or more tags.").optional(),
 });
@@ -189,7 +204,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect QuickConnect. Registered at `@swamp/aws/connect/quick-connect`. */
 export const model = {
   type: "@swamp/aws/connect/quick-connect",
-  version: "2026.06.15.1",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -228,6 +243,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

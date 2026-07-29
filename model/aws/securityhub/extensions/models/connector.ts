@@ -43,22 +43,22 @@ import type { AwsCredentials } from "./_lib/aws.ts";
 
 const AzureScopeConfigurationSchema = z.object({
   ScopeType: z.enum(["TENANT", "SUBSCRIPTION"]).describe(
-    "The scope type for the Azure connector",
+    "The type of scope. Valid values are tenant and subscription.",
   ),
   ScopeValues: z.array(z.string()).describe(
-    "The list of scope values for the Azure connector",
+    "The list of scope values, such as subscription IDs, when the scope type is subscription.",
   ).optional(),
 });
 
 const AzureProviderConfigurationSchema = z.object({
   AWSConfigConnectorArn: z.string().describe(
-    "The ARN of the AWS Config connector used for the Azure integration",
+    "The ARN of the multi-cloud configuration connector used to establish the connection to Azure.",
   ),
   ScopeConfiguration: AzureScopeConfigurationSchema.describe(
-    "The scope configuration for an Azure connector",
+    "The scope configuration that defines which Azure resources are monitored.",
   ),
   AzureRegions: z.array(z.string()).describe(
-    "The list of Azure regions to include in the connector scope",
+    "The list of Azure regions to monitor.",
   ),
 });
 
@@ -78,16 +78,13 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Name: z.string().describe("The name of the connector"),
-  Description: z.string().describe("A description of the connector").optional(),
+  Name: z.string().describe("The name of the connector."),
+  Description: z.string().describe("The description of the connector.")
+    .optional(),
   Provider: z.object({
-    Azure: AzureProviderConfigurationSchema.describe(
-      "The configuration settings for an Azure CSPM provider",
-    ),
-  }).describe("The CSPM provider configuration for the connector"),
-  Tags: z.record(z.string(), z.string().min(0).max(256)).describe(
-    "A key-value pair to associate with a resource.",
-  ).optional(),
+    Azure: AzureProviderConfigurationSchema,
+  }),
+  Tags: z.record(z.string(), z.string().min(0).max(256)).optional(),
 });
 
 const StateSchema = z.object({
@@ -120,16 +117,13 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Name: z.string().describe("The name of the connector").optional(),
-  Description: z.string().describe("A description of the connector").optional(),
+  Name: z.string().describe("The name of the connector.").optional(),
+  Description: z.string().describe("The description of the connector.")
+    .optional(),
   Provider: z.object({
-    Azure: AzureProviderConfigurationSchema.describe(
-      "The configuration settings for an Azure CSPM provider",
-    ).optional(),
-  }).describe("The CSPM provider configuration for the connector").optional(),
-  Tags: z.record(z.string(), z.string().min(0).max(256)).describe(
-    "A key-value pair to associate with a resource.",
-  ).optional(),
+    Azure: AzureProviderConfigurationSchema.optional(),
+  }).optional(),
+  Tags: z.record(z.string(), z.string().min(0).max(256)).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -151,7 +145,14 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for SecurityHub Connector. Registered at `@swamp/aws/securityhub/connector`. */
 export const model = {
   type: "@swamp/aws/securityhub/connector",
-  version: "2026.07.09.1",
+  version: "2026.07.29.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

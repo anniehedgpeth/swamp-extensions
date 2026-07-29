@@ -182,6 +182,10 @@ const GlobalArgsSchema = z.object({
   PluginAdminEnabled: z.boolean().describe(
     "Allow workspace admins to install plugins",
   ).optional(),
+  Tags: z.array(z.object({
+    Key: z.string().min(1).max(128),
+    Value: z.string().min(0).max(256),
+  })).describe("The list of tags associated with the workspace.").optional(),
 });
 
 const StateSchema = z.object({
@@ -221,6 +225,10 @@ const StateSchema = z.object({
   OrganizationalUnits: z.array(z.string()).optional(),
   RoleArn: z.string().optional(),
   PluginAdminEnabled: z.boolean().optional(),
+  Tags: z.array(z.object({
+    Key: z.string(),
+    Value: z.string(),
+  })).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -320,6 +328,10 @@ const InputsSchema = z.object({
   PluginAdminEnabled: z.boolean().describe(
     "Allow workspace admins to install plugins",
   ).optional(),
+  Tags: z.array(z.object({
+    Key: z.string().min(1).max(128).optional(),
+    Value: z.string().min(0).max(256).optional(),
+  })).describe("The list of tags associated with the workspace.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -341,7 +353,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Grafana Workspace. Registered at `@swamp/aws/grafana/workspace`. */
 export const model = {
   type: "@swamp/aws/grafana/workspace",
-  version: "2026.06.15.1",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -381,6 +393,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
+      description: "Added: Tags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

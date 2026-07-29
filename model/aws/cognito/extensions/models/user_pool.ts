@@ -86,6 +86,16 @@ const InboundFederationSchema = z.object({
   LambdaArn: z.string().optional(),
 });
 
+const EumsSmsConfigurationSchema = z.object({
+  CallerArn: z.string(),
+  ExternalId: z.string().optional(),
+  OriginationIdentity: z.string().optional(),
+  ConfigurationSetName: z.string().optional(),
+  InEntityId: z.string().optional(),
+  InTemplateId: z.string().optional(),
+  Region: z.string().optional(),
+});
+
 const NumberAttributeConstraintsSchema = z.object({
   MaxValue: z.string().optional(),
   MinValue: z.string().optional(),
@@ -182,6 +192,7 @@ const GlobalArgsSchema = z.object({
     ExternalId: z.string().optional(),
     SnsCallerArn: z.string().optional(),
     SnsRegion: z.string().optional(),
+    EumsSms: EumsSmsConfigurationSchema.optional(),
   }).optional(),
   SmsVerificationMessage: z.string().min(6).max(140).optional(),
   KeyConfiguration: z.object({
@@ -282,6 +293,7 @@ const StateSchema = z.object({
     ExternalId: z.string(),
     SnsCallerArn: z.string(),
     SnsRegion: z.string(),
+    EumsSms: EumsSmsConfigurationSchema,
   }).optional(),
   SmsVerificationMessage: z.string().optional(),
   KeyConfiguration: z.object({
@@ -385,6 +397,7 @@ const InputsSchema = z.object({
     ExternalId: z.string().optional(),
     SnsCallerArn: z.string().optional(),
     SnsRegion: z.string().optional(),
+    EumsSms: EumsSmsConfigurationSchema.optional(),
   }).optional(),
   SmsVerificationMessage: z.string().min(6).max(140).optional(),
   KeyConfiguration: z.object({
@@ -447,7 +460,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Cognito UserPool. Registered at `@swamp/aws/cognito/user-pool`. */
 export const model = {
   type: "@swamp/aws/cognito/user-pool",
-  version: "2026.07.02.1",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -497,6 +510,11 @@ export const model = {
     {
       toVersion: "2026.07.02.1",
       description: "Added: KeyConfiguration, IssuerConfiguration",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
