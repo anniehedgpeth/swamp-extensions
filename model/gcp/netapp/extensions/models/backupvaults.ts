@@ -198,6 +198,9 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the backup vault. Format: `projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}`.",
   ).optional(),
+  sourceRegion: z.string().describe(
+    "Optional. Region in which the backup vault is created. Format: `projects/{project_id}/locations/{location}`",
+  ).optional(),
   backupVaultId: z.string().describe(
     "Required. The ID to use for the backupVault. The ID must be unique within the specified location. Must contain only letters, numbers and hyphen, with the first character a letter, the last a letter or a number, and a 63 character maximum.",
   ).optional(),
@@ -276,6 +279,9 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "Identifier. The resource name of the backup vault. Format: `projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}`.",
   ).optional(),
+  sourceRegion: z.string().describe(
+    "Optional. Region in which the backup vault is created. Format: `projects/{project_id}/locations/{location}`",
+  ).optional(),
   backupVaultId: z.string().describe(
     "Required. The ID to use for the backupVault. The ID must be unique within the specified location. Must contain only letters, numbers and hyphen, with the first character a letter, the last a letter or a number, and a 63 character maximum.",
   ).optional(),
@@ -307,7 +313,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud NetApp BackupVaults. Registered at `@swamp/gcp/netapp/backupvaults`. */
 export const model = {
   type: "@swamp/gcp/netapp/backupvaults",
-  version: "2026.07.29.1",
+  version: "2026.07.29.2",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -442,6 +448,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.07.29.2",
+      description: "Added: sourceRegion",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -485,6 +496,9 @@ export const model = {
         if (g["kmsConfig"] !== undefined) body["kmsConfig"] = g["kmsConfig"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["sourceRegion"] !== undefined) {
+          body["sourceRegion"] = g["sourceRegion"];
+        }
         if (g["backupVaultId"] !== undefined) {
           params["backupVaultId"] = String(g["backupVaultId"]);
         }
@@ -620,6 +634,9 @@ export const model = {
         }
         if (g["kmsConfig"] !== undefined) body["kmsConfig"] = g["kmsConfig"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["sourceRegion"] !== undefined) {
+          body["sourceRegion"] = g["sourceRegion"];
+        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

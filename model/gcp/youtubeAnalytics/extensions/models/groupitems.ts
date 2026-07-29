@@ -286,7 +286,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Analytics GroupItems. Registered at `@swamp/gcp/youtubeanalytics/groupitems`. */
 export const model = {
   type: "@swamp/gcp/youtubeanalytics/groupitems",
-  version: "2026.07.21.3",
+  version: "2026.07.29.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -400,6 +400,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

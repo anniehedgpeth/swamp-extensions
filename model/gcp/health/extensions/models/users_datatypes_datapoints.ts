@@ -3219,6 +3219,9 @@ const GlobalArgsSchema = z.object({
       externalId: z.string().describe(
         "Optional. Sleep identifier relevant in the context of the data source.",
       ).optional(),
+      mainSleep: z.boolean().describe(
+        "Output only. `main_sleep`: the longest sleep session with stages within one day. If no sleep session has stages, then the longest sleep is the `main_sleep`. If there are multiple days of sleep in the response, there is one `main_sleep` per day.",
+      ).optional(),
       manuallyEdited: z.boolean().describe(
         "Output only. Some sleeps autodetected by algorithms can be manually edited by users.",
       ).optional(),
@@ -3242,7 +3245,7 @@ const GlobalArgsSchema = z.object({
       ]).describe("Output only. Sleep stages algorithm processing status.")
         .optional(),
     }).describe(
-      "Optional. Sleep metadata: processing, main, manually edited, stages status.",
+      "Optional. Sleep metadata: `processed`, `main_sleep`, `manually_edited`, and `stages_status`.",
     ).optional(),
     outOfBedSegments: z.array(z.object({
       endTime: z.string().describe("Required. Segment end time.").optional(),
@@ -4784,6 +4787,7 @@ const StateSchema = z.object({
     }),
     metadata: z.object({
       externalId: z.string(),
+      mainSleep: z.boolean(),
       manuallyEdited: z.boolean(),
       nap: z.boolean(),
       processed: z.boolean(),
@@ -8062,6 +8066,9 @@ const InputsSchema = z.object({
       externalId: z.string().describe(
         "Optional. Sleep identifier relevant in the context of the data source.",
       ).optional(),
+      mainSleep: z.boolean().describe(
+        "Output only. `main_sleep`: the longest sleep session with stages within one day. If no sleep session has stages, then the longest sleep is the `main_sleep`. If there are multiple days of sleep in the response, there is one `main_sleep` per day.",
+      ).optional(),
       manuallyEdited: z.boolean().describe(
         "Output only. Some sleeps autodetected by algorithms can be manually edited by users.",
       ).optional(),
@@ -8085,7 +8092,7 @@ const InputsSchema = z.object({
       ]).describe("Output only. Sleep stages algorithm processing status.")
         .optional(),
     }).describe(
-      "Optional. Sleep metadata: processing, main, manually edited, stages status.",
+      "Optional. Sleep metadata: `processed`, `main_sleep`, `manually_edited`, and `stages_status`.",
     ).optional(),
     outOfBedSegments: z.array(z.object({
       endTime: z.string().describe("Required. Segment end time.").optional(),
@@ -8568,7 +8575,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Health Users.DataTypes.DataPoints. Registered at `@swamp/gcp/health/users-datatypes-datapoints`. */
 export const model = {
   type: "@swamp/gcp/health/users-datatypes-datapoints",
-  version: "2026.07.21.4",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -8814,6 +8821,11 @@ export const model = {
       toVersion: "2026.07.21.4",
       description:
         "Added: activeEnergyBurned, basalEnergyBurned, bloodGlucose, coreBodyTemperature, electrocardiogram, food, foodMeasurementUnit, height, irregularRhythmNotification, nutritionLog, swimLengthsData",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

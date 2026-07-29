@@ -39,6 +39,7 @@ import {
   deleteResource,
   type ExplicitGcpCredentials,
   getProjectId,
+  isAlreadyExistsError,
   isResourceNotFoundError,
   listResources,
   readResource,
@@ -299,7 +300,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Groups. Registered at `@swamp/gcp/cloudidentity/groups`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/groups",
-  version: "2026.07.21.3",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -421,6 +422,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -459,23 +465,35 @@ export const model = {
           params["initialGroupConfig"] = String(g["initialGroupConfig"]);
         }
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
-        const result = await createResource(
-          BASE_URL,
-          INSERT_CONFIG,
-          params,
-          body,
-          GET_CONFIG,
-          undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: {
-              "parent": String(body["parent"] ?? g["parent"] ?? ""),
-            },
-            matchField: "displayName",
-            matchValue: String(g["displayName"] ?? ""),
-          },
-          credentials,
-        ) as StateData;
+        let result: StateData;
+        try {
+          result = await createResource(
+            BASE_URL,
+            INSERT_CONFIG,
+            params,
+            body,
+            GET_CONFIG,
+            undefined,
+            undefined,
+            credentials,
+          ) as StateData;
+        } catch (createErr) {
+          if (!isAlreadyExistsError(createErr)) throw createErr;
+          const matchValue = String(g["groupKey"]?.id ?? "");
+          const { items } = await listResources(
+            BASE_URL,
+            LIST_CONFIG,
+            { "parent": String(body["parent"] ?? g["parent"] ?? "") },
+            "groups",
+            100,
+            credentials,
+          );
+          const existing = items.find((item: any) =>
+            item?.groupKey?.id === matchValue
+          );
+          if (existing) result = existing as StateData;
+          else throw createErr;
+        }
         const instanceName = (g.name?.toString() ?? "current").replace(
           /[\/\\]/g,
           "_",

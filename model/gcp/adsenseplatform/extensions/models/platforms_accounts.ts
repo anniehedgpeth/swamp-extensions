@@ -210,7 +210,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AdSense Platform Platforms.Accounts. Registered at `@swamp/gcp/adsenseplatform/platforms-accounts`. */
 export const model = {
   type: "@swamp/gcp/adsenseplatform/platforms-accounts",
-  version: "2026.07.21.3",
+  version: "2026.07.29.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -314,6 +314,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

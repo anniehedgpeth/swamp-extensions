@@ -690,22 +690,34 @@ interface IdempotencyConfig {
 ### Match field selection
 
 The generator selects the match field via `resolveGcpMatchField()`, a cascade
-that picks the best user-facing unique identifier:
+that picks the best user-facing unique identifier. The cascade differs based on
+whether the naming field is synthetic (server-assigned) or user-settable:
+
+**When `isSyntheticName` is true** (server-assigned `name`):
+
+1. Scan `insertProperties` for a nested identity field — an object-typed
+   property with an `id` sub-property where neither the parent nor the `id` is
+   described as output-only, AND the property passes the identity signal check:
+   its name ends in `Key` or `Id` (case-sensitive, matching camelCase
+   conventions like `groupKey`, `universalAdId`), OR the `id` sub-property's
+   description contains "uniquely identify" or "unique identifier" (matching
+   cases like `resource.id` on youtubeAnalytics/groupitems). Properties like
+   `timeZone` that carry an `id` sub-property but lack any identity signal are
+   intentionally excluded. If exactly one candidate is found, return its dotted
+   path (e.g., `groupKey.id`, `preferredMemberKey.id`). Multiple candidates →
+   ambiguous, skip.
+2. If `displayName` exists in `insertProperties`: match by `displayName`
+3. If `shortName` exists in `insertProperties`: match by `shortName`
+4. Otherwise: return `undefined` (no viable match field)
+
+**When `isSyntheticName` is false** (user-settable naming field):
 
 1. If `displayName` exists in `insertProperties`: match by `displayName` (covers
    folders, projects, and other resources where `name` is auto-generated)
 2. If `shortName` exists in `insertProperties`: match by `shortName` (covers
    tagKeys, tagValues, and firewall/security policies where `name` is
    auto-generated or not part of the insert body)
-3. If the naming field is **not synthetic** (user-settable): match by the naming
-   field
-4. If the naming field **is synthetic** (server-assigned): scan
-   `insertProperties` for a nested identity field — an object-typed property
-   with an `id` sub-property where neither the parent nor the `id` is described
-   as output-only. If exactly one candidate is found, return its dotted path
-   (e.g., `preferredMemberKey.id`). Multiple candidates → ambiguous, return
-   `undefined`.
-5. Otherwise: return `undefined` (no viable match field)
+3. Match by the naming field (user-settable, so always viable)
 
 When `resolveGcpMatchField` returns `undefined`, the generator omits the
 `IdempotencyConfig` entirely. The resource gets a clean 409 error on duplicate

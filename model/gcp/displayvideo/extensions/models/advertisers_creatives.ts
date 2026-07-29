@@ -39,6 +39,7 @@ import {
   deleteResource,
   type ExplicitGcpCredentials,
   getProjectId,
+  isAlreadyExistsError,
   isResourceNotFoundError,
   listResources,
   readResource,
@@ -907,7 +908,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.Creatives. Registered at `@swamp/gcp/displayvideo/advertisers-creatives`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-creatives",
-  version: "2026.07.24.1",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1036,6 +1037,11 @@ export const model = {
       description: "Added: syntheticContentAttestationStatus",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1139,21 +1145,35 @@ export const model = {
         }
         if (g["vastTagUrl"] !== undefined) body["vastTagUrl"] = g["vastTagUrl"];
         if (g["name"] !== undefined) params["creativeId"] = String(g["name"]);
-        const result = await createResource(
-          BASE_URL,
-          INSERT_CONFIG,
-          params,
-          body,
-          GET_CONFIG,
-          undefined,
-          {
-            listConfig: LIST_CONFIG,
-            listParams: { "advertiserId": String(g["advertiserId"] ?? "") },
-            matchField: "displayName",
-            matchValue: String(g["displayName"] ?? ""),
-          },
-          credentials,
-        ) as StateData;
+        let result: StateData;
+        try {
+          result = await createResource(
+            BASE_URL,
+            INSERT_CONFIG,
+            params,
+            body,
+            GET_CONFIG,
+            undefined,
+            undefined,
+            credentials,
+          ) as StateData;
+        } catch (createErr) {
+          if (!isAlreadyExistsError(createErr)) throw createErr;
+          const matchValue = String(g["universalAdId"]?.id ?? "");
+          const { items } = await listResources(
+            BASE_URL,
+            LIST_CONFIG,
+            { "advertiserId": String(g["advertiserId"] ?? "") },
+            "creatives",
+            100,
+            credentials,
+          );
+          const existing = items.find((item: any) =>
+            item?.universalAdId?.id === matchValue
+          );
+          if (existing) result = existing as StateData;
+          else throw createErr;
+        }
         const instanceName = (g.name?.toString() ?? "current").replace(
           /[\/\\]/g,
           "_",

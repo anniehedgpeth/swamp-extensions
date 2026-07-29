@@ -1712,15 +1712,19 @@ export function resolveGcpNamingField(
 /**
  * Select the best field for idempotent create matching.
  *
- * Cascade: displayName → shortName → namingField (if user-settable) →
- * nested identity field (e.g. "preferredMemberKey.id") → undefined.
+ * Cascade when isSyntheticName is true:
+ *   nested identity field (e.g. "groupKey.id") → displayName → shortName → undefined.
+ *
+ * Cascade when isSyntheticName is false:
+ *   displayName → shortName → namingField → undefined.
  *
  * Returns undefined when no viable match field exists, which tells the
  * create codegen to omit the broken IdempotencyConfig entirely.
  *
  * When isSyntheticName is true the naming field is server-assigned and
- * cannot be matched; the function skips straight to nested identity
- * detection. When false, namingField is always viable (it preserves the
+ * cannot be matched; the function checks for a nested identity field
+ * first (the strongest match), then falls back to displayName/shortName.
+ * When false, namingField is always viable (it preserves the
  * segmentIdField fallback path for wrapper-request resources).
  */
 export function resolveGcpMatchField(
@@ -1728,6 +1732,10 @@ export function resolveGcpMatchField(
   namingField: string,
   isSyntheticName: boolean,
 ): string | undefined {
+  if (isSyntheticName) {
+    const nestedId = findNestedIdentityField(resource);
+    if (nestedId) return nestedId;
+  }
   if (
     resource.insertProperties.has("displayName") &&
     resource.domainProperties["displayName"]
@@ -1740,15 +1748,27 @@ export function resolveGcpMatchField(
   ) {
     return "shortName";
   }
-  // Non-synthetic names are user-settable — safe to match on
   if (!isSyntheticName) {
     return namingField;
   }
-  // Synthetic name: look for a nested identity field in insertProperties.
-  // Scan for object-typed properties with an "id" sub-property that is
-  // not described as read-only/output-only. Check both domainProperties
-  // (from insert) and resourceValueProperties (from GET) since $ref
-  // resolution can lose property-level "Read-only" annotations.
+  return undefined;
+}
+
+function isIdentityProperty(
+  propName: string,
+  idDesc: string,
+): boolean {
+  if (propName.endsWith("Key") || propName.endsWith("Id")) return true;
+  if (
+    idDesc.includes("uniquely identify") ||
+    idDesc.includes("unique identifier")
+  ) return true;
+  return false;
+}
+
+function findNestedIdentityField(
+  resource: GcpParsedResource,
+): string | undefined {
   const candidates: string[] = [];
   for (const propName of resource.insertProperties) {
     const prop = resource.domainProperties[propName];
@@ -1766,8 +1786,7 @@ export function resolveGcpMatchField(
     if (idDesc.includes("output only") || idDesc.includes("read-only")) {
       continue;
     }
-    // Also check the resource value (GET response) version of this property,
-    // which may preserve the "Read-only" annotation lost during $ref resolution
+    if (!isIdentityProperty(propName, idDesc)) continue;
     const rvProp = resource.resourceValueProperties[propName];
     if (rvProp) {
       const rvDesc = (rvProp.description ?? "").toLowerCase();
