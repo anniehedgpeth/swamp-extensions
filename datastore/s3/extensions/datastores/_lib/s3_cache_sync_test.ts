@@ -4099,6 +4099,101 @@ Deno.test("pullChanged with namespace fetches per-namespace index", async () => 
   }
 });
 
+Deno.test("pullChanged with namespace writes files under namespace dir locally (swamp-club#1483)", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const nsIndex = encodeIndex({
+      "data/model/1/raw": {
+        key: "data/model/1/raw",
+        size: 5,
+        lastModified: new Date().toISOString(),
+      },
+    });
+    s3.storage.set("my-ns/.datastore-index.json", nsIndex);
+    s3.storage.set("my-ns/data/model/1/raw", new TextEncoder().encode("hello"));
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    const pulled = await svc.pullChanged({ namespace: "my-ns" });
+    assertEquals(pulled, 1);
+
+    const namespacedPath = join(
+      cachePath,
+      "my-ns",
+      "data",
+      "model",
+      "1",
+      "raw",
+    );
+    const stat = await Deno.stat(namespacedPath);
+    assert(
+      stat.isFile,
+      "pulled file must exist at <cachePath>/<namespace>/data/...",
+    );
+
+    const content = await Deno.readTextFile(namespacedPath);
+    assertEquals(content, "hello");
+
+    let bareStat: Deno.FileInfo | null = null;
+    try {
+      bareStat = await Deno.stat(join(cachePath, "data", "model", "1", "raw"));
+    } catch { /* expected */ }
+    assertEquals(
+      bareStat,
+      null,
+      "pulled file must NOT exist at bare <cachePath>/data/...",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pullChanged → pushChanged round-trip with namespace: zero re-uploads (swamp-club#1483)", async () => {
+  const s3 = createMockS3Client();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const nsIndex = encodeIndex({
+      "data/model/1/raw": {
+        key: "data/model/1/raw",
+        size: 5,
+        lastModified: new Date().toISOString(),
+      },
+    });
+    s3.storage.set("my-ns/.datastore-index.json", nsIndex);
+    s3.storage.set("my-ns/data/model/1/raw", new TextEncoder().encode("hello"));
+
+    await seedFile(
+      cachePath,
+      "my-ns/.namespace.json",
+      JSON.stringify({
+        namespace: "my-ns",
+        repoId: "test",
+        registeredAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+
+    const svc = new S3CacheSyncService(s3, cachePath);
+    await svc.pullChanged({ namespace: "my-ns" });
+
+    s3.puts.length = 0;
+
+    const pushed = await svc.pushChanged({ namespace: "my-ns" });
+    const dataPuts = s3.puts.filter((p) => p.key.includes("data/model/1/raw"));
+    assertEquals(
+      dataPuts.length,
+      0,
+      "pushChanged must not re-upload files that pullChanged just downloaded",
+    );
+    assertEquals(
+      pushed,
+      0,
+      "zero net changes expected after a clean round-trip",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 Deno.test("pushChanged with namespace writes per-namespace index", async () => {
   const s3 = createMockS3Client();
   const cachePath = await Deno.makeTempDir();
@@ -6295,9 +6390,8 @@ Deno.test("swamp-club#1250: round-trip push then pull with namespace produces co
     const pulled = await pullSvc.pullChanged({ namespace: "my-ns" });
     assertEquals(pulled, 1, "must pull the 1 file that was pushed");
 
-    // Verify local file exists at the un-namespaced path (local tier is never namespaced)
     const localContent = await Deno.readTextFile(
-      join(pullCachePath, "data/model/1/raw"),
+      join(pullCachePath, "my-ns/data/model/1/raw"),
     );
     assertEquals(
       localContent,
@@ -6330,7 +6424,7 @@ Deno.test("swamp-club#1250: pullFile falls back to root key for data pushed by b
     assertEquals(pulled, 1);
 
     const content = await Deno.readTextFile(
-      join(cachePath, "data/model/1/raw"),
+      join(cachePath, "my-ns/data/model/1/raw"),
     );
     assertEquals(
       content,

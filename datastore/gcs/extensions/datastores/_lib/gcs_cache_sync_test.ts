@@ -3913,6 +3913,107 @@ Deno.test("pullChanged with namespace fetches per-namespace index", async () => 
   }
 });
 
+Deno.test("pullChanged with namespace writes files under namespace dir locally (swamp-club#1483)", async () => {
+  const gcs = createMockGcsClient();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const nsIndex = encodeIndex({
+      "data/model/1/raw": {
+        key: "data/model/1/raw",
+        size: 5,
+        lastModified: new Date().toISOString(),
+      },
+    });
+    gcs.storage.set("my-ns/.datastore-index.json", nsIndex);
+    gcs.storage.set(
+      "my-ns/data/model/1/raw",
+      new TextEncoder().encode("hello"),
+    );
+
+    const svc = new GcsCacheSyncService(gcs, cachePath);
+    const pulled = await svc.pullChanged({ namespace: "my-ns" });
+    assertEquals(pulled, 1);
+
+    const namespacedPath = join(
+      cachePath,
+      "my-ns",
+      "data",
+      "model",
+      "1",
+      "raw",
+    );
+    const stat = await Deno.stat(namespacedPath);
+    assert(
+      stat.isFile,
+      "pulled file must exist at <cachePath>/<namespace>/data/...",
+    );
+
+    const content = await Deno.readTextFile(namespacedPath);
+    assertEquals(content, "hello");
+
+    let bareStat: Deno.FileInfo | null = null;
+    try {
+      bareStat = await Deno.stat(join(cachePath, "data", "model", "1", "raw"));
+    } catch { /* expected */ }
+    assertEquals(
+      bareStat,
+      null,
+      "pulled file must NOT exist at bare <cachePath>/data/...",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pullChanged → pushChanged round-trip with namespace: zero re-uploads (swamp-club#1483)", async () => {
+  const gcs = createMockGcsClient();
+  const cachePath = await Deno.makeTempDir();
+  try {
+    const nsIndex = encodeIndex({
+      "data/model/1/raw": {
+        key: "data/model/1/raw",
+        size: 5,
+        lastModified: new Date().toISOString(),
+      },
+    });
+    gcs.storage.set("my-ns/.datastore-index.json", nsIndex);
+    gcs.storage.set(
+      "my-ns/data/model/1/raw",
+      new TextEncoder().encode("hello"),
+    );
+
+    await seedFile(
+      cachePath,
+      "my-ns/.namespace.json",
+      JSON.stringify({
+        namespace: "my-ns",
+        repoId: "test",
+        registeredAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+
+    const svc = new GcsCacheSyncService(gcs, cachePath);
+    await svc.pullChanged({ namespace: "my-ns" });
+
+    gcs.puts.length = 0;
+
+    const pushed = await svc.pushChanged({ namespace: "my-ns" });
+    const dataPuts = gcs.puts.filter((p) => p.key.includes("data/model/1/raw"));
+    assertEquals(
+      dataPuts.length,
+      0,
+      "pushChanged must not re-upload files that pullChanged just downloaded",
+    );
+    assertEquals(
+      pushed,
+      0,
+      "zero net changes expected after a clean round-trip",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 Deno.test("pushChanged with namespace writes per-namespace index", async () => {
   const gcs = createMockGcsClient();
   const cachePath = await Deno.makeTempDir();

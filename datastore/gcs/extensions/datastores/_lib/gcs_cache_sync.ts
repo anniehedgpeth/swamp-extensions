@@ -563,6 +563,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     return this.namespace ? `${this.namespace}/${rel}` : rel;
   }
 
+  private localRelPath(rel: string): string {
+    return this.namespace ? `${this.namespace}/${rel}` : rel;
+  }
+
   private controlKey(key: string): string {
     return this.namespace
       ? `${this.namespace}/_control/${key}`
@@ -1447,7 +1451,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         try {
           span.setAttribute(Attr.DATASTORE_FILE, relativePath);
 
-          const localPath = assertSafePath(this.cachePath, relativePath);
+          const localPath = assertSafePath(
+            this.cachePath,
+            this.localRelPath(relativePath),
+          );
           let data: Uint8Array;
           try {
             ({ data } = await retryWithBackoff(
@@ -1593,11 +1600,17 @@ export class GcsCacheSyncService implements DatastoreSyncService {
               continue;
             }
             if (metadataOnly && isLazySkippable(rel)) {
-              const localPath = assertSafePath(this.cachePath, rel);
+              const localPath = assertSafePath(
+                this.cachePath,
+                this.localRelPath(rel),
+              );
               lazyDirsToCreate.add(dirname(localPath));
               continue;
             }
-            const localPath = assertSafePath(this.cachePath, rel);
+            const localPath = assertSafePath(
+              this.cachePath,
+              this.localRelPath(rel),
+            );
             try {
               const stat = await Deno.stat(localPath);
               if (stat.size === entry.size) {
@@ -1627,7 +1640,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
               batch.map(async (rel) => {
                 await this.pullFile(rel, signal);
                 try {
-                  const localPath = join(this.cachePath, rel);
+                  const localPath = join(
+                    this.cachePath,
+                    this.localRelPath(rel),
+                  );
                   const stat = await Deno.stat(localPath);
                   if (stat.mtime && this.index) {
                     this.index.entries[rel].localMtime = stat.mtime
