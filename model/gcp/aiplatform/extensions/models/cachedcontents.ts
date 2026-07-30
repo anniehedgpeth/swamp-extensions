@@ -168,6 +168,9 @@ const GlobalArgsSchema = z.object({
         "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data.",
       ).optional(),
       codeExecutionResult: z.object({
+        id: z.unknown().describe(
+          "Optional. The identifier of the `ExecutableCode` part this result is for. Only populated if the corresponding `ExecutableCode` has an id.",
+        ).optional(),
         outcome: z.unknown().describe(
           "Required. Outcome of the code execution.",
         ).optional(),
@@ -179,6 +182,9 @@ const GlobalArgsSchema = z.object({
       executableCode: z.object({
         code: z.unknown().describe("Required. The code to be executed.")
           .optional(),
+        id: z.unknown().describe(
+          "Optional. Unique identifier of the `ExecutableCode` part. The server returns the `CodeExecutionResult` with the matching `id`.",
+        ).optional(),
         language: z.unknown().describe(
           "Required. Programming language of the `code`.",
         ).optional(),
@@ -202,6 +208,9 @@ const GlobalArgsSchema = z.object({
         args: z.unknown().describe(
           "Optional. The function parameters and values in JSON object format. See FunctionDeclaration.parameters for parameter details.",
         ).optional(),
+        id: z.unknown().describe(
+          "Optional. The unique id of the function call. If populated, the client to execute the `function_call` and return the response with the matching `id`.",
+        ).optional(),
         name: z.unknown().describe(
           "Optional. The name of the function to call. Matches FunctionDeclaration.name.",
         ).optional(),
@@ -215,6 +224,9 @@ const GlobalArgsSchema = z.object({
         "Optional. A predicted function call returned from the model. This contains the name of the function to call and the arguments to pass to the function.",
       ).optional(),
       functionResponse: z.object({
+        id: z.unknown().describe(
+          "Optional. The id of the function call this response is for. Populated by the client to match the corresponding function call `id`.",
+        ).optional(),
         name: z.unknown().describe(
           "Required. The name of the function to call. Matches FunctionDeclaration.name and FunctionCall.name.",
         ).optional(),
@@ -314,6 +326,9 @@ const GlobalArgsSchema = z.object({
         "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data.",
       ).optional(),
       codeExecutionResult: z.object({
+        id: z.string().describe(
+          "Optional. The identifier of the `ExecutableCode` part this result is for. Only populated if the corresponding `ExecutableCode` has an id.",
+        ).optional(),
         outcome: z.enum([
           "OUTCOME_UNSPECIFIED",
           "OUTCOME_OK",
@@ -328,6 +343,9 @@ const GlobalArgsSchema = z.object({
       executableCode: z.object({
         code: z.string().describe("Required. The code to be executed.")
           .optional(),
+        id: z.string().describe(
+          "Optional. Unique identifier of the `ExecutableCode` part. The server returns the `CodeExecutionResult` with the matching `id`.",
+        ).optional(),
         language: z.enum(["LANGUAGE_UNSPECIFIED", "PYTHON"]).describe(
           "Required. Programming language of the `code`.",
         ).optional(),
@@ -351,6 +369,9 @@ const GlobalArgsSchema = z.object({
         args: z.record(z.string(), z.unknown()).describe(
           "Optional. The function parameters and values in JSON object format. See FunctionDeclaration.parameters for parameter details.",
         ).optional(),
+        id: z.string().describe(
+          "Optional. The unique id of the function call. If populated, the client to execute the `function_call` and return the response with the matching `id`.",
+        ).optional(),
         name: z.string().describe(
           "Optional. The name of the function to call. Matches FunctionDeclaration.name.",
         ).optional(),
@@ -364,6 +385,9 @@ const GlobalArgsSchema = z.object({
         "Optional. A predicted function call returned from the model. This contains the name of the function to call and the arguments to pass to the function.",
       ).optional(),
       functionResponse: z.object({
+        id: z.string().describe(
+          "Optional. The id of the function call this response is for. Populated by the client to match the corresponding function call `id`.",
+        ).optional(),
         name: z.string().describe(
           "Required. The name of the function to call. Matches FunctionDeclaration.name and FunctionCall.name.",
         ).optional(),
@@ -687,6 +711,16 @@ const GlobalArgsSchema = z.object({
     googleMaps: z.object({
       enableWidget: z.boolean().describe(
         "Optional. Deprecated: The Google Maps contextual widget behavior in Grounding with Google Maps is being deprecated; this field is planned for removal and no longer has any effect once removed. If true, include the widget context token in the response.",
+      ).optional(),
+      groundingTypes: z.object({
+        places: z.object({}).describe(
+          "Optional. Enables grounding with Google Maps Places. This is the default grounding type when no `GroundingTypes` are specified.",
+        ).optional(),
+        routing: z.object({}).describe(
+          "Optional. Enables grounding with Google Maps Routing APIs (ComputeRoutes and SearchAlongRoute).",
+        ).optional(),
+      }).describe(
+        "Optional. Specifies the types of Google Maps grounding to enable. Defaults to `places` when unset.",
       ).optional(),
     }).describe(
       "Optional. GoogleMaps tool type. Tool to support Google Maps in Model.",
@@ -866,11 +900,13 @@ const StateSchema = z.object({
         words: z.unknown(),
       }),
       codeExecutionResult: z.object({
+        id: z.unknown(),
         outcome: z.unknown(),
         output: z.unknown(),
       }),
       executableCode: z.object({
         code: z.unknown(),
+        id: z.unknown(),
         language: z.unknown(),
       }),
       fileData: z.object({
@@ -880,11 +916,13 @@ const StateSchema = z.object({
       }),
       functionCall: z.object({
         args: z.unknown(),
+        id: z.unknown(),
         name: z.unknown(),
         partialArgs: z.unknown(),
         willContinue: z.unknown(),
       }),
       functionResponse: z.object({
+        id: z.unknown(),
         name: z.unknown(),
         parts: z.unknown(),
         response: z.unknown(),
@@ -925,11 +963,13 @@ const StateSchema = z.object({
         words: z.array(z.unknown()),
       }),
       codeExecutionResult: z.object({
+        id: z.string(),
         outcome: z.string(),
         output: z.string(),
       }),
       executableCode: z.object({
         code: z.string(),
+        id: z.string(),
         language: z.string(),
       }),
       fileData: z.object({
@@ -939,11 +979,13 @@ const StateSchema = z.object({
       }),
       functionCall: z.object({
         args: z.record(z.string(), z.unknown()),
+        id: z.string(),
         name: z.string(),
         partialArgs: z.array(z.unknown()),
         willContinue: z.boolean(),
       }),
       functionResponse: z.object({
+        id: z.string(),
         name: z.string(),
         parts: z.array(z.unknown()),
         response: z.record(z.string(), z.unknown()),
@@ -1060,6 +1102,10 @@ const StateSchema = z.object({
     })),
     googleMaps: z.object({
       enableWidget: z.boolean(),
+      groundingTypes: z.object({
+        places: z.object({}),
+        routing: z.object({}),
+      }),
     }),
     googleSearch: z.object({
       blockingConfidence: z.string(),
@@ -1159,6 +1205,9 @@ const InputsSchema = z.object({
         "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data.",
       ).optional(),
       codeExecutionResult: z.object({
+        id: z.unknown().describe(
+          "Optional. The identifier of the `ExecutableCode` part this result is for. Only populated if the corresponding `ExecutableCode` has an id.",
+        ).optional(),
         outcome: z.unknown().describe(
           "Required. Outcome of the code execution.",
         ).optional(),
@@ -1170,6 +1219,9 @@ const InputsSchema = z.object({
       executableCode: z.object({
         code: z.unknown().describe("Required. The code to be executed.")
           .optional(),
+        id: z.unknown().describe(
+          "Optional. Unique identifier of the `ExecutableCode` part. The server returns the `CodeExecutionResult` with the matching `id`.",
+        ).optional(),
         language: z.unknown().describe(
           "Required. Programming language of the `code`.",
         ).optional(),
@@ -1193,6 +1245,9 @@ const InputsSchema = z.object({
         args: z.unknown().describe(
           "Optional. The function parameters and values in JSON object format. See FunctionDeclaration.parameters for parameter details.",
         ).optional(),
+        id: z.unknown().describe(
+          "Optional. The unique id of the function call. If populated, the client to execute the `function_call` and return the response with the matching `id`.",
+        ).optional(),
         name: z.unknown().describe(
           "Optional. The name of the function to call. Matches FunctionDeclaration.name.",
         ).optional(),
@@ -1206,6 +1261,9 @@ const InputsSchema = z.object({
         "Optional. A predicted function call returned from the model. This contains the name of the function to call and the arguments to pass to the function.",
       ).optional(),
       functionResponse: z.object({
+        id: z.unknown().describe(
+          "Optional. The id of the function call this response is for. Populated by the client to match the corresponding function call `id`.",
+        ).optional(),
         name: z.unknown().describe(
           "Required. The name of the function to call. Matches FunctionDeclaration.name and FunctionCall.name.",
         ).optional(),
@@ -1305,6 +1363,9 @@ const InputsSchema = z.object({
         "Optional. Audio (input or output) transcription. This is only set when this Part contains audio data.",
       ).optional(),
       codeExecutionResult: z.object({
+        id: z.string().describe(
+          "Optional. The identifier of the `ExecutableCode` part this result is for. Only populated if the corresponding `ExecutableCode` has an id.",
+        ).optional(),
         outcome: z.enum([
           "OUTCOME_UNSPECIFIED",
           "OUTCOME_OK",
@@ -1319,6 +1380,9 @@ const InputsSchema = z.object({
       executableCode: z.object({
         code: z.string().describe("Required. The code to be executed.")
           .optional(),
+        id: z.string().describe(
+          "Optional. Unique identifier of the `ExecutableCode` part. The server returns the `CodeExecutionResult` with the matching `id`.",
+        ).optional(),
         language: z.enum(["LANGUAGE_UNSPECIFIED", "PYTHON"]).describe(
           "Required. Programming language of the `code`.",
         ).optional(),
@@ -1342,6 +1406,9 @@ const InputsSchema = z.object({
         args: z.record(z.string(), z.unknown()).describe(
           "Optional. The function parameters and values in JSON object format. See FunctionDeclaration.parameters for parameter details.",
         ).optional(),
+        id: z.string().describe(
+          "Optional. The unique id of the function call. If populated, the client to execute the `function_call` and return the response with the matching `id`.",
+        ).optional(),
         name: z.string().describe(
           "Optional. The name of the function to call. Matches FunctionDeclaration.name.",
         ).optional(),
@@ -1355,6 +1422,9 @@ const InputsSchema = z.object({
         "Optional. A predicted function call returned from the model. This contains the name of the function to call and the arguments to pass to the function.",
       ).optional(),
       functionResponse: z.object({
+        id: z.string().describe(
+          "Optional. The id of the function call this response is for. Populated by the client to match the corresponding function call `id`.",
+        ).optional(),
         name: z.string().describe(
           "Required. The name of the function to call. Matches FunctionDeclaration.name and FunctionCall.name.",
         ).optional(),
@@ -1678,6 +1748,16 @@ const InputsSchema = z.object({
     googleMaps: z.object({
       enableWidget: z.boolean().describe(
         "Optional. Deprecated: The Google Maps contextual widget behavior in Grounding with Google Maps is being deprecated; this field is planned for removal and no longer has any effect once removed. If true, include the widget context token in the response.",
+      ).optional(),
+      groundingTypes: z.object({
+        places: z.object({}).describe(
+          "Optional. Enables grounding with Google Maps Places. This is the default grounding type when no `GroundingTypes` are specified.",
+        ).optional(),
+        routing: z.object({}).describe(
+          "Optional. Enables grounding with Google Maps Routing APIs (ComputeRoutes and SearchAlongRoute).",
+        ).optional(),
+      }).describe(
+        "Optional. Specifies the types of Google Maps grounding to enable. Defaults to `places` when unset.",
       ).optional(),
     }).describe(
       "Optional. GoogleMaps tool type. Tool to support Google Maps in Model.",
@@ -1873,7 +1953,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform CachedContents. Registered at `@swamp/gcp/aiplatform/cachedcontents`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/cachedcontents",
-  version: "2026.07.29.1",
+  version: "2026.07.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2067,6 +2147,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.30.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

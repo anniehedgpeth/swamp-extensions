@@ -206,6 +206,20 @@ const ResourceSpecSchema = z.object({
     "ml.r6id.16xlarge",
     "ml.r6id.24xlarge",
     "ml.r6id.32xlarge",
+    "ml.p5.4xlarge",
+    "ml.p6-b200.48xlarge",
+    "ml.g7.2xlarge",
+    "ml.g7.4xlarge",
+    "ml.g7.8xlarge",
+    "ml.g7.12xlarge",
+    "ml.g7.24xlarge",
+    "ml.g7.48xlarge",
+    "ml.g7e.2xlarge",
+    "ml.g7e.4xlarge",
+    "ml.g7e.8xlarge",
+    "ml.g7e.12xlarge",
+    "ml.g7e.24xlarge",
+    "ml.g7e.48xlarge",
   ]).describe("The instance type that the image version runs on.").optional(),
   SageMakerImageArn: z.string().max(256).regex(
     new RegExp(
@@ -216,7 +230,7 @@ const ResourceSpecSchema = z.object({
   ).optional(),
   SageMakerImageVersionArn: z.string().max(256).regex(
     new RegExp(
-      "^arn:aws(-[\\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+$",
+      "^(arn:aws(-[\\w]+)*:sagemaker:.+:[0-9]{12}:image-version/[a-z0-9]([-.]?[a-z0-9])*/[0-9]+|None)",
     ),
   ).describe("The ARN of the image version created on the instance.")
     .optional(),
@@ -226,6 +240,13 @@ const ResourceSpecSchema = z.object({
     ),
   ).describe(
     "The Amazon Resource Name (ARN) of the Lifecycle Configuration to attach to the Resource.",
+  ).optional(),
+  TrainingPlanArn: z.string().min(0).max(2048).regex(
+    new RegExp(
+      "^(arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:training-plan/.*|None)$",
+    ),
+  ).describe(
+    "The Amazon Resource Name (ARN) of the training plan to use for the ResourceSpec.",
   ).optional(),
 });
 
@@ -308,6 +329,27 @@ const AppLifecycleManagementSchema = z.object({
   IdleSettings: IdleSettingsSchema.optional(),
 });
 
+const EmrSettingsSchema = z.object({
+  AssumableRoleArns: z.array(
+    z.string().min(20).max(2048).regex(
+      new RegExp(
+        "^arn:aws[a-z\\-]*:iam::\\d{12}:role/?[a-zA-Z_0-9+=,.@\\-_/]+$",
+      ),
+    ),
+  ).describe(
+    "An array of Amazon Resource Names (ARNs) of the IAM roles that the execution role of SageMaker can assume.",
+  ).optional(),
+  ExecutionRoleArns: z.array(
+    z.string().min(20).max(2048).regex(
+      new RegExp(
+        "^arn:aws[a-z\\-]*:iam::\\d{12}:role/?[a-zA-Z_0-9+=,.@\\-_/]+$",
+      ),
+    ),
+  ).describe(
+    "An array of ARNs of IAM roles used by EMR cluster instances or job execution environments.",
+  ).optional(),
+});
+
 const JupyterLabAppSettingsSchema = z.object({
   DefaultResourceSpec: ResourceSpecSchema.describe(
     "The default instance type and the Amazon Resource Name (ARN) of the default SageMaker image used by the JupyterLab app.",
@@ -334,6 +376,9 @@ const JupyterLabAppSettingsSchema = z.object({
     ),
   ).describe(
     "The lifecycle configuration that runs before the default lifecycle configuration.",
+  ).optional(),
+  EmrSettings: EmrSettingsSchema.describe(
+    "The configuration parameters for EMR settings.",
   ).optional(),
 });
 
@@ -594,6 +639,20 @@ const StudioWebPortalSettingsSchema = z.object({
       "ml.r6id.16xlarge",
       "ml.r6id.24xlarge",
       "ml.r6id.32xlarge",
+      "ml.p5.4xlarge",
+      "ml.p6-b200.48xlarge",
+      "ml.g7.2xlarge",
+      "ml.g7.4xlarge",
+      "ml.g7.8xlarge",
+      "ml.g7.12xlarge",
+      "ml.g7.24xlarge",
+      "ml.g7.48xlarge",
+      "ml.g7e.2xlarge",
+      "ml.g7e.4xlarge",
+      "ml.g7e.8xlarge",
+      "ml.g7e.12xlarge",
+      "ml.g7e.24xlarge",
+      "ml.g7e.48xlarge",
     ]),
   ).describe(
     "The instance types you are hiding from the Studio user interface.",
@@ -853,7 +912,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for SageMaker UserProfile. Registered at `@swamp/aws/sagemaker/user-profile`. */
 export const model = {
   type: "@swamp/aws/sagemaker/user-profile",
-  version: "2026.06.15.1",
+  version: "2026.07.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -892,6 +951,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.30.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1011,11 +1075,10 @@ export const model = {
           [
             "DomainId",
             "UserProfileName",
+            "AccessStatus",
             "SingleSignOnUserIdentifier",
             "SingleSignOnUserValue",
-            "AccessStatus",
             "UserGroup",
-            "Tags",
           ],
           credentials,
         );

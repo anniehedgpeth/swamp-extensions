@@ -229,6 +229,19 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "The specification of a persistent disk to attach for the execution job.",
     ).optional(),
+    shieldedInstanceConfig: z.object({
+      enableIntegrityMonitoring: z.boolean().describe(
+        "Optional. Whether the VM instance has integrity monitoring enabled.",
+      ).optional(),
+      enableSecureBoot: z.boolean().describe(
+        "Optional. Whether the VM instance has Secure Boot enabled. Disabled by default.",
+      ).optional(),
+      enableVtpm: z.boolean().describe(
+        "Optional. Whether the VM instance has vTPM enabled.",
+      ).optional(),
+    }).describe(
+      "Optional. Shielded VM configuration (for example, Secure Boot) for the execution VM.",
+    ).optional(),
   }).describe("The custom compute configuration for an execution job.")
     .optional(),
   dataformRepositorySource: z.object({
@@ -290,7 +303,29 @@ const GlobalArgsSchema = z.object({
   serviceAccount: z.string().describe(
     "The service account to run the execution as.",
   ).optional(),
-  workbenchRuntime: z.object({}).describe(
+  workbenchRuntime: z.object({
+    customContainerImage: z.object({
+      repository: z.string().describe(
+        "Required. The path to the container image repository. For example: `gcr.io/{project_id}/{image_name}`.",
+      ).optional(),
+      tag: z.string().describe(
+        "Optional. The tag of the container image. If unset, defaults to `latest`.",
+      ).optional(),
+    }).describe(
+      "A user-provided container image. The notebook executes inside this container on a managed container-host (COS) VM.",
+    ).optional(),
+    vmImage: z.object({
+      family: z.string().describe(
+        "Use this VM image family to find the image; the newest image in this family is used.",
+      ).optional(),
+      name: z.string().describe("Use this VM image name to find the image.")
+        .optional(),
+      project: z.string().describe(
+        "Required. The name of the Google Cloud project that this VM image belongs to. Format: `{project_id}`.",
+      ).optional(),
+    }).describe("A specific Compute Engine VM image to run the notebook on.")
+      .optional(),
+  }).describe(
     "The Workbench runtime configuration to use for the notebook execution.",
   ).optional(),
   notebookExecutionJobId: z.string().describe(
@@ -325,6 +360,11 @@ const StateSchema = z.object({
       diskSizeGb: z.string(),
       diskType: z.string(),
     }),
+    shieldedInstanceConfig: z.object({
+      enableIntegrityMonitoring: z.boolean(),
+      enableSecureBoot: z.boolean(),
+      enableVtpm: z.boolean(),
+    }),
   }).optional(),
   dataformRepositorySource: z.object({
     commitSha: z.string(),
@@ -357,7 +397,17 @@ const StateSchema = z.object({
     message: z.string(),
   }).optional(),
   updateTime: z.string().optional(),
-  workbenchRuntime: z.object({}).optional(),
+  workbenchRuntime: z.object({
+    customContainerImage: z.object({
+      repository: z.string(),
+      tag: z.string(),
+    }),
+    vmImage: z.object({
+      family: z.string(),
+      name: z.string(),
+      project: z.string(),
+    }),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -447,6 +497,19 @@ const InputsSchema = z.object({
     }).describe(
       "The specification of a persistent disk to attach for the execution job.",
     ).optional(),
+    shieldedInstanceConfig: z.object({
+      enableIntegrityMonitoring: z.boolean().describe(
+        "Optional. Whether the VM instance has integrity monitoring enabled.",
+      ).optional(),
+      enableSecureBoot: z.boolean().describe(
+        "Optional. Whether the VM instance has Secure Boot enabled. Disabled by default.",
+      ).optional(),
+      enableVtpm: z.boolean().describe(
+        "Optional. Whether the VM instance has vTPM enabled.",
+      ).optional(),
+    }).describe(
+      "Optional. Shielded VM configuration (for example, Secure Boot) for the execution VM.",
+    ).optional(),
   }).describe("The custom compute configuration for an execution job.")
     .optional(),
   dataformRepositorySource: z.object({
@@ -508,7 +571,29 @@ const InputsSchema = z.object({
   serviceAccount: z.string().describe(
     "The service account to run the execution as.",
   ).optional(),
-  workbenchRuntime: z.object({}).describe(
+  workbenchRuntime: z.object({
+    customContainerImage: z.object({
+      repository: z.string().describe(
+        "Required. The path to the container image repository. For example: `gcr.io/{project_id}/{image_name}`.",
+      ).optional(),
+      tag: z.string().describe(
+        "Optional. The tag of the container image. If unset, defaults to `latest`.",
+      ).optional(),
+    }).describe(
+      "A user-provided container image. The notebook executes inside this container on a managed container-host (COS) VM.",
+    ).optional(),
+    vmImage: z.object({
+      family: z.string().describe(
+        "Use this VM image family to find the image; the newest image in this family is used.",
+      ).optional(),
+      name: z.string().describe("Use this VM image name to find the image.")
+        .optional(),
+      project: z.string().describe(
+        "Required. The name of the Google Cloud project that this VM image belongs to. Format: `{project_id}`.",
+      ).optional(),
+    }).describe("A specific Compute Engine VM image to run the notebook on.")
+      .optional(),
+  }).describe(
     "The Workbench runtime configuration to use for the notebook execution.",
   ).optional(),
   notebookExecutionJobId: z.string().describe(
@@ -544,7 +629,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform NotebookExecutionJobs. Registered at `@swamp/gcp/aiplatform/notebookexecutionjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/notebookexecutionjobs",
-  version: "2026.07.29.1",
+  version: "2026.07.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -708,6 +793,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.30.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

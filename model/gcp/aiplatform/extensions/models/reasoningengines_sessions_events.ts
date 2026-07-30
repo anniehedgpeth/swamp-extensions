@@ -116,11 +116,13 @@ const StateSchema = z.object({
         words: z.array(z.unknown()),
       }),
       codeExecutionResult: z.object({
+        id: z.string(),
         outcome: z.string(),
         output: z.string(),
       }),
       executableCode: z.object({
         code: z.string(),
+        id: z.string(),
         language: z.string(),
       }),
       fileData: z.object({
@@ -130,11 +132,13 @@ const StateSchema = z.object({
       }),
       functionCall: z.object({
         args: z.record(z.string(), z.unknown()),
+        id: z.string(),
         name: z.string(),
         partialArgs: z.array(z.unknown()),
         willContinue: z.boolean(),
       }),
       functionResponse: z.object({
+        id: z.string(),
         name: z.string(),
         parts: z.array(z.unknown()),
         response: z.record(z.string(), z.unknown()),
@@ -281,7 +285,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.Sessions.Events. Registered at `@swamp/gcp/aiplatform/reasoningengines-sessions-events`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sessions-events",
-  version: "2026.07.29.1",
+  version: "2026.07.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -442,6 +446,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.30.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

@@ -254,6 +254,12 @@ const GlobalArgsSchema = z.object({
           logicalDataBytes: z.string().describe(
             "How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).",
           ).optional(),
+          logicalDataHddBytes: z.string().describe(
+            "Output only. The logical data bytes of the column family stored on HDD.",
+          ).optional(),
+          logicalDataSsdBytes: z.string().describe(
+            "Output only. The logical data bytes of the column family stored on SSD.",
+          ).optional(),
         }).describe(
           "Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.",
         ).optional(),
@@ -551,6 +557,12 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         logicalDataBytes: z.string().describe(
           "How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).",
+        ).optional(),
+        logicalDataHddBytes: z.string().describe(
+          "Output only. The logical data bytes of the column family stored on HDD.",
+        ).optional(),
+        logicalDataSsdBytes: z.string().describe(
+          "Output only. The logical data bytes of the column family stored on SSD.",
         ).optional(),
       }).describe(
         "Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.",
@@ -1048,6 +1060,12 @@ const InputsSchema = z.object({
           logicalDataBytes: z.string().describe(
             "How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).",
           ).optional(),
+          logicalDataHddBytes: z.string().describe(
+            "Output only. The logical data bytes of the column family stored on HDD.",
+          ).optional(),
+          logicalDataSsdBytes: z.string().describe(
+            "Output only. The logical data bytes of the column family stored on SSD.",
+          ).optional(),
         }).describe(
           "Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.",
         ).optional(),
@@ -1345,6 +1363,12 @@ const InputsSchema = z.object({
         ).optional(),
         logicalDataBytes: z.string().describe(
           "How much space the data in the column family occupies. This is roughly how many bytes would be needed to read the contents of the entire column family (e.g. by streaming all contents out).",
+        ).optional(),
+        logicalDataHddBytes: z.string().describe(
+          "Output only. The logical data bytes of the column family stored on HDD.",
+        ).optional(),
+        logicalDataSsdBytes: z.string().describe(
+          "Output only. The logical data bytes of the column family stored on SSD.",
         ).optional(),
       }).describe(
         "Output only. Only available with STATS_VIEW, this includes summary statistics about column family contents. For statistics over an entire table, see TableStats above.",
@@ -1669,7 +1693,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.Tables. Registered at `@swamp/gcp/bigtableadmin/instances-tables`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-tables",
-  version: "2026.07.29.1",
+  version: "2026.07.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1835,6 +1859,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.30.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

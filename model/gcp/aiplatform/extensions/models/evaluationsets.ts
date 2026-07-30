@@ -219,6 +219,9 @@ const GlobalArgsSchema = z.object({
           enableWidget: z.unknown().describe(
             "Optional. Deprecated: The Google Maps contextual widget behavior in Grounding with Google Maps is being deprecated; this field is planned for removal and no longer has any effect once removed. If true, include the widget context token in the response.",
           ).optional(),
+          groundingTypes: z.unknown().describe(
+            "Optional. Specifies the types of Google Maps grounding to enable. Defaults to `places` when unset.",
+          ).optional(),
         }).describe(
           "Optional. GoogleMaps tool type. Tool to support Google Maps in Model.",
         ).optional(),
@@ -388,6 +391,9 @@ const InputsSchema = z.object({
           enableWidget: z.unknown().describe(
             "Optional. Deprecated: The Google Maps contextual widget behavior in Grounding with Google Maps is being deprecated; this field is planned for removal and no longer has any effect once removed. If true, include the widget context token in the response.",
           ).optional(),
+          groundingTypes: z.unknown().describe(
+            "Optional. Specifies the types of Google Maps grounding to enable. Defaults to `places` when unset.",
+          ).optional(),
         }).describe(
           "Optional. GoogleMaps tool type. Tool to support Google Maps in Model.",
         ).optional(),
@@ -500,7 +506,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationSets. Registered at `@swamp/gcp/aiplatform/evaluationsets`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationsets",
-  version: "2026.07.29.1",
+  version: "2026.07.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -682,6 +688,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.30.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

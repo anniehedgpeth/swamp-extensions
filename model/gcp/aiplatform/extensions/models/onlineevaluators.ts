@@ -178,7 +178,8 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("Required. The value to compare against.")
             .optional(),
-        }).describe("Filter on the duration of a trace.").optional(),
+        }).describe("Filter on the duration of a trace (in seconds).")
+          .optional(),
         totalTokenUsage: z.object({
           comparisonOperator: z.unknown().describe(
             "Required. The comparison operator to apply.",
@@ -549,7 +550,8 @@ const InputsSchema = z.object({
           ).optional(),
           value: z.unknown().describe("Required. The value to compare against.")
             .optional(),
-        }).describe("Filter on the duration of a trace.").optional(),
+        }).describe("Filter on the duration of a trace (in seconds).")
+          .optional(),
         totalTokenUsage: z.object({
           comparisonOperator: z.unknown().describe(
             "Required. The comparison operator to apply.",
@@ -803,7 +805,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform OnlineEvaluators. Registered at `@swamp/gcp/aiplatform/onlineevaluators`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/onlineevaluators",
-  version: "2026.07.29.1",
+  version: "2026.07.30.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -819,6 +821,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.30.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
