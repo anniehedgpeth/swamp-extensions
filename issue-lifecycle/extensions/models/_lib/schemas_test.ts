@@ -17,20 +17,22 @@
 import { assertEquals } from "@std/assert";
 import { Phase, PullRequestSchema, TRANSITIONS } from "./schemas.ts";
 
-Deno.test("Phase: includes pr_open, pr_failed, releasing, notify between implementing and done", () => {
+Deno.test("Phase: includes pr_open, pr_failed, releasing, notify, summarizing between implementing and done", () => {
   const phases = Phase.options;
   const implementingIdx = phases.indexOf("implementing");
   const prOpenIdx = phases.indexOf("pr_open");
   const prFailedIdx = phases.indexOf("pr_failed");
   const releasingIdx = phases.indexOf("releasing");
   const notifyIdx = phases.indexOf("notify");
+  const summarizingIdx = phases.indexOf("summarizing");
   const doneIdx = phases.indexOf("done");
 
   assertEquals(prOpenIdx, implementingIdx + 1);
   assertEquals(prFailedIdx, prOpenIdx + 1);
   assertEquals(releasingIdx, prFailedIdx + 1);
   assertEquals(notifyIdx, releasingIdx + 1);
-  assertEquals(doneIdx, notifyIdx + 1);
+  assertEquals(summarizingIdx, notifyIdx + 1);
+  assertEquals(doneIdx, summarizingIdx + 1);
 });
 
 Deno.test("TRANSITIONS: link_pr accepts implementing, pr_open, and pr_failed", () => {
@@ -54,6 +56,10 @@ Deno.test("TRANSITIONS: start (resume) includes pr_open, pr_failed, releasing, a
 Deno.test("TRANSITIONS: notify and skip_notify accept only notify phase", () => {
   assertEquals(TRANSITIONS.notify, ["notify"]);
   assertEquals(TRANSITIONS.skip_notify, ["notify"]);
+});
+
+Deno.test("TRANSITIONS: summarize accepts only summarizing phase", () => {
+  assertEquals(TRANSITIONS.summarize, ["summarizing"]);
 });
 
 Deno.test("TRANSITIONS: link_pr is rejected from earlier lifecycle phases", () => {

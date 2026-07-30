@@ -81,12 +81,27 @@ swamp model @swamp/issue-lifecycle method run triage issue-<N> \
 - `platform` — admin-only platform infrastructure work
 - `security` — security vulnerability, hardening, or compliance work
 
-Add `--input isRegression=true` when the bug previously worked. Look for signals
-like: "this used to work", "stopped working after", "worked in version X",
-references to recent changes that broke existing behavior, or git history
-showing the affected code was recently modified. A regression is still
-classified as `type: bug` — `isRegression` is a detail on the classification
-record.
+**Regression classification requires adversarial verification.** When you
+suspect a regression (`isRegression=true`), you must supply all four evidence
+fields:
+
+1. `regressionEvidence` — concrete proof it previously worked (commit hash,
+   version number, passing test output, changelog entry).
+2. `regressionCounterEvidence` — the strongest argument that this is NOT a
+   regression (e.g. it never actually worked, the docs were stale, the old
+   behavior was undefined).
+3. `regressionVerdict` — `confirmed` if the evidence wins, `downgraded` if the
+   counter-evidence is stronger and this is really a plain bug.
+4. `regressionVerdictReasoning` — why the verdict holds despite the opposing
+   argument.
+
+The model enforces this: calling `triage` with `isRegression=true` without all
+four fields throws an error. If the verdict is `downgraded`, the model
+automatically clears `isRegression` to `false` and logs the downgrade.
+
+Look for regression signals: "this used to work", "stopped working after",
+"worked in version X", references to recent changes that broke existing
+behavior, or git history showing the affected code was recently modified.
 
 **If you cannot classify confidently**, do NOT guess. Ask the human first, or
 call `triage` with `confidence=low` and `clarifyingQuestions` populated, then

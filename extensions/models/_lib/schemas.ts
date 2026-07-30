@@ -47,6 +47,7 @@ export const Phase = z.enum([
   "pr_failed",
   "releasing",
   "notify",
+  "summarizing",
   "done",
 ]);
 
@@ -68,6 +69,7 @@ export const TRANSITIONS: Record<string, Phase[]> = {
     "pr_failed",
     "releasing",
     "notify",
+    "summarizing",
   ],
   triage: ["triaging"],
   plan: ["classified"],
@@ -85,6 +87,7 @@ export const TRANSITIONS: Record<string, Phase[]> = {
   complete: ["implementing", "pr_open", "releasing"],
   notify: ["notify"],
   skip_notify: ["notify"],
+  summarize: ["summarizing"],
 };
 
 // ---------------------------------------------------------------------------
@@ -131,6 +134,22 @@ export const ClassificationSchema = z.object({
   reasoning: z.string(),
   isRegression: z.boolean().optional().describe(
     "True if this is a regression (something that previously worked). Implies type=bug.",
+  ),
+  regressionEvidence: z.string().optional().describe(
+    "Concrete evidence that this previously worked (commit hash, version, test output). " +
+      "Required when isRegression is true.",
+  ),
+  regressionCounterEvidence: z.string().optional().describe(
+    "The strongest argument that this is NOT a regression (e.g. never worked correctly, " +
+      "docs were stale, different behavior was expected). Required when isRegression is true.",
+  ),
+  regressionVerdict: z.enum(["confirmed", "downgraded"]).optional().describe(
+    "Final verdict after weighing evidence and counter-evidence. 'confirmed' means " +
+      "it is a true regression; 'downgraded' means it is a plain bug. " +
+      "Required when isRegression is true.",
+  ),
+  regressionVerdictReasoning: z.string().optional().describe(
+    "Why the verdict stands despite the counter-evidence. Required when isRegression is true.",
   ),
   clarifyingQuestions: z.array(z.string()).optional(),
   classifiedAt: z.string(),
@@ -250,3 +269,16 @@ export const PullRequestSchema = z.object({
 });
 
 export type PullRequestData = z.infer<typeof PullRequestSchema>;
+
+export const SummarySchema = z.object({
+  originalProblem: z.string().describe(
+    "Plain-language restatement of the bug or feature request from the issue.",
+  ),
+  deliveredOutcome: z.string().describe(
+    "Plain-language description of what was actually built or fixed.",
+  ),
+  outcomeMet: z.boolean().describe(
+    "Whether the delivered outcome addresses the original problem.",
+  ),
+  summarizedAt: z.string(),
+});

@@ -35,6 +35,7 @@ import {
   type StateData,
   StateSchema,
   StepVerificationSchema,
+  SummarySchema,
   TRANSITIONS,
 } from "./_lib/schemas.ts";
 import { createSwampClubClient, loadAuthFile } from "./_lib/swamp_club.ts";
@@ -73,7 +74,7 @@ async function readState(
 
 export const model = {
   type: "@swamp/issue-lifecycle",
-  version: "2026.06.29.1",
+  version: "2026.07.30.1",
   globalArguments: GlobalArgsSchema,
 
   upgrades: [
@@ -155,6 +156,24 @@ export const model = {
         "No globalArguments changes.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.05.1",
+      description:
+        "Truncate lifecycle entry summaries to 2000 chars in postLifecycleEntry " +
+        "to prevent silent 400 rejections from the swamp-club API. " +
+        "No globalArguments changes.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.30.1",
+      description:
+        "Adversarial regression verification — triage now requires evidence, " +
+        "counter-evidence, and a verdict when isRegression is true. " +
+        "Session summary — new summarizing phase between notify and done; " +
+        "notify/skip_notify transition to summarizing, new summarize method " +
+        "records problem/outcome before closing. No globalArguments changes.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
 
   resources: {
@@ -209,6 +228,14 @@ export const model = {
         "overwritten by subsequent link_pr calls so the record always " +
         "reflects the latest link.",
       schema: PullRequestSchema,
+      lifetime: "infinite" as const,
+      garbageCollection: 5,
+    },
+    "summary": {
+      description:
+        "Session summary restating the original problem and delivered outcome. " +
+        "Written at the end of the lifecycle to verify the work addressed the issue.",
+      schema: SummarySchema,
       lifetime: "infinite" as const,
       garbageCollection: 5,
     },
@@ -653,6 +680,23 @@ export const model = {
         isRegression: z.boolean().optional().describe(
           "True if this is a regression (something that previously worked). Implies type=bug.",
         ),
+        regressionEvidence: z.string().optional().describe(
+          "Concrete evidence that this previously worked (commit hash, version, test output). " +
+            "Required when isRegression is true.",
+        ),
+        regressionCounterEvidence: z.string().optional().describe(
+          "The strongest argument that this is NOT a regression. " +
+            "Required when isRegression is true.",
+        ),
+        regressionVerdict: z.enum(["confirmed", "downgraded"]).optional()
+          .describe(
+            "Final verdict after weighing evidence and counter-evidence. " +
+              "Required when isRegression is true.",
+          ),
+        regressionVerdictReasoning: z.string().optional().describe(
+          "Why the verdict stands despite the counter-evidence. " +
+            "Required when isRegression is true.",
+        ),
         clarifyingQuestions: z.array(z.string()).optional(),
       }),
       execute: async (
@@ -661,6 +705,10 @@ export const model = {
           confidence: "high" | "medium" | "low";
           reasoning: string;
           isRegression?: boolean;
+          regressionEvidence?: string;
+          regressionCounterEvidence?: string;
+          regressionVerdict?: "confirmed" | "downgraded";
+          regressionVerdictReasoning?: string;
           clarifyingQuestions?: string[];
         },
         context: {
@@ -679,6 +727,30 @@ export const model = {
         const { issueNumber } = context.globalArgs;
         const handles = [];
 
+        // Adversarial regression verification
+        let effectiveIsRegression = args.isRegression;
+        if (args.isRegression) {
+          if (
+            !args.regressionEvidence ||
+            !args.regressionCounterEvidence ||
+            !args.regressionVerdict ||
+            !args.regressionVerdictReasoning
+          ) {
+            throw new Error(
+              "Regression classification requires adversarial verification: " +
+                "regressionEvidence, regressionCounterEvidence, regressionVerdict, " +
+                "and regressionVerdictReasoning are all required when isRegression is true.",
+            );
+          }
+          if (args.regressionVerdict === "downgraded") {
+            effectiveIsRegression = false;
+            context.logger.info(
+              "Regression downgraded to plain bug: {reasoning}",
+              { reasoning: args.regressionVerdictReasoning },
+            );
+          }
+        }
+
         handles.push(
           await context.writeResource(
             "classification",
@@ -687,7 +759,11 @@ export const model = {
               type: args.type,
               confidence: args.confidence,
               reasoning: args.reasoning,
-              isRegression: args.isRegression,
+              isRegression: effectiveIsRegression,
+              regressionEvidence: args.regressionEvidence,
+              regressionCounterEvidence: args.regressionCounterEvidence,
+              regressionVerdict: args.regressionVerdict,
+              regressionVerdictReasoning: args.regressionVerdictReasoning,
               clarifyingQuestions: args.clarifyingQuestions,
               classifiedAt: new Date().toISOString(),
             },
@@ -702,7 +778,7 @@ export const model = {
           }),
         );
 
-        const regressionLabel = args.isRegression ? " (regression)" : "";
+        const regressionLabel = effectiveIsRegression ? " (regression)" : "";
         context.logger.info(
           "Classified as {type}{regression} ({confidence}): {reasoning}",
           {
@@ -729,7 +805,11 @@ export const model = {
               type: args.type,
               confidence: args.confidence,
               reasoning: args.reasoning,
-              isRegression: args.isRegression ?? false,
+              isRegression: effectiveIsRegression ?? false,
+              regressionEvidence: args.regressionEvidence,
+              regressionCounterEvidence: args.regressionCounterEvidence,
+              regressionVerdict: args.regressionVerdict,
+              regressionVerdictReasoning: args.regressionVerdictReasoning,
               clarifyingQuestions: args.clarifyingQuestions,
             },
             isVerbose: false,
@@ -1889,7 +1969,7 @@ export const model = {
     notify: {
       description:
         "Thank an external contributor by posting a ripple on the issue " +
-        "mentioning them by handle. Transitions to done.",
+        "mentioning them by handle. Transitions to summarizing.",
       arguments: z.object({
         message: z.string().optional().describe(
           "Custom thank-you message. If omitted, a default message is generated.",
@@ -1949,7 +2029,7 @@ export const model = {
         }
 
         const stateHandle = await context.writeResource("state", "state-main", {
-          phase: "done",
+          phase: "summarizing",
           issueNumber,
           updatedAt: new Date().toISOString(),
         });
@@ -1973,7 +2053,7 @@ export const model = {
 
     skip_notify: {
       description:
-        "Skip contributor notification and transition directly to done. " +
+        "Skip contributor notification and transition directly to summarizing. " +
         "Use when the issue author is a collaborator or notification is not needed.",
       arguments: z.object({}),
       execute: async (
@@ -1994,7 +2074,7 @@ export const model = {
         const { issueNumber } = context.globalArgs;
 
         const stateHandle = await context.writeResource("state", "state-main", {
-          phase: "done",
+          phase: "summarizing",
           issueNumber,
           updatedAt: new Date().toISOString(),
         });
@@ -2017,6 +2097,91 @@ export const model = {
         }
 
         return { dataHandles: [stateHandle] };
+      },
+    },
+
+    summarize: {
+      description:
+        "Record a session summary restating the original problem and delivered outcome. " +
+        "Transitions to done. Must be called after notify/skip_notify.",
+      arguments: z.object({
+        originalProblem: z.string().describe(
+          "Plain-language restatement of the bug or feature request from the issue.",
+        ),
+        deliveredOutcome: z.string().describe(
+          "Plain-language description of what was actually built or fixed.",
+        ),
+        outcomeMet: z.boolean().describe(
+          "Whether the delivered outcome addresses the original problem.",
+        ),
+      }),
+      execute: async (
+        args: {
+          originalProblem: string;
+          deliveredOutcome: string;
+          outcomeMet: boolean;
+        },
+        context: {
+          globalArgs: GlobalArgs;
+          logger: {
+            info: (msg: string, props: Record<string, unknown>) => void;
+            warning: (msg: string, props: Record<string, unknown>) => void;
+          };
+          writeResource: (
+            specName: string,
+            instanceName: string,
+            data: Record<string, unknown>,
+          ) => Promise<{ name: string }>;
+        },
+      ) => {
+        const { issueNumber } = context.globalArgs;
+        const handles = [];
+
+        handles.push(
+          await context.writeResource("summary", "summary-main", {
+            originalProblem: args.originalProblem,
+            deliveredOutcome: args.deliveredOutcome,
+            outcomeMet: args.outcomeMet,
+            summarizedAt: new Date().toISOString(),
+          }),
+        );
+
+        handles.push(
+          await context.writeResource("state", "state-main", {
+            phase: "done",
+            issueNumber,
+            updatedAt: new Date().toISOString(),
+          }),
+        );
+
+        context.logger.info(
+          "Session summary recorded — outcome {met}: {outcome}",
+          {
+            met: args.outcomeMet ? "met" : "not met",
+            outcome: args.deliveredOutcome,
+          },
+        );
+
+        const sc = await createSwampClubClient(
+          context.globalArgs,
+          context.logger,
+        );
+        await sc?.postLifecycleEntry({
+          step: "session_summarized",
+          targetStatus: "shipped",
+          summary: args.outcomeMet
+            ? `Outcome met: ${args.deliveredOutcome}`
+            : `Outcome NOT met: ${args.deliveredOutcome}`,
+          emoji: "\u{1F4DD}",
+          payload: {
+            originalProblem: args.originalProblem,
+            deliveredOutcome: args.deliveredOutcome,
+            outcomeMet: args.outcomeMet,
+          },
+          isVerbose: false,
+        });
+
+        return { dataHandles: handles };
       },
     },
   },

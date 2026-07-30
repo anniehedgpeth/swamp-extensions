@@ -130,6 +130,20 @@ gh api /repos/swamp-club/swamp/collaborators --jq '.[].login' | grep -qx '<autho
 If the author is NOT in the collaborator list, they are external — call
 `notify`. Otherwise call `skip_notify`.
 
+### Phase 6: Session Summary
+
+After `notify` or `skip_notify`, the lifecycle enters the `summarizing` phase.
+Call `summarize` with a plain-language restatement of the original problem and a
+description of what was actually delivered. This records a session summary that
+verifies the work addressed the issue before transitioning to `done`.
+
+```
+swamp model @swamp/issue-lifecycle method run summarize issue-<N> \
+  --input originalProblem="<restatement of the bug or feature request>" \
+  --input deliveredOutcome="<what was actually built or fixed>" \
+  --input outcomeMet=<true|false>
+```
+
 ## Classification Types
 
 The `triage` method classifies issues into one of four types (matching
@@ -188,6 +202,7 @@ Use this table to determine what to do next:
 | `pr_failed`      | Fix the issue, then `link_pr` (new PR) or `implement` (major rework)       |
 | `releasing`      | Check release build: `ship` when done, or `complete` as fallback           |
 | `notify`         | Check if author is external: `notify` to thank them, `skip_notify` to skip |
+| `summarizing`    | Call summarize with the problem restatement and delivered outcome          |
 | `done`           | Nothing to do — lifecycle is complete                                      |
 
 The canonical phase list lives in the `TRANSITIONS` constant in
@@ -219,8 +234,14 @@ When a PR has already merged and the lifecycle just needs to be marked done:
    swamp model @swamp/issue-lifecycle method run notify issue-<N>
    swamp model @swamp/issue-lifecycle method run skip_notify issue-<N>
    ```
-6. For quick close-out, `complete` still works from `implementing`, `pr_open`,
-   or `releasing` (transitions to `notify`, then use `notify` or `skip_notify`).
+6. If the phase is `summarizing`, record the session summary:
+   ```
+   swamp model @swamp/issue-lifecycle method run summarize issue-<N> \
+     --input originalProblem="<problem>" --input deliveredOutcome="<outcome>" --input outcomeMet=true
+   ```
+7. For quick close-out, `complete` still works from `implementing`, `pr_open`,
+   or `releasing` (transitions to `notify`, then `notify`/`skip_notify`, then
+   `summarize`).
 
 ## Key Rules
 

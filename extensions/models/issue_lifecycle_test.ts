@@ -319,8 +319,8 @@ Deno.test("model: exposes the new link_pr method definition", () => {
   );
 });
 
-Deno.test("model: version bumped to 2026.06.29.1", () => {
-  assertEquals(model.version, "2026.06.29.1");
+Deno.test("model: version bumped to 2026.07.30.1", () => {
+  assertEquals(model.version, "2026.07.30.1");
 });
 
 // ---------------------------------------------------------------------------
@@ -946,7 +946,7 @@ Deno.test("start: succeeds even when PATCH fails", async () => {
 // notify
 // ---------------------------------------------------------------------------
 
-Deno.test("notify: transitions state to done and reads author from context", async () => {
+Deno.test("notify: transitions state to summarizing and reads author from context", async () => {
   const { context, writes, restore } = await buildTestContext(42, {
     resources: {
       "context-main": {
@@ -965,14 +965,14 @@ Deno.test("notify: transitions state to done and reads author from context", asy
 
     const stateWrite = writes.find((w) => w.specName === "state");
     assertEquals(stateWrite !== undefined, true);
-    assertEquals(stateWrite!.data.phase, "done");
+    assertEquals(stateWrite!.data.phase, "summarizing");
     assertEquals(stateWrite!.data.issueNumber, 42);
   } finally {
     await restore();
   }
 });
 
-Deno.test("notify: transitions to done even when author is missing from context", async () => {
+Deno.test("notify: transitions to summarizing even when author is missing from context", async () => {
   const { context, writes, restore } = await buildTestContext(42, {
     resources: {
       "context-main": {
@@ -990,7 +990,7 @@ Deno.test("notify: transitions to done even when author is missing from context"
 
     const stateWrite = writes.find((w) => w.specName === "state");
     assertEquals(stateWrite !== undefined, true);
-    assertEquals(stateWrite!.data.phase, "done");
+    assertEquals(stateWrite!.data.phase, "summarizing");
   } finally {
     await restore();
   }
@@ -1018,7 +1018,7 @@ Deno.test("notify: accepts custom message", async () => {
 
     const stateWrite = writes.find((w) => w.specName === "state");
     assertEquals(stateWrite !== undefined, true);
-    assertEquals(stateWrite!.data.phase, "done");
+    assertEquals(stateWrite!.data.phase, "summarizing");
   } finally {
     await restore();
   }
@@ -1028,14 +1028,14 @@ Deno.test("notify: accepts custom message", async () => {
 // skip_notify
 // ---------------------------------------------------------------------------
 
-Deno.test("skip_notify: transitions state to done", async () => {
+Deno.test("skip_notify: transitions state to summarizing", async () => {
   const { context, writes, restore } = await buildTestContext(42);
   try {
     await model.methods.skip_notify.execute({}, context);
 
     const stateWrite = writes.find((w) => w.specName === "state");
     assertEquals(stateWrite !== undefined, true);
-    assertEquals(stateWrite!.data.phase, "done");
+    assertEquals(stateWrite!.data.phase, "summarizing");
     assertEquals(stateWrite!.data.issueNumber, 42);
   } finally {
     await restore();
@@ -1381,4 +1381,51 @@ Deno.test("model: exposes justify_deviations method definition", () => {
 
 Deno.test("model: exposes code-conformance-clear check definition", () => {
   assertEquals("code-conformance-clear" in model.checks, true);
+});
+
+// ---------------------------------------------------------------------------
+// summarize
+// ---------------------------------------------------------------------------
+
+Deno.test("summarize: writes summary-main and transitions state to done", async () => {
+  const { context, writes, restore } = await buildTestContext(42);
+  try {
+    await model.methods.summarize.execute(
+      {
+        originalProblem: "Widget crashed on startup",
+        deliveredOutcome: "Fixed null check in widget init",
+        outcomeMet: true,
+      },
+      context,
+    );
+
+    const summaryWrite = writes.find((w) => w.specName === "summary");
+    assertEquals(summaryWrite !== undefined, true);
+    assertEquals(summaryWrite!.instanceName, "summary-main");
+    assertEquals(
+      summaryWrite!.data.originalProblem,
+      "Widget crashed on startup",
+    );
+    assertEquals(
+      summaryWrite!.data.deliveredOutcome,
+      "Fixed null check in widget init",
+    );
+    assertEquals(summaryWrite!.data.outcomeMet, true);
+    assertEquals(typeof summaryWrite!.data.summarizedAt, "string");
+
+    const stateWrite = writes.find((w) => w.specName === "state");
+    assertEquals(stateWrite !== undefined, true);
+    assertEquals(stateWrite!.data.phase, "done");
+    assertEquals(stateWrite!.data.issueNumber, 42);
+  } finally {
+    await restore();
+  }
+});
+
+Deno.test("model: exposes summarize method definition", () => {
+  assertEquals("summarize" in model.methods, true);
+});
+
+Deno.test("model: exposes summary resource definition", () => {
+  assertEquals("summary" in model.resources, true);
 });

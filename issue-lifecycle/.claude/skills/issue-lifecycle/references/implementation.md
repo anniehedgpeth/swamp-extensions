@@ -148,7 +148,24 @@ gh api /repos/swamp-club/swamp/collaborators --jq '.[].login' | grep -qx '<autho
   ```
   swamp model @swamp/issue-lifecycle method run notify issue-<N>
   ```
-- **Collaborator**: call `skip_notify` to proceed to done:
+- **Collaborator**: call `skip_notify` to proceed to summarizing:
   ```
   swamp model @swamp/issue-lifecycle method run skip_notify issue-<N>
   ```
+
+## 7. Session Summary
+
+After `notify` or `skip_notify`, the phase is `summarizing`. Record a session
+summary that restates the original problem and describes what was delivered:
+
+```
+swamp model @swamp/issue-lifecycle method run summarize issue-<N> \
+  --input originalProblem="<plain-language restatement of the bug or feature request>" \
+  --input deliveredOutcome="<what was actually built or fixed>" \
+  --input outcomeMet=<true|false>
+```
+
+This writes a `summary-main` resource, transitions the phase to `done`, and
+posts a `session_summarized` lifecycle entry. The summary verifies that the
+delivered work actually addressed the original issue before closing out the
+lifecycle.
