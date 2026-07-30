@@ -33,6 +33,7 @@ import { SpanStatusCode, trace } from "npm:@opentelemetry/api@1.9.0";
 import type {
   CatalogExportEntry,
   CatalogExportRow,
+  ControlPlaneStore,
   DatastoreSyncOptions,
   DatastoreSyncService,
   NamespaceContaminationSummary,
@@ -116,6 +117,7 @@ export function isInternalCacheFile(rel: string): boolean {
     return true;
   }
   if (rel === "_index" || rel.startsWith("_index/")) return true;
+  if (rel === "_control" || rel.startsWith("_control/")) return true;
   const base = rel.split("/").pop() ?? "";
   if (base === ".lock" || base === ".namespace.json") return true;
   return base === "_catalog.db" || base.startsWith("_catalog.db-");
@@ -612,6 +614,16 @@ export class S3CacheSyncService implements DatastoreSyncService {
 
   private dataKey(rel: string): string {
     return this.namespace ? `${this.namespace}/${rel}` : rel;
+  }
+
+  private controlKey(key: string): string {
+    return this.namespace
+      ? `${this.namespace}/_control/${key}`
+      : `_control/${key}`;
+  }
+
+  private controlPrefixPath(): string {
+    return this.namespace ? `${this.namespace}/_control/` : "_control/";
   }
 
   /**
@@ -3175,6 +3187,49 @@ export class S3CacheSyncService implements DatastoreSyncService {
       lazyHydration: true,
       namespacedSync: true,
       twoPhaseSync: true,
+      controlPlane: true,
+    };
+  }
+
+  controlPlaneStore(): ControlPlaneStore {
+    const cpPrefix = this.controlPrefixPath();
+    return {
+      put: async (key: string, data: Uint8Array): Promise<void> => {
+        await this.ensurePreflight();
+        await retryWithBackoff(
+          () => this.s3.putObject(this.controlKey(key), data),
+        );
+      },
+      get: async (key: string): Promise<Uint8Array | null> => {
+        await this.ensurePreflight();
+        try {
+          const { data } = await retryWithBackoff(
+            () => this.s3.getObject(this.controlKey(key)),
+          );
+          return data;
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            (error.name === "NotFound" || error.name === "NoSuchKey")
+          ) {
+            return null;
+          }
+          throw error;
+        }
+      },
+      delete: async (key: string): Promise<void> => {
+        await this.ensurePreflight();
+        await retryWithBackoff(
+          () => this.s3.deleteObject(this.controlKey(key)),
+        );
+      },
+      list: async (prefix: string): Promise<string[]> => {
+        await this.ensurePreflight();
+        const entries = await retryWithBackoff(
+          () => this.s3.listAllObjects(cpPrefix + prefix),
+        );
+        return entries.map((e) => e.key.slice(cpPrefix.length));
+      },
     };
   }
 

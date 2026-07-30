@@ -101,6 +101,15 @@ export interface SyncCapabilities {
   lazyHydration?: boolean;
   namespacedSync?: boolean;
   twoPhaseSync?: boolean;
+  controlPlane?: boolean;
+}
+
+/** Direct key-value store for small control-plane records. */
+export interface ControlPlaneStore {
+  put(key: string, data: Uint8Array): Promise<void>;
+  get(key: string): Promise<Uint8Array | null>;
+  delete(key: string): Promise<void>;
+  list(prefix: string): Promise<string[]>;
 }
 
 /**
@@ -193,6 +202,8 @@ export interface DatastoreSyncService {
     manifest: PushManifest,
     options?: DatastoreSyncOptions,
   ): Promise<number | void>;
+  /** Returns a direct key-value store for small control-plane records. */
+  controlPlaneStore?(): ControlPlaneStore;
 }
 
 /** Options for the namespace contamination repair operation. */

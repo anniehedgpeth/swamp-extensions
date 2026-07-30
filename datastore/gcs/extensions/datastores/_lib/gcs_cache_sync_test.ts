@@ -6223,3 +6223,195 @@ Deno.test("repairNamespaceContamination: no namespace returns empty summary", as
     await Deno.remove(cachePath, { recursive: true });
   }
 });
+
+// ---------------------------------------------------------------------------
+// controlPlaneStore
+// ---------------------------------------------------------------------------
+
+Deno.test("controlPlaneStore: put and get round-trip", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const payload = new TextEncoder().encode('{"alive":true}');
+    await store.put("heartbeats/inst-1", payload);
+
+    assertEquals(mock.storage.has("_control/heartbeats/inst-1"), true);
+
+    const result = await store.get("heartbeats/inst-1");
+    assertExists(result);
+    assertEquals(new TextDecoder().decode(result), '{"alive":true}');
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: get missing key returns null", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const result = await store.get("no-such-key");
+    assertEquals(result, null);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: delete removes key", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const payload = new TextEncoder().encode("data");
+    await store.put("pending-runs/run-1", payload);
+    assertEquals(mock.storage.has("_control/pending-runs/run-1"), true);
+
+    await store.delete("pending-runs/run-1");
+    assertEquals(mock.storage.has("_control/pending-runs/run-1"), false);
+
+    const result = await store.get("pending-runs/run-1");
+    assertEquals(result, null);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: delete is idempotent", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    await store.delete("nonexistent/key");
+    await store.delete("nonexistent/key");
+    assertEquals(mock.deletes.length, 2);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: list returns keys with _control/ prefix stripped", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    await store.put("heartbeats/inst-1", new TextEncoder().encode("a"));
+    await store.put("heartbeats/inst-2", new TextEncoder().encode("b"));
+    await store.put("pending-runs/run-1", new TextEncoder().encode("c"));
+
+    const heartbeats = await store.list("heartbeats/");
+    assertEquals(heartbeats.sort(), ["heartbeats/inst-1", "heartbeats/inst-2"]);
+
+    const pending = await store.list("pending-runs/");
+    assertEquals(pending, ["pending-runs/run-1"]);
+
+    const all = await store.list("");
+    assertEquals(all.sort(), [
+      "heartbeats/inst-1",
+      "heartbeats/inst-2",
+      "pending-runs/run-1",
+    ]);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: list returns empty array when no keys match", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const result = await store.list("nonexistent/");
+    assertEquals(result, []);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: namespace scoping puts keys under {namespace}/_control/", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-ns-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pullChanged({ namespace: "my-ns" });
+
+    const store = service.controlPlaneStore();
+
+    const payload = new TextEncoder().encode("heartbeat");
+    await store.put("heartbeats/inst-1", payload);
+
+    assertEquals(mock.storage.has("my-ns/_control/heartbeats/inst-1"), true);
+    assertEquals(mock.storage.has("_control/heartbeats/inst-1"), false);
+
+    const result = await store.get("heartbeats/inst-1");
+    assertExists(result);
+    assertEquals(new TextDecoder().decode(result), "heartbeat");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: namespace scoping on list strips {namespace}/_control/", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-ns-list-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pullChanged({ namespace: "my-ns" });
+
+    const store = service.controlPlaneStore();
+    await store.put("heartbeats/a", new TextEncoder().encode("1"));
+    await store.put("heartbeats/b", new TextEncoder().encode("2"));
+
+    const keys = await store.list("heartbeats/");
+    assertEquals(keys.sort(), ["heartbeats/a", "heartbeats/b"]);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: namespace scoping on delete", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-ns-del-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pullChanged({ namespace: "my-ns" });
+
+    const store = service.controlPlaneStore();
+    await store.put("runs/r1", new TextEncoder().encode("x"));
+    await store.delete("runs/r1");
+
+    assertEquals(mock.storage.has("my-ns/_control/runs/r1"), false);
+    assertEquals(await store.get("runs/r1"), null);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("capabilities includes controlPlane: true", () => {
+  const mock = createMockGcsClient();
+  const service = new GcsCacheSyncService(mock, "/tmp/unused");
+  const caps = service.capabilities();
+  assertEquals(caps.controlPlane, true);
+});
+
+Deno.test("isInternalCacheFile excludes _control/ paths", () => {
+  assert(isInternalCacheFile("_control"));
+  assert(isInternalCacheFile("_control/heartbeats/inst-1"));
+  assert(isInternalCacheFile("_control/pending-runs/run-1"));
+  assert(!isInternalCacheFile("data/control-panel/file.yaml"));
+});

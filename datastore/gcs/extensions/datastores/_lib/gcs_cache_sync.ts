@@ -37,6 +37,7 @@ import { Attr, getTracer } from "./tracing.ts";
 import type {
   CatalogExportEntry,
   CatalogExportRow,
+  ControlPlaneStore,
   DatastoreSyncOptions,
   DatastoreSyncService,
   NamespaceContaminationSummary,
@@ -157,6 +158,7 @@ export function isInternalCacheFile(rel: string): boolean {
     return true;
   }
   if (rel === "_index" || rel.startsWith("_index/")) return true;
+  if (rel === "_control" || rel.startsWith("_control/")) return true;
   const base = rel.split("/").pop() ?? "";
   if (base === ".lock" || base === ".namespace.json") return true;
   return base === "_catalog.db" || base.startsWith("_catalog.db-");
@@ -559,6 +561,16 @@ export class GcsCacheSyncService implements DatastoreSyncService {
 
   private dataKey(rel: string): string {
     return this.namespace ? `${this.namespace}/${rel}` : rel;
+  }
+
+  private controlKey(key: string): string {
+    return this.namespace
+      ? `${this.namespace}/_control/${key}`
+      : `_control/${key}`;
+  }
+
+  private controlPrefixPath(): string {
+    return this.namespace ? `${this.namespace}/_control/` : "_control/";
   }
 
   /**
@@ -3009,6 +3021,46 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       lazyHydration: true,
       namespacedSync: true,
       twoPhaseSync: true,
+      controlPlane: true,
+    };
+  }
+
+  controlPlaneStore(): ControlPlaneStore {
+    const cpPrefix = this.controlPrefixPath();
+    return {
+      put: async (key: string, data: Uint8Array): Promise<void> => {
+        await this.ensurePreflight();
+        await retryWithBackoff(
+          () => this.gcs.putObject(this.controlKey(key), data),
+        );
+      },
+      get: async (key: string): Promise<Uint8Array | null> => {
+        await this.ensurePreflight();
+        try {
+          const { data } = await retryWithBackoff(
+            () => this.gcs.getObject(this.controlKey(key)),
+          );
+          return data;
+        } catch (error) {
+          if (error instanceof NotFoundError) {
+            return null;
+          }
+          throw error;
+        }
+      },
+      delete: async (key: string): Promise<void> => {
+        await this.ensurePreflight();
+        await retryWithBackoff(
+          () => this.gcs.deleteObject(this.controlKey(key)),
+        );
+      },
+      list: async (prefix: string): Promise<string[]> => {
+        await this.ensurePreflight();
+        const entries = await retryWithBackoff(
+          () => this.gcs.listAllObjects(cpPrefix + prefix),
+        );
+        return entries.map((e) => e.key.slice(cpPrefix.length));
+      },
     };
   }
 
