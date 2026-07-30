@@ -135,6 +135,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   dataTypes: z.array(z.string()).describe(
     'Optional. Data types subscribed to. A subscriber will only receive notifications for data types that are declared here. A subscription can only subscribe to the data types of the subscriber. The values should be in the format "users/{health_user_id}/dataTypes/{data_type}" where `{data_type}` is one of "altitude", "distance", "floors", "sleep", "steps", "weight".',
   ).optional(),
@@ -168,6 +171,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   dataTypes: z.array(z.string()).describe(
     'Optional. Data types subscribed to. A subscriber will only receive notifications for data types that are declared here. A subscription can only subscribe to the data types of the subscriber. The values should be in the format "users/{health_user_id}/dataTypes/{data_type}" where `{data_type}` is one of "altitude", "distance", "floors", "sleep", "steps", "weight".',
   ).optional(),
@@ -193,6 +197,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -205,13 +210,21 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Google Health Subscribers.Subscriptions. Registered at `@swamp/gcp/health/subscribers-subscriptions`. */
 export const model = {
   type: "@swamp/gcp/health/subscribers-subscriptions",
-  version: "2026.07.21.1",
+  version: "2026.07.29.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

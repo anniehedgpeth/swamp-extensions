@@ -486,12 +486,13 @@ Options 3–5 require the `gcloud` CLI to be installed.
 
 Every generated GCP model includes optional global arguments for credentials:
 
-| Field             | Sensitive | Description                                                           |
-| ----------------- | --------- | --------------------------------------------------------------------- |
-| `accessToken`     | yes       | GCP OAuth2 access token; overrides `GCP_ACCESS_TOKEN`                 |
-| `credentialsJson` | yes       | Service account JSON; overrides `GOOGLE_APPLICATION_CREDENTIALS_JSON` |
-| `project`         | no        | GCP project ID; overrides `GCP_PROJECT` / `GOOGLE_CLOUD_PROJECT`      |
-| `scopes`          | no        | Comma-separated OAuth scopes; overrides the API's default scopes      |
+| Field             | Sensitive | Description                                                                                         |
+| ----------------- | --------- | --------------------------------------------------------------------------------------------------- |
+| `accessToken`     | yes       | GCP OAuth2 access token; overrides `GCP_ACCESS_TOKEN`                                               |
+| `credentialsJson` | yes       | Service account JSON; overrides `GOOGLE_APPLICATION_CREDENTIALS_JSON`                               |
+| `project`         | no        | GCP project ID; overrides `GCP_PROJECT` / `GOOGLE_CLOUD_PROJECT`                                    |
+| `scopes`          | no        | Comma-separated OAuth scopes; overrides the API's default scopes                                    |
+| `quotaProject`    | no        | Quota/billing project ID; sets `x-goog-user-project` header; overrides `GOOGLE_CLOUD_QUOTA_PROJECT` |
 
 These fields use `z.meta({ sensitive: true })` where applicable, so swamp-core
 redacts them from run logs, reports, and data storage.
@@ -505,12 +506,12 @@ globalArguments:
 ```
 
 **Collision guard:** If a GCP resource already has a domain property named
-`accessToken`, `credentialsJson`, `project`, or `scopes`, that credential field
-is not injected as a separate `GlobalArgsSchema` entry for that specific service
-— it already exists in the schema as a domain property. The collision guard
-mirrors the AWS pattern. The colliding field is still forwarded in
-`_buildGcpCredentials` so it reaches credential resolution (e.g. `project` as a
-domain property carries the same GCP project ID that the credential chain
+`accessToken`, `credentialsJson`, `project`, `scopes`, or `quotaProject`, that
+credential field is not injected as a separate `GlobalArgsSchema` entry for that
+specific service — it already exists in the schema as a domain property. The
+collision guard mirrors the AWS pattern. The colliding field is still forwarded
+in `_buildGcpCredentials` so it reaches credential resolution (e.g. `project` as
+a domain property carries the same GCP project ID that the credential chain
 needs). When `scopes` collides, the user-overridable global arg is skipped but
 the `_defaultOAuthScopes` constant still applies — the API's default scopes are
 always used.
@@ -561,8 +562,8 @@ from the project that owns the resources being accessed.
 
 The quota project is resolved from two sources, in order:
 
-1. Explicit `quotaProject` on `ExplicitGcpCredentials` (for per-service use via
-   enrichments)
+1. Explicit `quotaProject` global arg (injected as a credential field on every
+   GCP model, forwarded via `_buildGcpCredentials` to `ExplicitGcpCredentials`)
 2. `GOOGLE_CLOUD_QUOTA_PROJECT` environment variable (the standard Google
    mechanism)
 

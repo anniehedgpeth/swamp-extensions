@@ -197,6 +197,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   autoscalingPolicy: z.object({
     coolDownPeriodSec: z.number().int().describe(
       "The number of seconds that your application takes to initialize on a VM instance. This is referred to as the [initialization period](/compute/docs/autoscaler#cool_down_period). Specifying an accurate initialization period improves autoscaler decisions. For example, when scaling out, the autoscaler ignores data from VMs that are still initializing because those VMs might not yet represent normal usage of your application. The default initialization period is 60 seconds. Initialization periods might vary because of numerous factors. We recommend that you test how long your application takes to initialize. To do this, create a VM and time your application's startup process.",
@@ -374,6 +377,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   autoscalingPolicy: z.object({
     coolDownPeriodSec: z.number().int().describe(
       "The number of seconds that your application takes to initialize on a VM instance. This is referred to as the [initialization period](/compute/docs/autoscaler#cool_down_period). Specifying an accurate initialization period improves autoscaler decisions. For example, when scaling out, the autoscaler ignores data from VMs that are still initializing because those VMs might not yet represent normal usage of your application. The default initialization period is 60 seconds. Initialization periods might vary because of numerous factors. We recommend that you test how long your application takes to initialize. To do this, create a VM and time your application's startup process.",
@@ -500,6 +504,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -512,13 +517,14 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Compute Engine RegionAutoscalers. Registered at `@swamp/gcp/compute/regionautoscalers`. */
 export const model = {
   type: "@swamp/gcp/compute/regionautoscalers",
-  version: "2026.07.21.4",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -677,6 +683,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

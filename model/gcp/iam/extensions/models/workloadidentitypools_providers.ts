@@ -155,6 +155,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   attributeCondition: z.string().describe(
     "Optional. [A Common Expression Language](https://opensource.google/projects/cel) expression, in plain text, to restrict what otherwise valid authentication credentials issued by the provider should not be accepted. The expression must output a boolean representing whether to allow the federation. The following keywords may be referenced in the expressions: * `assertion`: JSON representing the authentication credential issued by the provider. * `google`: The Google attributes mapped from the assertion in the `attribute_mappings`. * `attribute`: The custom attributes mapped from the assertion in the `attribute_mappings`. The maximum length of the attribute condition expression is 4096 characters. If unspecified, all valid authentication credential are accepted. The following example shows how to only allow credentials with a mapped `google.groups` value of `admins`: ` \"'admins' in google.groups\" `",
   ).optional(),
@@ -265,6 +268,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   attributeCondition: z.string().describe(
     "Optional. [A Common Expression Language](https://opensource.google/projects/cel) expression, in plain text, to restrict what otherwise valid authentication credentials issued by the provider should not be accepted. The expression must output a boolean representing whether to allow the federation. The following keywords may be referenced in the expressions: * `assertion`: JSON representing the authentication credential issued by the provider. * `google`: The Google attributes mapped from the assertion in the `attribute_mappings`. * `attribute`: The custom attributes mapped from the assertion in the `attribute_mappings`. The maximum length of the attribute condition expression is 4096 characters. If unspecified, all valid authentication credential are accepted. The following example shows how to only allow credentials with a mapped `google.groups` value of `admins`: ` \"'admins' in google.groups\" `",
   ).optional(),
@@ -340,6 +344,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -352,13 +357,21 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkloadIdentityPools.Providers. Registered at `@swamp/gcp/iam/workloadidentitypools-providers`. */
 export const model = {
   type: "@swamp/gcp/iam/workloadidentitypools-providers",
-  version: "2026.07.21.1",
+  version: "2026.07.29.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

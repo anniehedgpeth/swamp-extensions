@@ -158,6 +158,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   claimMapping: z.record(z.string(), z.string()).describe(
     'Required. Immutable. Gemini Enterprise only. Maps SCIM attributes to Google attributes. This mapping is used to associate the attributes synced via SCIM with the Google Cloud attributes used in IAM policies for Workforce Identity Federation. SCIM-managed user and group attributes are mapped to `google.subject` and `google.group` respectively. Each key must be a string specifying the Google Cloud IAM attribute to map to. The supported keys are as follows: * `google.subject`: The principal IAM is authenticating. You can reference this value in IAM bindings. This is also the subject that appears in Cloud Logging logs. This is a required field and the mapped subject cannot exceed 127 bytes. * `google.group`: Group the authenticating user belongs to. You can grant group access to resources using an IAM `principalSet` binding; access applies to all members of the group. Each value must be a [Common Expression Language] (https://opensource.google/projects/cel) expression that maps SCIM user or group attribute to the normalized attribute specified by the corresponding map key. Example: To map the SCIM user\'s `externalId` to `google.subject` and the SCIM group\'s `externalId` to `google.group`: ` { "google.subject": "user.externalId", "google.group": "group.externalId" } `',
   ).optional(),
@@ -196,6 +199,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   claimMapping: z.record(z.string(), z.string()).describe(
     'Required. Immutable. Gemini Enterprise only. Maps SCIM attributes to Google attributes. This mapping is used to associate the attributes synced via SCIM with the Google Cloud attributes used in IAM policies for Workforce Identity Federation. SCIM-managed user and group attributes are mapped to `google.subject` and `google.group` respectively. Each key must be a string specifying the Google Cloud IAM attribute to map to. The supported keys are as follows: * `google.subject`: The principal IAM is authenticating. You can reference this value in IAM bindings. This is also the subject that appears in Cloud Logging logs. This is a required field and the mapped subject cannot exceed 127 bytes. * `google.group`: Group the authenticating user belongs to. You can grant group access to resources using an IAM `principalSet` binding; access applies to all members of the group. Each value must be a [Common Expression Language] (https://opensource.google/projects/cel) expression that maps SCIM user or group attribute to the normalized attribute specified by the corresponding map key. Example: To map the SCIM user\'s `externalId` to `google.subject` and the SCIM group\'s `externalId` to `google.group`: ` { "google.subject": "user.externalId", "google.group": "group.externalId" } `',
   ).optional(),
@@ -221,6 +225,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -233,13 +238,21 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Identity and Access Management (IAM) WorkforcePools.Providers.ScimTenants. Registered at `@swamp/gcp/iam/workforcepools-providers-scimtenants`. */
 export const model = {
   type: "@swamp/gcp/iam/workforcepools-providers-scimtenants",
-  version: "2026.07.21.1",
+  version: "2026.07.29.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -121,6 +121,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   accountIdAlias: z.string().describe(
     "Optional. An optional alias you can assign to this account relationship. This alias acts as a convenient identifier for your own reference and management. It must be unique among all your account relationships with the same provider. For example, you might use `account_id_alias` to assign a friendly name to this relationship for easier identification in your systems.",
   ).optional(),
@@ -152,6 +155,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   accountIdAlias: z.string().describe(
     "Optional. An optional alias you can assign to this account relationship. This alias acts as a convenient identifier for your own reference and management. It must be unique among all your account relationships with the same provider. For example, you might use `account_id_alias` to assign a friendly name to this relationship for easier identification in your systems.",
   ).optional(),
@@ -174,6 +178,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -186,13 +191,21 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : _defaultOAuthScopes,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Merchant Accounts.Relationships. Registered at `@swamp/gcp/merchantapi/accounts-relationships`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-relationships",
-  version: "2026.07.21.1",
+  version: "2026.07.29.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

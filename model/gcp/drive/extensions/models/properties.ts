@@ -175,6 +175,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   key: z.string().describe("The key of this property."),
   value: z.string().describe("The value of this property.").optional(),
   visibility: z.string().describe(
@@ -200,6 +203,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   key: z.string().describe("The key of this property.").optional(),
   value: z.string().describe("The value of this property.").optional(),
   visibility: z.string().describe(
@@ -213,6 +217,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -225,13 +230,21 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : _defaultOAuthScopes,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Google Drive Properties. Registered at `@swamp/gcp/drive/properties`. */
 export const model = {
   type: "@swamp/gcp/drive/properties",
-  version: "2026.07.21.1",
+  version: "2026.07.29.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

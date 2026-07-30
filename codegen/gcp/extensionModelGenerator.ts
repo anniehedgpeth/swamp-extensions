@@ -299,6 +299,12 @@ export function generateGcpExtensionModel(
       desc:
         "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
     },
+    {
+      name: "quotaProject",
+      sensitive: false,
+      desc:
+        "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+    },
   ];
   const injectedCredFields = credentialFields.filter(
     (f) => !domainPropNames.has(f.name),

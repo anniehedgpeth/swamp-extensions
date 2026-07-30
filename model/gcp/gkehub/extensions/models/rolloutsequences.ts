@@ -155,6 +155,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   autoUpgradeConfig: z.object({
     enforcedRollouts: z.record(z.string(), z.string()).describe(
       'Output only. Mandatory Safety Policies (Always active) which cannot be disabled. The key is the policy ID (e.g., "ENFORCED_CONTROL_PLANE_PATCH") and the value is a human-readable description.',
@@ -266,6 +269,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   autoUpgradeConfig: z.object({
     enforcedRollouts: z.record(z.string(), z.string()).describe(
       'Output only. Mandatory Safety Policies (Always active) which cannot be disabled. The key is the policy ID (e.g., "ENFORCED_CONTROL_PLANE_PATCH") and the value is a human-readable description.',
@@ -332,6 +336,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -344,13 +349,21 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud GKE Hub RolloutSequences. Registered at `@swamp/gcp/gkehub/rolloutsequences`. */
 export const model = {
   type: "@swamp/gcp/gkehub/rolloutsequences",
-  version: "2026.07.21.1",
+  version: "2026.07.29.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/oracledatabase"
-version: "2026.07.21.4"
+version: "2026.07.29.1"
 description: "Google Cloud oracledatabase infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,8 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Added: goldengateconnectionassignments, goldengateconnectiontypes, goldengateconnections, goldengatedeploymentenvironments, goldengatedeploymenttypes, goldengatedeploymentversions, goldengatedeployments
-  - Updated: locations, autonomousdatabases, cloudexadatainfrastructures, cloudvmclusters, databases, dbsystemshapes, dbsystems, exadbvmclusters, exascaledbstoragevaults, giversions, giversions_minorversions
+  - Updated: locations, autonomousdatabasebackups, autonomousdatabasecharactersets, autonomousdatabases, autonomousdbversions, cloudexadatainfrastructures, cloudexadatainfrastructures_dbservers, cloudvmclusters, cloudvmclusters_dbnodes, databasecharactersets, databases, dbsysteminitialstoragesizes, dbsystemshapes, dbsystems, dbversions, entitlements, exadbvmclusters, exadbvmclusters_dbnodes, exascaledbstoragevaults, giversions, giversions_minorversions, goldengateconnectionassignments, goldengateconnectiontypes, goldengateconnections, goldengatedeploymentenvironments, goldengatedeploymenttypes, goldengatedeploymentversions, goldengatedeployments, odbnetworks, odbnetworks_odbsubnets, pluggabledatabases
 models:
   - autonomousdatabasebackups.ts
   - autonomousdatabasecharactersets.ts

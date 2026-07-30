@@ -108,6 +108,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   attributes: z.array(z.object({
     name: z.string().describe("API key of the attribute.").optional(),
     value: z.string().describe("Value of the attribute.").optional(),
@@ -153,6 +156,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  quotaProject: z.string().optional(),
   attributes: z.array(z.object({
     name: z.string().describe("API key of the attribute.").optional(),
     value: z.string().describe("Value of the attribute.").optional(),
@@ -173,7 +177,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "quotaProject",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -185,13 +194,14 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Apigee Appgroups.Apps.Keys. Registered at `@swamp/gcp/apigee/appgroups-apps-keys`. */
 export const model = {
   type: "@swamp/gcp/apigee/appgroups-apps-keys",
-  version: "2026.07.21.2",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -295,6 +305,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

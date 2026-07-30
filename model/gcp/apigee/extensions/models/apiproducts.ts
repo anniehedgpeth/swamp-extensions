@@ -155,6 +155,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   apiResources: z.array(z.string()).describe(
     "Comma-separated list of API resources to be bundled in the API product. By default, the resource paths are mapped from the `proxy.pathsuffix` variable. The proxy path suffix is defined as the URI fragment following the ProxyEndpoint base path. For example, if the `apiResources` element is defined to be `/forecastrss` and the base path defined for the API proxy is `/weather`, then only requests to `/weather/forecastrss` are permitted by the API product. You can select a specific path, or you can select all subpaths with the following wildcard: - `/**`: Indicates that all sub-URIs are included. - `/*`: Indicates that only URIs one level down are included. By default, / supports the same resources as /** as well as the base path defined by the API proxy. For example, if the base path of the API proxy is `/v1/weatherapikey`, then the API product supports requests to `/v1/weatherapikey` and to any sub-URIs, such as `/v1/weatherapikey/forecastrss`, `/v1/weatherapikey/region/CA`, and so on. For more information, see Managing API products.",
   ).optional(),
@@ -543,6 +546,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  quotaProject: z.string().optional(),
   apiResources: z.array(z.string()).describe(
     "Comma-separated list of API resources to be bundled in the API product. By default, the resource paths are mapped from the `proxy.pathsuffix` variable. The proxy path suffix is defined as the URI fragment following the ProxyEndpoint base path. For example, if the `apiResources` element is defined to be `/forecastrss` and the base path defined for the API proxy is `/weather`, then only requests to `/weather/forecastrss` are permitted by the API product. You can select a specific path, or you can select all subpaths with the following wildcard: - `/**`: Indicates that all sub-URIs are included. - `/*`: Indicates that only URIs one level down are included. By default, / supports the same resources as /** as well as the base path defined by the API proxy. For example, if the base path of the API proxy is `/v1/weatherapikey`, then the API product supports requests to `/v1/weatherapikey` and to any sub-URIs, such as `/v1/weatherapikey/forecastrss`, `/v1/weatherapikey/region/CA`, and so on. For more information, see Managing API products.",
   ).optional(),
@@ -810,7 +814,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "quotaProject",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -822,13 +831,14 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Apigee Apiproducts. Registered at `@swamp/gcp/apigee/apiproducts`. */
 export const model = {
   type: "@swamp/gcp/apigee/apiproducts",
-  version: "2026.07.24.1",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -969,6 +979,11 @@ export const model = {
     {
       toVersion: "2026.07.24.1",
       description: "Added: payloadOperationGroup",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -53,7 +53,7 @@ function buildResourceName(parent: string, shortName: string): string {
 const BASE_URL = "https://cloudsupport.googleapis.com/";
 
 const GET_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.get",
+  "id": "cloudsupport.organizations.supportEventSubscriptions.get",
   "path": "v2/{+name}",
   "httpMethod": "GET",
   "parameterOrder": [
@@ -68,7 +68,7 @@ const GET_CONFIG = {
 } as const;
 
 const INSERT_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.create",
+  "id": "cloudsupport.organizations.supportEventSubscriptions.create",
   "path": "v2/{+parent}/supportEventSubscriptions",
   "httpMethod": "POST",
   "parameterOrder": [
@@ -83,7 +83,7 @@ const INSERT_CONFIG = {
 } as const;
 
 const PATCH_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.patch",
+  "id": "cloudsupport.organizations.supportEventSubscriptions.patch",
   "path": "v2/{+name}",
   "httpMethod": "PATCH",
   "parameterOrder": [
@@ -101,7 +101,7 @@ const PATCH_CONFIG = {
 } as const;
 
 const DELETE_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.delete",
+  "id": "cloudsupport.organizations.supportEventSubscriptions.delete",
   "path": "v2/{+name}",
   "httpMethod": "DELETE",
   "parameterOrder": [
@@ -116,7 +116,7 @@ const DELETE_CONFIG = {
 } as const;
 
 const LIST_CONFIG = {
-  "id": "cloudsupport.supportEventSubscriptions.list",
+  "id": "cloudsupport.organizations.supportEventSubscriptions.list",
   "path": "v2/{+parent}/supportEventSubscriptions",
   "httpMethod": "GET",
   "parameterOrder": [
@@ -155,6 +155,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the support event subscription.",
   ).optional(),
@@ -184,6 +187,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   name: z.string().describe(
     "Identifier. The resource name of the support event subscription.",
   ).optional(),
@@ -200,6 +204,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -212,13 +217,21 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Google Cloud Support SupportEventSubscriptions. Registered at `@swamp/gcp/cloudsupport/supporteventsubscriptions`. */
 export const model = {
   type: "@swamp/gcp/cloudsupport/supporteventsubscriptions",
-  version: "2026.07.21.1",
+  version: "2026.07.29.1",
+  upgrades: [
+    {
+      toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -554,7 +567,8 @@ export const model = {
         const result = await createResource(
           BASE_URL,
           {
-            "id": "cloudsupport.supportEventSubscriptions.expunge",
+            "id":
+              "cloudsupport.organizations.supportEventSubscriptions.expunge",
             "path": "v2/{+name}:expunge",
             "httpMethod": "POST",
             "parameterOrder": ["name"],
@@ -587,7 +601,8 @@ export const model = {
         const result = await createResource(
           BASE_URL,
           {
-            "id": "cloudsupport.supportEventSubscriptions.undelete",
+            "id":
+              "cloudsupport.organizations.supportEventSubscriptions.undelete",
             "path": "v2/{+name}:undelete",
             "httpMethod": "POST",
             "parameterOrder": ["name"],

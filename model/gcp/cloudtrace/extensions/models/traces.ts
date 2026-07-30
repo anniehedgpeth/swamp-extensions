@@ -116,6 +116,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -140,6 +143,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
 });
 
 const _credentialKeys = new Set([
@@ -147,6 +151,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -159,13 +164,14 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Trace Traces. Registered at `@swamp/gcp/cloudtrace/traces`. */
 export const model = {
   type: "@swamp/gcp/cloudtrace/traces",
-  version: "2026.07.29.1",
+  version: "2026.07.29.2",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -204,6 +210,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -313,7 +324,7 @@ export const model = {
       description: "List traces resources",
       arguments: z.object({
         endTime: z.string().describe(
-          "Required. End of the time interval (inclusive) during which the trace data was collected from the application.",
+          "End of the time interval (inclusive) during which the trace data was collected from the application.",
         ).optional(),
         filter: z.string().describe(
           "Optional. A filter against properties of the trace. See [filter syntax documentation](https://cloud.google.com/trace/docs/trace-filters) for details.",
@@ -325,7 +336,7 @@ export const model = {
           "Optional. Maximum number of traces to return. If not specified or <= 0, the implementation selects a reasonable value. The implementation may return fewer traces than the requested page size.",
         ).optional(),
         startTime: z.string().describe(
-          "Required. Start of the time interval (inclusive) during which the trace data was collected from the application.",
+          "Start of the time interval (inclusive) during which the trace data was collected from the application.",
         ).optional(),
         view: z.string().describe(
           "Optional. Type of data returned for traces in the list. Default is `MINIMAL`.",

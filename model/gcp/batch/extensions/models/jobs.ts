@@ -151,6 +151,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   allocationPolicy: z.object({
     instances: z.array(z.object({
       blockProjectSshKeys: z.boolean().describe(
@@ -216,7 +219,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     location: z.object({
       allowedLocations: z.array(z.string()).describe(
-        'A list of location names that are allowed for the job\'s VMs formatted as URLs. Each location can be a region or a zone, but you can only specify one region or multiple zones in one region per job. For example, `["regions/us-central1"]` allow VMs in any zones in region `us-central1`, and `["zones/us-central1-a", "zones/us-central1-c"]` only allow VMs in zones `us-central1-a` and `us-central1-c`. However, `["regions/us-central1", "zones/us-central1-a", "zones/us-central1-b", "zones/us-west1-a"]` causes an error because it contains multiple regions (`us-central1` and `us-west1`). The specified region or zones must be in the same region in which the job is created starting on the following dates: + For projects that have successfully submitted before July 31, 2026 at least one job that uses the `allowedLocations[]` field with any region or zones outside of the job\'s location, the changes are starting on _June 30, 2027_. + For all other projects, the changes are starting on _July 31, 2026_. For example, for job `projects/123/locations/us-central1/jobs/jobid`, the specified region or zones must be in `us-central1`. Using a different region (e.g. `regions/us-west1`) or a zone not in `us-central1` (e.g. `zones/us-west1-a`) causes an error.',
+        'A list of allowed location names represented by internal URLs. Each location can be a region or a zone. Only one region or multiple zones in one region is supported now. For example, ["regions/us-central1"] allow VMs in any zones in region us-central1. ["zones/us-central1-a", "zones/us-central1-c"] only allow VMs in zones us-central1-a and us-central1-c. Mixing locations from different regions would cause errors. For example, ["regions/us-central1", "zones/us-central1-a", "zones/us-central1-b", "zones/us-west1-a"] contains locations from two distinct regions: us-central1 and us-west1. This combination will trigger an error.',
       ).optional(),
     }).describe(
       "Location where compute resources should be allocated for the Job.",
@@ -226,9 +229,6 @@ const GlobalArgsSchema = z.object({
         network: z.string().describe(
           "The URL of an existing network resource. You can specify the network as a full or partial URL. For example, the following are all valid URLs: * https://www.googleapis.com/compute/v1/projects/{project}/global/networks/{network} * projects/{project}/global/networks/{network} * global/networks/{network}",
         ).optional(),
-        nicType: z.enum(["NIC_TYPE_UNSPECIFIED", "GVNIC", "IRDMA", "MRDMA"])
-          .describe("Optional. The NIC type of the network interface.")
-          .optional(),
         noExternalIpAddress: z.boolean().describe(
           "Default is false (with an external IP address). Required if no external public IP address is attached to the VM. If no external public IP address, additional configuration is required to allow the VM to access Google Services. See https://cloud.google.com/vpc/docs/configure-private-google-access and https://cloud.google.com/nat/docs/gce-example#create-nat for more information.",
         ).optional(),
@@ -501,7 +501,6 @@ const StateSchema = z.object({
     network: z.object({
       networkInterfaces: z.array(z.object({
         network: z.string(),
-        nicType: z.string(),
         noExternalIpAddress: z.boolean(),
         subnetwork: z.string(),
       })),
@@ -620,6 +619,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   allocationPolicy: z.object({
     instances: z.array(z.object({
       blockProjectSshKeys: z.boolean().describe(
@@ -685,7 +685,7 @@ const InputsSchema = z.object({
     ).optional(),
     location: z.object({
       allowedLocations: z.array(z.string()).describe(
-        'A list of location names that are allowed for the job\'s VMs formatted as URLs. Each location can be a region or a zone, but you can only specify one region or multiple zones in one region per job. For example, `["regions/us-central1"]` allow VMs in any zones in region `us-central1`, and `["zones/us-central1-a", "zones/us-central1-c"]` only allow VMs in zones `us-central1-a` and `us-central1-c`. However, `["regions/us-central1", "zones/us-central1-a", "zones/us-central1-b", "zones/us-west1-a"]` causes an error because it contains multiple regions (`us-central1` and `us-west1`). The specified region or zones must be in the same region in which the job is created starting on the following dates: + For projects that have successfully submitted before July 31, 2026 at least one job that uses the `allowedLocations[]` field with any region or zones outside of the job\'s location, the changes are starting on _June 30, 2027_. + For all other projects, the changes are starting on _July 31, 2026_. For example, for job `projects/123/locations/us-central1/jobs/jobid`, the specified region or zones must be in `us-central1`. Using a different region (e.g. `regions/us-west1`) or a zone not in `us-central1` (e.g. `zones/us-west1-a`) causes an error.',
+        'A list of allowed location names represented by internal URLs. Each location can be a region or a zone. Only one region or multiple zones in one region is supported now. For example, ["regions/us-central1"] allow VMs in any zones in region us-central1. ["zones/us-central1-a", "zones/us-central1-c"] only allow VMs in zones us-central1-a and us-central1-c. Mixing locations from different regions would cause errors. For example, ["regions/us-central1", "zones/us-central1-a", "zones/us-central1-b", "zones/us-west1-a"] contains locations from two distinct regions: us-central1 and us-west1. This combination will trigger an error.',
       ).optional(),
     }).describe(
       "Location where compute resources should be allocated for the Job.",
@@ -695,9 +695,6 @@ const InputsSchema = z.object({
         network: z.string().describe(
           "The URL of an existing network resource. You can specify the network as a full or partial URL. For example, the following are all valid URLs: * https://www.googleapis.com/compute/v1/projects/{project}/global/networks/{network} * projects/{project}/global/networks/{network} * global/networks/{network}",
         ).optional(),
-        nicType: z.enum(["NIC_TYPE_UNSPECIFIED", "GVNIC", "IRDMA", "MRDMA"])
-          .describe("Optional. The NIC type of the network interface.")
-          .optional(),
         noExternalIpAddress: z.boolean().describe(
           "Default is false (with an external IP address). Required if no external public IP address is attached to the VM. If no external public IP address, additional configuration is required to allow the VM to access Google Services. See https://cloud.google.com/vpc/docs/configure-private-google-access and https://cloud.google.com/nat/docs/gce-example#create-nat for more information.",
         ).optional(),
@@ -945,6 +942,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -957,13 +955,14 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Batch Jobs. Registered at `@swamp/gcp/batch/jobs`. */
 export const model = {
   type: "@swamp/gcp/batch/jobs",
-  version: "2026.07.29.1",
+  version: "2026.07.29.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1090,6 +1089,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

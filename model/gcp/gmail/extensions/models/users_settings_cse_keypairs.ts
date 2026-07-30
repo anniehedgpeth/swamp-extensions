@@ -73,6 +73,9 @@ const INSERT_CONFIG = {
     "userId",
   ],
   "parameters": {
+    "chainValidation": {
+      "location": "query",
+    },
     "userId": {
       "location": "path",
       "required": true,
@@ -134,6 +137,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   pkcs7: z.string().describe(
     "Input only. The public key and its certificate chain. The chain must be in [PKCS#7](https://en.wikipedia.org/wiki/PKCS_7) format and use PEM encoding and ASCII armor.",
   ).optional(),
@@ -160,6 +166,9 @@ const GlobalArgsSchema = z.object({
   userId: z.string().describe(
     "The requester's primary email address. To indicate the authenticated user, you can use the special value `me`.",
   ),
+  chainValidation: z.string().describe(
+    "The type of certificate chain validation to perform at creation. The request will be rejected if the uploaded chain fails to satisfy the requested validation checks. When unspecified, this parameter defaults to `all`.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -189,6 +198,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   pkcs7: z.string().describe(
     "Input only. The public key and its certificate chain. The chain must be in [PKCS#7](https://en.wikipedia.org/wiki/PKCS_7) format and use PEM encoding and ASCII armor.",
   ).optional(),
@@ -215,6 +225,9 @@ const InputsSchema = z.object({
   userId: z.string().describe(
     "The requester's primary email address. To indicate the authenticated user, you can use the special value `me`.",
   ).optional(),
+  chainValidation: z.string().describe(
+    "The type of certificate chain validation to perform at creation. The request will be rejected if the uploaded chain fails to satisfy the requested validation checks. When unspecified, this parameter defaults to `all`.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -222,6 +235,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -234,13 +248,14 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : _defaultOAuthScopes,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Gmail Users.Settings.Cse.Keypairs. Registered at `@swamp/gcp/gmail/users-settings-cse-keypairs`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-settings-cse-keypairs",
-  version: "2026.07.21.3",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -342,6 +357,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.29.1",
+      description: "Added: chainValidation",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -368,6 +388,9 @@ export const model = {
         if (g["pkcs7"] !== undefined) body["pkcs7"] = g["pkcs7"];
         if (g["privateKeyMetadata"] !== undefined) {
           body["privateKeyMetadata"] = g["privateKeyMetadata"];
+        }
+        if (g["chainValidation"] !== undefined) {
+          params["chainValidation"] = String(g["chainValidation"]);
         }
         if (g["name"] !== undefined) params["keyPairId"] = String(g["name"]);
         const result = await createResource(

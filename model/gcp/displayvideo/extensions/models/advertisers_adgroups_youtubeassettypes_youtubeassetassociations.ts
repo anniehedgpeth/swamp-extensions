@@ -170,6 +170,9 @@ const GlobalArgsSchema = z.object({
   scopes: z.string().describe(
     "Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   linkedYoutubeAsset: z.object({
     affiliateLocationAssetFilter: z.object({
       affiliateLocationMatchingFunction: z.object({
@@ -287,6 +290,7 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
   linkedYoutubeAsset: z.object({
     affiliateLocationAssetFilter: z.object({
       affiliateLocationMatchingFunction: z.object({
@@ -374,6 +378,7 @@ const _credentialKeys = new Set([
   "credentialsJson",
   "project",
   "scopes",
+  "quotaProject",
 ]);
 
 function _buildGcpCredentials(
@@ -386,6 +391,7 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : _defaultOAuthScopes,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -393,7 +399,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/displayvideo/advertisers-adgroups-youtubeassettypes-youtubeassetassociations",
-  version: "2026.07.21.3",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -502,6 +508,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

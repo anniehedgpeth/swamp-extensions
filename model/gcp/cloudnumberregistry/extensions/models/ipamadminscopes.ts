@@ -167,6 +167,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.",
   ).optional(),
+  quotaProject: z.string().describe(
+    "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
+  ).optional(),
   enabledAddonPlatforms: z.array(
     z.enum(["ADD_ON_PLATFORM_UNSPECIFIED", "COMPUTE_ENGINE", "GCE"]),
   ).describe(
@@ -208,6 +211,7 @@ const InputsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).optional(),
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
+  quotaProject: z.string().optional(),
   enabledAddonPlatforms: z.array(
     z.enum(["ADD_ON_PLATFORM_UNSPECIFIED", "COMPUTE_ENGINE", "GCE"]),
   ).describe(
@@ -233,7 +237,12 @@ const InputsSchema = z.object({
   ).optional(),
 });
 
-const _credentialKeys = new Set(["accessToken", "credentialsJson", "project"]);
+const _credentialKeys = new Set([
+  "accessToken",
+  "credentialsJson",
+  "project",
+  "quotaProject",
+]);
 
 function _buildGcpCredentials(
   g: Record<string, unknown>,
@@ -245,13 +254,14 @@ function _buildGcpCredentials(
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
       : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
 /** Swamp extension model for Google Cloud Number Registry IpamAdminScopes. Registered at `@swamp/gcp/cloudnumberregistry/ipamadminscopes`. */
 export const model = {
   type: "@swamp/gcp/cloudnumberregistry/ipamadminscopes",
-  version: "2026.07.21.1",
+  version: "2026.07.29.1",
   upgrades: [
     {
       toVersion: "2026.05.19.1",
@@ -330,6 +340,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
