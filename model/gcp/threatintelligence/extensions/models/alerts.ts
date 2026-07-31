@@ -246,7 +246,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Threat Intelligence Alerts. Registered at `@swamp/gcp/threatintelligence/alerts`. */
 export const model = {
   type: "@swamp/gcp/threatintelligence/alerts",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -387,6 +387,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -744,7 +752,7 @@ export const model = {
           BASE_URL,
           {
             "id": "threatintelligence.projects.alerts.getPassword",
-            "path": "v1beta/{+name}:GetPassword",
+            "path": "v1beta/{+name}:getPassword",
             "httpMethod": "GET",
             "parameterOrder": ["name"],
             "parameters": { "name": { "location": "path", "required": true } },

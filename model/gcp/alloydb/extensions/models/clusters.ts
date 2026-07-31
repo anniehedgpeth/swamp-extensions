@@ -406,7 +406,7 @@ const GlobalArgsSchema = z.object({
     network: z.string().describe(
       "Optional. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: `projects/{project_number}/global/networks/{network_id}`. This is required to create a cluster.",
     ).optional(),
-  }).describe("Metadata related to network configuration.").optional(),
+  }).describe("Optional.").optional(),
   pscConfig: z.object({
     pscEnabled: z.boolean().describe(
       "Optional. Create an instance that allows connections from Private Service Connect endpoints to the instance.",
@@ -849,7 +849,7 @@ const InputsSchema = z.object({
     network: z.string().describe(
       "Optional. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: `projects/{project_number}/global/networks/{network_id}`. This is required to create a cluster.",
     ).optional(),
-  }).describe("Metadata related to network configuration.").optional(),
+  }).describe("Optional.").optional(),
   pscConfig: z.object({
     pscEnabled: z.boolean().describe(
       "Optional. Create an instance that allows connections from Private Service Connect endpoints to the instance.",
@@ -924,7 +924,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AlloyDB Clusters. Registered at `@swamp/gcp/alloydb/clusters`. */
 export const model = {
   type: "@swamp/gcp/alloydb/clusters",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1066,6 +1066,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

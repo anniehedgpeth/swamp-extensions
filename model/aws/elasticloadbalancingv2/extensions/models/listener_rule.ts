@@ -255,7 +255,7 @@ const QueryStringConfigSchema = z.object({
 
 const RuleConditionSchema = z.object({
   Field: z.string().describe(
-    "The field in the HTTP request. The following are the possible values: http-header http-request-method host-header path-pattern query-string source-ip",
+    "The name of the field. The possible values are: http-header – [ALB] Matches on an HTTP header field. http-request-method – [ALB] Matches on the HTTP request method. host-header – [ALB] Matches on the host header. path-pattern – [ALB] Matches on the URL path of the request. query-string – [ALB] Matches on a query string parameter. source-ip – [ALB, NLB] Matches on the source IP address. For ALB, use SourceIpConfig with Values to specify CIDR ranges. For NLB, use SourceIpConfig with IpAddressType to match the IP address type ( ipv4 or ipv6).",
   ).optional(),
   RegexValues: z.array(z.string()).describe(
     "The regular expressions to match against the condition field. The maximum length of each string is 128 characters. Specify only when Field is http-header, host-header, or path-pattern.",
@@ -303,8 +303,8 @@ const TransformSchema = z.object({
 });
 
 const TagSchema = z.object({
-  Value: z.string(),
-  Key: z.string(),
+  Value: z.string().describe("The value of the tag."),
+  Key: z.string().describe("The key of the tag."),
 });
 
 const GlobalArgsSchema = z.object({
@@ -393,7 +393,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ElasticLoadBalancingV2 ListenerRule. Registered at `@swamp/aws/elasticloadbalancingv2/listener-rule`. */
 export const model = {
   type: "@swamp/aws/elasticloadbalancingv2/listener-rule",
-  version: "2026.07.17.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -442,6 +442,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

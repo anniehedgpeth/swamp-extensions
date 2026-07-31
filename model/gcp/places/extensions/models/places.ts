@@ -227,6 +227,13 @@ const StateSchema = z.object({
     languageCode: z.string(),
     text: z.string(),
   }).optional(),
+  entrances: z.array(z.object({
+    location: z.object({
+      latitude: z.number(),
+      longitude: z.number(),
+    }),
+    tags: z.array(z.string()),
+  })).optional(),
   evChargeAmenitySummary: z.object({
     coffee: z.object({
       content: z.object({
@@ -325,6 +332,19 @@ const StateSchema = z.object({
   movedPlaceId: z.string().optional(),
   name: z.string(),
   nationalPhoneNumber: z.string().optional(),
+  navigationPoints: z.array(z.object({
+    displayName: z.object({
+      languageCode: z.string(),
+      text: z.string(),
+    }),
+    location: z.object({
+      latitude: z.number(),
+      longitude: z.number(),
+    }),
+    navigationPointToken: z.string(),
+    travelModes: z.array(z.string()),
+    usages: z.array(z.string()),
+  })).optional(),
   neighborhoodSummary: z.object({
     description: z.object({
       content: z.object({
@@ -649,7 +669,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Places (New) Places. Registered at `@swamp/gcp/places/places`. */
 export const model = {
   type: "@swamp/gcp/places/places",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -785,6 +805,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

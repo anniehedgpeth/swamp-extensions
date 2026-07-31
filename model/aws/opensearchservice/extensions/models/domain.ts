@@ -251,6 +251,12 @@ const GlobalArgsSchema = z.object({
     StartTime: z.string().optional(),
     EndTime: z.string().optional(),
   }).optional(),
+  EngineMode: z.enum(["GENERAL", "OPTIMIZED"]).describe(
+    "The engine mode of the domain. Determines whether the domain runs the standard (GENERAL) engine or the optimized multi-engine (OPTIMIZED) engine. This value cannot be changed after the domain is created.",
+  ).optional(),
+  UseCase: z.enum(["SEARCH", "VECTOR", "OBSERVABILITY", "MIXED"]).describe(
+    "The primary use case of the domain. Determines the default configuration tuned for the workload. For GENERAL engine-mode domains, this value can be changed after creation. For OPTIMIZED engine-mode domains, this value cannot be changed after creation.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -365,6 +371,8 @@ const StateSchema = z.object({
     StartTime: z.string(),
     EndTime: z.string(),
   }).optional(),
+  EngineMode: z.string().optional(),
+  UseCase: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -489,6 +497,12 @@ const InputsSchema = z.object({
     StartTime: z.string().optional(),
     EndTime: z.string().optional(),
   }).optional(),
+  EngineMode: z.enum(["GENERAL", "OPTIMIZED"]).describe(
+    "The engine mode of the domain. Determines whether the domain runs the standard (GENERAL) engine or the optimized multi-engine (OPTIMIZED) engine. This value cannot be changed after the domain is created.",
+  ).optional(),
+  UseCase: z.enum(["SEARCH", "VECTOR", "OBSERVABILITY", "MIXED"]).describe(
+    "The primary use case of the domain. Determines the default configuration tuned for the workload. For GENERAL engine-mode domains, this value can be changed after creation. For OPTIMIZED engine-mode domains, this value cannot be changed after creation.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -510,7 +524,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for OpenSearchService Domain. Registered at `@swamp/aws/opensearchservice/domain`. */
 export const model = {
   type: "@swamp/aws/opensearchservice/domain",
-  version: "2026.06.15.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -555,6 +569,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Added: EngineMode, UseCase",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -660,7 +679,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["DomainName"],
+          ["DomainName", "EngineMode"],
           credentials,
         );
         const handle = await context.writeResource(

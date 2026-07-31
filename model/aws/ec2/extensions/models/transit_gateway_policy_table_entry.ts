@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/bcmdataexports/export
+// Auto-generated extension model for @swamp/aws/ec2/transit-gateway-policy-table-entry
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for BCMDataExports Export (AWS::BCMDataExports::Export).
+ * Swamp extension model for EC2 TransitGatewayPolicyTableEntry (AWS::EC2::TransitGatewayPolicyTableEntry).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,46 +41,6 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const DataQuerySchema = z.object({
-  QueryStatement: z.string().min(1).max(36000).regex(new RegExp("^[\\S\\s]*$")),
-  TableConfigurations: z.record(
-    z.string(),
-    z.record(
-      z.string(),
-      z.string().min(0).max(16384).regex(new RegExp("^[\\S\\s]*$")),
-    ),
-  ).optional(),
-});
-
-const S3OutputConfigurationsSchema = z.object({
-  OutputType: z.enum(["CUSTOM", "ATHENA", "REDSHIFT"]),
-  Format: z.enum(["TEXT_OR_CSV", "PARQUET"]),
-  Compression: z.enum(["GZIP", "PARQUET", "ZIP"]),
-  Overwrite: z.enum(["CREATE_NEW_REPORT", "OVERWRITE_REPORT"]),
-});
-
-const S3DestinationSchema = z.object({
-  S3Bucket: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$")),
-  S3BucketOwner: z.string().min(12).max(12).regex(new RegExp("^[0-9]{12}$"))
-    .optional(),
-  S3Prefix: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$")),
-  S3Region: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$")),
-  S3OutputConfigurations: S3OutputConfigurationsSchema,
-});
-
-const DestinationConfigurationsSchema = z.object({
-  S3Destination: S3DestinationSchema,
-});
-
-const RefreshCadenceSchema = z.object({
-  Frequency: z.enum(["SYNCHRONOUS"]),
-});
-
-const ResourceTagSchema = z.object({
-  Key: z.string().min(1).max(128),
-  Value: z.string().min(0).max(256),
-});
-
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -97,28 +57,44 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Export: z.object({
-    Name: z.string().min(1).max(128).regex(new RegExp("^[0-9A-Za-z\\-_]+$")),
-    Description: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$"))
-      .optional(),
-    DataQuery: DataQuerySchema,
-    DestinationConfigurations: DestinationConfigurationsSchema,
-    RefreshCadence: RefreshCadenceSchema,
-  }),
-  Tags: z.array(ResourceTagSchema).optional(),
+  TransitGatewayPolicyTableId: z.string().describe(
+    "The ID of the transit gateway policy table.",
+  ),
+  PolicyRuleNumber: z.string().describe(
+    "The rule number for the policy table entry.",
+  ),
+  PolicyRule: z.object({
+    SourceCidrBlock: z.string().describe(
+      "The source CIDR block for the transit gateway policy rule.",
+    ).optional(),
+    DestinationCidrBlock: z.string().describe(
+      "The destination CIDR block for the transit gateway policy rule.",
+    ).optional(),
+    SourcePortRange: z.string().describe(
+      "The source port range for the transit gateway policy rule.",
+    ).optional(),
+    DestinationPortRange: z.string().describe(
+      "The destination port range for the transit gateway policy rule.",
+    ).optional(),
+    Protocol: z.string().describe(
+      "The protocol for the transit gateway policy rule.",
+    ).optional(),
+  }).describe("The policy rule associated with the entry."),
+  TargetRouteTableId: z.string().describe("The ID of the target route table."),
 });
 
 const StateSchema = z.object({
-  Export: z.object({
-    ExportArn: z.string(),
-    Name: z.string(),
-    Description: z.string(),
-    DataQuery: DataQuerySchema,
-    DestinationConfigurations: DestinationConfigurationsSchema,
-    RefreshCadence: RefreshCadenceSchema,
+  TransitGatewayPolicyTableId: z.string(),
+  PolicyRuleNumber: z.string(),
+  PolicyRule: z.object({
+    SourceCidrBlock: z.string(),
+    DestinationCidrBlock: z.string(),
+    SourcePortRange: z.string(),
+    DestinationPortRange: z.string(),
+    Protocol: z.string(),
   }).optional(),
-  ExportArn: z.string(),
-  Tags: z.array(ResourceTagSchema).optional(),
+  TargetRouteTableId: z.string().optional(),
+  State: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -129,16 +105,31 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Export: z.object({
-    Name: z.string().min(1).max(128).regex(new RegExp("^[0-9A-Za-z\\-_]+$"))
-      .optional(),
-    Description: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$"))
-      .optional(),
-    DataQuery: DataQuerySchema.optional(),
-    DestinationConfigurations: DestinationConfigurationsSchema.optional(),
-    RefreshCadence: RefreshCadenceSchema.optional(),
-  }).optional(),
-  Tags: z.array(ResourceTagSchema).optional(),
+  TransitGatewayPolicyTableId: z.string().describe(
+    "The ID of the transit gateway policy table.",
+  ).optional(),
+  PolicyRuleNumber: z.string().describe(
+    "The rule number for the policy table entry.",
+  ).optional(),
+  PolicyRule: z.object({
+    SourceCidrBlock: z.string().describe(
+      "The source CIDR block for the transit gateway policy rule.",
+    ).optional(),
+    DestinationCidrBlock: z.string().describe(
+      "The destination CIDR block for the transit gateway policy rule.",
+    ).optional(),
+    SourcePortRange: z.string().describe(
+      "The source port range for the transit gateway policy rule.",
+    ).optional(),
+    DestinationPortRange: z.string().describe(
+      "The destination port range for the transit gateway policy rule.",
+    ).optional(),
+    Protocol: z.string().describe(
+      "The protocol for the transit gateway policy rule.",
+    ).optional(),
+  }).describe("The policy rule associated with the entry.").optional(),
+  TargetRouteTableId: z.string().describe("The ID of the target route table.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -157,72 +148,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for BCMDataExports Export. Registered at `@swamp/aws/bcmdataexports/export`. */
+/** Swamp extension model for EC2 TransitGatewayPolicyTableEntry. Registered at `@swamp/aws/ec2/transit-gateway-policy-table-entry`. */
 export const model = {
-  type: "@swamp/aws/bcmdataexports/export",
+  type: "@swamp/aws/ec2/transit-gateway-policy-table-entry",
   version: "2026.07.31.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.11.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.19.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.31.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "BCMDataExports Export resource state",
+      description: "EC2 TransitGatewayPolicyTableEntry resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -230,7 +164,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a BCMDataExports Export",
+      description: "Create a EC2 TransitGatewayPolicyTableEntry",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -242,7 +176,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::EC2::TransitGatewayPolicyTableEntry",
           desiredState,
           credentials,
         ) as StateData;
@@ -259,16 +193,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a BCMDataExports Export",
+      description: "Get a EC2 TransitGatewayPolicyTableEntry",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the BCMDataExports Export",
+          "The primary identifier of the EC2 TransitGatewayPolicyTableEntry",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::EC2::TransitGatewayPolicyTableEntry",
           args.identifier,
           credentials,
         ) as StateData;
@@ -286,7 +220,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a BCMDataExports Export",
+      description: "Update a EC2 TransitGatewayPolicyTableEntry",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -304,12 +238,18 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.ExportArn?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.TransitGatewayPolicyTableId?.toString(),
+          existing.PolicyRuleNumber?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         const currentState = await readResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::EC2::TransitGatewayPolicyTableEntry",
           identifier,
           credentials,
         ) as StateData;
@@ -320,11 +260,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::EC2::TransitGatewayPolicyTableEntry",
           identifier,
           currentState,
           desiredState,
-          ["Name", "RefreshCadence"],
+          ["TransitGatewayPolicyTableId", "PolicyRuleNumber"],
           credentials,
         );
         const handle = await context.writeResource(
@@ -336,16 +276,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a BCMDataExports Export",
+      description: "Delete a EC2 TransitGatewayPolicyTableEntry",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the BCMDataExports Export",
+          "The primary identifier of the EC2 TransitGatewayPolicyTableEntry",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::EC2::TransitGatewayPolicyTableEntry",
           args.identifier,
           credentials,
         );
@@ -364,7 +304,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync BCMDataExports Export state from AWS",
+      description: "Sync EC2 TransitGatewayPolicyTableEntry state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -382,13 +322,19 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.ExportArn?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.TransitGatewayPolicyTableId?.toString(),
+          existing.PolicyRuleNumber?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::BCMDataExports::Export",
+            "AWS::EC2::TransitGatewayPolicyTableEntry",
             identifier,
             credentials,
           ) as StateData;

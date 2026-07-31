@@ -164,6 +164,16 @@ const GlobalArgsSchema = z.object({
   email: z.string().describe(
     "The group's email address. If your account has multiple domains, select the appropriate domain for the email address. The `email` must be unique. This property is required when creating a group. Group email addresses are subject to the same character usage rules as usernames, see the [help center](https://support.google.com/a/answer/9193374) for details.",
   ),
+  externalIds: z.array(z.object({
+    id: z.string().describe(
+      "The unique identifier string assigned by the external provider.",
+    ).optional(),
+    namespace: z.string().describe(
+      "The system or identity provider managing this ID.",
+    ).optional(),
+  })).describe(
+    "Optional. The list of external IDs for the group, such as an immutable identifier from an external identity provider or directory sync client. Each entry contains a namespace and an ID value.",
+  ).optional(),
   id: z.string().describe(
     "Read-only. The unique ID of a group. A group `id` can be used as a group request URI's `groupKey`.",
   ).optional(),
@@ -180,6 +190,10 @@ const StateSchema = z.object({
   directMembersCount: z.string().optional(),
   email: z.string().optional(),
   etag: z.string().optional(),
+  externalIds: z.array(z.object({
+    id: z.string(),
+    namespace: z.string(),
+  })).optional(),
   id: z.string().optional(),
   kind: z.string().optional(),
   name: z.string(),
@@ -208,6 +222,16 @@ const InputsSchema = z.object({
   ).optional(),
   email: z.string().describe(
     "The group's email address. If your account has multiple domains, select the appropriate domain for the email address. The `email` must be unique. This property is required when creating a group. Group email addresses are subject to the same character usage rules as usernames, see the [help center](https://support.google.com/a/answer/9193374) for details.",
+  ).optional(),
+  externalIds: z.array(z.object({
+    id: z.string().describe(
+      "The unique identifier string assigned by the external provider.",
+    ).optional(),
+    namespace: z.string().describe(
+      "The system or identity provider managing this ID.",
+    ).optional(),
+  })).describe(
+    "Optional. The list of external IDs for the group, such as an immutable identifier from an external identity provider or directory sync client. Each entry contains a namespace and an ID value.",
   ).optional(),
   id: z.string().describe(
     "Read-only. The unique ID of a group. A group `id` can be used as a group request URI's `groupKey`.",
@@ -243,12 +267,20 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Groups. Registered at `@swamp/gcp/admin/groups`. */
 export const model = {
   type: "@swamp/gcp/admin/groups",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Added: externalIds. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -283,6 +315,9 @@ export const model = {
           body["directMembersCount"] = g["directMembersCount"];
         }
         if (g["email"] !== undefined) body["email"] = g["email"];
+        if (g["externalIds"] !== undefined) {
+          body["externalIds"] = g["externalIds"];
+        }
         if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["nonEditableAliases"] !== undefined) {

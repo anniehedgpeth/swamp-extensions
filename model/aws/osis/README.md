@@ -14,8 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/osis/pipeline_blueprint` to see the
-full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/aws/osis/pipeline` to see the full list of
+configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -47,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new pipeline_blueprint model
-swamp model create @swamp/aws/osis/pipeline_blueprint my-pipeline_blueprint
+# Create a new pipeline model
+swamp model create @swamp/aws/osis/pipeline my-pipeline
 
 # Edit the model to configure its properties
-swamp model edit my-pipeline_blueprint
+swamp model edit my-pipeline
 
 # Create the resource in AWS
-swamp model method run my-pipeline_blueprint create
+swamp model method run my-pipeline create
 
 # Sync current state from AWS
-swamp model method run my-pipeline_blueprint sync
+swamp model method run my-pipeline sync
 ```
 
 ## License

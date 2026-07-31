@@ -102,12 +102,14 @@ const GlobalArgsSchema = z.object({
   FifoTopic: z.boolean().describe("Set to true to create a FIFO topic.")
     .optional(),
   ContentBasedDeduplication: z.boolean().describe(
-    "Enables content-based deduplication for FIFO topics. By default, ContentBasedDeduplication is set to false. If you create a FIFO topic and this attribute is false, you must specify a value for the MessageDeduplicationId parameter for the [Publish](https://docs.aws.amazon.com/sns/latest/api/API_Publish.html) action. When you set ContentBasedDeduplication to true, SNS uses a SHA-256 hash to generate the MessageDeduplicationId using the body of the message (but not the attributes of the message). (Optional) To override the generated value, you can specify a value for the the MessageDeduplicationId parameter for the Publish action.",
+    "ContentBasedDeduplication enables deduplication of messages based on their content for FIFO topics. By default, this property is set to false. If you create a FIFO topic with ContentBasedDeduplication set to false, you must provide a MessageDeduplicationId for each Publish action. When set to true, SNS automatically generates a MessageDeduplicationId using a SHA-256 hash of the message body (excluding message attributes). You can optionally override this generated value by specifying a MessageDeduplicationId in the Publish action. Note that this property only applies to FIFO topics; using it with standard topics will cause the creation to fail.",
   ).optional(),
   ArchivePolicy: z.record(z.string(), z.unknown()).describe(
-    "The archive policy determines the number of days SNS retains messages. You can set a retention period from 1 to 365 days.",
+    "The ArchivePolicy determines the number of days SNS retains messages in FIFO topics. You can set a retention period ranging from 1 to 365 days. This property is only applicable to FIFO topics; attempting to use it with standard topics will result in a creation failure.",
   ).optional(),
-  FifoThroughputScope: z.string().optional(),
+  FifoThroughputScope: z.string().describe(
+    "Specifies the throughput quota and deduplication behavior to apply for the FIFO topic. Valid values are Topic or MessageGroup.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "The list of tags to add to a new topic. To be able to tag a topic on creation, you must have the sns:CreateTopic and sns:TagResource permissions.",
   ).optional(),
@@ -165,12 +167,14 @@ const InputsSchema = z.object({
   FifoTopic: z.boolean().describe("Set to true to create a FIFO topic.")
     .optional(),
   ContentBasedDeduplication: z.boolean().describe(
-    "Enables content-based deduplication for FIFO topics. By default, ContentBasedDeduplication is set to false. If you create a FIFO topic and this attribute is false, you must specify a value for the MessageDeduplicationId parameter for the [Publish](https://docs.aws.amazon.com/sns/latest/api/API_Publish.html) action. When you set ContentBasedDeduplication to true, SNS uses a SHA-256 hash to generate the MessageDeduplicationId using the body of the message (but not the attributes of the message). (Optional) To override the generated value, you can specify a value for the the MessageDeduplicationId parameter for the Publish action.",
+    "ContentBasedDeduplication enables deduplication of messages based on their content for FIFO topics. By default, this property is set to false. If you create a FIFO topic with ContentBasedDeduplication set to false, you must provide a MessageDeduplicationId for each Publish action. When set to true, SNS automatically generates a MessageDeduplicationId using a SHA-256 hash of the message body (excluding message attributes). You can optionally override this generated value by specifying a MessageDeduplicationId in the Publish action. Note that this property only applies to FIFO topics; using it with standard topics will cause the creation to fail.",
   ).optional(),
   ArchivePolicy: z.record(z.string(), z.unknown()).describe(
-    "The archive policy determines the number of days SNS retains messages. You can set a retention period from 1 to 365 days.",
+    "The ArchivePolicy determines the number of days SNS retains messages in FIFO topics. You can set a retention period ranging from 1 to 365 days. This property is only applicable to FIFO topics; attempting to use it with standard topics will result in a creation failure.",
   ).optional(),
-  FifoThroughputScope: z.string().optional(),
+  FifoThroughputScope: z.string().describe(
+    "Specifies the throughput quota and deduplication behavior to apply for the FIFO topic. Valid values are Topic or MessageGroup.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "The list of tags to add to a new topic. To be able to tag a topic on creation, you must have the sns:CreateTopic and sns:TagResource permissions.",
   ).optional(),
@@ -207,7 +211,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for SNS Topic. Registered at `@swamp/aws/sns/topic`. */
 export const model = {
   type: "@swamp/aws/sns/topic",
-  version: "2026.06.15.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -251,6 +255,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

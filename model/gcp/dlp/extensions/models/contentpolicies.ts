@@ -244,7 +244,7 @@ const GlobalArgsSchema = z.object({
         }).describe("File label to detect.").optional(),
         infoType: z.object({
           name: z.unknown().describe(
-            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
+            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
             "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
@@ -300,7 +300,7 @@ const GlobalArgsSchema = z.object({
           "Message for detecting output from deidentification transformations that support reversing.",
         ).optional(),
       })).describe(
-        "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
+        "CustomInfoTypes provided by the user. See https://docs.cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
       ).optional(),
       excludeInfoTypes: z.boolean().describe(
         "When true, excludes type information of the findings. This is not used for data profiling.",
@@ -310,7 +310,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       infoTypes: z.array(z.object({
         name: z.string().describe(
-          "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
+          "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
         ).optional(),
         sensitivityScore: z.object({
           score: z.unknown().describe(
@@ -322,7 +322,7 @@ const GlobalArgsSchema = z.object({
         version: z.string().describe("Optional version name for this InfoType.")
           .optional(),
       })).describe(
-        "Restricts what info_types to look for. The values must correspond to InfoType values returned by ListInfoTypes or listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference. When no InfoTypes or CustomInfoTypes are specified in a request, the system may automatically choose a default list of detectors to run, which may change over time. If you need precise control and predictability as to what detectors are run you should specify specific InfoTypes listed in the reference, otherwise a default list will be used, which may change over time.",
+        "Restricts what info_types to look for. The values must correspond to InfoType values returned by ListInfoTypes or listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference. When no InfoTypes or CustomInfoTypes are specified in a request, the system may automatically choose a default list of detectors to run, which may change over time. If you need precise control and predictability as to what detectors are run you should specify specific InfoTypes listed in the reference, otherwise a default list will be used, which may change over time.",
       ).optional(),
       limits: z.object({
         maxFindingsPerInfoType: z.array(z.object({
@@ -352,12 +352,12 @@ const GlobalArgsSchema = z.object({
         "LIKELY",
         "VERY_LIKELY",
       ]).describe(
-        "Only returns findings equal to or above this threshold. The default is POSSIBLE. In general, the highest likelihood setting yields the fewest findings in results and the lowest chance of a false positive. For more information, see [Match likelihood](https://cloud.google.com/sensitive-data-protection/docs/likelihood).",
+        "Only returns findings equal to or above this threshold. The default is POSSIBLE. In general, the highest likelihood setting yields the fewest findings in results and the lowest chance of a false positive. For more information, see [Match likelihood](https://docs.cloud.google.com/sensitive-data-protection/docs/likelihood).",
       ).optional(),
       minLikelihoodPerInfoType: z.array(z.object({
         infoType: z.object({
           name: z.unknown().describe(
-            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
+            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
             "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
@@ -442,7 +442,7 @@ const GlobalArgsSchema = z.object({
             "Message for detecting output from deidentification transformations that support reversing.",
           ).optional(),
         })).describe(
-          "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
+          "CustomInfoTypes provided by the user. See https://docs.cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
         ).optional(),
         excludeInfoTypes: z.boolean().describe(
           "When true, excludes type information of the findings. This is not used for data profiling.",
@@ -452,7 +452,7 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         infoTypes: z.array(z.object({
           name: z.unknown().describe(
-            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
+            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
             "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
@@ -461,7 +461,7 @@ const GlobalArgsSchema = z.object({
             "Optional version name for this InfoType.",
           ).optional(),
         })).describe(
-          "Restricts what info_types to look for. The values must correspond to InfoType values returned by ListInfoTypes or listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference. When no InfoTypes or CustomInfoTypes are specified in a request, the system may automatically choose a default list of detectors to run, which may change over time. If you need precise control and predictability as to what detectors are run you should specify specific InfoTypes listed in the reference, otherwise a default list will be used, which may change over time.",
+          "Restricts what info_types to look for. The values must correspond to InfoType values returned by ListInfoTypes or listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference. When no InfoTypes or CustomInfoTypes are specified in a request, the system may automatically choose a default list of detectors to run, which may change over time. If you need precise control and predictability as to what detectors are run you should specify specific InfoTypes listed in the reference, otherwise a default list will be used, which may change over time.",
         ).optional(),
         limits: z.object({
           maxFindingsPerInfoType: z.array(z.unknown()).describe(
@@ -484,7 +484,7 @@ const GlobalArgsSchema = z.object({
           "LIKELY",
           "VERY_LIKELY",
         ]).describe(
-          "Only returns findings equal to or above this threshold. The default is POSSIBLE. In general, the highest likelihood setting yields the fewest findings in results and the lowest chance of a false positive. For more information, see [Match likelihood](https://cloud.google.com/sensitive-data-protection/docs/likelihood).",
+          "Only returns findings equal to or above this threshold. The default is POSSIBLE. In general, the highest likelihood setting yields the fewest findings in results and the lowest chance of a false positive. For more information, see [Match likelihood](https://docs.cloud.google.com/sensitive-data-protection/docs/likelihood).",
         ).optional(),
         minLikelihoodPerInfoType: z.array(z.object({
           infoType: z.unknown().describe(
@@ -908,7 +908,7 @@ const InputsSchema = z.object({
         }).describe("File label to detect.").optional(),
         infoType: z.object({
           name: z.unknown().describe(
-            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
+            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
             "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
@@ -964,7 +964,7 @@ const InputsSchema = z.object({
           "Message for detecting output from deidentification transformations that support reversing.",
         ).optional(),
       })).describe(
-        "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
+        "CustomInfoTypes provided by the user. See https://docs.cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
       ).optional(),
       excludeInfoTypes: z.boolean().describe(
         "When true, excludes type information of the findings. This is not used for data profiling.",
@@ -974,7 +974,7 @@ const InputsSchema = z.object({
       ).optional(),
       infoTypes: z.array(z.object({
         name: z.string().describe(
-          "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
+          "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
         ).optional(),
         sensitivityScore: z.object({
           score: z.unknown().describe(
@@ -986,7 +986,7 @@ const InputsSchema = z.object({
         version: z.string().describe("Optional version name for this InfoType.")
           .optional(),
       })).describe(
-        "Restricts what info_types to look for. The values must correspond to InfoType values returned by ListInfoTypes or listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference. When no InfoTypes or CustomInfoTypes are specified in a request, the system may automatically choose a default list of detectors to run, which may change over time. If you need precise control and predictability as to what detectors are run you should specify specific InfoTypes listed in the reference, otherwise a default list will be used, which may change over time.",
+        "Restricts what info_types to look for. The values must correspond to InfoType values returned by ListInfoTypes or listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference. When no InfoTypes or CustomInfoTypes are specified in a request, the system may automatically choose a default list of detectors to run, which may change over time. If you need precise control and predictability as to what detectors are run you should specify specific InfoTypes listed in the reference, otherwise a default list will be used, which may change over time.",
       ).optional(),
       limits: z.object({
         maxFindingsPerInfoType: z.array(z.object({
@@ -1016,12 +1016,12 @@ const InputsSchema = z.object({
         "LIKELY",
         "VERY_LIKELY",
       ]).describe(
-        "Only returns findings equal to or above this threshold. The default is POSSIBLE. In general, the highest likelihood setting yields the fewest findings in results and the lowest chance of a false positive. For more information, see [Match likelihood](https://cloud.google.com/sensitive-data-protection/docs/likelihood).",
+        "Only returns findings equal to or above this threshold. The default is POSSIBLE. In general, the highest likelihood setting yields the fewest findings in results and the lowest chance of a false positive. For more information, see [Match likelihood](https://docs.cloud.google.com/sensitive-data-protection/docs/likelihood).",
       ).optional(),
       minLikelihoodPerInfoType: z.array(z.object({
         infoType: z.object({
           name: z.unknown().describe(
-            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
+            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
             "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
@@ -1106,7 +1106,7 @@ const InputsSchema = z.object({
             "Message for detecting output from deidentification transformations that support reversing.",
           ).optional(),
         })).describe(
-          "CustomInfoTypes provided by the user. See https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
+          "CustomInfoTypes provided by the user. See https://docs.cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes to learn more.",
         ).optional(),
         excludeInfoTypes: z.boolean().describe(
           "When true, excludes type information of the findings. This is not used for data profiling.",
@@ -1116,7 +1116,7 @@ const InputsSchema = z.object({
         ).optional(),
         infoTypes: z.array(z.object({
           name: z.unknown().describe(
-            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
+            "Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern `[A-Za-z0-9$_-]{1,64}`.",
           ).optional(),
           sensitivityScore: z.unknown().describe(
             "Optional custom sensitivity for this InfoType. This only applies to data profiling.",
@@ -1125,7 +1125,7 @@ const InputsSchema = z.object({
             "Optional version name for this InfoType.",
           ).optional(),
         })).describe(
-          "Restricts what info_types to look for. The values must correspond to InfoType values returned by ListInfoTypes or listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference. When no InfoTypes or CustomInfoTypes are specified in a request, the system may automatically choose a default list of detectors to run, which may change over time. If you need precise control and predictability as to what detectors are run you should specify specific InfoTypes listed in the reference, otherwise a default list will be used, which may change over time.",
+          "Restricts what info_types to look for. The values must correspond to InfoType values returned by ListInfoTypes or listed at https://docs.cloud.google.com/sensitive-data-protection/docs/infotypes-reference. When no InfoTypes or CustomInfoTypes are specified in a request, the system may automatically choose a default list of detectors to run, which may change over time. If you need precise control and predictability as to what detectors are run you should specify specific InfoTypes listed in the reference, otherwise a default list will be used, which may change over time.",
         ).optional(),
         limits: z.object({
           maxFindingsPerInfoType: z.array(z.unknown()).describe(
@@ -1148,7 +1148,7 @@ const InputsSchema = z.object({
           "LIKELY",
           "VERY_LIKELY",
         ]).describe(
-          "Only returns findings equal to or above this threshold. The default is POSSIBLE. In general, the highest likelihood setting yields the fewest findings in results and the lowest chance of a false positive. For more information, see [Match likelihood](https://cloud.google.com/sensitive-data-protection/docs/likelihood).",
+          "Only returns findings equal to or above this threshold. The default is POSSIBLE. In general, the highest likelihood setting yields the fewest findings in results and the lowest chance of a false positive. For more information, see [Match likelihood](https://docs.cloud.google.com/sensitive-data-protection/docs/likelihood).",
         ).optional(),
         minLikelihoodPerInfoType: z.array(z.object({
           infoType: z.unknown().describe(
@@ -1279,12 +1279,20 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Sensitive Data Protection (DLP) ContentPolicies. Registered at `@swamp/gcp/dlp/contentpolicies`. */
 export const model = {
   type: "@swamp/gcp/dlp/contentpolicies",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

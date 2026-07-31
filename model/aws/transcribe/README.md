@@ -14,9 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/transcribe/medical_transcription_job`
-to see the full list of configurable properties and available methods for this
-model.
+Use `swamp model type describe @swamp/aws/transcribe/vocabulary_filter` to see
+the full list of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -48,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new medical_transcription_job model
-swamp model create @swamp/aws/transcribe/medical_transcription_job my-medical_transcription_job
+# Create a new vocabulary_filter model
+swamp model create @swamp/aws/transcribe/vocabulary_filter my-vocabulary_filter
 
 # Edit the model to configure its properties
-swamp model edit my-medical_transcription_job
+swamp model edit my-vocabulary_filter
 
 # Create the resource in AWS
-swamp model method run my-medical_transcription_job create
+swamp model method run my-vocabulary_filter create
 
 # Sync current state from AWS
-swamp model method run my-medical_transcription_job sync
+swamp model method run my-vocabulary_filter sync
 ```
 
 ## License

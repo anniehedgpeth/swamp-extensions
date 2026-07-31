@@ -93,6 +93,9 @@ const PATCH_CONFIG = {
     "name",
   ],
   "parameters": {
+    "checkExistingUsage": {
+      "location": "query",
+    },
     "name": {
       "location": "path",
       "required": true,
@@ -350,7 +353,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API Keys Keys. Registered at `@swamp/gcp/apikeys/keys`. */
 export const model = {
   type: "@swamp/gcp/apikeys/keys",
-  version: "2026.07.30.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -489,6 +492,14 @@ export const model = {
     },
     {
       toVersion: "2026.07.30.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.07.31.1",
       description: "Removed: quotaProject",
       upgradeAttributes: (old: Record<string, unknown>) => {
         const { quotaProject: _quotaProject, ...rest } = old;

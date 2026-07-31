@@ -223,6 +223,12 @@ const GlobalArgsSchema = z.object({
           ).optional(),
         }).describe("Optional. The device information configuration.")
           .optional(),
+        dispatchInfo: z.object({
+          outputType: z.unknown().describe(
+            "Optional. The output type details for the delegated dispatch information.",
+          ).optional(),
+        }).describe("Optional. The dispatch information configuration.")
+          .optional(),
         groupInfo: z.object({
           outputType: z.unknown().describe(
             "Optional. The output type of the delegated group information.",
@@ -297,6 +303,9 @@ const StateSchema = z.object({
         deviceInfo: z.object({
           outputType: z.unknown(),
         }),
+        dispatchInfo: z.object({
+          outputType: z.unknown(),
+        }),
         groupInfo: z.object({
           outputType: z.unknown(),
         }),
@@ -369,6 +378,12 @@ const InputsSchema = z.object({
           ).optional(),
         }).describe("Optional. The device information configuration.")
           .optional(),
+        dispatchInfo: z.object({
+          outputType: z.unknown().describe(
+            "Optional. The output type details for the delegated dispatch information.",
+          ).optional(),
+        }).describe("Optional. The dispatch information configuration.")
+          .optional(),
         groupInfo: z.object({
           outputType: z.unknown().describe(
             "Optional. The output type of the delegated group information.",
@@ -438,7 +453,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BeyondCorp SecurityGateways.Applications. Registered at `@swamp/gcp/beyondcorp/securitygateways-applications`. */
 export const model = {
   type: "@swamp/gcp/beyondcorp/securitygateways-applications",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -594,6 +609,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

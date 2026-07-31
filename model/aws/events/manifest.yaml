@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/events"
-version: "2026.07.30.1"
+version: "2026.07.31.1"
 description: "AWS EVENTS infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -16,7 +16,6 @@ models:
   - endpoint.ts
   - event_bus.ts
   - event_bus_policy.ts
-  - replay.ts
   - rule.ts
 additionalFiles:
   - LICENSE.txt

@@ -58,6 +58,9 @@ const LIST_CONFIG = {
     "actorIpAddress": {
       "location": "query",
     },
+    "agentInfoFilter": {
+      "location": "query",
+    },
     "applicationInfoFilter": {
       "location": "query",
     },
@@ -66,6 +69,9 @@ const LIST_CONFIG = {
       "required": true,
     },
     "customerId": {
+      "location": "query",
+    },
+    "deviceFilter": {
       "location": "query",
     },
     "endTime": {
@@ -285,7 +291,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Activities. Registered at `@swamp/gcp/admin/activities`. */
 export const model = {
   type: "@swamp/gcp/admin/activities",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -412,6 +418,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -537,11 +551,17 @@ export const model = {
         actorIpAddress: z.string().describe(
           "The Internet Protocol (IP) Address of host where the event was performed. This is an additional way to filter a report's summary using the IP address of the user whose activity is being reported. This IP address may or may not reflect the user's physical location. For example, the IP address can be the user's proxy server's address or a virtual private network (VPN) address. This parameter supports both IPv4 and IPv6 address versions.",
         ).optional(),
+        agentInfoFilter: z.string().describe(
+          'Optional. Filters on agent info fields in the activity. This filter gets applied in conjunction(AND) with other filters. Example: "agentInfoFilter=agentId=\\"agent-id\\" AND agentName=\\"agent-name\\" AND agentOwnerEmail=\\"agent-owner-email\\""',
+        ).optional(),
         applicationInfoFilter: z.string().describe(
           'Optional. Used to filter on the `oAuthClientId` field present in [`ApplicationInfo`](#applicationinfo) message. **Usage** ``` GET...&applicationInfoFilter=oAuthClientId="clientId" GET...&applicationInfoFilter=oAuthClientId=%22clientId%22 ```',
         ).optional(),
         customerId: z.string().describe(
           "The unique ID of the customer to retrieve data for.",
+        ).optional(),
+        deviceFilter: z.string().describe(
+          'Optional. Used to filter on the fields present in [`UserDeviceInfo`](#userdeviceinfo) message like `deviceId`, `deviceType`, and `deviceOsVersion`. **Usage** ``` GET...&deviceFilter=deviceId="123" GET...&deviceFilter=deviceType="ANDROID" GET...&deviceFilter=deviceOsVersion="14.0" ```',
         ).optional(),
         endTime: z.string().describe(
           "Sets the end of the range of time shown in the report. The date is in the RFC 3339 format, for example 2010-10-28T10:26:35.000Z. The default value is the approximate time of the API request. An API report has three basic time concepts: - *Date of the API's request for a report*: When the API created and retrieved the report. - *Report's start time*: The beginning of the timespan shown in the report. The `startTime` must be before the `endTime` (if specified) and the current time when the request is made, or the API returns an error. - *Report's end time*: The end of the timespan shown in the report. For example, the timespan of events summarized in a report can start in April and end in May. The report itself can be requested in August. If the `endTime` is not specified, the report returns all activities from the `startTime` until the current time or the most recent 180 days if the `startTime` is more than 180 days in the past. For Gmail requests, `startTime` and `endTime` must be provided and the difference must not be greater than 30 days.",
@@ -594,6 +614,9 @@ export const model = {
         if (args["actorIpAddress"] !== undefined) {
           params["actorIpAddress"] = String(args["actorIpAddress"]);
         }
+        if (args["agentInfoFilter"] !== undefined) {
+          params["agentInfoFilter"] = String(args["agentInfoFilter"]);
+        }
         if (args["applicationInfoFilter"] !== undefined) {
           params["applicationInfoFilter"] = String(
             args["applicationInfoFilter"],
@@ -601,6 +624,9 @@ export const model = {
         }
         if (args["customerId"] !== undefined) {
           params["customerId"] = String(args["customerId"]);
+        }
+        if (args["deviceFilter"] !== undefined) {
+          params["deviceFilter"] = String(args["deviceFilter"]);
         }
         if (args["endTime"] !== undefined) {
           params["endTime"] = String(args["endTime"]);

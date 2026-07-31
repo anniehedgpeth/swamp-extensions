@@ -14,9 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/identitystore/all_group_memberships`
-to see the full list of configurable properties and available methods for this
-model.
+Use `swamp model type describe @swamp/aws/identitystore/group_membership` to see
+the full list of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -48,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new all_group_memberships model
-swamp model create @swamp/aws/identitystore/all_group_memberships my-all_group_memberships
+# Create a new group_membership model
+swamp model create @swamp/aws/identitystore/group_membership my-group_membership
 
 # Edit the model to configure its properties
-swamp model edit my-all_group_memberships
+swamp model edit my-group_membership
 
 # Create the resource in AWS
-swamp model method run my-all_group_memberships create
+swamp model method run my-group_membership create
 
 # Sync current state from AWS
-swamp model method run my-all_group_memberships sync
+swamp model method run my-group_membership sync
 ```
 
 ## License

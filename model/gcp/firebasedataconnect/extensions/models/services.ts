@@ -203,6 +203,18 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Identifier. The relative resource name of the Firebase SQL Connect service, in the format: ` projects/{project}/locations/{location}/services/{service} ` Note that the service ID is specific to Firebase SQL Connect and does not correspond to any of the instance IDs of the underlying data source connections.",
   ).optional(),
+  source: z.object({
+    files: z.array(z.object({
+      content: z.string().describe("Required. The file's textual content.")
+        .optional(),
+      path: z.string().describe(
+        "Required. The file name including folder path, if applicable. The path should be relative to a local workspace (e.g. dataconnect/(schema|connector)/*.gql) and not an absolute path (e.g. /absolute/path/(schema|connector)/*.gql).",
+      ).optional(),
+    })).describe("Required. The files that comprise the source set.")
+      .optional(),
+  }).describe(
+    "Optional. Input only. The source files for service, schemas, and connectors.",
+  ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
@@ -216,12 +228,71 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   annotations: z.record(z.string(), z.unknown()).optional(),
+  connectors: z.array(z.object({
+    annotations: z.record(z.string(), z.unknown()),
+    clientCache: z.object({
+      entityIdIncluded: z.boolean(),
+      strictValidationEnabled: z.boolean(),
+    }),
+    createTime: z.string(),
+    displayName: z.string(),
+    etag: z.string(),
+    labels: z.record(z.string(), z.unknown()),
+    name: z.string(),
+    reconciling: z.boolean(),
+    source: z.object({
+      files: z.array(z.object({
+        content: z.unknown(),
+        path: z.unknown(),
+      })),
+    }),
+    uid: z.string(),
+    updateTime: z.string(),
+  })).optional(),
   createTime: z.string().optional(),
   displayName: z.string().optional(),
   etag: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
   reconciling: z.boolean().optional(),
+  schemas: z.array(z.object({
+    annotations: z.record(z.string(), z.unknown()),
+    createTime: z.string(),
+    datasources: z.array(z.object({
+      httpGraphql: z.object({
+        timeout: z.unknown(),
+        uri: z.unknown(),
+      }),
+      postgresql: z.object({
+        cloudSql: z.unknown(),
+        database: z.unknown(),
+        ephemeral: z.unknown(),
+        schema: z.unknown(),
+        schemaMigration: z.unknown(),
+        schemaValidation: z.unknown(),
+        unlinked: z.unknown(),
+      }),
+    })),
+    displayName: z.string(),
+    etag: z.string(),
+    labels: z.record(z.string(), z.unknown()),
+    name: z.string(),
+    reconciling: z.boolean(),
+    source: z.object({
+      files: z.array(z.object({
+        content: z.unknown(),
+        path: z.unknown(),
+      })),
+    }),
+    uid: z.string(),
+    updateTime: z.string(),
+  })).optional(),
+  source: z.object({
+    files: z.array(z.object({
+      content: z.string(),
+      path: z.string(),
+    })),
+  }).optional(),
   uid: z.string().optional(),
   updateTime: z.string().optional(),
 }).passthrough();
@@ -245,6 +316,18 @@ const InputsSchema = z.object({
   ).optional(),
   name: z.string().describe(
     "Identifier. The relative resource name of the Firebase SQL Connect service, in the format: ` projects/{project}/locations/{location}/services/{service} ` Note that the service ID is specific to Firebase SQL Connect and does not correspond to any of the instance IDs of the underlying data source connections.",
+  ).optional(),
+  source: z.object({
+    files: z.array(z.object({
+      content: z.string().describe("Required. The file's textual content.")
+        .optional(),
+      path: z.string().describe(
+        "Required. The file name including folder path, if applicable. The path should be relative to a local workspace (e.g. dataconnect/(schema|connector)/*.gql) and not an absolute path (e.g. /absolute/path/(schema|connector)/*.gql).",
+      ).optional(),
+    })).describe("Required. The files that comprise the source set.")
+      .optional(),
+  }).describe(
+    "Optional. Input only. The source files for service, schemas, and connectors.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -282,7 +365,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firebase SQL Connect Services. Registered at `@swamp/gcp/firebasedataconnect/services`. */
 export const model = {
   type: "@swamp/gcp/firebasedataconnect/services",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -444,6 +527,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Added: source. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -476,6 +567,7 @@ export const model = {
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["source"] !== undefined) body["source"] = g["source"];
         if (g["requestId"] !== undefined) {
           params["requestId"] = String(g["requestId"]);
         }
@@ -595,6 +687,7 @@ export const model = {
           body["displayName"] = g["displayName"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["source"] !== undefined) body["source"] = g["source"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

@@ -60,8 +60,12 @@ const TagSchema = z.object({
 const CapacityProviderLoggingConfigSchema = z.object({
   LogGroup: z.string().min(1).max(512).regex(
     new RegExp("[\\.\\-_/#A-Za-z0-9]+"),
+  ).describe(
+    "The name of the Amazon CloudWatch log group the capacity provider sends logs to. By default, Lambda capacity providers send logs to a default log group named /aws/lambda/capacity-provider/. To use a different log group, enter an existing log group or enter a new log group name.",
   ).optional(),
-  SystemLogLevel: z.enum(["DEBUG", "INFO", "WARN"]).optional(),
+  SystemLogLevel: z.enum(["DEBUG", "INFO", "WARN"]).describe(
+    "Set this property to filter the system logs for your capacity provider that Lambda sends to CloudWatch. Lambda only sends system logs at the selected level of detail and lower, where DEBUG is the highest level and WARN is the lowest.",
+  ).optional(),
 });
 
 const GlobalArgsSchema = z.object({
@@ -151,8 +155,12 @@ const GlobalArgsSchema = z.object({
     "Configuration for tag propagation to managed resources launched by the capacity provider.",
   ).optional(),
   TelemetryConfig: z.object({
-    LoggingConfig: CapacityProviderLoggingConfigSchema.optional(),
-  }).optional(),
+    LoggingConfig: CapacityProviderLoggingConfigSchema.describe(
+      "The capacity provider's Amazon CloudWatch Logs configuration settings.",
+    ).optional(),
+  }).describe(
+    "The telemetry configuration for the capacity provider, including logging settings.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -269,8 +277,12 @@ const InputsSchema = z.object({
     "Configuration for tag propagation to managed resources launched by the capacity provider.",
   ).optional(),
   TelemetryConfig: z.object({
-    LoggingConfig: CapacityProviderLoggingConfigSchema.optional(),
-  }).optional(),
+    LoggingConfig: CapacityProviderLoggingConfigSchema.describe(
+      "The capacity provider's Amazon CloudWatch Logs configuration settings.",
+    ).optional(),
+  }).describe(
+    "The telemetry configuration for the capacity provider, including logging settings.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -292,7 +304,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Lambda CapacityProvider. Registered at `@swamp/aws/lambda/capacity-provider`. */
 export const model = {
   type: "@swamp/aws/lambda/capacity-provider",
-  version: "2026.07.18.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -361,6 +373,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

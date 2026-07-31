@@ -106,6 +106,7 @@ const StateSchema = z.object({
   scope: z.string().optional(),
   stringRestrictions: z.object({
     allowedValues: z.array(z.string()),
+    caseAgnostic: z.boolean(),
   }).optional(),
   supportedDbVersions: z.array(z.string()).optional(),
   valueType: z.string().optional(),
@@ -150,7 +151,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud AlloyDB SupportedDatabaseFlags. Registered at `@swamp/gcp/alloydb/supporteddatabaseflags`. */
 export const model = {
   type: "@swamp/gcp/alloydb/supporteddatabaseflags",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -256,6 +257,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

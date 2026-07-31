@@ -210,6 +210,17 @@ const GlobalArgsSchema = z.object({
           "Optional. The output type details for the delegated device.",
         ).optional(),
       }).describe("Optional. The device information configuration.").optional(),
+      dispatchInfo: z.object({
+        outputType: z.enum([
+          "OUTPUT_TYPE_UNSPECIFIED",
+          "PROTOBUF",
+          "JSON",
+          "NONE",
+        ]).describe(
+          "Optional. The output type details for the delegated dispatch information.",
+        ).optional(),
+      }).describe("Optional. The dispatch information configuration.")
+        .optional(),
       groupInfo: z.object({
         outputType: z.enum([
           "OUTPUT_TYPE_UNSPECIFIED",
@@ -282,6 +293,9 @@ const StateSchema = z.object({
       deviceInfo: z.object({
         outputType: z.string(),
       }),
+      dispatchInfo: z.object({
+        outputType: z.string(),
+      }),
       groupInfo: z.object({
         outputType: z.string(),
       }),
@@ -349,6 +363,17 @@ const InputsSchema = z.object({
           "Optional. The output type details for the delegated device.",
         ).optional(),
       }).describe("Optional. The device information configuration.").optional(),
+      dispatchInfo: z.object({
+        outputType: z.enum([
+          "OUTPUT_TYPE_UNSPECIFIED",
+          "PROTOBUF",
+          "JSON",
+          "NONE",
+        ]).describe(
+          "Optional. The output type details for the delegated dispatch information.",
+        ).optional(),
+      }).describe("Optional. The dispatch information configuration.")
+        .optional(),
       groupInfo: z.object({
         outputType: z.enum([
           "OUTPUT_TYPE_UNSPECIFIED",
@@ -431,7 +456,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BeyondCorp SecurityGateways. Registered at `@swamp/gcp/beyondcorp/securitygateways`. */
 export const model = {
   type: "@swamp/gcp/beyondcorp/securitygateways",
-  version: "2026.07.29.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -582,6 +607,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

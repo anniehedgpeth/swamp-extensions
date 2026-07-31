@@ -219,8 +219,8 @@ const CertificateSchema = z.object({
 });
 
 const TagSchema = z.object({
-  Value: z.string(),
-  Key: z.string(),
+  Value: z.string().describe("The value of the tag."),
+  Key: z.string().describe("The key of the tag."),
 });
 
 const GlobalArgsSchema = z.object({
@@ -369,7 +369,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ElasticLoadBalancingV2 Listener. Registered at `@swamp/aws/elasticloadbalancingv2/listener`. */
 export const model = {
   type: "@swamp/aws/elasticloadbalancingv2/listener",
-  version: "2026.07.16.1",
+  version: "2026.07.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -419,6 +419,11 @@ export const model = {
     {
       toVersion: "2026.07.16.1",
       description: "Added: Tags",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.07.31.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

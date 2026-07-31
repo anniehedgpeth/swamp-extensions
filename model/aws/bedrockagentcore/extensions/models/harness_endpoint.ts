@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/bcmdataexports/export
+// Auto-generated extension model for @swamp/aws/bedrockagentcore/harness-endpoint
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for BCMDataExports Export (AWS::BCMDataExports::Export).
+ * Swamp extension model for BedrockAgentCore HarnessEndpoint (AWS::BedrockAgentCore::HarnessEndpoint).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,44 +41,13 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const DataQuerySchema = z.object({
-  QueryStatement: z.string().min(1).max(36000).regex(new RegExp("^[\\S\\s]*$")),
-  TableConfigurations: z.record(
-    z.string(),
-    z.record(
-      z.string(),
-      z.string().min(0).max(16384).regex(new RegExp("^[\\S\\s]*$")),
-    ),
-  ).optional(),
-});
-
-const S3OutputConfigurationsSchema = z.object({
-  OutputType: z.enum(["CUSTOM", "ATHENA", "REDSHIFT"]),
-  Format: z.enum(["TEXT_OR_CSV", "PARQUET"]),
-  Compression: z.enum(["GZIP", "PARQUET", "ZIP"]),
-  Overwrite: z.enum(["CREATE_NEW_REPORT", "OVERWRITE_REPORT"]),
-});
-
-const S3DestinationSchema = z.object({
-  S3Bucket: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$")),
-  S3BucketOwner: z.string().min(12).max(12).regex(new RegExp("^[0-9]{12}$"))
-    .optional(),
-  S3Prefix: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$")),
-  S3Region: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$")),
-  S3OutputConfigurations: S3OutputConfigurationsSchema,
-});
-
-const DestinationConfigurationsSchema = z.object({
-  S3Destination: S3DestinationSchema,
-});
-
-const RefreshCadenceSchema = z.object({
-  Frequency: z.enum(["SYNCHRONOUS"]),
-});
-
-const ResourceTagSchema = z.object({
-  Key: z.string().min(1).max(128),
-  Value: z.string().min(0).max(256),
+const TagSchema = z.object({
+  Key: z.string().min(1).max(128).regex(
+    new RegExp("^[a-zA-Z0-9\\s_.:/=+\\-@]*$"),
+  ),
+  Value: z.string().min(0).max(256).regex(
+    new RegExp("^[a-zA-Z0-9\\s_.:/=+\\-@]*$"),
+  ),
 });
 
 const GlobalArgsSchema = z.object({
@@ -97,28 +66,38 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Export: z.object({
-    Name: z.string().min(1).max(128).regex(new RegExp("^[0-9A-Za-z\\-_]+$")),
-    Description: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$"))
-      .optional(),
-    DataQuery: DataQuerySchema,
-    DestinationConfigurations: DestinationConfigurationsSchema,
-    RefreshCadence: RefreshCadenceSchema,
-  }),
-  Tags: z.array(ResourceTagSchema).optional(),
+  HarnessId: z.string().regex(
+    new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,39}-[a-zA-Z0-9]{10}$"),
+  ).describe("The ID of the harness that the endpoint belongs to."),
+  EndpointName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$"))
+    .describe(
+      "The name of the endpoint. Must start with a letter and contain only alphanumeric characters and underscores.",
+    ),
+  TargetVersion: z.string().min(1).max(5).regex(
+    new RegExp("^([1-9][0-9]{0,4})$"),
+  ).describe(
+    "The harness version that the endpoint points to and serves invocations from.",
+  ).optional(),
+  Description: z.string().min(1).max(256).describe(
+    "The description of the endpoint.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "Tags to apply to the harness endpoint resource.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
-  Export: z.object({
-    ExportArn: z.string(),
-    Name: z.string(),
-    Description: z.string(),
-    DataQuery: DataQuerySchema,
-    DestinationConfigurations: DestinationConfigurationsSchema,
-    RefreshCadence: RefreshCadenceSchema,
-  }).optional(),
-  ExportArn: z.string(),
-  Tags: z.array(ResourceTagSchema).optional(),
+  HarnessId: z.string().optional(),
+  EndpointName: z.string().optional(),
+  HarnessName: z.string().optional(),
+  Arn: z.string(),
+  Status: z.string().optional(),
+  TargetVersion: z.string().optional(),
+  LiveVersion: z.string().optional(),
+  Description: z.string().optional(),
+  CreatedAt: z.string().optional(),
+  UpdatedAt: z.string().optional(),
+  Tags: z.array(TagSchema).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -129,16 +108,24 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Export: z.object({
-    Name: z.string().min(1).max(128).regex(new RegExp("^[0-9A-Za-z\\-_]+$"))
-      .optional(),
-    Description: z.string().min(0).max(1024).regex(new RegExp("^[\\S\\s]*$"))
-      .optional(),
-    DataQuery: DataQuerySchema.optional(),
-    DestinationConfigurations: DestinationConfigurationsSchema.optional(),
-    RefreshCadence: RefreshCadenceSchema.optional(),
-  }).optional(),
-  Tags: z.array(ResourceTagSchema).optional(),
+  HarnessId: z.string().regex(
+    new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,39}-[a-zA-Z0-9]{10}$"),
+  ).describe("The ID of the harness that the endpoint belongs to.").optional(),
+  EndpointName: z.string().regex(new RegExp("^[a-zA-Z][a-zA-Z0-9_]{0,47}$"))
+    .describe(
+      "The name of the endpoint. Must start with a letter and contain only alphanumeric characters and underscores.",
+    ).optional(),
+  TargetVersion: z.string().min(1).max(5).regex(
+    new RegExp("^([1-9][0-9]{0,4})$"),
+  ).describe(
+    "The harness version that the endpoint points to and serves invocations from.",
+  ).optional(),
+  Description: z.string().min(1).max(256).describe(
+    "The description of the endpoint.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "Tags to apply to the harness endpoint resource.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -157,72 +144,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for BCMDataExports Export. Registered at `@swamp/aws/bcmdataexports/export`. */
+/** Swamp extension model for BedrockAgentCore HarnessEndpoint. Registered at `@swamp/aws/bedrockagentcore/harness-endpoint`. */
 export const model = {
-  type: "@swamp/aws/bcmdataexports/export",
+  type: "@swamp/aws/bedrockagentcore/harness-endpoint",
   version: "2026.07.31.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.11.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.19.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.31.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "BCMDataExports Export resource state",
+      description: "BedrockAgentCore HarnessEndpoint resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -230,7 +160,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a BCMDataExports Export",
+      description: "Create a BedrockAgentCore HarnessEndpoint",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -242,7 +172,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::BedrockAgentCore::HarnessEndpoint",
           desiredState,
           credentials,
         ) as StateData;
@@ -259,16 +189,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a BCMDataExports Export",
+      description: "Get a BedrockAgentCore HarnessEndpoint",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the BCMDataExports Export",
+          "The primary identifier of the BedrockAgentCore HarnessEndpoint",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::BedrockAgentCore::HarnessEndpoint",
           args.identifier,
           credentials,
         ) as StateData;
@@ -286,7 +216,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a BCMDataExports Export",
+      description: "Update a BedrockAgentCore HarnessEndpoint",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -304,12 +234,12 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.ExportArn?.toString();
+        const identifier = existing.Arn?.toString();
         if (!identifier) {
           throw new Error("No identifier found in existing state");
         }
         const currentState = await readResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::BedrockAgentCore::HarnessEndpoint",
           identifier,
           credentials,
         ) as StateData;
@@ -320,11 +250,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::BedrockAgentCore::HarnessEndpoint",
           identifier,
           currentState,
           desiredState,
-          ["Name", "RefreshCadence"],
+          ["HarnessId", "EndpointName"],
           credentials,
         );
         const handle = await context.writeResource(
@@ -336,16 +266,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a BCMDataExports Export",
+      description: "Delete a BedrockAgentCore HarnessEndpoint",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the BCMDataExports Export",
+          "The primary identifier of the BedrockAgentCore HarnessEndpoint",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::BCMDataExports::Export",
+          "AWS::BedrockAgentCore::HarnessEndpoint",
           args.identifier,
           credentials,
         );
@@ -364,7 +294,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync BCMDataExports Export state from AWS",
+      description: "Sync BedrockAgentCore HarnessEndpoint state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -382,13 +312,13 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.ExportArn?.toString();
+        const identifier = existing.Arn?.toString();
         if (!identifier) {
           throw new Error("No identifier found in existing state");
         }
         try {
           const result = await readResource(
-            "AWS::BCMDataExports::Export",
+            "AWS::BedrockAgentCore::HarnessEndpoint",
             identifier,
             credentials,
           ) as StateData;

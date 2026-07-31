@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/elasticache"
-version: "2026.07.30.1"
+version: "2026.07.31.1"
 description: "AWS ELASTICACHE infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -14,7 +14,6 @@ models:
   - global_replication_group.ts
   - parameter_group.ts
   - replication_group.ts
-  - reserved_cache_node.ts
   - serverless_cache.ts
   - subnet_group.ts
   - user.ts

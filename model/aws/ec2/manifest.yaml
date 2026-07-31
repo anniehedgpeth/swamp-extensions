@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/ec2"
-version: "2026.07.30.1"
+version: "2026.07.31.1"
 description: "AWS EC2 infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,6 +9,9 @@ labels:
   - ec2
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: transit_gateway_policy_table_entry
+  - Updated: spot_fleet
 models:
   - capacity_manager_data_export.ts
   - capacity_reservation.ts
@@ -91,6 +94,7 @@ models:
   - transit_gateway_peering_attachment.ts
   - transit_gateway_policy_table.ts
   - transit_gateway_policy_table_association.ts
+  - transit_gateway_policy_table_entry.ts
   - transit_gateway_route.ts
   - transit_gateway_route_table.ts
   - transit_gateway_route_table_association.ts
