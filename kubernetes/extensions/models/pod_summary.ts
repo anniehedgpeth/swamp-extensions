@@ -78,7 +78,7 @@ interface PodData {
 /** Kubernetes Pod summary aggregation model. */
 export const model = {
   type: "@swamp/kubernetes/pod-summary",
-  version: "2026.06.10.1",
+  version: "2026.08.01.1",
   globalArguments: GlobalArgsSchema,
   upgrades: [
     {
@@ -109,6 +109,12 @@ export const model = {
       toVersion: "2026.06.10.1",
       description: "Version bump to republish with correct upgrade chain. " +
         "No code, schema, or behavior change.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.01.1",
+      description: "Bump @kubernetes/client-node from 1.0.0 to 1.4.0 and " +
+        "add statefulset model type. No schema or behavior change.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

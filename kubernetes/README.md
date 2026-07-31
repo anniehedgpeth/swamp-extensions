@@ -1,7 +1,8 @@
 # @swamp/kubernetes
 
-Kubernetes operational toolkit — 15 model types covering pods, deployments,
-services, RBAC, storage, networking, autoscaling, batch jobs, and more. Includes
+Kubernetes operational toolkit — 16 model types covering pods, deployments,
+statefulsets, services, RBAC, storage, networking, autoscaling, batch jobs, and
+more. Includes
 14 ready-to-run workflows for namespace debugging, security audits, RBAC
 analysis, cluster health, and operational diagnostics.
 

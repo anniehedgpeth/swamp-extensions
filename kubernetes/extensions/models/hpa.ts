@@ -3,7 +3,7 @@ import type {
   V2HorizontalPodAutoscaler,
   V2MetricSpec,
   V2MetricStatus,
-} from "npm:@kubernetes/client-node@1.0.0";
+} from "npm:@kubernetes/client-node@1.4.0";
 import {
   buildClient,
   type DataHandle,
@@ -171,7 +171,7 @@ function normalizeHpa(raw: V2HorizontalPodAutoscaler) {
 /** Kubernetes HorizontalPodAutoscaler model. */
 export const model = {
   type: "@swamp/kubernetes/hpa",
-  version: "2026.06.10.1",
+  version: "2026.08.01.1",
   globalArguments: K8sGlobalArgsSchema,
   upgrades: [
     {
@@ -202,6 +202,12 @@ export const model = {
       toVersion: "2026.06.10.1",
       description: "Version bump to republish with correct upgrade chain. " +
         "No code, schema, or behavior change.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.01.1",
+      description: "Bump @kubernetes/client-node from 1.0.0 to 1.4.0 and " +
+        "add statefulset model type. No schema or behavior change.",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

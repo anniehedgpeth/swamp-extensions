@@ -1,10 +1,10 @@
 import { z } from "npm:zod@4.3.6";
-import * as k8s from "npm:@kubernetes/client-node@1.0.0";
+import * as k8s from "npm:@kubernetes/client-node@1.4.0";
 import process from "node:process";
 
 // Suppress MaxListeners warning — @kubernetes/client-node registers multiple
-// listeners per API client, which is expected across 15 model types.
-process.setMaxListeners(30);
+// listeners per API client, which is expected across 16 model types.
+process.setMaxListeners(32);
 
 // Shared global arguments for all @swamp/kubernetes/* models
 export const K8sGlobalArgsSchema = z.object({
