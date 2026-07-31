@@ -3077,6 +3077,16 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         );
         return entries.map((e) => e.key.slice(cpPrefix.length));
       },
+      putIfAbsent: async (
+        key: string,
+        data: Uint8Array,
+      ): Promise<boolean> => {
+        await this.ensurePreflight();
+        const result = await retryWithBackoff(
+          () => this.gcs.putObjectConditional(this.controlKey(key), data),
+        );
+        return result !== null;
+      },
     };
   }
 

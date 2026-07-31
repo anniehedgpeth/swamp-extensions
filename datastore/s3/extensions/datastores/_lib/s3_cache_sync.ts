@@ -3246,6 +3246,15 @@ export class S3CacheSyncService implements DatastoreSyncService {
         );
         return entries.map((e) => e.key.slice(cpPrefix.length));
       },
+      putIfAbsent: async (
+        key: string,
+        data: Uint8Array,
+      ): Promise<boolean> => {
+        await this.ensurePreflight();
+        return await retryWithBackoff(
+          () => this.s3.putObjectConditional(this.controlKey(key), data),
+        );
+      },
     };
   }
 

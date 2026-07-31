@@ -121,6 +121,20 @@ function createMockGcsClient(): GcsClient & {
       return Promise.resolve({ generation: nextGen(key) });
     },
 
+    putObjectConditional(
+      key: string,
+      body: Uint8Array,
+      signal?: AbortSignal,
+    ): Promise<GcsWriteResult | null> {
+      throwIfAborted(signal);
+      if (storage.has(key)) {
+        return Promise.resolve(null);
+      }
+      storage.set(key, body);
+      puts.push({ key, body });
+      return Promise.resolve({ generation: nextGen(key) });
+    },
+
     getObject(
       key: string,
       signal?: AbortSignal,
@@ -6498,6 +6512,97 @@ Deno.test("controlPlaneStore: namespace scoping on delete", async () => {
 
     assertEquals(mock.storage.has("my-ns/_control/runs/r1"), false);
     assertEquals(await store.get("runs/r1"), null);
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: putIfAbsent on new key returns true", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-pia-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const payload = new TextEncoder().encode("claim-data");
+    const result = await store.putIfAbsent("claims/job-1", payload);
+    assertEquals(result, true);
+
+    const stored = await store.get("claims/job-1");
+    assertExists(stored);
+    assertEquals(new TextDecoder().decode(stored), "claim-data");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: putIfAbsent on existing key returns false and does not overwrite", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-pia-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const original = new TextEncoder().encode("original");
+    await store.put("claims/job-1", original);
+
+    const replacement = new TextEncoder().encode("replacement");
+    const result = await store.putIfAbsent("claims/job-1", replacement);
+    assertEquals(result, false);
+
+    const stored = await store.get("claims/job-1");
+    assertExists(stored);
+    assertEquals(new TextDecoder().decode(stored), "original");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: putIfAbsent after delete returns true", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-pia-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const payload = new TextEncoder().encode("first");
+    await store.put("claims/job-1", payload);
+    await store.delete("claims/job-1");
+
+    const reclaimed = new TextEncoder().encode("reclaimed");
+    const result = await store.putIfAbsent("claims/job-1", reclaimed);
+    assertEquals(result, true);
+
+    const stored = await store.get("claims/job-1");
+    assertExists(stored);
+    assertEquals(new TextDecoder().decode(stored), "reclaimed");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: putIfAbsent namespace scoping", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-pia-ns-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pullChanged({ namespace: "my-ns" });
+
+    const store = service.controlPlaneStore();
+
+    const payload = new TextEncoder().encode("namespaced");
+    const result = await store.putIfAbsent("claims/job-1", payload);
+    assertEquals(result, true);
+
+    assertEquals(mock.storage.has("my-ns/_control/claims/job-1"), true);
+    assertEquals(mock.storage.has("_control/claims/job-1"), false);
+
+    const second = await store.putIfAbsent(
+      "claims/job-1",
+      new TextEncoder().encode("x"),
+    );
+    assertEquals(second, false);
   } finally {
     await Deno.remove(cachePath, { recursive: true });
   }
