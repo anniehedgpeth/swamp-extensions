@@ -214,7 +214,7 @@ const GlobalArgsSchema = z.object({
     bootDisk: z.object({
       diskEncryption: z.enum(["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"])
         .describe(
-          "Optional. Input only. Disk encryption method used on the boot and data disks, defaults to GMEK.",
+          "Optional. Disk encryption method used on the boot and data disks, defaults to GMEK.",
         ).optional(),
       diskSizeGb: z.string().describe(
         "Optional. The size of the boot disk in GB attached to this instance, up to a maximum of 64000 GB (64 TB). If not specified, this defaults to the recommended value of 150GB.",
@@ -232,7 +232,7 @@ const GlobalArgsSchema = z.object({
         "HYPERDISK_ML",
       ]).describe("Optional. Indicates the type of the disk.").optional(),
       kmsKey: z.string().describe(
-        "Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
+        "Optional. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
       ).optional(),
     }).describe("Optional. The boot disk for the VM.").optional(),
     confidentialInstanceConfig: z.object({
@@ -256,7 +256,7 @@ const GlobalArgsSchema = z.object({
     dataDisks: z.array(z.object({
       diskEncryption: z.enum(["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"])
         .describe(
-          "Optional. Input only. Disk encryption method used on the boot and data disks, defaults to GMEK.",
+          "Optional. Disk encryption method used on the boot and data disks, defaults to GMEK.",
         ).optional(),
       diskSizeGb: z.string().describe(
         "Optional. The size of the disk in GB attached to this VM instance, up to a maximum of 64000 GB (64 TB). If not specified, this defaults to 100.",
@@ -272,10 +272,9 @@ const GlobalArgsSchema = z.object({
         "HYPERDISK_THROUGHPUT",
         "HYPERDISK_BALANCED_HIGH_AVAILABILITY",
         "HYPERDISK_ML",
-      ]).describe("Optional. Input only. Indicates the type of the disk.")
-        .optional(),
+      ]).describe("Optional. Indicates the type of the disk.").optional(),
       kmsKey: z.string().describe(
-        "Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
+        "Optional. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
       ).optional(),
       resourcePolicies: z.array(z.string()).describe(
         "Optional. The resource policies to apply to the data disk.",
@@ -312,7 +311,7 @@ const GlobalArgsSchema = z.object({
     networkInterfaces: z.array(z.object({
       accessConfigs: z.array(z.object({
         externalIp: z.unknown().describe(
-          "An external IP address associated with this instance. Specify an unused static external IP address available to the project or leave this field undefined to use an IP from a shared ephemeral IP address pool. If you specify a static external IP address, it must live in the same region as the zone of the instance.",
+          "Optional. An external IP address associated with this instance. Specify an unused static external IP address available to the project or leave this field undefined to use an IP from a shared ephemeral IP address pool. If you specify a static external IP address, it must live in the same region as the zone of the instance.",
         ).optional(),
       })).describe(
         "Optional. An array of configurations for this interface. Currently, only one access config, ONE_TO_ONE_NAT, is supported. If no accessConfigs specified, the instance will have an external internet access through an ephemeral external IP address.",
@@ -551,7 +550,7 @@ const InputsSchema = z.object({
     bootDisk: z.object({
       diskEncryption: z.enum(["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"])
         .describe(
-          "Optional. Input only. Disk encryption method used on the boot and data disks, defaults to GMEK.",
+          "Optional. Disk encryption method used on the boot and data disks, defaults to GMEK.",
         ).optional(),
       diskSizeGb: z.string().describe(
         "Optional. The size of the boot disk in GB attached to this instance, up to a maximum of 64000 GB (64 TB). If not specified, this defaults to the recommended value of 150GB.",
@@ -569,7 +568,7 @@ const InputsSchema = z.object({
         "HYPERDISK_ML",
       ]).describe("Optional. Indicates the type of the disk.").optional(),
       kmsKey: z.string().describe(
-        "Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
+        "Optional. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
       ).optional(),
     }).describe("Optional. The boot disk for the VM.").optional(),
     confidentialInstanceConfig: z.object({
@@ -593,7 +592,7 @@ const InputsSchema = z.object({
     dataDisks: z.array(z.object({
       diskEncryption: z.enum(["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"])
         .describe(
-          "Optional. Input only. Disk encryption method used on the boot and data disks, defaults to GMEK.",
+          "Optional. Disk encryption method used on the boot and data disks, defaults to GMEK.",
         ).optional(),
       diskSizeGb: z.string().describe(
         "Optional. The size of the disk in GB attached to this VM instance, up to a maximum of 64000 GB (64 TB). If not specified, this defaults to 100.",
@@ -609,10 +608,9 @@ const InputsSchema = z.object({
         "HYPERDISK_THROUGHPUT",
         "HYPERDISK_BALANCED_HIGH_AVAILABILITY",
         "HYPERDISK_ML",
-      ]).describe("Optional. Input only. Indicates the type of the disk.")
-        .optional(),
+      ]).describe("Optional. Indicates the type of the disk.").optional(),
       kmsKey: z.string().describe(
-        "Optional. Input only. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
+        "Optional. The KMS key used to encrypt the disks, only applicable if disk_encryption is CMEK. Format: `projects/{project_id}/locations/{location}/keyRings/{key_ring_id}/cryptoKeys/{key_id}` Learn more about using your own encryption keys.",
       ).optional(),
       resourcePolicies: z.array(z.string()).describe(
         "Optional. The resource policies to apply to the data disk.",
@@ -649,7 +647,7 @@ const InputsSchema = z.object({
     networkInterfaces: z.array(z.object({
       accessConfigs: z.array(z.object({
         externalIp: z.unknown().describe(
-          "An external IP address associated with this instance. Specify an unused static external IP address available to the project or leave this field undefined to use an IP from a shared ephemeral IP address pool. If you specify a static external IP address, it must live in the same region as the zone of the instance.",
+          "Optional. An external IP address associated with this instance. Specify an unused static external IP address available to the project or leave this field undefined to use an IP from a shared ephemeral IP address pool. If you specify a static external IP address, it must live in the same region as the zone of the instance.",
         ).optional(),
       })).describe(
         "Optional. An array of configurations for this interface. Currently, only one access config, ONE_TO_ONE_NAT, is supported. If no accessConfigs specified, the instance will have an external internet access through an ephemeral external IP address.",
@@ -767,7 +765,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Notebooks Instances. Registered at `@swamp/gcp/notebooks/instances`. */
 export const model = {
   type: "@swamp/gcp/notebooks/instances",
-  version: "2026.07.29.1",
+  version: "2026.08.01.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -933,6 +931,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.01.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

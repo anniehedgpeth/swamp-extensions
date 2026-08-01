@@ -133,6 +133,13 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Configuration for Amazon Managed Prometheus metrics destination",
     ).optional(),
+    CloudWatchConfiguration: z.object({
+      DatasetArn: z.string().regex(
+        new RegExp(
+          "^arn:aws[-a-z]*:cloudwatch:[-a-z0-9]+:[0-9]{12}:dataset\\/.+$",
+        ),
+      ).describe("ARN of a CloudWatch dataset"),
+    }).describe("Configuration for CloudWatch metrics destination").optional(),
   }).describe("Scraper metrics destination"),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
@@ -169,6 +176,9 @@ const StateSchema = z.object({
   Destination: z.object({
     AmpConfiguration: z.object({
       WorkspaceArn: z.string(),
+    }),
+    CloudWatchConfiguration: z.object({
+      DatasetArn: z.string(),
     }),
   }).optional(),
   Tags: z.array(TagSchema).optional(),
@@ -226,6 +236,13 @@ const InputsSchema = z.object({
     }).describe(
       "Configuration for Amazon Managed Prometheus metrics destination",
     ).optional(),
+    CloudWatchConfiguration: z.object({
+      DatasetArn: z.string().regex(
+        new RegExp(
+          "^arn:aws[-a-z]*:cloudwatch:[-a-z0-9]+:[0-9]{12}:dataset\\/.+$",
+        ),
+      ).describe("ARN of a CloudWatch dataset").optional(),
+    }).describe("Configuration for CloudWatch metrics destination").optional(),
   }).describe("Scraper metrics destination").optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
@@ -251,7 +268,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for APS Scraper. Registered at `@swamp/aws/aps/scraper`. */
 export const model = {
   type: "@swamp/aws/aps/scraper",
-  version: "2026.06.15.1",
+  version: "2026.08.01.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -290,6 +307,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.01.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -60,6 +60,9 @@ const GET_CONFIG = {
     "name",
   ],
   "parameters": {
+    "markupSyntax": {
+      "location": "query",
+    },
     "name": {
       "location": "path",
       "required": true,
@@ -145,6 +148,9 @@ const LIST_CONFIG = {
   ],
   "parameters": {
     "filter": {
+      "location": "query",
+    },
+    "markupSyntax": {
       "location": "query",
     },
     "orderBy": {
@@ -599,6 +605,13 @@ const GlobalArgsSchema = z.object({
   fallbackText: z.string().describe(
     "Optional. A plain-text description of the message's cards, used when the actual cards can't be displayed—for example, mobile notifications.",
   ).optional(),
+  markupSyntax: z.enum([
+    "MARKUP_SYNTAX_UNSPECIFIED",
+    "MARKUP_SYNTAX_CHAT",
+    "MARKUP_SYNTAX_MARKDOWN",
+  ]).describe(
+    "Optional. Specifies how the server interprets the message `text` field content.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the message. Format: `spaces/{space}/messages/{message}` Where `{space}` is the ID of the space where the message is posted and `{message}` is a system-assigned ID for the message. For example, `spaces/AAAAAAAAAAA/messages/BBBBBBBBBBB.BBBBBBBBBBB`. If you set a custom ID when you create a message, you can use this ID to specify the message in a request by replacing `{message}` with the value from the `clientAssignedMessageId` field. For example, `spaces/AAAAAAAAAAA/messages/client-custom-name`. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).",
   ).optional(),
@@ -1008,6 +1021,7 @@ const StateSchema = z.object({
   fallbackText: z.string().optional(),
   formattedText: z.string().optional(),
   lastUpdateTime: z.string().optional(),
+  markupSyntax: z.string().optional(),
   matchedUrl: z.object({
     url: z.string(),
   }).optional(),
@@ -1558,6 +1572,13 @@ const InputsSchema = z.object({
   fallbackText: z.string().describe(
     "Optional. A plain-text description of the message's cards, used when the actual cards can't be displayed—for example, mobile notifications.",
   ).optional(),
+  markupSyntax: z.enum([
+    "MARKUP_SYNTAX_UNSPECIFIED",
+    "MARKUP_SYNTAX_CHAT",
+    "MARKUP_SYNTAX_MARKDOWN",
+  ]).describe(
+    "Optional. Specifies how the server interprets the message `text` field content.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. Resource name of the message. Format: `spaces/{space}/messages/{message}` Where `{space}` is the ID of the space where the message is posted and `{message}` is a system-assigned ID for the message. For example, `spaces/AAAAAAAAAAA/messages/BBBBBBBBBBB.BBBBBBBBBBB`. If you set a custom ID when you create a message, you can use this ID to specify the message in a request by replacing `{message}` with the value from the `clientAssignedMessageId` field. For example, `spaces/AAAAAAAAAAA/messages/client-custom-name`. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).",
   ).optional(),
@@ -1740,7 +1761,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.Messages. Registered at `@swamp/gcp/chat/spaces-messages`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-messages",
-  version: "2026.07.29.2",
+  version: "2026.08.01.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1969,6 +1990,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.01.1",
+      description: "Added: markupSyntax. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2004,6 +2033,9 @@ export const model = {
         }
         if (g["fallbackText"] !== undefined) {
           body["fallbackText"] = g["fallbackText"];
+        }
+        if (g["markupSyntax"] !== undefined) {
+          body["markupSyntax"] = g["markupSyntax"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["quotedMessageMetadata"] !== undefined) {
@@ -2144,6 +2176,9 @@ export const model = {
         if (g["fallbackText"] !== undefined) {
           body["fallbackText"] = g["fallbackText"];
         }
+        if (g["markupSyntax"] !== undefined) {
+          body["markupSyntax"] = g["markupSyntax"];
+        }
         if (g["quotedMessageMetadata"] !== undefined) {
           body["quotedMessageMetadata"] = g["quotedMessageMetadata"];
         }
@@ -2281,6 +2316,9 @@ export const model = {
         filter: z.string().describe(
           'Optional. A query filter. You can filter messages by date (`create_time`) and thread (`thread.name`). To filter messages by the date they were created, specify the `create_time` with a timestamp in [RFC-3339](https://www.rfc-editor.org/rfc/rfc3339) format and double quotation marks. For example, `"2023-04-21T11:30:00-04:00"`. You can use the greater than operator `>` to list messages that were created after a timestamp, or the less than operator `<` to list messages that were created before a timestamp. To filter messages within a time interval, use the `AND` operator between two timestamps. To filter by thread, specify the `thread.name`, formatted as `spaces/{space}/threads/{thread}`. You can only specify one `thread.name` per query. To filter by both thread and date, use the `AND` operator in your query. For example, the following queries are valid: ``` create_time > "2012-04-21T11:30:00-04:00" create_time > "2012-04-21T11:30:00-04:00" AND thread.name = spaces/AAAAAAAAAAA/threads/123 create_time > "2012-04-21T11:30:00+00:00" AND create_time < "2013-01-01T00:00:00+00:00" AND thread.name = spaces/AAAAAAAAAAA/threads/123 thread.name = spaces/AAAAAAAAAAA/threads/123 ``` Invalid queries are rejected by the server with an `INVALID_ARGUMENT` error.',
         ).optional(),
+        markupSyntax: z.string().describe(
+          "Optional. Specifies the desired output syntax for the Chat message `formatted_text` field.",
+        ).optional(),
         orderBy: z.string().describe(
           "Optional. How the list of messages is ordered. Specify a value to order by an ordering operation. Valid ordering operation values are as follows: - `ASC` for ascending. - `DESC` for descending. The default ordering is `create_time ASC`.",
         ).optional(),
@@ -2302,6 +2340,9 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         if (args["filter"] !== undefined) {
           params["filter"] = String(args["filter"]);
+        }
+        if (args["markupSyntax"] !== undefined) {
+          params["markupSyntax"] = String(args["markupSyntax"]);
         }
         if (args["orderBy"] !== undefined) {
           params["orderBy"] = String(args["orderBy"]);
@@ -2341,6 +2382,7 @@ export const model = {
       description: "search",
       arguments: z.object({
         filter: z.any().optional(),
+        markupSyntax: z.any().optional(),
         orderBy: z.any().optional(),
         pageSize: z.any().optional(),
         pageToken: z.any().optional(),
@@ -2354,6 +2396,9 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (args["filter"] !== undefined) body["filter"] = args["filter"];
+        if (args["markupSyntax"] !== undefined) {
+          body["markupSyntax"] = args["markupSyntax"];
+        }
         if (args["orderBy"] !== undefined) body["orderBy"] = args["orderBy"];
         if (args["pageSize"] !== undefined) body["pageSize"] = args["pageSize"];
         if (args["pageToken"] !== undefined) {

@@ -309,6 +309,7 @@ const StateSchema = z.object({
         fallbackText: z.string(),
         formattedText: z.string(),
         lastUpdateTime: z.string(),
+        markupSyntax: z.string(),
         matchedUrl: z.object({
           url: z.unknown(),
         }),
@@ -396,6 +397,7 @@ const StateSchema = z.object({
         fallbackText: z.string(),
         formattedText: z.string(),
         lastUpdateTime: z.string(),
+        markupSyntax: z.string(),
         matchedUrl: z.object({
           url: z.unknown(),
         }),
@@ -483,6 +485,7 @@ const StateSchema = z.object({
         fallbackText: z.string(),
         formattedText: z.string(),
         lastUpdateTime: z.string(),
+        markupSyntax: z.string(),
         matchedUrl: z.object({
           url: z.unknown(),
         }),
@@ -657,6 +660,7 @@ const StateSchema = z.object({
       fallbackText: z.string(),
       formattedText: z.string(),
       lastUpdateTime: z.string(),
+      markupSyntax: z.string(),
       matchedUrl: z.object({
         url: z.string(),
       }),
@@ -893,6 +897,7 @@ const StateSchema = z.object({
       fallbackText: z.string(),
       formattedText: z.string(),
       lastUpdateTime: z.string(),
+      markupSyntax: z.string(),
       matchedUrl: z.object({
         url: z.string(),
       }),
@@ -1129,6 +1134,7 @@ const StateSchema = z.object({
       fallbackText: z.string(),
       formattedText: z.string(),
       lastUpdateTime: z.string(),
+      markupSyntax: z.string(),
       matchedUrl: z.object({
         url: z.string(),
       }),
@@ -1509,7 +1515,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.SpaceEvents. Registered at `@swamp/gcp/chat/spaces-spaceevents`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-spaceevents",
-  version: "2026.07.29.1",
+  version: "2026.08.01.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -1665,6 +1671,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.01.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

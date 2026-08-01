@@ -1,15 +1,13 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/digitalocean"
-version: "2026.07.28.1"
+version: "2026.08.01.1"
 description: "DigitalOcean infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
   - digitalocean
   - cloud
   - infrastructure
-releaseNotes: |
-  - Updated: app_platform, database_cluster
 models:
   - app_deployment.ts
   - app_platform.ts
@@ -46,7 +44,6 @@ models:
   - reserved_ip.ts
   - reserved_ipv6.ts
   - security_scan.ts
-  - security_secret.ts
   - space_key.ts
   - ssh_key.ts
   - ssl_certificate.ts

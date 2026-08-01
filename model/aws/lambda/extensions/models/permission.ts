@@ -68,7 +68,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   FunctionName: z.string().min(1).max(140).regex(
     new RegExp(
-      "^(arn:(aws[a-zA-Z-]*)?:lambda:)?((eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$",
+      "^(arn:(aws[a-zA-Z-]*)?:lambda:)?((eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_]+))?$",
     ),
   ).describe(
     "The name or ARN of the Lambda function, version, or alias. **Name formats** *Function name* – my-function (name-only), my-function:v1 (with alias). *Function ARN* – arn:aws:lambda:us-west-2:123456789012:function:my-function. *Partial ARN* – 123456789012:function:my-function. You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.",
@@ -133,7 +133,7 @@ const InputsSchema = z.object({
   ).optional(),
   FunctionName: z.string().min(1).max(140).regex(
     new RegExp(
-      "^(arn:(aws[a-zA-Z-]*)?:lambda:)?((eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$",
+      "^(arn:(aws[a-zA-Z-]*)?:lambda:)?((eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_]+))?$",
     ),
   ).describe(
     "The name or ARN of the Lambda function, version, or alias. **Name formats** *Function name* – my-function (name-only), my-function:v1 (with alias). *Function ARN* – arn:aws:lambda:us-west-2:123456789012:function:my-function. *Partial ARN* – 123456789012:function:my-function. You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.",
@@ -184,7 +184,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Lambda Permission. Registered at `@swamp/aws/lambda/permission`. */
 export const model = {
   type: "@swamp/aws/lambda/permission",
-  version: "2026.07.02.1",
+  version: "2026.08.01.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -228,6 +228,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.02.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.01.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

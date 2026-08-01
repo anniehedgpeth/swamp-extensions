@@ -76,8 +76,17 @@ const EbsInstanceBlockDeviceSpecificationSchema = z.object({
   VolumeSize: z.number().int().describe(
     "Use to override the device's volume size.",
   ).optional(),
-  VolumeType: z.enum(["standard", "io1", "io2", "gp2", "gp3", "sc1", "st1"])
-    .describe("Use to override the device's volume type.").optional(),
+  VolumeType: z.enum([
+    "standard",
+    "io1",
+    "io2",
+    "io2a",
+    "gp2",
+    "gp3",
+    "gp3a",
+    "sc1",
+    "st1",
+  ]).describe("Use to override the device's volume type.").optional(),
 });
 
 const InstanceBlockDeviceMappingSchema = z.object({
@@ -249,7 +258,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ImageBuilder ImageRecipe. Registered at `@swamp/aws/imagebuilder/image-recipe`. */
 export const model = {
   type: "@swamp/aws/imagebuilder/image-recipe",
-  version: "2026.07.08.1",
+  version: "2026.08.01.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -299,6 +308,11 @@ export const model = {
     {
       toVersion: "2026.07.08.1",
       description: "Added: AmiWatermarks",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.01.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
