@@ -49,7 +49,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   description: z.string().max(512).optional(),
   is_shared_oauth_callback_enabled: z.boolean().describe(
-    "When true, the gateway worker uses the shared Cloudflare-owned OAuth callback endpoint as the redirect_uri for upstream on-behalf OAuth, instead of the customer portal hostname. Defaults to false (off); opt in per server by setting true. Effective behavior is gated by the gateway worker's per-env rollout mode KV key.",
+    "When true, the gateway worker uses the shared Cloudflare-owned OAuth callback endpoint as the redirect_uri for upstream on-behalf OAuth, instead of the customer portal hostname. Defaults to false (off); opt in per server by setting true.",
   ).optional(),
   name: z.string().max(350),
   secure_web_gateway: z.boolean().describe(
@@ -183,7 +183,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Servers. Registered at `@swamp/cloudflare/access/servers`. */
 export const model = {
   type: "@swamp/cloudflare/access/servers",
-  version: "2026.07.21.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -213,6 +213,11 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "Added: client_secret",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.02.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

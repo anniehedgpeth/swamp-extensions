@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/aps"
-version: "2026.08.01.1"
+version: "2026.08.02.1"
 description: "AWS APS infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,8 +9,6 @@ labels:
   - aps
   - cloud
   - infrastructure
-releaseNotes: |
-  - Updated: scraper
 models:
   - anomaly_detector.ts
   - resource_policy.ts

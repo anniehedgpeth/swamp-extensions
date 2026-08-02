@@ -488,6 +488,11 @@ const GlobalArgsSchema = z.object({
           "Optional. The prompt definition. If not set, default prompt will be used.",
         ).optional(),
       }).describe("Optional. The rewriter config.").optional(),
+      snippetsConfig: z.object({
+        enableSnippets: z.boolean().describe(
+          "Optional. Whether snippets are enabled.",
+        ).optional(),
+      }).describe("Optional. The snippets configuration.").optional(),
       summarizationConfig: z.object({
         disabled: z.boolean().describe(
           "Optional. Whether summarization is disabled.",
@@ -1234,6 +1239,9 @@ const StateSchema = z.object({
         }),
         prompt: z.string(),
       }),
+      snippetsConfig: z.object({
+        enableSnippets: z.boolean(),
+      }),
       summarizationConfig: z.object({
         disabled: z.boolean(),
         modelSettings: z.object({
@@ -1807,6 +1815,11 @@ const InputsSchema = z.object({
           "Optional. The prompt definition. If not set, default prompt will be used.",
         ).optional(),
       }).describe("Optional. The rewriter config.").optional(),
+      snippetsConfig: z.object({
+        enableSnippets: z.boolean().describe(
+          "Optional. Whether snippets are enabled.",
+        ).optional(),
+      }).describe("Optional. The snippets configuration.").optional(),
       summarizationConfig: z.object({
         disabled: z.boolean().describe(
           "Optional. Whether summarization is disabled.",
@@ -2448,7 +2461,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Tools. Registered at `@swamp/gcp/ces/apps-tools`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-tools",
-  version: "2026.07.29.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -2689,6 +2702,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.02.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

@@ -44,7 +44,10 @@ import {
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   allow_code_mode: z.boolean().describe(
-    "Allow remote code execution in Dynamic Workers (beta)",
+    "Deprecated: use `code_mode` instead. Legacy on/off toggle for Dynamic Workers (codemode). `true` maps to any non-off `code_mode`; `false` maps to `code_mode: off`.",
+  ).optional(),
+  code_mode: z.enum(["off", "opt_in", "default_on", "enforced"]).describe(
+    "Controls Dynamic Workers (codemode) availability for this portal. `off` disables codemode. `opt_in` makes it available but clients must opt in per session. `default_on` enables it by default with a client override. `enforced` requires codemode for every session with no override.",
   ).optional(),
   description: z.string().max(512).optional(),
   hostname: z.string().regex(
@@ -95,6 +98,7 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   allow_code_mode: z.boolean().optional(),
+  code_mode: z.string().optional(),
   created_at: z.string().optional(),
   created_by: z.string().optional(),
   description: z.string().optional(),
@@ -174,6 +178,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   allow_code_mode: z.boolean().optional(),
+  code_mode: z.enum(["off", "opt_in", "default_on", "enforced"]).optional(),
   description: z.string().max(512).optional(),
   hostname: z.string().regex(
     new RegExp(
@@ -216,7 +221,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Portals. Registered at `@swamp/cloudflare/access/portals`. */
 export const model = {
   type: "@swamp/cloudflare/access/portals",
-  version: "2026.07.21.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -253,6 +258,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.02.1",
+      description: "Added: code_mode",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -276,6 +286,7 @@ export const model = {
         if (g.allow_code_mode !== undefined) {
           body.allow_code_mode = g.allow_code_mode;
         }
+        if (g.code_mode !== undefined) body.code_mode = g.code_mode;
         if (g.description !== undefined) body.description = g.description;
         if (g.hostname !== undefined) body.hostname = g.hostname;
         if (g.id !== undefined) body.id = g.id;
@@ -336,6 +347,9 @@ export const model = {
         const filters: [string, string][] = [];
         if (g.allow_code_mode !== undefined) {
           filters.push(["allow_code_mode", String(g.allow_code_mode)]);
+        }
+        if (g.code_mode !== undefined) {
+          filters.push(["code_mode", String(g.code_mode)]);
         }
         if (g.description !== undefined) {
           filters.push(["description", String(g.description)]);
@@ -450,6 +464,7 @@ export const model = {
         if (g.allow_code_mode !== undefined) {
           body.allow_code_mode = g.allow_code_mode;
         }
+        if (g.code_mode !== undefined) body.code_mode = g.code_mode;
         if (g.description !== undefined) body.description = g.description;
         if (g.hostname !== undefined) body.hostname = g.hostname;
         if (g.name !== undefined) body.name = g.name;

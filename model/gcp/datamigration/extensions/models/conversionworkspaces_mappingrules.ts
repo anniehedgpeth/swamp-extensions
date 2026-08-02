@@ -394,6 +394,14 @@ const GlobalArgsSchema = z.object({
     "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW",
     "DATABASE_ENTITY_TYPE_DATABASE",
   ]).describe("Required. The rule scope").optional(),
+  setTablePrimaryKey: z.object({
+    primaryKey: z.string().describe("Optional. Name for the primary key")
+      .optional(),
+    primaryKeyColumns: z.array(z.string()).describe(
+      "Required. List of column names for the primary key",
+    ).optional(),
+  }).describe("Optional. Rule to specify the primary key for a table")
+    .optional(),
   singleColumnChange: z.object({
     array: z.boolean().describe("Optional. Is the column of array type.")
       .optional(),
@@ -856,6 +864,14 @@ const InputsSchema = z.object({
     "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW",
     "DATABASE_ENTITY_TYPE_DATABASE",
   ]).describe("Required. The rule scope").optional(),
+  setTablePrimaryKey: z.object({
+    primaryKey: z.string().describe("Optional. Name for the primary key")
+      .optional(),
+    primaryKeyColumns: z.array(z.string()).describe(
+      "Required. List of column names for the primary key",
+    ).optional(),
+  }).describe("Optional. Rule to specify the primary key for a table")
+    .optional(),
   singleColumnChange: z.object({
     array: z.boolean().describe("Optional. Is the column of array type.")
       .optional(),
@@ -963,7 +979,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration ConversionWorkspaces.MappingRules. Registered at `@swamp/gcp/datamigration/conversionworkspaces-mappingrules`. */
 export const model = {
   type: "@swamp/gcp/datamigration/conversionworkspaces-mappingrules",
-  version: "2026.07.29.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1098,6 +1114,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.02.1",
+      description: "Added: setTablePrimaryKey. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1148,6 +1172,9 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["ruleOrder"] !== undefined) body["ruleOrder"] = g["ruleOrder"];
         if (g["ruleScope"] !== undefined) body["ruleScope"] = g["ruleScope"];
+        if (g["setTablePrimaryKey"] !== undefined) {
+          body["setTablePrimaryKey"] = g["setTablePrimaryKey"];
+        }
         if (g["singleColumnChange"] !== undefined) {
           body["singleColumnChange"] = g["singleColumnChange"];
         }

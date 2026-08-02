@@ -139,8 +139,8 @@ const GlobalArgsSchema = z.object({
       payload: z.string(),
     })),
   }).optional(),
-  workers_ai_billing_mode: z.enum(["postpaid"]).describe(
-    "Controls how Workers AI inference calls routed through this gateway are billed. Only 'postpaid' is currently supported.",
+  workers_ai_billing_mode: z.enum(["postpaid", "unified"]).describe(
+    "Controls how Workers AI inference calls routed through this gateway are billed. 'postpaid' bills the account directly through Workers AI; 'unified' deducts credits via AI Gateway using neuron-based pricing and delegates billing to AI Gateway.",
   ).optional(),
   zdr: z.boolean().optional(),
   id: z.string().min(1).max(64).regex(
@@ -344,7 +344,7 @@ const InputsSchema = z.object({
       payload: z.string(),
     })),
   }).optional(),
-  workers_ai_billing_mode: z.enum(["postpaid"]).optional(),
+  workers_ai_billing_mode: z.enum(["postpaid", "unified"]).optional(),
   zdr: z.boolean().optional(),
   id: z.string().min(1).max(64).regex(
     new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
@@ -357,7 +357,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Gateways. Registered at `@swamp/cloudflare/ai-gateway/gateways`. */
 export const model = {
   type: "@swamp/cloudflare/ai-gateway/gateways",
-  version: "2026.07.21.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -381,6 +381,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -436,6 +441,7 @@ export const model = {
         if (g.retry_max_attempts !== undefined) {
           body.retry_max_attempts = g.retry_max_attempts;
         }
+        if (g.store_id !== undefined) body.store_id = g.store_id;
         if (g.workers_ai_billing_mode !== undefined) {
           body.workers_ai_billing_mode = g.workers_ai_billing_mode;
         }

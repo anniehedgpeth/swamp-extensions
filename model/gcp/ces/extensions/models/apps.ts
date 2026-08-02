@@ -202,6 +202,9 @@ const GlobalArgsSchema = z.object({
     synthesizeSpeechConfigs: z.record(
       z.string(),
       z.object({
+        consentAudioGcsUri: z.string().describe(
+          "Optional. Deprecated: Use `custom_voice_samples` in AudioProcessingConfig instead. The Cloud Storage URI to the consent audio for voice cloning.",
+        ).optional(),
         instruction: z.string().describe(
           "Optional. The instruction used to synthesize speech when using a generative model.",
         ).optional(),
@@ -215,7 +218,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.",
         ).optional(),
         voiceSampleGcsUri: z.string().describe(
-          "Optional. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
+          "Optional. Deprecated: Use `custom_voice_samples` in AudioProcessingConfig instead. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
         ).optional(),
       }),
     ).describe(
@@ -923,6 +926,9 @@ const InputsSchema = z.object({
     synthesizeSpeechConfigs: z.record(
       z.string(),
       z.object({
+        consentAudioGcsUri: z.string().describe(
+          "Optional. Deprecated: Use `custom_voice_samples` in AudioProcessingConfig instead. The Cloud Storage URI to the consent audio for voice cloning.",
+        ).optional(),
         instruction: z.string().describe(
           "Optional. The instruction used to synthesize speech when using a generative model.",
         ).optional(),
@@ -936,7 +942,7 @@ const InputsSchema = z.object({
           "Optional. The name of the voice. If not set, the service will choose a voice based on the other parameters such as language_code. For the list of available voices, please refer to [Supported voices and languages](https://cloud.google.com/text-to-speech/docs/voices) from Cloud Text-to-Speech.",
         ).optional(),
         voiceSampleGcsUri: z.string().describe(
-          "Optional. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
+          "Optional. Deprecated: Use `custom_voice_samples` in AudioProcessingConfig instead. The Cloud Storage URI to the audio sample for voice cloning. The audio sample should be a mono-channel, 24kHz WAV file. Note: Please make sure the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com` has `storage.objects.get` permission to the Cloud Storage object.",
         ).optional(),
       }),
     ).describe(
@@ -1412,7 +1418,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps. Registered at `@swamp/gcp/ces/apps`. */
 export const model = {
   type: "@swamp/gcp/ces/apps",
-  version: "2026.07.29.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1613,6 +1619,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.02.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

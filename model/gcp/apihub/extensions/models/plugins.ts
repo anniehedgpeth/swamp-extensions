@@ -253,6 +253,7 @@ const GlobalArgsSchema = z.object({
     "API_DISCOVERY",
     "OTHERS",
     "AWS_API_GATEWAY",
+    "AZURE_API_MANAGEMENT",
   ]).describe("Optional. The type of the gateway.").optional(),
   hostingService: z.object({
     serviceUri: z.string().describe(
@@ -518,6 +519,7 @@ const InputsSchema = z.object({
     "API_DISCOVERY",
     "OTHERS",
     "AWS_API_GATEWAY",
+    "AZURE_API_MANAGEMENT",
   ]).describe("Optional. The type of the gateway.").optional(),
   hostingService: z.object({
     serviceUri: z.string().describe(
@@ -617,7 +619,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud API hub Plugins. Registered at `@swamp/gcp/apihub/plugins`. */
 export const model = {
   type: "@swamp/gcp/apihub/plugins",
-  version: "2026.07.29.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -753,6 +755,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.02.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

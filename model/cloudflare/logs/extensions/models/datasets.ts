@@ -32,7 +32,14 @@
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, listAll, read, tryRead, update } from "./_lib/cloudflare.ts";
+import {
+  create,
+  listAll,
+  read,
+  remove,
+  tryRead,
+  update,
+} from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().optional().describe(
@@ -44,6 +51,9 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
   ),
+  deletion_protection: z.boolean().describe(
+    "Set to `false` to allow deletion of this dataset.",
+  ).optional(),
   enabled: z.boolean().describe(
     "Whether to enable or disable log ingest for this dataset.",
   ).optional(),
@@ -56,6 +66,9 @@ const GlobalArgsSchema = z.object({
   dataset: z.string().describe(
     "Dataset type name to create (e.g. `http_requests`).",
   ),
+  filter: z.string().describe(
+    "Optional Logpush filter predicate to restrict which events are ingested.\nIf provided, replaces the dataset's default filter entirely.\nSee [Logpush filters](https://developers.cloudflare.com/logs/reference/filters/)\nfor syntax and examples.\n",
+  ).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -71,6 +84,7 @@ const ResourceSchema = z.object({
   created_at: z.string().optional(),
   dataset: z.string().optional(),
   dataset_id: z.string().optional(),
+  deletion_protection: z.boolean().optional(),
   enabled: z.boolean().optional(),
   object_id: z.string().optional(),
   object_type: z.string().optional(),
@@ -88,12 +102,14 @@ const InputsSchema = z.object({
   account_id: z.string().optional(),
   zone_id: z.string().optional(),
   name: z.string().optional(),
+  deletion_protection: z.boolean().optional(),
   enabled: z.boolean().optional(),
   fields: z.array(z.object({
     enabled: z.boolean(),
     name: z.string(),
   })).optional(),
   dataset: z.string().optional(),
+  filter: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -102,7 +118,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Datasets. Registered at `@swamp/cloudflare/logs/datasets`. */
 export const model = {
   type: "@swamp/cloudflare/logs/datasets",
-  version: "2026.07.24.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -127,6 +143,11 @@ export const model = {
     {
       toVersion: "2026.07.24.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.02.1",
+      description: "Added: deletion_protection, filter",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -158,6 +179,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g.dataset !== undefined) body.dataset = g.dataset;
         if (g.fields !== undefined) body.fields = g.fields;
+        if (g.filter !== undefined) body.filter = g.filter;
         const result = await create(endpoint, body, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -224,12 +246,16 @@ export const model = {
           : "/zones/" + g.zone_id;
         const endpoint = scopePrefix + "/logs/explorer/datasets";
         const filters: [string, string][] = [];
+        if (g.deletion_protection !== undefined) {
+          filters.push(["deletion_protection", String(g.deletion_protection)]);
+        }
         if (g.enabled !== undefined) {
           filters.push(["enabled", String(g.enabled)]);
         }
         if (g.dataset !== undefined) {
           filters.push(["dataset", String(g.dataset)]);
         }
+        if (g.filter !== undefined) filters.push(["filter", String(g.filter)]);
         if (filters.length === 0) {
           throw new Error(
             "At least one global argument must be set to filter by",
@@ -344,6 +370,9 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
+        if (g.deletion_protection !== undefined) {
+          body.deletion_protection = g.deletion_protection;
+        }
         if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.fields !== undefined) body.fields = g.fields;
         const result = await update(endpoint, existing.id, body, "PUT", {
@@ -356,6 +385,38 @@ export const model = {
           instanceName,
           result,
         );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete the Datasets",
+      arguments: z.object({
+        id: z.string().describe("The ID of the Datasets"),
+      }),
+      execute: async (args: { id: string }, context: any) => {
+        const g = context.globalArgs;
+        if ((g.account_id == null) === (g.zone_id == null)) {
+          throw new Error(
+            "Exactly one of account_id or zone_id must be provided",
+          );
+        }
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/logs/explorer/datasets";
+        const { existed } = await remove(endpoint, args.id, {
+          apiToken: g.apiToken,
+          apiKey: g.apiKey,
+          email: g.email,
+        });
+        const instanceName = (context.globalArgs.name?.toString() ?? args.id)
+          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          id: args.id,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
         return { dataHandles: [handle] };
       },
     },

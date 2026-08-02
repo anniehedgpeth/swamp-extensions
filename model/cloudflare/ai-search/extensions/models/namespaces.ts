@@ -46,6 +46,32 @@ const GlobalArgsSchema = z.object({
   description: z.string().max(256).describe(
     "Optional description for the namespace. Max 256 characters.",
   ).optional(),
+  public_endpoint_params: z.object({
+    authorized_hosts: z.array(z.string()).optional(),
+    chat_completions_endpoint: z.object({
+      disabled: z.boolean().optional(),
+    }).optional(),
+    custom_domains: z.array(z.string().min(1).max(253)).optional(),
+    default_domain_enabled: z.boolean().optional(),
+    enabled: z.boolean().optional(),
+    instances_allowed: z.array(
+      z.string().min(1).max(64).regex(
+        new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
+      ),
+    ).optional(),
+    mcp: z.object({
+      description: z.string().optional(),
+      disabled: z.boolean().optional(),
+    }).optional(),
+    rate_limit: z.object({
+      period_ms: z.number().int().min(60000).max(3600000).optional(),
+      requests: z.number().int().min(1).optional(),
+      technique: z.enum(["fixed", "sliding"]).optional(),
+    }).optional(),
+    search_endpoint: z.object({
+      disabled: z.boolean().optional(),
+    }).optional(),
+  }).optional(),
   name: z.string().regex(new RegExp("^[a-z0-9]([a-z0-9-]{0,26}[a-z0-9])?$")),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -62,6 +88,29 @@ const ResourceSchema = z.object({
   created_at: z.string().optional(),
   description: z.string().optional(),
   name: z.string().optional(),
+  public_endpoint_id: z.string().optional(),
+  public_endpoint_params: z.object({
+    authorized_hosts: z.array(z.string()).optional(),
+    chat_completions_endpoint: z.object({
+      disabled: z.boolean().optional(),
+    }).optional(),
+    custom_domains: z.array(z.string()).optional(),
+    default_domain_enabled: z.boolean().optional(),
+    enabled: z.boolean().optional(),
+    instances_allowed: z.array(z.string()).optional(),
+    mcp: z.object({
+      description: z.string().optional(),
+      disabled: z.boolean().optional(),
+    }).optional(),
+    rate_limit: z.object({
+      period_ms: z.number().optional(),
+      requests: z.number().optional(),
+      technique: z.string().optional(),
+    }).optional(),
+    search_endpoint: z.object({
+      disabled: z.boolean().optional(),
+    }).optional(),
+  }).optional(),
   id: z.string(),
 }).passthrough();
 
@@ -70,6 +119,32 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   description: z.string().max(256).optional(),
+  public_endpoint_params: z.object({
+    authorized_hosts: z.array(z.string()).optional(),
+    chat_completions_endpoint: z.object({
+      disabled: z.boolean().optional(),
+    }).optional(),
+    custom_domains: z.array(z.string().min(1).max(253)).optional(),
+    default_domain_enabled: z.boolean().optional(),
+    enabled: z.boolean().optional(),
+    instances_allowed: z.array(
+      z.string().min(1).max(64).regex(
+        new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
+      ),
+    ).optional(),
+    mcp: z.object({
+      description: z.string().optional(),
+      disabled: z.boolean().optional(),
+    }).optional(),
+    rate_limit: z.object({
+      period_ms: z.number().int().min(60000).max(3600000).optional(),
+      requests: z.number().int().min(1).optional(),
+      technique: z.enum(["fixed", "sliding"]).optional(),
+    }).optional(),
+    search_endpoint: z.object({
+      disabled: z.boolean().optional(),
+    }).optional(),
+  }).optional(),
   name: z.string().regex(new RegExp("^[a-z0-9]([a-z0-9-]{0,26}[a-z0-9])?$"))
     .optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -80,7 +155,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Namespaces. Registered at `@swamp/cloudflare/ai-search/namespaces`. */
 export const model = {
   type: "@swamp/cloudflare/ai-search/namespaces",
-  version: "2026.07.21.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -100,6 +175,11 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.02.1",
+      description: "Added: public_endpoint_params",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -123,6 +203,9 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g.description !== undefined) body.description = g.description;
         if (g.name !== undefined) body.name = g.name;
+        if (g.public_endpoint_params !== undefined) {
+          body.public_endpoint_params = g.public_endpoint_params;
+        }
         const result = await create(endpoint, body, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -278,6 +361,9 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
         if (g.description !== undefined) body.description = g.description;
+        if (g.public_endpoint_params !== undefined) {
+          body.public_endpoint_params = g.public_endpoint_params;
+        }
         const result = await update(endpoint, existing.id, body, "PUT", {
           apiToken: g.apiToken,
           apiKey: g.apiKey,

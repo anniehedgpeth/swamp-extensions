@@ -298,6 +298,24 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Optional. Input only. Ephemeral Instagram credentials required when configuring a Instagram channel profile.",
   ).optional(),
+  modality: z.enum([
+    "MODALITY_UNSPECIFIED",
+    "MODALITY_TEXT",
+    "MODALITY_VOICE",
+    "MODALITY_VIDEO",
+  ]).describe(
+    "Optional. The modality of the deployment. Note: Deployment-level modality override is gated behind an allowlist. Contact the CXAS team to enable this field.",
+  ).optional(),
+  modelSettings: z.object({
+    model: z.string().describe(
+      "Optional. The LLM model that the agent should use. If not set, the agent will inherit the model from its parent agent.",
+    ).optional(),
+    temperature: z.number().describe(
+      "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
+    ).optional(),
+  }).describe(
+    "Optional. Model settings for the deployment. Overrides model settings configured at the app/agent levels. Note: Deployment-level model settings override is gated behind an allowlist. Contact the CXAS team to enable this field.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the deployment. Format: `projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}`",
   ).optional(),
@@ -386,6 +404,11 @@ const StateSchema = z.object({
   instagramCredentials: z.object({
     authCode: z.string(),
     conversationProfileId: z.string(),
+  }).optional(),
+  modality: z.string().optional(),
+  modelSettings: z.object({
+    model: z.string(),
+    temperature: z.number(),
   }).optional(),
   name: z.string(),
   updateTime: z.string().optional(),
@@ -544,6 +567,24 @@ const InputsSchema = z.object({
   }).describe(
     "Optional. Input only. Ephemeral Instagram credentials required when configuring a Instagram channel profile.",
   ).optional(),
+  modality: z.enum([
+    "MODALITY_UNSPECIFIED",
+    "MODALITY_TEXT",
+    "MODALITY_VOICE",
+    "MODALITY_VIDEO",
+  ]).describe(
+    "Optional. The modality of the deployment. Note: Deployment-level modality override is gated behind an allowlist. Contact the CXAS team to enable this field.",
+  ).optional(),
+  modelSettings: z.object({
+    model: z.string().describe(
+      "Optional. The LLM model that the agent should use. If not set, the agent will inherit the model from its parent agent.",
+    ).optional(),
+    temperature: z.number().describe(
+      "Optional. If set, this temperature will be used for the LLM model. Temperature controls the randomness of the model's responses. Lower temperatures produce responses that are more predictable. Higher temperatures produce responses that are more creative.",
+    ).optional(),
+  }).describe(
+    "Optional. Model settings for the deployment. Overrides model settings configured at the app/agent levels. Note: Deployment-level model settings override is gated behind an allowlist. Contact the CXAS team to enable this field.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the deployment. Format: `projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}`",
   ).optional(),
@@ -604,7 +645,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Deployments. Registered at `@swamp/gcp/ces/apps-deployments`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-deployments",
-  version: "2026.07.29.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -795,6 +836,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.02.1",
+      description: "Added: modality, modelSettings. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -830,6 +879,10 @@ export const model = {
         }
         if (g["instagramCredentials"] !== undefined) {
           body["instagramCredentials"] = g["instagramCredentials"];
+        }
+        if (g["modality"] !== undefined) body["modality"] = g["modality"];
+        if (g["modelSettings"] !== undefined) {
+          body["modelSettings"] = g["modelSettings"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["whatsappCredentials"] !== undefined) {
@@ -954,6 +1007,10 @@ export const model = {
         }
         if (g["instagramCredentials"] !== undefined) {
           body["instagramCredentials"] = g["instagramCredentials"];
+        }
+        if (g["modality"] !== undefined) body["modality"] = g["modality"];
+        if (g["modelSettings"] !== undefined) {
+          body["modelSettings"] = g["modelSettings"];
         }
         if (g["whatsappCredentials"] !== undefined) {
           body["whatsappCredentials"] = g["whatsappCredentials"];

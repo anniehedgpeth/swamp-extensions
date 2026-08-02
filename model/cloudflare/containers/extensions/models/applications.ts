@@ -81,20 +81,11 @@ const GlobalArgsSchema = z.object({
     }).optional(),
     memory: z.string().optional(),
     memory_mib: z.number().int().optional(),
-    metadata_service: z.object({
-      enabled: z.boolean(),
-    }).optional(),
     observability: z.object({
       logs: z.object({
         enabled: z.boolean().optional(),
       }).optional(),
     }).optional(),
-    secrets: z.array(z.object({
-      name: z.string(),
-      secret: z.string(),
-      type: z.enum(["env"]),
-    })).optional(),
-    ssh_public_key_ids: z.array(z.string()).optional(),
     trusted_user_ca_keys: z.array(z.object({
       name: z.string().optional(),
       public_key: z.string(),
@@ -104,9 +95,7 @@ const GlobalArgsSchema = z.object({
       enabled: z.boolean().optional(),
       port: z.number().optional(),
     }).optional(),
-  }).describe(
-    "Properties required to create a cloudchamber deployment specified by the user",
-  ),
+  }).describe("Container configuration specified by the user"),
   constraints: z.object({
     jurisdiction: z.string().optional(),
     regions: z.array(z.string()).optional(),
@@ -115,7 +104,6 @@ const GlobalArgsSchema = z.object({
   max_instances: z.number().int().describe(
     "Maximum number of instances that the application will allow. This is relevant for applications that auto-scale.",
   ).optional(),
-  name: z.string().describe("The name for this application"),
   observability: z.object({
     logs: z.object({
       enabled: z.boolean().optional(),
@@ -127,12 +115,13 @@ const GlobalArgsSchema = z.object({
   rollout_active_grace_period: z.number().int().min(0).max(604800).describe(
     "Grace period for active instances to stay alive before becoming eligible for shutdown signal due to a rollout, in seconds.\nDefaults to 0.\n",
   ).optional(),
-  scheduling_policy: z.enum(["default"]).describe(
-    "The scheduling policy to use for an application",
-  ),
   durable_objects: z.object({
     namespace_id: z.string(),
   }).describe("Durable object configuration using a namespace ID").optional(),
+  name: z.string().describe("The name for this application"),
+  scheduling_policy: z.enum(["default"]).describe(
+    "The scheduling policy to use for an application",
+  ),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -178,20 +167,11 @@ const ResourceSchema = z.object({
     }).optional(),
     memory: z.string().optional(),
     memory_mib: z.number().optional(),
-    metadata_service: z.object({
-      enabled: z.boolean().optional(),
-    }).optional(),
     observability: z.object({
       logs: z.object({
         enabled: z.boolean().optional(),
       }).optional(),
     }).optional(),
-    secrets: z.array(z.object({
-      name: z.string().optional(),
-      secret: z.string().optional(),
-      type: z.string().optional(),
-    })).optional(),
-    ssh_public_key_ids: z.array(z.string()).optional(),
     trusted_user_ca_keys: z.array(z.object({
       name: z.string().optional(),
       public_key: z.string().optional(),
@@ -288,20 +268,11 @@ const InputsSchema = z.object({
     }).optional(),
     memory: z.string().optional(),
     memory_mib: z.number().int().optional(),
-    metadata_service: z.object({
-      enabled: z.boolean(),
-    }).optional(),
     observability: z.object({
       logs: z.object({
         enabled: z.boolean().optional(),
       }).optional(),
     }).optional(),
-    secrets: z.array(z.object({
-      name: z.string(),
-      secret: z.string(),
-      type: z.enum(["env"]),
-    })).optional(),
-    ssh_public_key_ids: z.array(z.string()).optional(),
     trusted_user_ca_keys: z.array(z.object({
       name: z.string().optional(),
       public_key: z.string(),
@@ -318,7 +289,6 @@ const InputsSchema = z.object({
   }).optional(),
   instances: z.number().int().optional(),
   max_instances: z.number().int().optional(),
-  name: z.string().optional(),
   observability: z.object({
     logs: z.object({
       enabled: z.boolean().optional(),
@@ -327,10 +297,11 @@ const InputsSchema = z.object({
     target_instance_percentage: z.number().int().min(1).max(99).optional(),
   }).optional(),
   rollout_active_grace_period: z.number().int().min(0).max(604800).optional(),
-  scheduling_policy: z.enum(["default"]).optional(),
   durable_objects: z.object({
     namespace_id: z.string(),
   }).optional(),
+  name: z.string().optional(),
+  scheduling_policy: z.enum(["default"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -339,7 +310,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Applications. Registered at `@swamp/cloudflare/containers/applications`. */
 export const model = {
   type: "@swamp/cloudflare/containers/applications",
-  version: "2026.07.21.1",
+  version: "2026.08.02.1",
   upgrades: [
     {
       toVersion: "2026.06.08.1",
@@ -366,6 +337,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.02.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -462,13 +438,13 @@ export const model = {
         if (g.max_instances !== undefined) {
           filters.push(["max_instances", String(g.max_instances)]);
         }
-        if (g.name !== undefined) filters.push(["name", String(g.name)]);
         if (g.rollout_active_grace_period !== undefined) {
           filters.push([
             "rollout_active_grace_period",
             String(g.rollout_active_grace_period),
           ]);
         }
+        if (g.name !== undefined) filters.push(["name", String(g.name)]);
         if (g.scheduling_policy !== undefined) {
           filters.push(["scheduling_policy", String(g.scheduling_policy)]);
         }
@@ -578,13 +554,9 @@ export const model = {
         if (g.constraints !== undefined) body.constraints = g.constraints;
         if (g.instances !== undefined) body.instances = g.instances;
         if (g.max_instances !== undefined) body.max_instances = g.max_instances;
-        if (g.name !== undefined) body.name = g.name;
         if (g.observability !== undefined) body.observability = g.observability;
         if (g.rollout_active_grace_period !== undefined) {
           body.rollout_active_grace_period = g.rollout_active_grace_period;
-        }
-        if (g.scheduling_policy !== undefined) {
-          body.scheduling_policy = g.scheduling_policy;
         }
         const result = await update(endpoint, existing.id, body, "PATCH", {
           apiToken: g.apiToken,
