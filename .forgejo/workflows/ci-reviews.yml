@@ -30,8 +30,8 @@ jobs:
         run: |
           CHANGED=$(git diff --name-only "${BASE_SHA}...${HEAD_SHA}")
 
-          # Source changes that warrant a code review (excludes model/ which is auto-generated)
-          if echo "$CHANGED" | grep -qE "^(vault/|datastore/|codegen/|issue-lifecycle/|ssh/|kubernetes/|workflows/|cve/|software-factory/|container-image/)"; then
+          # Source changes that warrant a code review
+          if echo "$CHANGED" | grep -qE "^(vault/|datastore/|codegen/|model/|issue-lifecycle/|ssh/|kubernetes/|workflows/|cve/|software-factory/|container-image/)"; then
             echo "has_source=true" >> $GITHUB_OUTPUT
           else
             echo "has_source=false" >> $GITHUB_OUTPUT
