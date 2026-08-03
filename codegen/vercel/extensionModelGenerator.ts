@@ -584,15 +584,17 @@ export function generateVercelExtensionModel(
     lines.push(
       `        if (!existing.${idField}) throw new Error("Stored state has no ${idField} - cannot sync");`,
     );
-    lines.push(
-      `        const rawSyncResult = await tryRead(endpoint, existing.${idField}${authSuffix}${teamSuffix}) as ResourceData | null;`,
-    );
     if (resource.responseUnwrapKey) {
+      lines.push(
+        `        const rawSyncResult = await tryRead(endpoint, existing.${idField}${authSuffix}${teamSuffix}) as ResourceData | null;`,
+      );
       lines.push(
         `        const result = rawSyncResult ? unwrapResponse(rawSyncResult as Record<string, unknown>) as ResourceData : null;`,
       );
     } else {
-      lines.push(`        const result = rawSyncResult;`);
+      lines.push(
+        `        const result = await tryRead(endpoint, existing.${idField}${authSuffix}${teamSuffix}) as ResourceData | null;`,
+      );
     }
     lines.push(`        if (result) {`);
     lines.push(

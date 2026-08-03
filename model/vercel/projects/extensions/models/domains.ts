@@ -112,7 +112,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Domains. Registered at `@swamp/vercel/projects/domains`. */
 export const model = {
   type: "@swamp/vercel/projects/domains",
-  version: "2026.08.03.3",
+  version: "2026.08.03.4",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -146,6 +146,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.4",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -424,10 +429,9 @@ export const model = {
         if (!existing.name) {
           throw new Error("Stored state has no name - cannot sync");
         }
-        const rawSyncResult = await tryRead(endpoint, existing.name, {
+        const result = await tryRead(endpoint, existing.name, {
           token: g.token,
         }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
-        const result = rawSyncResult;
         if (result) {
           const handle = await context.writeResource(
             "state",

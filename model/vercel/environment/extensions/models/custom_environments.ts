@@ -115,7 +115,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Custom Environments. Registered at `@swamp/vercel/environment/custom-environments`. */
 export const model = {
   type: "@swamp/vercel/environment/custom-environments",
-  version: "2026.08.03.3",
+  version: "2026.08.03.4",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -144,6 +144,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.4",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -406,10 +411,12 @@ export const model = {
         if (!existing.id) {
           throw new Error("Stored state has no id - cannot sync");
         }
-        const rawSyncResult = await tryRead(endpoint, existing.id, {
-          token: g.token,
-        }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
-        const result = rawSyncResult;
+        const result = await tryRead(
+          endpoint,
+          existing.id,
+          { token: g.token },
+          { teamId: g.teamId, slug: g.slug },
+        ) as ResourceData | null;
         if (result) {
           const handle = await context.writeResource(
             "state",

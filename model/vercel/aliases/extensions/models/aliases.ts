@@ -102,7 +102,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Aliases. Registered at `@swamp/vercel/aliases/aliases`. */
 export const model = {
   type: "@swamp/vercel/aliases/aliases",
-  version: "2026.08.03.3",
+  version: "2026.08.03.4",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -131,6 +131,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.4",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -353,10 +358,12 @@ export const model = {
         if (!existing.uid) {
           throw new Error("Stored state has no uid - cannot sync");
         }
-        const rawSyncResult = await tryRead(endpoint, existing.uid, {
-          token: g.token,
-        }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
-        const result = rawSyncResult;
+        const result = await tryRead(
+          endpoint,
+          existing.uid,
+          { token: g.token },
+          { teamId: g.teamId, slug: g.slug },
+        ) as ResourceData | null;
         if (result) {
           const handle = await context.writeResource(
             "state",
