@@ -166,7 +166,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Search Query.Sources. Registered at `@swamp/gcp/cloudsearch/query-sources`. */
 export const model = {
   type: "@swamp/gcp/cloudsearch/query-sources",
-  version: "2026.07.29.1",
+  version: "2026.08.03.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -313,6 +313,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.03.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -424,7 +432,7 @@ export const model = {
           'The BCP-47 language code, such as "pt" or "en". It represents the user\'s preferred Display Language.',
         ).optional(),
         requestOptions_countryCode: z.string().describe(
-          "Optional. Specifies where the query originated (9/2005: needed by navboost-mustang) Values are go/iii RegionCode (alpha-2 only), but lowercase and using 'uk' instead of 'gb' for the United Kingdom. Use CanonicalRegionConverter (C++) or RegionCode (Java) for parsing.",
+          "Optional. Specifies the country/region where the query originated, as a lowercase ISO 3166-1 alpha-2 region code (using 'uk' instead of 'gb' for the United Kingdom).",
         ).optional(),
         requestOptions_debugOptions_enableDebugging: z.boolean().describe(
           "If you are asked by Google to help with debugging, set this field. Otherwise, ignore this field.",

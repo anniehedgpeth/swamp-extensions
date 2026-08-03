@@ -124,6 +124,12 @@ const UPDATE_CONFIG = {
     "revokeExistingRoles": {
       "location": "query",
     },
+    "revokeExistingServerRoles": {
+      "location": "query",
+    },
+    "serverRoles": {
+      "location": "query",
+    },
   },
 } as const;
 
@@ -236,6 +242,9 @@ const GlobalArgsSchema = z.object({
   project: z.string().describe(
     "The project ID of the project containing the Cloud SQL database. The Google apps domain is prefixed if applicable. Can be omitted for `update` because it is already specified on the URL.",
   ).optional(),
+  serverRoles: z.array(z.string()).describe(
+    "Optional. The server roles for the SQL Server login.",
+  ).optional(),
   sqlserverUserDetails: z.object({
     disabled: z.boolean().describe("If the user has been disabled").optional(),
     serverRoles: z.array(z.string()).describe("The server roles for this user")
@@ -278,6 +287,7 @@ const StateSchema = z.object({
     }),
   }).optional(),
   project: z.string().optional(),
+  serverRoles: z.array(z.string()).optional(),
   sqlserverUserDetails: z.object({
     disabled: z.boolean(),
     serverRoles: z.array(z.string()),
@@ -342,6 +352,9 @@ const InputsSchema = z.object({
   project: z.string().describe(
     "The project ID of the project containing the Cloud SQL database. The Google apps domain is prefixed if applicable. Can be omitted for `update` because it is already specified on the URL.",
   ).optional(),
+  serverRoles: z.array(z.string()).describe(
+    "Optional. The server roles for the SQL Server login.",
+  ).optional(),
   sqlserverUserDetails: z.object({
     disabled: z.boolean().describe("If the user has been disabled").optional(),
     serverRoles: z.array(z.string()).describe("The server roles for this user")
@@ -386,7 +399,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Users. Registered at `@swamp/gcp/sqladmin/users`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/users",
-  version: "2026.07.29.1",
+  version: "2026.08.03.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -528,6 +541,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.03.1",
+      description: "Added: serverRoles. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -565,6 +586,9 @@ export const model = {
         if (g["password"] !== undefined) body["password"] = g["password"];
         if (g["passwordPolicy"] !== undefined) {
           body["passwordPolicy"] = g["passwordPolicy"];
+        }
+        if (g["serverRoles"] !== undefined) {
+          body["serverRoles"] = g["serverRoles"];
         }
         if (g["sqlserverUserDetails"] !== undefined) {
           body["sqlserverUserDetails"] = g["sqlserverUserDetails"];
@@ -674,6 +698,9 @@ export const model = {
         if (g["password"] !== undefined) body["password"] = g["password"];
         if (g["passwordPolicy"] !== undefined) {
           body["passwordPolicy"] = g["passwordPolicy"];
+        }
+        if (g["serverRoles"] !== undefined) {
+          body["serverRoles"] = g["serverRoles"];
         }
         if (g["sqlserverUserDetails"] !== undefined) {
           body["sqlserverUserDetails"] = g["sqlserverUserDetails"];

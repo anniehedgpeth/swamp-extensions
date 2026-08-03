@@ -1323,8 +1323,9 @@ const GlobalArgsSchema = z.object({
     createTime: z.string().describe(
       "Output only. Represents the timestamp of the creation of the exercise.",
     ).optional(),
-    displayName: z.string().describe("Required. Exercise display name.")
-      .optional(),
+    displayName: z.string().describe(
+      'Required. The localized, human-readable name of the exercise. For all exercise types other than `OTHER`, the system ignores client input and overrides this field with a generated name based on `exercise_type` (e.g., "Walking" for `WALKING`). If `exercise_type` is `OTHER`, this field can contain the user\'s custom, free-form display name.',
+    ).optional(),
     exerciseEvents: z.array(z.object({
       eventTime: z.string().describe("Required. Exercise event time")
         .optional(),
@@ -2634,6 +2635,194 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Optional. Data for points in the `irregular-rhythm-notification` session data type collection.",
   ).optional(),
+  menstrualPeriod: z.object({
+    interval: z.object({
+      civilEndTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
+      ).optional(),
+      civilStartTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
+      ).optional(),
+      endTime: z.string().describe("Required. Observed interval end time.")
+        .optional(),
+      endUtcOffset: z.string().describe(
+        "Required. The offset of the user's local time at the end of the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+      startTime: z.string().describe("Required. Observed interval start time.")
+        .optional(),
+      startUtcOffset: z.string().describe(
+        "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+    }).describe("Required. Observed interval.").optional(),
+    notes: z.string().describe(
+      "Optional. Standard free-form notes captured at manual logging.",
+    ).optional(),
+  }).describe(
+    "Optional. Data for points in the `menstrual-period` interval data type collection.",
+  ).optional(),
+  moods: z.object({
+    moods: z.array(
+      z.enum([
+        "MOOD_UNSPECIFIED",
+        "AMAZED",
+        "AMUSED",
+        "ANGRY",
+        "ANNOYED",
+        "ANXIOUS",
+        "HAPPY",
+        "CONTENT",
+        "SAD",
+        "WORRIED",
+        "FRUSTRATED",
+        "EXCITED",
+        "CALM",
+        "STRESSED",
+        "ASHAMED",
+        "BRAVE",
+        "CONFIDENT",
+        "DISAPPOINTED",
+        "DISCOURAGED",
+        "DISGUSTED",
+        "DRAINED",
+        "EMBARRASSED",
+        "GRATEFUL",
+        "GUILTY",
+        "HOPEFUL",
+        "HOPELESS",
+        "INDIFFERENT",
+        "IRRITATED",
+        "JEALOUS",
+        "JOYFUL",
+        "LONELY",
+        "OVERWHELMED",
+        "PASSIONATE",
+        "PEACEFUL",
+        "PROUD",
+        "RELIEVED",
+        "SATISFIED",
+        "SCARED",
+        "SURPRISED",
+        "ENERGIZED",
+        "FATIGUED",
+        "VERY_CALM",
+        "VERY_STRESSED",
+        "NEUTRAL",
+        "AFRAID",
+        "HURTING",
+        "BORED",
+        "BITTER",
+        "ENVIOUS",
+        "CONFUSED",
+        "CURIOUS",
+        "AWESTRUCK",
+        "INSPIRED",
+        "LONGING",
+        "ACCOMPLISHED",
+        "LOVING",
+        "COMPASSIONATE",
+      ]),
+    ).describe("Required. The moods logged.").optional(),
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
+      ).optional(),
+      physicalTime: z.string().describe(
+        "Required. The time of the observation.",
+      ).optional(),
+      utcOffset: z.string().describe(
+        "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+    }).describe("Required. The time at which moods were measured.").optional(),
+    valences: z.array(
+      z.enum(["VALENCE_UNSPECIFIED", "UNPLEASANT", "BASELINE", "PLEASANT"]),
+    ).describe("Optional. The valences.").optional(),
+  }).describe(
+    "Optional. Data for points in the `moods` sample data type collection.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. Data point name, only supported for the subset of identifiable data types. For the majority of the data types, individual data points do not need to be identified and this field would be empty. Format: `users/{user}/dataTypes/{data_type}/dataPoints/{data_point}` Example: `users/abcd1234/dataTypes/sleep/dataPoints/a1b2c3d4-e5f6-7890-1234-567890abcdef` The `{user}` ID is a system-generated identifier, as described in Identity.health_user_id. The `{data_type}` ID corresponds to the kebab-case version of the field names in the DataPoint data union field, e.g. `heart-rate` for the `heart_rate` field. The `{data_point}` ID can be client-provided or system-generated. If client-provided, it must be a string of 4-63 characters, containing only lowercase letters, numbers, and hyphens.",
   ).optional(),
@@ -2875,6 +3064,58 @@ const GlobalArgsSchema = z.object({
       .optional(),
   }).describe(
     "Optional. Data for points in the `nutrition-log` session data type collection.",
+  ).optional(),
+  ovulationTest: z.object({
+    result: z.enum([
+      "OVULATION_TEST_RESULT_UNSPECIFIED",
+      "NEGATIVE",
+      "LUTEINIZING_HORMONE_SURGE",
+      "ESTROGEN_SURGE",
+      "POSITIVE",
+      "INDETERMINATE",
+    ]).describe("Required. The result of the ovulation test.").optional(),
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
+      ).optional(),
+      physicalTime: z.string().describe(
+        "Required. The time of the observation.",
+      ).optional(),
+      utcOffset: z.string().describe(
+        "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+    }).describe("Required. The time at which ovulation test was measured.")
+      .optional(),
+  }).describe(
+    "Optional. Data for points in the `ovulation-test` sample data type collection.",
   ).optional(),
   oxygenSaturation: z.object({
     percentage: z.number().describe(
@@ -3507,6 +3748,83 @@ const GlobalArgsSchema = z.object({
     ]).describe("Required. Swim stroke type.").optional(),
   }).describe(
     "Optional. Data for points in the `swim-lengths-data` interval data type collection.",
+  ).optional(),
+  symptoms: z.object({
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
+      ).optional(),
+      physicalTime: z.string().describe(
+        "Required. The time of the observation.",
+      ).optional(),
+      utcOffset: z.string().describe(
+        "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+    }).describe("Required. Time when the symptoms were logged.").optional(),
+    symptoms: z.array(
+      z.enum([
+        "SYMPTOM_VALUE_UNSPECIFIED",
+        "CRAMPS",
+        "HEADACHE",
+        "TENDER_BREASTS",
+        "ACNE",
+        "SICK",
+        "BLOATED",
+        "HOT_FLASHES",
+        "PMS",
+        "COUGH",
+        "FEVER",
+        "DIFFICULTY_BREATHING",
+        "BACK_PAIN",
+        "SHAKINESS",
+        "HUNGER",
+        "SWEATING",
+        "ANXIETY",
+        "THIRST",
+        "FREQUENT_URINATION",
+        "BLURRED_VISION",
+        "OTHER",
+        "SEX_DRIVE_HIGH",
+        "SEX_DRIVE_MEDIUM",
+        "SEX_DRIVE_LOW",
+        "HEART_PALPITATIONS",
+        "FAINTING",
+        "CHEST_PAIN",
+        "FATIGUE",
+        "CONFUSION",
+        "DIZZINESS",
+      ]),
+    ).describe("Required. List of symptoms experienced.").optional(),
+  }).describe(
+    "Optional. Data for points in the `symptoms` sample data type collection.",
   ).optional(),
   timeInHeartRateZone: z.object({
     heartRateZoneType: z.enum([
@@ -4575,6 +4893,62 @@ const StateSchema = z.object({
       serviceVersion: z.string(),
     }),
   }).optional(),
+  menstrualPeriod: z.object({
+    interval: z.object({
+      civilEndTime: z.object({
+        date: z.object({
+          day: z.number(),
+          month: z.number(),
+          year: z.number(),
+        }),
+        time: z.object({
+          hours: z.number(),
+          minutes: z.number(),
+          nanos: z.number(),
+          seconds: z.number(),
+        }),
+      }),
+      civilStartTime: z.object({
+        date: z.object({
+          day: z.number(),
+          month: z.number(),
+          year: z.number(),
+        }),
+        time: z.object({
+          hours: z.number(),
+          minutes: z.number(),
+          nanos: z.number(),
+          seconds: z.number(),
+        }),
+      }),
+      endTime: z.string(),
+      endUtcOffset: z.string(),
+      startTime: z.string(),
+      startUtcOffset: z.string(),
+    }),
+    notes: z.string(),
+  }).optional(),
+  moods: z.object({
+    moods: z.array(z.string()),
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number(),
+          month: z.number(),
+          year: z.number(),
+        }),
+        time: z.object({
+          hours: z.number(),
+          minutes: z.number(),
+          nanos: z.number(),
+          seconds: z.number(),
+        }),
+      }),
+      physicalTime: z.string(),
+      utcOffset: z.string(),
+    }),
+    valences: z.array(z.string()),
+  }).optional(),
   name: z.string(),
   nutritionLog: z.object({
     energy: z.object({
@@ -4639,6 +5013,26 @@ const StateSchema = z.object({
     totalFat: z.object({
       grams: z.number(),
       userProvidedUnit: z.string(),
+    }),
+  }).optional(),
+  ovulationTest: z.object({
+    result: z.string(),
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number(),
+          month: z.number(),
+          year: z.number(),
+        }),
+        time: z.object({
+          hours: z.number(),
+          minutes: z.number(),
+          nanos: z.number(),
+          seconds: z.number(),
+        }),
+      }),
+      physicalTime: z.string(),
+      utcOffset: z.string(),
     }),
   }).optional(),
   oxygenSaturation: z.object({
@@ -4896,6 +5290,26 @@ const StateSchema = z.object({
     }),
     strokeCount: z.string(),
     swimStrokeType: z.string(),
+  }).optional(),
+  symptoms: z.object({
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number(),
+          month: z.number(),
+          year: z.number(),
+        }),
+        time: z.object({
+          hours: z.number(),
+          minutes: z.number(),
+          nanos: z.number(),
+          seconds: z.number(),
+        }),
+      }),
+      physicalTime: z.string(),
+      utcOffset: z.string(),
+    }),
+    symptoms: z.array(z.string()),
   }).optional(),
   timeInHeartRateZone: z.object({
     heartRateZoneType: z.string(),
@@ -6171,8 +6585,9 @@ const InputsSchema = z.object({
     createTime: z.string().describe(
       "Output only. Represents the timestamp of the creation of the exercise.",
     ).optional(),
-    displayName: z.string().describe("Required. Exercise display name.")
-      .optional(),
+    displayName: z.string().describe(
+      'Required. The localized, human-readable name of the exercise. For all exercise types other than `OTHER`, the system ignores client input and overrides this field with a generated name based on `exercise_type` (e.g., "Walking" for `WALKING`). If `exercise_type` is `OTHER`, this field can contain the user\'s custom, free-form display name.',
+    ).optional(),
     exerciseEvents: z.array(z.object({
       eventTime: z.string().describe("Required. Exercise event time")
         .optional(),
@@ -7482,6 +7897,194 @@ const InputsSchema = z.object({
   }).describe(
     "Optional. Data for points in the `irregular-rhythm-notification` session data type collection.",
   ).optional(),
+  menstrualPeriod: z.object({
+    interval: z.object({
+      civilEndTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval",
+      ).optional(),
+      civilStartTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval",
+      ).optional(),
+      endTime: z.string().describe("Required. Observed interval end time.")
+        .optional(),
+      endUtcOffset: z.string().describe(
+        "Required. The offset of the user's local time at the end of the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+      startTime: z.string().describe("Required. Observed interval start time.")
+        .optional(),
+      startUtcOffset: z.string().describe(
+        "Required. The offset of the user's local time at the start of the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+    }).describe("Required. Observed interval.").optional(),
+    notes: z.string().describe(
+      "Optional. Standard free-form notes captured at manual logging.",
+    ).optional(),
+  }).describe(
+    "Optional. Data for points in the `menstrual-period` interval data type collection.",
+  ).optional(),
+  moods: z.object({
+    moods: z.array(
+      z.enum([
+        "MOOD_UNSPECIFIED",
+        "AMAZED",
+        "AMUSED",
+        "ANGRY",
+        "ANNOYED",
+        "ANXIOUS",
+        "HAPPY",
+        "CONTENT",
+        "SAD",
+        "WORRIED",
+        "FRUSTRATED",
+        "EXCITED",
+        "CALM",
+        "STRESSED",
+        "ASHAMED",
+        "BRAVE",
+        "CONFIDENT",
+        "DISAPPOINTED",
+        "DISCOURAGED",
+        "DISGUSTED",
+        "DRAINED",
+        "EMBARRASSED",
+        "GRATEFUL",
+        "GUILTY",
+        "HOPEFUL",
+        "HOPELESS",
+        "INDIFFERENT",
+        "IRRITATED",
+        "JEALOUS",
+        "JOYFUL",
+        "LONELY",
+        "OVERWHELMED",
+        "PASSIONATE",
+        "PEACEFUL",
+        "PROUD",
+        "RELIEVED",
+        "SATISFIED",
+        "SCARED",
+        "SURPRISED",
+        "ENERGIZED",
+        "FATIGUED",
+        "VERY_CALM",
+        "VERY_STRESSED",
+        "NEUTRAL",
+        "AFRAID",
+        "HURTING",
+        "BORED",
+        "BITTER",
+        "ENVIOUS",
+        "CONFUSED",
+        "CURIOUS",
+        "AWESTRUCK",
+        "INSPIRED",
+        "LONGING",
+        "ACCOMPLISHED",
+        "LOVING",
+        "COMPASSIONATE",
+      ]),
+    ).describe("Required. The moods logged.").optional(),
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
+      ).optional(),
+      physicalTime: z.string().describe(
+        "Required. The time of the observation.",
+      ).optional(),
+      utcOffset: z.string().describe(
+        "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+    }).describe("Required. The time at which moods were measured.").optional(),
+    valences: z.array(
+      z.enum(["VALENCE_UNSPECIFIED", "UNPLEASANT", "BASELINE", "PLEASANT"]),
+    ).describe("Optional. The valences.").optional(),
+  }).describe(
+    "Optional. Data for points in the `moods` sample data type collection.",
+  ).optional(),
   name: z.string().describe(
     "Identifier. Data point name, only supported for the subset of identifiable data types. For the majority of the data types, individual data points do not need to be identified and this field would be empty. Format: `users/{user}/dataTypes/{data_type}/dataPoints/{data_point}` Example: `users/abcd1234/dataTypes/sleep/dataPoints/a1b2c3d4-e5f6-7890-1234-567890abcdef` The `{user}` ID is a system-generated identifier, as described in Identity.health_user_id. The `{data_type}` ID corresponds to the kebab-case version of the field names in the DataPoint data union field, e.g. `heart-rate` for the `heart_rate` field. The `{data_point}` ID can be client-provided or system-generated. If client-provided, it must be a string of 4-63 characters, containing only lowercase letters, numbers, and hyphens.",
   ).optional(),
@@ -7723,6 +8326,58 @@ const InputsSchema = z.object({
       .optional(),
   }).describe(
     "Optional. Data for points in the `nutrition-log` session data type collection.",
+  ).optional(),
+  ovulationTest: z.object({
+    result: z.enum([
+      "OVULATION_TEST_RESULT_UNSPECIFIED",
+      "NEGATIVE",
+      "LUTEINIZING_HORMONE_SURGE",
+      "ESTROGEN_SURGE",
+      "POSITIVE",
+      "INDETERMINATE",
+    ]).describe("Required. The result of the ovulation test.").optional(),
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
+      ).optional(),
+      physicalTime: z.string().describe(
+        "Required. The time of the observation.",
+      ).optional(),
+      utcOffset: z.string().describe(
+        "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+    }).describe("Required. The time at which ovulation test was measured.")
+      .optional(),
+  }).describe(
+    "Optional. Data for points in the `ovulation-test` sample data type collection.",
   ).optional(),
   oxygenSaturation: z.object({
     percentage: z.number().describe(
@@ -8356,6 +9011,83 @@ const InputsSchema = z.object({
   }).describe(
     "Optional. Data for points in the `swim-lengths-data` interval data type collection.",
   ).optional(),
+  symptoms: z.object({
+    sampleTime: z.object({
+      civilTime: z.object({
+        date: z.object({
+          day: z.number().int().describe(
+            "Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn't significant.",
+          ).optional(),
+          month: z.number().int().describe(
+            "Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.",
+          ).optional(),
+          year: z.number().int().describe(
+            "Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.",
+          ).optional(),
+        }).describe("Required. Calendar date.").optional(),
+        time: z.object({
+          hours: z.number().int().describe(
+            'Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.',
+          ).optional(),
+          minutes: z.number().int().describe(
+            "Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.",
+          ).optional(),
+          nanos: z.number().int().describe(
+            "Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.",
+          ).optional(),
+          seconds: z.number().int().describe(
+            "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
+          ).optional(),
+        }).describe(
+          "Optional. Time of day. Defaults to the start of the day, at midnight if omitted.",
+        ).optional(),
+      }).describe(
+        "Output only. The civil time in the timezone the subject is in at the time of the observation.",
+      ).optional(),
+      physicalTime: z.string().describe(
+        "Required. The time of the observation.",
+      ).optional(),
+      utcOffset: z.string().describe(
+        "Required. The offset of the user's local time during the observation relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+    }).describe("Required. Time when the symptoms were logged.").optional(),
+    symptoms: z.array(
+      z.enum([
+        "SYMPTOM_VALUE_UNSPECIFIED",
+        "CRAMPS",
+        "HEADACHE",
+        "TENDER_BREASTS",
+        "ACNE",
+        "SICK",
+        "BLOATED",
+        "HOT_FLASHES",
+        "PMS",
+        "COUGH",
+        "FEVER",
+        "DIFFICULTY_BREATHING",
+        "BACK_PAIN",
+        "SHAKINESS",
+        "HUNGER",
+        "SWEATING",
+        "ANXIETY",
+        "THIRST",
+        "FREQUENT_URINATION",
+        "BLURRED_VISION",
+        "OTHER",
+        "SEX_DRIVE_HIGH",
+        "SEX_DRIVE_MEDIUM",
+        "SEX_DRIVE_LOW",
+        "HEART_PALPITATIONS",
+        "FAINTING",
+        "CHEST_PAIN",
+        "FATIGUE",
+        "CONFUSION",
+        "DIZZINESS",
+      ]),
+    ).describe("Required. List of symptoms experienced.").optional(),
+  }).describe(
+    "Optional. Data for points in the `symptoms` sample data type collection.",
+  ).optional(),
   timeInHeartRateZone: z.object({
     heartRateZoneType: z.enum([
       "HEART_RATE_ZONE_TYPE_UNSPECIFIED",
@@ -8581,7 +9313,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Health Users.DataTypes.DataPoints. Registered at `@swamp/gcp/health/users-datatypes-datapoints`. */
 export const model = {
   type: "@swamp/gcp/health/users-datatypes-datapoints",
-  version: "2026.07.29.2",
+  version: "2026.08.03.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -8839,6 +9571,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.03.1",
+      description:
+        "Added: menstrualPeriod, moods, ovulationTest, symptoms. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -8929,9 +9670,16 @@ export const model = {
           body["irregularRhythmNotification"] =
             g["irregularRhythmNotification"];
         }
+        if (g["menstrualPeriod"] !== undefined) {
+          body["menstrualPeriod"] = g["menstrualPeriod"];
+        }
+        if (g["moods"] !== undefined) body["moods"] = g["moods"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["nutritionLog"] !== undefined) {
           body["nutritionLog"] = g["nutritionLog"];
+        }
+        if (g["ovulationTest"] !== undefined) {
+          body["ovulationTest"] = g["ovulationTest"];
         }
         if (g["oxygenSaturation"] !== undefined) {
           body["oxygenSaturation"] = g["oxygenSaturation"];
@@ -8949,6 +9697,7 @@ export const model = {
         if (g["swimLengthsData"] !== undefined) {
           body["swimLengthsData"] = g["swimLengthsData"];
         }
+        if (g["symptoms"] !== undefined) body["symptoms"] = g["symptoms"];
         if (g["timeInHeartRateZone"] !== undefined) {
           body["timeInHeartRateZone"] = g["timeInHeartRateZone"];
         }
@@ -9126,8 +9875,15 @@ export const model = {
           body["irregularRhythmNotification"] =
             g["irregularRhythmNotification"];
         }
+        if (g["menstrualPeriod"] !== undefined) {
+          body["menstrualPeriod"] = g["menstrualPeriod"];
+        }
+        if (g["moods"] !== undefined) body["moods"] = g["moods"];
         if (g["nutritionLog"] !== undefined) {
           body["nutritionLog"] = g["nutritionLog"];
+        }
+        if (g["ovulationTest"] !== undefined) {
+          body["ovulationTest"] = g["ovulationTest"];
         }
         if (g["oxygenSaturation"] !== undefined) {
           body["oxygenSaturation"] = g["oxygenSaturation"];
@@ -9145,6 +9901,7 @@ export const model = {
         if (g["swimLengthsData"] !== undefined) {
           body["swimLengthsData"] = g["swimLengthsData"];
         }
+        if (g["symptoms"] !== undefined) body["symptoms"] = g["symptoms"];
         if (g["timeInHeartRateZone"] !== undefined) {
           body["timeInHeartRateZone"] = g["timeInHeartRateZone"];
         }

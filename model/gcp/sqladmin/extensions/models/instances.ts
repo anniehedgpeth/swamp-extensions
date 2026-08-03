@@ -182,6 +182,9 @@ const GlobalArgsSchema = z.object({
   connectionName: z.string().describe(
     "Connection name of the Cloud SQL instance used in connection strings.",
   ).optional(),
+  databaseCenterIntegrationEnabled: z.boolean().describe(
+    "Optional. If true, instance metadata is sent to the Database Center. If false, instance metadata is not sent to the Database Center.",
+  ).optional(),
   databaseVersion: z.enum([
     "SQL_DATABASE_VERSION_UNSPECIFIED",
     "MYSQL_5_1",
@@ -334,6 +337,9 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     clientKey: z.string().describe(
       "PEM representation of the replica's private key. The corresponding public key is encoded in the client's certificate.",
+    ).optional(),
+    dmsManaged: z.boolean().describe(
+      "Output only. Indicates whether the resource is managed by Database Migration Service.",
     ).optional(),
     dumpFilePath: z.string().describe(
       "The dump file to create the Cloud SQL replica.",
@@ -1093,6 +1099,7 @@ const StateSchema = z.object({
   connectionName: z.string().optional(),
   createTime: z.string().optional(),
   currentDiskSize: z.string().optional(),
+  databaseCenterIntegrationEnabled: z.boolean().optional(),
   databaseInstalledVersion: z.string().optional(),
   databaseVersion: z.string().optional(),
   diskEncryptionConfiguration: z.object({
@@ -1171,6 +1178,7 @@ const StateSchema = z.object({
     caCertificate: z.string(),
     clientCertificate: z.string(),
     clientKey: z.string(),
+    dmsManaged: z.boolean(),
     dumpFilePath: z.string(),
     hostPort: z.string(),
     kind: z.string(),
@@ -1459,6 +1467,9 @@ const InputsSchema = z.object({
   connectionName: z.string().describe(
     "Connection name of the Cloud SQL instance used in connection strings.",
   ).optional(),
+  databaseCenterIntegrationEnabled: z.boolean().describe(
+    "Optional. If true, instance metadata is sent to the Database Center. If false, instance metadata is not sent to the Database Center.",
+  ).optional(),
   databaseVersion: z.enum([
     "SQL_DATABASE_VERSION_UNSPECIFIED",
     "MYSQL_5_1",
@@ -1611,6 +1622,9 @@ const InputsSchema = z.object({
     ).optional(),
     clientKey: z.string().describe(
       "PEM representation of the replica's private key. The corresponding public key is encoded in the client's certificate.",
+    ).optional(),
+    dmsManaged: z.boolean().describe(
+      "Output only. Indicates whether the resource is managed by Database Migration Service.",
     ).optional(),
     dumpFilePath: z.string().describe(
       "The dump file to create the Cloud SQL replica.",
@@ -2388,7 +2402,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Instances. Registered at `@swamp/gcp/sqladmin/instances`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/instances",
-  version: "2026.07.29.1",
+  version: "2026.08.03.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2600,6 +2614,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.03.1",
+      description:
+        "Added: databaseCenterIntegrationEnabled. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2630,6 +2653,10 @@ export const model = {
         }
         if (g["connectionName"] !== undefined) {
           body["connectionName"] = g["connectionName"];
+        }
+        if (g["databaseCenterIntegrationEnabled"] !== undefined) {
+          body["databaseCenterIntegrationEnabled"] =
+            g["databaseCenterIntegrationEnabled"];
         }
         if (g["databaseVersion"] !== undefined) {
           body["databaseVersion"] = g["databaseVersion"];
@@ -2816,6 +2843,10 @@ export const model = {
         }
         if (g["connectionName"] !== undefined) {
           body["connectionName"] = g["connectionName"];
+        }
+        if (g["databaseCenterIntegrationEnabled"] !== undefined) {
+          body["databaseCenterIntegrationEnabled"] =
+            g["databaseCenterIntegrationEnabled"];
         }
         if (g["diskEncryptionConfiguration"] !== undefined) {
           body["diskEncryptionConfiguration"] =

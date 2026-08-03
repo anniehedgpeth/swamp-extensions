@@ -170,9 +170,6 @@ const GlobalArgsSchema = z.object({
   primaryContact: z.string().describe(
     "Optional. Email or URL of the primary point of contact of the QueryTemplate. Max Length: 1000 bytes.",
   ).optional(),
-  proposer: z.string().describe(
-    "Optional. Will be deprecated. Email or URL of the primary point of contact of the QueryTemplate. Max Length: 1000 bytes.",
-  ).optional(),
   routine: z.object({
     definitionBody: z.string().describe(
       "Optional. The definition body of the routine.",
@@ -229,9 +226,6 @@ const InputsSchema = z.object({
   primaryContact: z.string().describe(
     "Optional. Email or URL of the primary point of contact of the QueryTemplate. Max Length: 1000 bytes.",
   ).optional(),
-  proposer: z.string().describe(
-    "Optional. Will be deprecated. Email or URL of the primary point of contact of the QueryTemplate. Max Length: 1000 bytes.",
-  ).optional(),
   routine: z.object({
     definitionBody: z.string().describe(
       "Optional. The definition body of the routine.",
@@ -276,7 +270,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Analytics Hub DataExchanges.QueryTemplates. Registered at `@swamp/gcp/analyticshub/dataexchanges-querytemplates`. */
 export const model = {
   type: "@swamp/gcp/analyticshub/dataexchanges-querytemplates",
-  version: "2026.07.29.1",
+  version: "2026.08.03.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -403,6 +397,15 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.03.1",
+      description: "Removed: quotaProject, proposer",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, proposer: _proposer, ...rest } =
+          old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -438,7 +441,6 @@ export const model = {
         if (g["primaryContact"] !== undefined) {
           body["primaryContact"] = g["primaryContact"];
         }
-        if (g["proposer"] !== undefined) body["proposer"] = g["proposer"];
         if (g["routine"] !== undefined) body["routine"] = g["routine"];
         if (g["queryTemplateId"] !== undefined) {
           params["queryTemplateId"] = String(g["queryTemplateId"]);
@@ -560,7 +562,6 @@ export const model = {
         if (g["primaryContact"] !== undefined) {
           body["primaryContact"] = g["primaryContact"];
         }
-        if (g["proposer"] !== undefined) body["proposer"] = g["proposer"];
         if (g["routine"] !== undefined) body["routine"] = g["routine"];
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {

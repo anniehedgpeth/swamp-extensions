@@ -166,7 +166,7 @@ const GlobalArgsSchema = z.object({
     "Required. Collection of combinations of groups and preference sets.",
   ).optional(),
   reportConfigId: z.string().describe(
-    "Required. User specified ID for the report config. It will become the last component of the report config name. The ID must be unique within the project, must conform with RFC-1034, is restricted to lower-cased letters, and has a maximum length of 63 characters. The ID must match the regular expression: [a-z]([a-z0-9-]{0,61}[a-z0-9])?.",
+    "Required. User specified ID for the report config. It will become the last component of the report config name. The ID must be unique within the project, must conform with RFC-1034, is restricted to lower-cased letters, and has a maximum length of 63 characters. The ID must match the regular expression: `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -209,7 +209,7 @@ const InputsSchema = z.object({
     "Required. Collection of combinations of groups and preference sets.",
   ).optional(),
   reportConfigId: z.string().describe(
-    "Required. User specified ID for the report config. It will become the last component of the report config name. The ID must be unique within the project, must conform with RFC-1034, is restricted to lower-cased letters, and has a maximum length of 63 characters. The ID must match the regular expression: [a-z]([a-z0-9-]{0,61}[a-z0-9])?.",
+    "Required. User specified ID for the report config. It will become the last component of the report config name. The ID must be unique within the project, must conform with RFC-1034, is restricted to lower-cased letters, and has a maximum length of 63 characters. The ID must match the regular expression: `[a-z]([a-z0-9-]{0,61}[a-z0-9])?`.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -244,7 +244,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Migration Center ReportConfigs. Registered at `@swamp/gcp/migrationcenter/reportconfigs`. */
 export const model = {
   type: "@swamp/gcp/migrationcenter/reportconfigs",
-  version: "2026.07.29.1",
+  version: "2026.08.03.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -360,6 +360,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
