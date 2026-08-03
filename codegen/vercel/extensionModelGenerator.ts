@@ -1,0 +1,797 @@
+// Generates individual Vercel extension model .ts files
+// Each file exports `const model = { ... }` using the swamp extension model pattern.
+
+import type { VercelProperty, VercelResource } from "./pipeline.ts";
+import { generateCopyrightHeader } from "../shared/licenseGenerator.ts";
+import { wrapWithSanitize } from "../shared/instanceName.ts";
+
+const VALID_JS_IDENT = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+function quoteProp(name: string): string {
+  return VALID_JS_IDENT.test(name) ? name : JSON.stringify(name);
+}
+
+export interface ExtensionModelInput {
+  resource: VercelResource;
+  extensionName: string;
+  version: string;
+  upgradesBlock?: string;
+}
+
+export function generateVercelExtensionModel(
+  input: ExtensionModelInput,
+): string {
+  const { resource, extensionName, version } = input;
+  const modelType = `${extensionName}/${resource.modelSlug}`;
+
+  const lines: string[] = [];
+
+  lines.push(generateCopyrightHeader());
+  lines.push("");
+  lines.push(
+    `// Auto-generated extension model for ${modelType}`,
+  );
+  lines.push(
+    `// Do not edit manually. Re-generate with: deno task generate:vercel`,
+  );
+  lines.push("");
+  lines.push(`// deno-lint-ignore-file no-explicit-any`);
+  lines.push("");
+
+  const singular = resource.displayName;
+  lines.push(`/**`);
+  lines.push(` * Swamp extension model for a Vercel ${singular}.`);
+  lines.push(` *`);
+  lines.push(
+    ` * Wraps the Vercel API as a swamp model so create, get, lookup,`,
+  );
+  lines.push(
+    ` * adopt, update, delete, and sync can be driven through \`swamp model\`.`,
+  );
+  lines.push(` *`);
+  lines.push(` * @module`);
+  lines.push(` */`);
+  lines.push("");
+
+  lines.push(`import { z } from "npm:zod@4.3.6";`);
+
+  const helperImports: string[] = ["create", "listAll"];
+  if (resource.hasIndividualRead) {
+    helperImports.push("read", "tryRead");
+  }
+  if (resource.handlers.delete && resource.deleteBasePath) {
+    helperImports.push("remove");
+  }
+  if (resource.handlers.update && resource.updateBasePath) {
+    helperImports.push("update");
+  }
+  lines.push(
+    `import { ${helperImports.join(", ")} } from "./_lib/vercel.ts";`,
+  );
+  lines.push("");
+
+  // Injected field names that must not collide with resource properties
+  const injectedFields = new Set(["teamId", "slug", "token"]);
+  for (const pp of resource.parentParams) injectedFields.add(pp.paramName);
+
+  // --- GlobalArgsSchema ---
+  const globalArgsProps = buildGlobalArgsProperties(resource, injectedFields);
+
+  const allPropNames = new Set([
+    ...Object.keys(resource.createProperties),
+    ...Object.keys(resource.updateProperties),
+  ]);
+
+  const authSuffix = ", { token: g.token }";
+  const teamSuffix = ", { teamId: g.teamId, slug: g.slug }";
+
+  lines.push(`const GlobalArgsSchema = z.object({`);
+
+  // Team scoping parameters
+  lines.push(
+    `  teamId: z.string().optional().describe("Vercel team ID"),`,
+  );
+  lines.push(
+    `  slug: z.string().optional().describe("Vercel team slug (alternative to teamId)"),`,
+  );
+
+  // Parent path parameters (e.g., domain for DNS records)
+  // Skip parent params that collide with team scoping params
+  const teamScopeParams = new Set(["teamId", "slug"]);
+  for (const pp of resource.parentParams) {
+    if (teamScopeParams.has(pp.paramName)) continue;
+    lines.push(
+      `  ${quoteProp(pp.paramName)}: z.string().describe(${
+        JSON.stringify(pp.description)
+      }),`,
+    );
+  }
+
+  // Synthetic name if needed
+  if (resource.syntheticName && !allPropNames.has(resource.namingField)) {
+    lines.push(
+      `  name: z.string().describe("Instance name for this resource (used as the unique identifier in the factory pattern)"),`,
+    );
+  }
+
+  // Resource-specific properties
+  for (const prop of globalArgsProps) {
+    lines.push(`  ${prop.line},`);
+  }
+
+  // Auth token
+  lines.push(
+    `  token: z.string().meta({ sensitive: true }).describe("Vercel API token; overrides the VERCEL_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.").optional(),`,
+  );
+
+  lines.push(`});`);
+  lines.push("");
+
+  // --- ResourceSchema ---
+  lines.push(`const ResourceSchema = z.object({`);
+  for (const [name, prop] of Object.entries(resource.resourceProperties)) {
+    const expr = generateSimplifiedZod(prop);
+    const idFields = new Set(["id", "uid"]);
+    let line = `  ${quoteProp(name)}: ${expr}`;
+    if (!idFields.has(name)) {
+      line += `.nullable().optional()`;
+    }
+    lines.push(`${line},`);
+  }
+  lines.push(`}).passthrough();`);
+  lines.push("");
+  lines.push(`type ResourceData = z.infer<typeof ResourceSchema>;`);
+  lines.push("");
+
+  // --- InputsSchema ---
+  lines.push(`const InputsSchema = z.object({`);
+  lines.push(`  teamId: z.string().optional(),`);
+  lines.push(`  slug: z.string().optional(),`);
+  for (const pp of resource.parentParams) {
+    if (teamScopeParams.has(pp.paramName)) continue;
+    lines.push(`  ${quoteProp(pp.paramName)}: z.string().optional(),`);
+  }
+  if (resource.syntheticName && !allPropNames.has(resource.namingField)) {
+    lines.push(`  name: z.string().optional(),`);
+  }
+  for (const prop of globalArgsProps) {
+    lines.push(`  ${prop.nameOnly}: ${prop.baseExpr}.optional(),`);
+  }
+  lines.push(`  token: z.string().meta({ sensitive: true }).optional(),`);
+  lines.push(`});`);
+  lines.push("");
+
+  // Response unwrapping for single-key envelopes (e.g., {domain: {...}})
+  if (resource.responseUnwrapKey) {
+    const key = resource.responseUnwrapKey;
+    lines.push(
+      `function unwrapResponse(data: Record<string, unknown>): Record<string, unknown> {`,
+    );
+    lines.push(
+      `  const inner = data[${JSON.stringify(key)}];`,
+    );
+    lines.push(
+      `  if (inner && typeof inner === "object" && !Array.isArray(inner)) return inner as Record<string, unknown>;`,
+    );
+    lines.push(`  return data;`);
+    lines.push(`}`);
+    lines.push("");
+  }
+
+  // --- Model export ---
+  lines.push(
+    `/** Swamp extension model for Vercel ${singular}. Registered at \`${modelType}\`. */`,
+  );
+  lines.push(`export const model = {`);
+  lines.push(`  type: "${modelType}",`);
+  lines.push(`  version: "${version}",`);
+  if (input.upgradesBlock) {
+    lines.push(input.upgradesBlock);
+  }
+  lines.push(`  globalArguments: GlobalArgsSchema,`);
+  lines.push(`  inputsSchema: InputsSchema,`);
+  lines.push(`  resources: {`);
+  lines.push(`    state: {`);
+  lines.push(`      description: "${singular} resource state",`);
+  lines.push(`      schema: ResourceSchema,`);
+  lines.push(`      lifetime: "infinite",`);
+  lines.push(`      garbageCollection: 10,`);
+  lines.push(`    },`);
+  lines.push(`  },`);
+  lines.push(`  methods: {`);
+
+  const namingField = resource.namingField;
+  const idField = resource.identifyingField;
+  // Helper to generate response unwrapping lines after an API call.
+  // When responseUnwrapKey is set, adds a line that extracts the resource from the envelope.
+  const unwrapLines = (varName: string): string[] => {
+    if (!resource.responseUnwrapKey) return [];
+    return [
+      `        ${varName} = unwrapResponse(${varName} as Record<string, unknown>) as ResourceData;`,
+    ];
+  };
+
+  // Per-operation endpoint builders — each CRUD method uses its own versioned path
+  const ep = (path: string) => buildEndpointLines(resource, path);
+  const createEp = ep(resource.createPath);
+  const listEp = ep(resource.listPath ?? resource.createPath);
+  const readEp = ep(resource.readBasePath);
+  const updateEp = resource.updateBasePath
+    ? ep(resource.updateBasePath)
+    : readEp;
+  const deleteEp = resource.deleteBasePath
+    ? ep(resource.deleteBasePath)
+    : readEp;
+
+  // Create method suffix — some Vercel resources use PUT or PATCH instead of POST
+  const createMethodArg = resource.createMethod !== "POST"
+    ? `, "${resource.createMethod}"`
+    : "";
+
+  // --- create method ---
+  lines.push(`    create: {`);
+  lines.push(`      description: "Create a ${singular}",`);
+  lines.push(`      arguments: z.object({}),`);
+  lines.push(
+    `      execute: async (_args: Record<string, never>, context: any) => {`,
+  );
+  lines.push(`        const g = context.globalArgs;`);
+  lines.push(...createEp);
+  lines.push(`        const body: Record<string, unknown> = {};`);
+  for (const name of Object.keys(resource.createProperties)) {
+    if (injectedFields.has(name)) continue;
+    const access = VALID_JS_IDENT.test(name)
+      ? `.${name}`
+      : `[${JSON.stringify(name)}]`;
+    lines.push(
+      `        if (g${access} !== undefined) body${access} = g${access};`,
+    );
+  }
+  // Transform the body for APIs that expect non-standard shapes
+  const bodyExpr = resource.bodyTransform === "wrapArray"
+    ? `[body] as unknown as Record<string, unknown>`
+    : resource.bodyTransform === "batchItems"
+    ? `{ items: [{ operation: "upsert", ...body }] }`
+    : "body";
+  lines.push(
+    `        const raw = await create(endpoint, ${bodyExpr}${authSuffix}${teamSuffix}${createMethodArg});`,
+  );
+  // Unwrap response envelopes
+  if (resource.createResponseStyle === "batchFirst") {
+    lines.push(
+      `        const created = (raw as Record<string, unknown>).created;`,
+    );
+    lines.push(
+      `        const result = (Array.isArray(created) ? created[0] : created) as ResourceData;`,
+    );
+    lines.push(
+      `        if (!result) throw new Error("Create returned empty result — check the 'failed' array in the response for errors");`,
+    );
+  } else if (resource.responseUnwrapKey) {
+    lines.push(
+      `        const result = (raw as Record<string, unknown>)[${
+        JSON.stringify(resource.responseUnwrapKey)
+      }] as ResourceData;`,
+    );
+  } else {
+    lines.push(`        const result = raw as ResourceData;`);
+  }
+  lines.push(
+    `        const instanceName = ${
+      wrapWithSanitize(`g.${namingField}?.toString() ?? "current"`)
+    };`,
+  );
+  lines.push(
+    `        const handle = await context.writeResource("state", instanceName, result);`,
+  );
+  lines.push(`        return { dataHandles: [handle] };`);
+  lines.push(`      },`);
+  lines.push(`    },`);
+
+  // --- get method (only if individual read exists) ---
+  if (resource.hasIndividualRead) {
+    lines.push(`    get: {`);
+    lines.push(`      description: "Get a ${singular}",`);
+    lines.push(
+      `      arguments: z.object({ id: z.string().describe("The ID of the ${singular}") }),`,
+    );
+    lines.push(
+      `      execute: async (args: { id: string }, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(...readEp);
+    lines.push(
+      `        let result = await read(endpoint, args.id${authSuffix}${teamSuffix}) as ResourceData;`,
+    );
+    lines.push(...unwrapLines("result"));
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(
+          `g.${namingField}?.toString() ?? args.id`,
+        )
+      };`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // --- lookup method ---
+  const skipFields = new Set(["teamId", "slug", "token"]);
+  for (const pp of resource.parentParams) skipFields.add(pp.paramName);
+  if (resource.syntheticName && !allPropNames.has(resource.namingField)) {
+    skipFields.add("name");
+  }
+  const filterFields = collectFilterableFields(resource, skipFields);
+  // Also add response-schema scalar fields as filterable for lookup
+  const responseFilterFields = collectResponseFilterableFields(
+    resource,
+    skipFields,
+    new Set(filterFields),
+  );
+  const allFilterFields = [...filterFields, ...responseFilterFields];
+
+  if (resource.listPath || resource.paginationStyle !== "none") {
+    lines.push(`    lookup: {`);
+    lines.push(
+      `      description: "Look up an existing ${singular} by matching global argument values and import it into state",`,
+    );
+    lines.push(`      arguments: z.object({}),`);
+    lines.push(
+      `      execute: async (_args: Record<string, never>, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(...listEp);
+    lines.push(
+      `        const filters: [string, string][] = [];`,
+    );
+    for (const name of allFilterFields) {
+      const access = VALID_JS_IDENT.test(name)
+        ? `.${name}`
+        : `[${JSON.stringify(name)}]`;
+      lines.push(
+        `        if (g${access} !== undefined) filters.push([${
+          JSON.stringify(name)
+        }, String(g${access})]);`,
+      );
+    }
+    lines.push(
+      `        if (filters.length === 0) throw new Error("At least one global argument must be set to filter by");`,
+    );
+    lines.push(
+      `        const items = await listAll(endpoint, "${resource.paginationStyle}"${authSuffix}${teamSuffix}, undefined${
+        resource.paginationCursorParam
+          ? `, "${resource.paginationCursorParam}"`
+          : ""
+      });`,
+    );
+    lines.push(`        const matches = items.filter(item => {`);
+    lines.push(`          for (const [key, val] of filters) {`);
+    lines.push(
+      `            if (String((item as Record<string, unknown>)[key]) !== val) return false;`,
+    );
+    lines.push(`          }`);
+    lines.push(`          return true;`);
+    lines.push(`        });`);
+    lines.push(`        if (matches.length === 0) {`);
+    lines.push(
+      `          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");`,
+    );
+    lines.push(
+      `          throw new Error(\`No ${singular.toLowerCase()} found matching filters: \${filterDesc}\`);`,
+    );
+    lines.push(`        }`);
+    lines.push(`        if (matches.length > 1) {`);
+    lines.push(
+      `          const filterDesc = filters.map(([k, v]) => \`\${k}=\${JSON.stringify(v)}\`).join(", ");`,
+    );
+    lines.push(
+      `          throw new Error(\`Expected exactly 1 match, found \${matches.length} for filters: \${filterDesc}\`);`,
+    );
+    lines.push(`        }`);
+    lines.push(`        const result = matches[0] as ResourceData;`);
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(
+          `g.${namingField}?.toString() ?? result.${idField}?.toString() ?? "current"`,
+        )
+      };`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // --- adopt method (only if individual read exists) ---
+  if (resource.hasIndividualRead) {
+    lines.push(`    adopt: {`);
+    lines.push(
+      `      description: "Import an existing ${singular} by ID into state for management",`,
+    );
+    lines.push(
+      `      arguments: z.object({ id: z.string().describe("The ID of the ${singular} to import") }),`,
+    );
+    lines.push(
+      `      execute: async (args: { id: string }, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(...readEp);
+    lines.push(
+      `        let result = await read(endpoint, args.id${authSuffix}${teamSuffix}) as ResourceData;`,
+    );
+    lines.push(...unwrapLines("result"));
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(
+          `result.${namingField}?.toString() ?? g.${namingField}?.toString() ?? args.id`,
+        )
+      };`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // --- update method ---
+  if (resource.handlers.update && resource.updateBasePath) {
+    lines.push(`    update: {`);
+    lines.push(`      description: "Update ${singular} attributes",`);
+    lines.push(
+      `      arguments: z.object({ identifier: z.string().describe("Target a specific ${singular} by ${idField} (e.g. one discovered by list)").optional() }),`,
+    );
+    lines.push(
+      `      execute: async (args: { identifier?: string }, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(...updateEp);
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(
+          `g.${namingField}?.toString() ?? args.identifier ?? "current"`,
+        )
+      };`,
+    );
+    lines.push(
+      `        const content = await context.dataRepository.getContent(`,
+    );
+    lines.push(
+      `          context.modelType, context.modelId, instanceName,`,
+    );
+    lines.push(`        );`);
+    lines.push(
+      `        if (!content) throw new Error("No data found - run create, get, or list first");`,
+    );
+    lines.push(
+      `        const existing = JSON.parse(new TextDecoder().decode(content));`,
+    );
+    lines.push(`        const body: Record<string, unknown> = {};`);
+    const updateKeys = Object.keys(resource.updateProperties).length > 0
+      ? Object.keys(resource.updateProperties)
+      : Object.keys(resource.createProperties).filter(
+        (k) => !resource.createOnlyProperties.has(k),
+      );
+    for (const name of updateKeys) {
+      if (injectedFields.has(name)) continue;
+      const access = VALID_JS_IDENT.test(name)
+        ? `.${name}`
+        : `[${JSON.stringify(name)}]`;
+      lines.push(
+        `        if (g${access} !== undefined) body${access} = g${access};`,
+      );
+    }
+    lines.push(
+      `        let result = await update(endpoint, existing.${idField}, body, "${resource.updateMethod}"${authSuffix}${teamSuffix}) as ResourceData;`,
+    );
+    lines.push(...unwrapLines("result"));
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // --- delete method ---
+  if (resource.handlers.delete && resource.deleteBasePath) {
+    lines.push(`    delete: {`);
+    lines.push(`      description: "Delete the ${singular}",`);
+    lines.push(
+      `      arguments: z.object({ id: z.string().describe("The ID of the ${singular}") }),`,
+    );
+    lines.push(
+      `      execute: async (args: { id: string }, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(...deleteEp);
+    lines.push(
+      `        const { existed } = await remove(endpoint, args.id${authSuffix}${teamSuffix});`,
+    );
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(
+          `context.globalArgs.${namingField}?.toString() ?? args.id`,
+        )
+      };`,
+    );
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, {`,
+    );
+    lines.push(`          id: args.id,`);
+    lines.push(`          existed,`);
+    lines.push(
+      `          status: existed ? "deleted" : "not_found",`,
+    );
+    lines.push(`          deletedAt: new Date().toISOString(),`);
+    lines.push(`        });`);
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // --- sync method (only if individual read exists) ---
+  if (resource.hasIndividualRead) {
+    lines.push(`    sync: {`);
+    lines.push(`      description: "Sync ${singular} state from Vercel",`);
+    lines.push(
+      `      arguments: z.object({ identifier: z.string().describe("Target a specific ${singular} by ${idField} (e.g. one discovered by list)").optional() }),`,
+    );
+    lines.push(
+      `      execute: async (args: { identifier?: string }, context: any) => {`,
+    );
+    lines.push(`        const g = context.globalArgs;`);
+    lines.push(...readEp);
+    lines.push(
+      `        const instanceName = ${
+        wrapWithSanitize(
+          `g.${namingField}?.toString() ?? args.identifier ?? "current"`,
+        )
+      };`,
+    );
+    lines.push(
+      `        const content = await context.dataRepository.getContent(`,
+    );
+    lines.push(
+      `          context.modelType, context.modelId, instanceName,`,
+    );
+    lines.push(`        );`);
+    lines.push(
+      `        if (!content) throw new Error("No data found - run create, get, or list first");`,
+    );
+    lines.push(
+      `        const existing = JSON.parse(new TextDecoder().decode(content));`,
+    );
+    lines.push(
+      `        if (!existing.${idField}) throw new Error("Stored state has no ${idField} - cannot sync");`,
+    );
+    lines.push(
+      `        let result = await tryRead(endpoint, existing.${idField}${authSuffix}${teamSuffix}) as ResourceData | null;`,
+    );
+    if (resource.responseUnwrapKey) {
+      lines.push(
+        `        if (result) result = unwrapResponse(result as Record<string, unknown>) as ResourceData;`,
+      );
+    }
+    lines.push(`        if (result) {`);
+    lines.push(
+      `          const handle = await context.writeResource("state", instanceName, result);`,
+    );
+    lines.push(`          return { dataHandles: [handle] };`);
+    lines.push(`        }`);
+    lines.push(
+      `        const handle = await context.writeResource("state", instanceName, {`,
+    );
+    lines.push(`          id: existing.${idField},`);
+    lines.push(`          status: "not_found",`);
+    lines.push(`          syncedAt: new Date().toISOString(),`);
+    lines.push(`        });`);
+    lines.push(`        return { dataHandles: [handle] };`);
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  lines.push(`  },`);
+  lines.push(`};`);
+  lines.push("");
+
+  return lines.join("\n");
+}
+
+function buildEndpointLines(resource: VercelResource, path: string): string[] {
+  if (resource.parentParams.length === 0) {
+    return [
+      `        const endpoint = "${path}";`,
+    ];
+  }
+
+  // Build endpoint with parent param interpolation
+  // e.g., /v2/domains/{domain}/records → "/v2/domains/" + g.domain + "/records"
+  let pathExpr = `"`;
+  const parts = path.split("/");
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (part.startsWith("{") && part.endsWith("}")) {
+      const paramName = part.slice(1, -1);
+      pathExpr += `" + encodeURIComponent(g.${paramName}) + "`;
+      if (i < parts.length - 1) pathExpr += "/";
+    } else {
+      pathExpr += part;
+      if (i < parts.length - 1) pathExpr += "/";
+    }
+  }
+  pathExpr += `"`;
+  // Clean up redundant empty strings
+  pathExpr = pathExpr.replace(/"" \+ /g, "").replace(/ \+ ""/g, "");
+
+  return [
+    `        const endpoint = ${pathExpr};`,
+  ];
+}
+
+function buildGlobalArgsProperties(
+  resource: VercelResource,
+  injectedFields: Set<string>,
+): { line: string; nameOnly: string; baseExpr: string }[] {
+  const result: { line: string; nameOnly: string; baseExpr: string }[] = [];
+
+  const allProps: Record<string, VercelProperty> = {
+    ...resource.updateProperties,
+    ...resource.createProperties,
+  };
+
+  for (const [name, prop] of Object.entries(allProps)) {
+    if (injectedFields.has(name)) continue;
+    const baseExpr = generateFullFidelityZod(prop);
+    const qName = quoteProp(name);
+    let line = `${qName}: ${baseExpr}`;
+
+    if (prop.description) {
+      line += `.describe(${JSON.stringify(prop.description)})`;
+    }
+
+    const isRequired = resource.requiredProperties.includes(name);
+    if (!isRequired) {
+      line += `.optional()`;
+    }
+
+    result.push({ line, nameOnly: qName, baseExpr });
+  }
+
+  return result;
+}
+
+function generateFullFidelityZod(prop: VercelProperty): string {
+  switch (prop.type) {
+    case "boolean":
+      return "z.boolean()";
+
+    case "string": {
+      if (prop.enum && prop.enum.length > 0) {
+        const stringVals = prop.enum.filter((v): v is string =>
+          typeof v === "string"
+        );
+        if (stringVals.length > 0) {
+          const vals = stringVals.map((v) => JSON.stringify(v));
+          return `z.enum([${vals.join(", ")}])`;
+        }
+      }
+      let expr = "z.string()";
+      if (prop.minLength !== undefined) expr += `.min(${prop.minLength})`;
+      if (prop.maxLength !== undefined) expr += `.max(${prop.maxLength})`;
+      if (prop.pattern) {
+        expr += `.regex(new RegExp(${JSON.stringify(prop.pattern)}))`;
+      }
+      return expr;
+    }
+
+    case "number":
+    case "integer": {
+      if (prop.enum && prop.enum.length > 0) {
+        const literals = prop.enum.map((v) => `z.literal(${v})`);
+        return `z.union([${literals.join(", ")}])`;
+      }
+      let expr = prop.type === "integer" ? "z.number().int()" : "z.number()";
+      if (prop.minimum !== undefined) expr += `.min(${prop.minimum})`;
+      if (prop.maximum !== undefined) expr += `.max(${prop.maximum})`;
+      return expr;
+    }
+
+    case "array": {
+      if (prop.items) {
+        const itemExpr = generateFullFidelityZod(prop.items);
+        return `z.array(${itemExpr})`;
+      }
+      return "z.array(z.unknown())";
+    }
+
+    case "object": {
+      if (prop.properties && Object.keys(prop.properties).length > 0) {
+        const requiredSet = new Set(prop.requiredProperties ?? []);
+        const fields = Object.entries(prop.properties).map(
+          ([k, v]) => {
+            const suffix = requiredSet.has(k) ? "" : ".optional()";
+            return `    ${quoteProp(k)}: ${
+              generateFullFidelityZod(v)
+            }${suffix}`;
+          },
+        );
+        return `z.object({\n${fields.join(",\n")},\n  })`;
+      }
+      return "z.record(z.string(), z.unknown())";
+    }
+
+    default:
+      return "z.unknown()";
+  }
+}
+
+function generateSimplifiedZod(prop: VercelProperty): string {
+  switch (prop.type) {
+    case "boolean":
+      return "z.boolean()";
+    case "string":
+      return "z.string()";
+    case "number":
+    case "integer":
+      return "z.number()";
+    case "array": {
+      if (prop.items) {
+        return `z.array(${generateSimplifiedZod(prop.items)})`;
+      }
+      return "z.array(z.unknown())";
+    }
+    case "object": {
+      if (prop.properties && Object.keys(prop.properties).length > 0) {
+        const fields = Object.entries(prop.properties).map(
+          ([k, v]) =>
+            `    ${quoteProp(k)}: ${generateSimplifiedZod(v)}.optional()`,
+        );
+        return `z.object({\n${fields.join(",\n")},\n  })`;
+      }
+      return "z.record(z.string(), z.unknown())";
+    }
+    default:
+      return "z.unknown()";
+  }
+}
+
+const SCALAR_TYPES = new Set(["string", "number", "integer", "boolean"]);
+
+function collectFilterableFields(
+  resource: VercelResource,
+  skipFields: Set<string>,
+): string[] {
+  const allProps: Record<string, VercelProperty> = {
+    ...resource.updateProperties,
+    ...resource.createProperties,
+  };
+  const result: string[] = [];
+  for (const [name, prop] of Object.entries(allProps)) {
+    if (skipFields.has(name)) continue;
+    if (!SCALAR_TYPES.has(prop.type)) continue;
+    result.push(name);
+  }
+  return result;
+}
+
+function collectResponseFilterableFields(
+  resource: VercelResource,
+  skipFields: Set<string>,
+  alreadyCollected: Set<string>,
+): string[] {
+  const result: string[] = [];
+  for (const [name, prop] of Object.entries(resource.resourceProperties)) {
+    if (skipFields.has(name)) continue;
+    if (alreadyCollected.has(name)) continue;
+    if (!SCALAR_TYPES.has(prop.type)) continue;
+    result.push(name);
+  }
+  return result;
+}

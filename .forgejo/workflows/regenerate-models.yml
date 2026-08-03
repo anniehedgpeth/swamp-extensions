@@ -17,6 +17,9 @@ on:
           - cloudflare
           - hetzner
           - digitalocean
+          - vercel
+
+permissions: {}
 
 defaults:
   run:
@@ -113,6 +116,20 @@ jobs:
           deno task generate:digitalocean
           echo "::endgroup::"
 
+      - name: Fetch and generate Vercel models
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.provider == 'all' ||
+          inputs.provider == 'vercel'
+        working-directory: codegen
+        run: |
+          echo "::group::Fetch Vercel schema"
+          deno task fetch-schema:vercel
+          echo "::endgroup::"
+          echo "::group::Generate Vercel models"
+          deno task generate:vercel
+          echo "::endgroup::"
+
       - name: Update lockfiles for changed directories
         run: |
           changed=$(git status --porcelain -- '*/deno.json' | sed 's/^...//')
@@ -141,7 +158,7 @@ jobs:
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
 
           SUMMARY=""
-          for provider in aws gcp cloudflare hetzner-cloud digitalocean; do
+          for provider in aws gcp cloudflare hetzner-cloud digitalocean vercel; do
             count=$(git status --porcelain -- "model/$provider/" | wc -l | tr -d ' ')
             if [ "$count" -gt 0 ]; then
               SUMMARY="${SUMMARY}- **${provider}**: ${count} files changed"$'\n'
@@ -156,9 +173,11 @@ jobs:
 
       - name: Determine provider label
         id: label
+        env:
+          PROVIDER: ${{ inputs.provider || 'all' }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          PROVIDER="${{ inputs.provider || 'all' }}"
-          if [ "${{ github.event_name }}" = "schedule" ] || [ "$PROVIDER" = "all" ]; then
+          if [ "$EVENT_NAME" = "schedule" ] || [ "$PROVIDER" = "all" ]; then
             echo "suffix=" >> "$GITHUB_OUTPUT"
             echo "title=chore: regenerate models from upstream schemas" >> "$GITHUB_OUTPUT"
           else
@@ -171,10 +190,12 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHANGE_SUMMARY: ${{ steps.changes.outputs.summary }}
+          LABEL_SUFFIX: ${{ steps.label.outputs.suffix }}
+          LABEL_TITLE: ${{ steps.label.outputs.title }}
         run: |
-          BRANCH="automated/regenerate-models${{ steps.label.outputs.suffix }}"
+          BRANCH="automated/regenerate-models${LABEL_SUFFIX}"
           DATE=$(date +%Y-%m-%d)
-          TITLE="${{ steps.label.outputs.title }}"
+          TITLE="${LABEL_TITLE}"
           REPO="swamp-club/swamp-extensions"
           API="https://git.swamp-club.com/api/v1"
 
@@ -194,7 +215,7 @@ jobs:
           if [ -n "$EXISTING_PR" ]; then
             echo "Updated existing PR #$EXISTING_PR"
           else
-            BODY=$(cat <<'BODY_EOF'
+            BODY=$(cat <<BODY_EOF
           ## Summary
 
           Automated regeneration of extension models from upstream provider schemas.
@@ -206,6 +227,11 @@ jobs:
           - **Cloudflare**: Cloudflare OpenAPI spec
           - **Hetzner**: Hetzner Cloud OpenAPI spec
           - **DigitalOcean**: DigitalOcean OpenAPI spec
+          - **Vercel**: Vercel OpenAPI spec
+
+          ### Changes
+
+          ${CHANGE_SUMMARY:-No changes detected}
 
           ### Review Notes
 

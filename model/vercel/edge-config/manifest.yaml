@@ -1,0 +1,22 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/vercel/edge-config"
+version: "2026.08.03.2"
+description: "Vercel edge-config infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - vercel
+  - edge-config
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Updated: items
+  - Updated: token
+models:
+  - global_config.ts
+  - items.ts
+  - token.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

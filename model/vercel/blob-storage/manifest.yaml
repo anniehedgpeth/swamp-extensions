@@ -1,0 +1,19 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/vercel/blob-storage"
+version: "2026.08.02.4"
+description: "Vercel blob-storage infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - vercel
+  - blob-storage
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Updated: blob
+models:
+  - blob.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

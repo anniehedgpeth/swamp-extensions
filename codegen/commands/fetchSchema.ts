@@ -5,6 +5,7 @@ import { fetchCloudflareSchema } from "../cloudflare/pipeline.ts";
 import { fetchDigitalOceanSchema } from "../digitalocean/pipeline.ts";
 import { fetchGcpSchema } from "../gcp/pipeline.ts";
 import { fetchHetznerSchema } from "../hetzner/pipeline.ts";
+import { fetchVercelSchema } from "../vercel/pipeline.ts";
 
 /**
  * Fetches the latest schemas for the given provider.
@@ -30,9 +31,12 @@ export async function fetchSchema(options: {
     case "gcp":
       await fetchGcpSchema({ outputPath: options.outputPath });
       break;
+    case "vercel":
+      await fetchVercelSchema({ outputPath: options.outputPath });
+      break;
     default:
       throw new Error(
-        `Unsupported provider: ${options.provider}. Supported: "aws", "cloudflare", "gcp", "hetzner", "digitalocean".`,
+        `Unsupported provider: ${options.provider}. Supported: "aws", "cloudflare", "gcp", "hetzner", "digitalocean", "vercel".`,
       );
   }
 }

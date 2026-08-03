@@ -5,6 +5,7 @@ import { generateCloudflareModels } from "../cloudflare/pipeline.ts";
 import { generateDigitalOceanModels } from "../digitalocean/pipeline.ts";
 import { generateGcpModels } from "../gcp/pipeline.ts";
 import { generateHetznerModels } from "../hetzner/pipeline.ts";
+import { generateVercelModels } from "../vercel/pipeline.ts";
 import { stripReleaseNotes } from "../shared/version.ts";
 
 export async function generateModels(options: {
@@ -29,9 +30,12 @@ export async function generateModels(options: {
     case "gcp":
       await generateGcpProvider(options);
       break;
+    case "vercel":
+      await generateVercelProvider(options);
+      break;
     default:
       throw new Error(
-        `Unsupported provider: ${options.provider}. Supported: "aws", "cloudflare", "gcp", "hetzner", "digitalocean".`,
+        `Unsupported provider: ${options.provider}. Supported: "aws", "cloudflare", "gcp", "hetzner", "digitalocean", "vercel".`,
       );
   }
 }
@@ -728,5 +732,149 @@ async function generateCloudflareProvider(options: {
     }
   }
   console.log(`  Date prefix: ${datePrefix}`);
+  console.log(`  Output directory: ${options.outputDir}`);
+}
+
+async function generateVercelProvider(options: {
+  outputDir: string;
+  services?: string[];
+  schemaPath?: string;
+}): Promise<void> {
+  console.log(`Generating vercel models...`);
+  console.log(`Output directory: ${options.outputDir}`);
+
+  if (options.services && options.services.length > 0) {
+    console.log(`Service filter: ${options.services.join(", ")}`);
+  }
+
+  const {
+    datePrefix: vercelDatePrefix,
+    services: vercelServices,
+    skipped: vercelSkipped,
+    errors: vercelErrors,
+  } = await generateVercelModels({
+    services: options.services,
+    outputDir: options.outputDir,
+    schemaPath: options.schemaPath,
+  });
+
+  let vercelModelsChanged = 0;
+  let vercelModelsUnchanged = 0;
+
+  for (const [serviceName, serviceResult] of vercelServices) {
+    const serviceOutputDir = `${options.outputDir}/vercel/${serviceName}`;
+
+    const libPath = `${serviceOutputDir}/${serviceResult.libFile.filePath}`;
+    const libDir = libPath.substring(0, libPath.lastIndexOf("/"));
+    await Deno.mkdir(libDir, { recursive: true });
+    await Deno.writeTextFile(libPath, serviceResult.libFile.sourceCode);
+
+    for (const model of serviceResult.models) {
+      const modelPath = `${serviceOutputDir}/${model.filePath}`;
+      const modelDir = modelPath.substring(0, modelPath.lastIndexOf("/"));
+      await Deno.mkdir(modelDir, { recursive: true });
+      await Deno.writeTextFile(modelPath, model.sourceCode);
+    }
+
+    const generatedFileNames = new Set(
+      serviceResult.models.map((m) => m.filePath.split("/").pop()!),
+    );
+    const modelsDir = `${serviceOutputDir}/extensions/models`;
+    try {
+      for await (const entry of Deno.readDir(modelsDir)) {
+        if (
+          entry.isFile && entry.name.endsWith(".ts") &&
+          !generatedFileNames.has(entry.name)
+        ) {
+          await Deno.remove(`${modelsDir}/${entry.name}`);
+          console.log(
+            `  [${serviceName}] removed orphan model: ${entry.name}`,
+          );
+        }
+      }
+    } catch {
+      // extensions/models/ doesn't exist yet
+    }
+
+    await Deno.writeTextFile(
+      `${serviceOutputDir}/README.md`,
+      serviceResult.readmeFile.sourceCode,
+    );
+    await Deno.writeTextFile(
+      `${serviceOutputDir}/LICENSE.txt`,
+      serviceResult.licenseFile.sourceCode,
+    );
+    await Deno.writeTextFile(
+      `${serviceOutputDir}/deno.json`,
+      serviceResult.denoConfigFile.sourceCode,
+    );
+
+    const changedCount = serviceResult.modelChanges.filter(
+      (c) => c.status !== "unchanged",
+    ).length;
+    const unchangedCount = serviceResult.modelChanges.filter(
+      (c) => c.status === "unchanged",
+    ).length;
+    vercelModelsChanged += changedCount;
+    vercelModelsUnchanged += unchangedCount;
+
+    {
+      const manifestPath =
+        `${serviceOutputDir}/${serviceResult.manifest.filePath}`;
+      let manifestChanged = true;
+      try {
+        const existingManifest = await Deno.readTextFile(manifestPath);
+        manifestChanged = stripReleaseNotes(existingManifest) !==
+          stripReleaseNotes(serviceResult.manifest.sourceCode);
+      } catch {
+        // File doesn't exist — write it
+      }
+      if (manifestChanged) {
+        await Deno.writeTextFile(
+          manifestPath,
+          serviceResult.manifest.sourceCode,
+        );
+      }
+    }
+
+    const fmtCmd = new Deno.Command("deno", {
+      args: ["fmt", "--no-config", serviceOutputDir],
+    });
+    const fmtResult = await fmtCmd.output();
+    if (!fmtResult.success) {
+      console.warn(
+        `  Warning: deno fmt failed for ${serviceName}: ${
+          new TextDecoder().decode(fmtResult.stderr)
+        }`,
+      );
+    }
+  }
+
+  const vercelSkipsByReason = new Map<string, number>();
+  for (const s of vercelSkipped) {
+    vercelSkipsByReason.set(
+      s.reason,
+      (vercelSkipsByReason.get(s.reason) || 0) + 1,
+    );
+  }
+
+  console.log(`\nGeneration complete!`);
+  console.log(`  Services: ${vercelServices.size}`);
+  console.log(
+    `  Models: ${vercelModelsChanged} changed, ${vercelModelsUnchanged} unchanged`,
+  );
+  console.log(`  Skipped: ${vercelSkipped.length}`);
+  for (
+    const [reason, count] of [...vercelSkipsByReason.entries()].sort()
+  ) {
+    console.log(`    ${reason}: ${count}`);
+  }
+  if (vercelErrors.length > 0) {
+    console.log(`  Errors: ${vercelErrors.length}`);
+    for (const err of vercelErrors) {
+      console.log(`    ${err}`);
+    }
+  }
+  console.log(`  Date prefix: ${vercelDatePrefix}`);
   console.log(`  Output directory: ${options.outputDir}`);
 }

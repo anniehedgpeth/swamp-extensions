@@ -1,0 +1,414 @@
+# Vercel Provider Design
+
+## 1. Purpose
+
+Clover's Vercel provider reads the Vercel public OpenAPI 3.0 spec and generates
+a set of swamp extension models — one per API resource. Each model is a
+self-contained TypeScript file that exports a `model` object with Zod schemas
+and CRUD methods. A shared `_lib/vercel.ts` file provides the HTTP client,
+authentication, rate-limit retry logic, and pagination helpers.
+
+Like Cloudflare, the Vercel provider uses **per-service packaging** due to the
+breadth of the API surface (~39 resource tags). Unlike Cloudflare, Vercel has no
+response envelope — resources are returned directly in API responses.
+
+**Output**: `model/vercel/{service}/` — one directory per Vercel service,
+containing:
+
+- `extensions/models/*.ts` — one file per resource
+- `extensions/models/_lib/vercel.ts` — shared HTTP helpers
+- `manifest.yaml` — extension package manifest
+
+**How to run**:
+
+```sh
+deno task fetch-schema:vercel   # download the OpenAPI spec
+deno task generate:vercel       # generate models from the local spec
+```
+
+---
+
+## 2. Schema Source
+
+The spec is fetched from Vercel's public endpoint:
+
+```
+https://openapi.vercel.sh/
+```
+
+The spec is JSON (despite no `.json` extension) and is saved to
+`codegen/schemas/vercel.json` after dereferencing.
+
+### Spec characteristics
+
+| Metric                | Value                               |
+| --------------------- | ----------------------------------- |
+| OpenAPI version       | 3.0.3                               |
+| Total paths           | 264                                 |
+| Total operations      | 359                                 |
+| Component schemas     | 86                                  |
+| Inline object schemas | ~4,709                              |
+| `$ref` references     | 2,221                               |
+| Tags                  | 39                                  |
+| HTTP methods used     | GET, POST, PUT, PATCH, DELETE, HEAD |
+
+### $ref dereferencing
+
+The spec uses 2,221 `$ref` references. Like the Cloudflare and DigitalOcean
+pipelines, the spec is dereferenced using `@apidevtools/json-schema-ref-parser`
+with cycle-safe serialization via `serializeWithCycleDetection()`.
+
+### Inline schema dominance
+
+The most significant structural difference from Cloudflare: only 86 schemas live
+in `components/schemas`, while ~4,709 are defined inline within path operations.
+The pipeline must extract properties directly from inline request/response
+schemas rather than following clean `$ref` chains.
+
+### Vendor extensions
+
+| Extension       | Count | Use                            |
+| --------------- | ----- | ------------------------------ |
+| `x-speakeasy-*` | 24    | Speakeasy SDK generation hints |
+| `x-vercel-cli`  | Some  | CLI-specific metadata          |
+| `x-codeSamples` | Some  | Documentation code examples    |
+
+These are informational and not used for codegen.
+
+### Known spec quality issues
+
+Community reports (vercel/community #646) document 24+ validation errors
+including missing path parameter definitions, duplicate parameters, and
+malformed request body schemas. The pipeline includes workarounds for specific
+endpoints as needed.
+
+---
+
+## 3. Per-Operation Versioning
+
+Vercel uses **per-operation versioning** — each individual endpoint has its own
+version number in the path prefix. The version represents when that specific
+operation was last updated, NOT alternative API versions.
+
+### How it works
+
+```
+POST   /v13/deployments          ← create (v13)
+GET    /v13/deployments/{idOrUrl} ← get (v13)
+DELETE /v13/deployments/{id}      ← delete (v13)
+GET    /v7/deployments            ← list (v7)
+PATCH  /v12/deployments/{id}/cancel ← cancel (v12)
+GET    /v3/deployments/{idOrUrl}/events ← events (v3)
+GET    /v6/deployments/{id}/files ← list files (v6)
+```
+
+There is exactly ONE active path per operation. `POST /v12/deployments` does not
+exist — only `POST /v13/deployments`. The spec publishes only the current
+version of each operation.
+
+### Implications for codegen
+
+- The full path including version prefix is the canonical endpoint
+- No version selection logic is needed
+- Operations with different version prefixes that share a resource are grouped
+  by their OpenAPI tag
+- Only 6 operations are marked `deprecated: true` (old v1 checks) — these are
+  skipped
+
+---
+
+## 4. Scoping Model
+
+Vercel resources are scoped to a **team** via query parameters, not path
+segments:
+
+| Parameter | Type   | Description             |
+| --------- | ------ | ----------------------- |
+| `teamId`  | string | Team ID                 |
+| `slug`    | string | Team slug (alternative) |
+
+Nearly every endpoint accepts both `teamId` and `slug` as optional query
+parameters. They are mutually exclusive — providing both is an error.
+
+### How team scoping is handled
+
+Unlike Cloudflare's path-based scoping (`/accounts/{id}/` or `/zones/{id}/`),
+Vercel's team parameters are query params appended to every request. The shared
+lib injects them automatically:
+
+```typescript
+const GlobalArgsSchema = z.object({
+  teamId: z.string().optional().describe("Vercel team ID"),
+  slug: z.string().optional().describe("Vercel team slug"),
+  // ... resource-specific fields
+});
+```
+
+The lib's `request()` function merges `teamId`/`slug` into query parameters when
+present.
+
+---
+
+## 5. Resource Discovery
+
+### Service grouping
+
+Resources are grouped by their OpenAPI **tag**. Vercel tags every operation
+(except ~11 unversioned paths), making service assignment straightforward — no
+`SERVICE_MAP` equivalent is needed.
+
+| Tag             | Example resources                        |
+| --------------- | ---------------------------------------- |
+| `projects`      | Project CRUD, env vars, domains          |
+| `deployments`   | Create, list, cancel, delete deployments |
+| `domains`       | Domain management, verification          |
+| `dns`           | DNS record CRUD                          |
+| `teams`         | Team management, member invites          |
+| `certs`         | SSL certificate management               |
+| `edge-cache`    | Cache invalidation                       |
+| `global-config` | Edge Config items, tokens, schemas       |
+| `security`      | WAF/firewall, attack mode, bypass rules  |
+
+### Path-grouping algorithm
+
+Operations are grouped into CRUD sets by stripping the version prefix and
+finding base + ID endpoint pairs:
+
+| Base path (stripped)        | ID path (stripped)                     |
+| --------------------------- | -------------------------------------- |
+| `/projects`                 | `/projects/{idOrName}`                 |
+| `/domains`                  | `/domains/{domain}`                    |
+| `/domains/{domain}/records` | `/domains/{domain}/records/{recordId}` |
+
+A path is the "ID variant" if its terminal segment is a `{param}`.
+
+### Why both POST + GET are required
+
+Same as Cloudflare: a resource must have POST (create) and GET-by-id (read) to
+be codegen-eligible. Resources lacking either are skipped.
+
+### Exclusion rules
+
+| Tag              | Reason                                      |
+| ---------------- | ------------------------------------------- |
+| `artifacts`      | Turborepo build cache, not infrastructure   |
+| `authentication` | Meta API (tokens, SSO), not manageable      |
+| `billing`        | Read-only billing data                      |
+| `logs`           | Streaming/read-only                         |
+| `marketplace`    | Integration marketplace management          |
+| `sandboxes`      | Ephemeral sandbox sessions                  |
+| `user`           | User profile, not manageable infrastructure |
+| `web-analytics`  | Read-only analytics data                    |
+
+---
+
+## 6. CRUD Operation Identification
+
+### HTTP method to operation mapping
+
+| HTTP Method | Operation         | Where                     |
+| ----------- | ----------------- | ------------------------- |
+| POST        | Create            | Base path                 |
+| GET         | Read              | ID path (single resource) |
+| PATCH       | Update            | ID path (preferred)       |
+| PUT         | Update (fallback) | ID path, only if no PATCH |
+| DELETE      | Delete            | ID path                   |
+| GET         | List              | Base path                 |
+
+### Schema extraction from inline definitions
+
+Since Vercel defines most schemas inline, the pipeline extracts properties by:
+
+1. Finding the POST request body → `content["application/json"].schema`
+2. Finding the GET response →
+   `responses["200"].content["application/json"].schema`
+3. Flattening `allOf`/`oneOf`/`anyOf` using the same rules as Cloudflare
+4. Merging create (POST) and update (PATCH/PUT) properties for GlobalArgsSchema
+
+### Create-only property detection
+
+Properties present in POST but absent from PATCH/PUT are flagged as
+`createOnlyProperties`, same as Cloudflare.
+
+---
+
+## 7. Response Handling
+
+### No response envelope
+
+Unlike Cloudflare's `{success, errors, result}` envelope, Vercel returns
+resources directly in API responses. The lib file does not need an `unwrap()`
+function.
+
+For list endpoints, Vercel uses pagination wrappers with the resource array at a
+known key (varies per endpoint — e.g., `projects`, `deployments`, `records`).
+
+### Error handling
+
+Non-2xx responses include an `error` object:
+
+```json
+{
+  "error": {
+    "code": "forbidden",
+    "message": "You do not have permission to access this resource."
+  }
+}
+```
+
+The lib checks for non-OK status and extracts error details.
+
+---
+
+## 8. Identifying Field Resolution
+
+### Mixed identifier types
+
+Vercel uses string identifiers for most resources, but with a notable pattern:
+many endpoints accept `{idOrName}` — either the resource ID or its display name.
+The pipeline maps path parameters to response fields:
+
+| Path parameter | Response field | Resources      |
+| -------------- | -------------- | -------------- |
+| `{idOrName}`   | `id`           | Projects       |
+| `{id}`         | `id`           | Most resources |
+| `{domain}`     | `name`         | Domains        |
+| `{idOrUrl}`    | `uid`          | Deployments    |
+| `{recordId}`   | `id`           | DNS records    |
+
+### IDENTIFIER_MAP
+
+A mapping table resolves path parameter names to response field names. The
+`{idOrName}` pattern means the `get` and `delete` methods can accept either
+form, but the pipeline uses the canonical ID field from responses.
+
+---
+
+## 9. Authentication
+
+Vercel uses a single authentication method: **Bearer token**.
+
+### Token resolution
+
+```
+Authorization: Bearer <token>
+```
+
+Token is resolved from:
+
+1. `globalArgs.token` (vault-wireable, sensitive)
+2. `VERCEL_TOKEN` environment variable
+
+```typescript
+const GlobalArgsSchema = z.object({
+  token: z.string().optional().meta({ sensitive: true })
+    .describe("Vercel API token (overrides VERCEL_TOKEN env var)"),
+  // ...
+});
+```
+
+No collision guard needed — `token` is unlikely to clash with resource property
+names.
+
+---
+
+## 10. Pagination
+
+Vercel uses cursor-based pagination with varying parameter names across
+endpoints.
+
+### Common patterns
+
+**`until`/`since` style** (deployments, events):
+
+```
+GET /v7/deployments?until=1234567890123&limit=100
+```
+
+**`next` cursor style** (newer endpoints):
+
+```
+GET /v10/projects?next=cursor_token&limit=20
+```
+
+### Pagination detection
+
+The pipeline detects pagination style from query parameters defined in the spec.
+The `listAll()` helper supports both styles, determined per-resource at
+generation time.
+
+---
+
+## 11. Rate Limiting
+
+Vercel enforces rate limits. The shared lib handles 429 responses with retry
+logic identical to Cloudflare:
+
+- Respects `Retry-After` header when present
+- Falls back to exponential backoff
+- Maximum 3 retries
+
+---
+
+## 12. Generated Output Structure
+
+```
+model/vercel/{service}/
+├── manifest.yaml
+├── deno.json
+├── deno.lock
+├── README.md
+├── LICENSE.txt
+└── extensions/
+    └── models/
+        ├── _lib/
+        │   └── vercel.ts
+        ├── {resource}.ts
+        └── ...
+```
+
+### Model export shape
+
+```typescript
+export const model = {
+  type: "@swamp/vercel/{service}/{resource}",
+  version: "2026.08.01.1",
+  globalArguments: GlobalArgsSchema,
+  inputsSchema: InputsSchema,
+  resources: {
+    state: {
+      description: "...",
+      schema: ResourceSchema,
+      lifetime: "infinite",
+      garbageCollection: 10,
+    },
+  },
+  methods: {
+    create: { ... },
+    get: { ... },
+    lookup: { ... },
+    adopt: { ... },
+    update: { ... },    // if PATCH/PUT exists
+    delete: { ... },    // if DELETE exists
+    sync: { ... },
+  },
+};
+```
+
+---
+
+## 13. Differences from Other Providers
+
+| Aspect              | Vercel                           | Cloudflare                   | DigitalOcean            | Hetzner             |
+| ------------------- | -------------------------------- | ---------------------------- | ----------------------- | ------------------- |
+| Schema format       | OpenAPI 3.0.3 JSON               | OpenAPI 3.0.3 JSON           | OpenAPI 3.0 YAML        | OpenAPI 3.0 JSON    |
+| Schema quality      | Many inline schemas, some errors | Good `$ref` usage            | Good `$ref` usage       | Clean               |
+| Package layout      | Per-service (~30)                | Per-service (~93)            | Single package          | Single package      |
+| Scoping             | Team via query params            | Account/Zone via path prefix | None                    | None                |
+| Response envelope   | None (direct)                    | Fixed `result` key           | Resource-name-keyed     | Resource-name-keyed |
+| Identifier type     | String (id, uid, name)           | 32-char hex string           | Mixed (int, name, etc.) | Numeric `id`        |
+| `{idOrName}` params | Yes (common)                     | No                           | No                      | No                  |
+| Versioning          | Per-operation in path            | Single v4 base URL           | v1 base URL             | v2 base URL         |
+| Auth                | Bearer token only                | Bearer OR API key+email      | Bearer token            | Bearer token        |
+| Pagination          | cursor (until/since/next)        | page + cursor                | Page-based              | Page-based          |
+| Rate limiting       | 429 retry                        | 429 retry                    | Not handled             | Not handled         |

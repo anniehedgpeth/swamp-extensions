@@ -1,0 +1,23 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/vercel/feature-flags"
+version: "2026.08.03.2"
+description: "Vercel feature-flags infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - vercel
+  - feature-flags
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Updated: flags
+  - Updated: sdk_keys
+  - Updated: segments
+models:
+  - flags.ts
+  - sdk_keys.ts
+  - segments.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

@@ -108,3 +108,19 @@ export function generateCloudflareDenoConfig(): string {
     2,
   ) + "\n";
 }
+
+/**
+ * Generates a deno.json with import mappings for a Vercel extension package.
+ */
+export function generateVercelDenoConfig(): string {
+  return JSON.stringify(
+    {
+      lint: LINT_CONFIG,
+      imports: {
+        "zod": "npm:zod@4.3.6",
+      },
+    },
+    null,
+    2,
+  ) + "\n";
+}

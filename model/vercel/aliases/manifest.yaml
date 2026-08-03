@@ -1,0 +1,19 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/vercel/aliases"
+version: "2026.08.03.2"
+description: "Vercel aliases infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - vercel
+  - aliases
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Updated: aliases
+models:
+  - aliases.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

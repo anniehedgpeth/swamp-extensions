@@ -1,0 +1,74 @@
+# @swamp/vercel/feature-flags
+
+Auto-generated [swamp](https://github.com/swamp-club/swamp) extension models for
+Vercel feature-flags resources.
+
+Each model represents a single Vercel resource. Models have **domain
+properties** that you configure (the desired state) and **resource properties**
+that reflect the live state in Vercel. Available methods:
+
+- **create** — provision the resource using the configured properties
+- **get** — fetch the current state of a specific resource by ID
+- **lookup** — find an existing resource by field values and import it into
+  state
+- **adopt** — import a resource by ID into state for management
+- **update** — apply property changes to an existing resource
+- **delete** — remove the resource from Vercel
+- **sync** — refresh all resource properties from the API
+
+Use `swamp model type describe @swamp/vercel/feature-flags/flags` to see the
+full list of configurable properties and available methods for this model.
+
+## Authentication
+
+Set the `VERCEL_TOKEN` environment variable:
+
+```bash
+export VERCEL_TOKEN=your-token-here
+```
+
+### Vault-wireable credentials
+
+Each model also accepts an optional, sensitive `token` global argument that
+takes precedence over the environment variable and can be wired with a
+`vault.get(...)` expression, so credentials are sourced from a vault instead of
+the shell environment:
+
+```yaml
+globalArgs:
+  token: ${{ vault.get("vercel/api-token") }}
+```
+
+## Team scoping
+
+Most Vercel resources are scoped to a team. Provide either `teamId` or `slug` as
+a global argument:
+
+```yaml
+globalArgs:
+  teamId: team_abc123
+  # or: slug: my-team
+```
+
+## Quick start
+
+```bash
+# Install the extension
+swamp extension install @swamp/vercel/feature-flags
+
+# Create a model instance
+swamp model create @swamp/vercel/feature-flags/flags my-flags
+
+# Configure it
+swamp model edit my-flags
+
+# Create the resource in Vercel
+swamp model method run my-flags create
+
+# Sync current state from Vercel
+swamp model method run my-flags sync
+```
+
+## License
+
+AGPLv3 — see [LICENSE.txt](./LICENSE.txt).

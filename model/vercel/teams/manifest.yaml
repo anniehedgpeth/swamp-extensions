@@ -1,0 +1,22 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/vercel/teams"
+version: "2026.08.03.2"
+description: "Vercel teams infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - vercel
+  - teams
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Updated: members
+  - Updated: request
+models:
+  - members.ts
+  - request.ts
+  - teams.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []
