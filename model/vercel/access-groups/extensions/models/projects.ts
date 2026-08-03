@@ -32,14 +32,7 @@
  */
 
 import { z } from "npm:zod@4.3.6";
-import {
-  create,
-  listAll,
-  read,
-  remove,
-  tryRead,
-  update,
-} from "./_lib/vercel.ts";
+import { create, read, remove, tryRead, update } from "./_lib/vercel.ts";
 
 const GlobalArgsSchema = z.object({
   teamId: z.string().optional().describe("Vercel team ID"),
@@ -84,7 +77,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/access-groups/projects`. */
 export const model = {
   type: "@swamp/vercel/access-groups/projects",
-  version: "2026.08.03.2",
+  version: "2026.08.03.3",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -113,6 +106,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

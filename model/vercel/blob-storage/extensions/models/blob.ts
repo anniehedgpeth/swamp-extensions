@@ -32,7 +32,7 @@
  */
 
 import { z } from "npm:zod@4.3.6";
-import { create, listAll, read, remove, tryRead } from "./_lib/vercel.ts";
+import { create, read, remove, tryRead } from "./_lib/vercel.ts";
 
 const GlobalArgsSchema = z.object({
   teamId: z.string().optional().describe("Vercel team ID"),
@@ -149,7 +149,7 @@ function unwrapResponse(
 /** Swamp extension model for Vercel Blob. Registered at `@swamp/vercel/blob-storage/blob`. */
 export const model = {
   type: "@swamp/vercel/blob-storage/blob",
-  version: "2026.08.03.1",
+  version: "2026.08.03.2",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -168,6 +168,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

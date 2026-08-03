@@ -54,7 +54,10 @@ export function generateVercelExtensionModel(
 
   lines.push(`import { z } from "npm:zod@4.3.6";`);
 
-  const helperImports: string[] = ["create", "listAll"];
+  const helperImports: string[] = ["create"];
+  if (resource.listPath || resource.paginationStyle !== "none") {
+    helperImports.push("listAll");
+  }
   if (resource.hasIndividualRead) {
     helperImports.push("read", "tryRead");
   }
