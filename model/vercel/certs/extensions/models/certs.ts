@@ -71,7 +71,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Certs. Registered at `@swamp/vercel/certs/certs`. */
 export const model = {
   type: "@swamp/vercel/certs/certs",
-  version: "2026.08.03.1",
+  version: "2026.08.03.2",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -90,6 +90,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -136,7 +141,7 @@ export const model = {
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/v8/certs";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -223,7 +228,7 @@ export const model = {
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/v8/certs";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -290,10 +295,10 @@ export const model = {
         if (!existing.id) {
           throw new Error("Stored state has no id - cannot sync");
         }
-        let result = await tryRead(endpoint, existing.id, { token: g.token }, {
-          teamId: g.teamId,
-          slug: g.slug,
-        }) as ResourceData | null;
+        const rawSyncResult = await tryRead(endpoint, existing.id, {
+          token: g.token,
+        }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
+        const result = rawSyncResult;
         if (result) {
           const handle = await context.writeResource(
             "state",

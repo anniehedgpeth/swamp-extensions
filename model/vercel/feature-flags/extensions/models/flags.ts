@@ -172,7 +172,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Flags. Registered at `@swamp/vercel/feature-flags/flags`. */
 export const model = {
   type: "@swamp/vercel/feature-flags/flags",
-  version: "2026.08.03.2",
+  version: "2026.08.03.3",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -201,6 +201,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -257,7 +262,7 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/v1/projects/" +
           encodeURIComponent(g.projectIdOrName) + "/feature-flags/flags";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -375,7 +380,7 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/v1/projects/" +
           encodeURIComponent(g.projectIdOrName) + "/feature-flags/flags";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -429,7 +434,7 @@ export const model = {
         if (g.maintainerIds !== undefined) body.maintainerIds = g.maintainerIds;
         if (g.permanent !== undefined) body.permanent = g.permanent;
         if (g.tags !== undefined) body.tags = g.tags;
-        let result = await update(endpoint, existing.id, body, "PATCH", {
+        const result = await update(endpoint, existing.id, body, "PATCH", {
           token: g.token,
         }, { teamId: g.teamId, slug: g.slug }) as ResourceData;
         const handle = await context.writeResource(
@@ -495,10 +500,10 @@ export const model = {
         if (!existing.id) {
           throw new Error("Stored state has no id - cannot sync");
         }
-        let result = await tryRead(endpoint, existing.id, { token: g.token }, {
-          teamId: g.teamId,
-          slug: g.slug,
-        }) as ResourceData | null;
+        const rawSyncResult = await tryRead(endpoint, existing.id, {
+          token: g.token,
+        }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
+        const result = rawSyncResult;
         if (result) {
           const handle = await context.writeResource(
             "state",

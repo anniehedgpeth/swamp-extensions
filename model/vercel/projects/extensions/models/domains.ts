@@ -112,7 +112,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Domains. Registered at `@swamp/vercel/projects/domains`. */
 export const model = {
   type: "@swamp/vercel/projects/domains",
-  version: "2026.08.03.2",
+  version: "2026.08.03.3",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -141,6 +141,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -197,7 +202,7 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/v9/projects/" + encodeURIComponent(g.idOrName) +
           "/domains";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -308,7 +313,7 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/v9/projects/" + encodeURIComponent(g.idOrName) +
           "/domains";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -356,7 +361,7 @@ export const model = {
         if (g.redirectStatusCode !== undefined) {
           body.redirectStatusCode = g.redirectStatusCode;
         }
-        let result = await update(endpoint, existing.name, body, "PATCH", {
+        const result = await update(endpoint, existing.name, body, "PATCH", {
           token: g.token,
         }, { teamId: g.teamId, slug: g.slug }) as ResourceData;
         const handle = await context.writeResource(
@@ -419,12 +424,10 @@ export const model = {
         if (!existing.name) {
           throw new Error("Stored state has no name - cannot sync");
         }
-        let result = await tryRead(
-          endpoint,
-          existing.name,
-          { token: g.token },
-          { teamId: g.teamId, slug: g.slug },
-        ) as ResourceData | null;
+        const rawSyncResult = await tryRead(endpoint, existing.name, {
+          token: g.token,
+        }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
+        const result = rawSyncResult;
         if (result) {
           const handle = await context.writeResource(
             "state",

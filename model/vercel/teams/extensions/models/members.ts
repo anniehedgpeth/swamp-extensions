@@ -158,7 +158,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Members. Registered at `@swamp/vercel/teams/members`. */
 export const model = {
   type: "@swamp/vercel/teams/members",
-  version: "2026.08.03.2",
+  version: "2026.08.03.3",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -187,6 +187,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -332,7 +337,7 @@ export const model = {
         }
         if (g.projects !== undefined) body.projects = g.projects;
         if (g.joinedFrom !== undefined) body.joinedFrom = g.joinedFrom;
-        let result = await update(endpoint, existing.uid, body, "PATCH", {
+        const result = await update(endpoint, existing.uid, body, "PATCH", {
           token: g.token,
         }, { teamId: g.teamId, slug: g.slug }) as ResourceData;
         const handle = await context.writeResource(

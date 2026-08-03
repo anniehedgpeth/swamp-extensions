@@ -98,7 +98,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Env. Registered at `@swamp/vercel/projects/env`. */
 export const model = {
   type: "@swamp/vercel/projects/env",
-  version: "2026.08.03.2",
+  version: "2026.08.03.3",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -122,6 +122,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.3",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -185,7 +190,7 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/v1/projects/" + encodeURIComponent(g.idOrName) +
           "/env";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -274,7 +279,7 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/v1/projects/" + encodeURIComponent(g.idOrName) +
           "/env";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -326,7 +331,7 @@ export const model = {
           body.customEnvironmentIds = g.customEnvironmentIds;
         }
         if (g.comment !== undefined) body.comment = g.comment;
-        let result = await update(endpoint, existing.id, body, "PATCH", {
+        const result = await update(endpoint, existing.id, body, "PATCH", {
           token: g.token,
         }, { teamId: g.teamId, slug: g.slug }) as ResourceData;
         const handle = await context.writeResource(
@@ -389,10 +394,10 @@ export const model = {
         if (!existing.id) {
           throw new Error("Stored state has no id - cannot sync");
         }
-        let result = await tryRead(endpoint, existing.id, { token: g.token }, {
-          teamId: g.teamId,
-          slug: g.slug,
-        }) as ResourceData | null;
+        const rawSyncResult = await tryRead(endpoint, existing.id, {
+          token: g.token,
+        }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
+        const result = rawSyncResult;
         if (result) {
           const handle = await context.writeResource(
             "state",

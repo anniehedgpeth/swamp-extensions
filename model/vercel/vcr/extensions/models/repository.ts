@@ -84,7 +84,7 @@ function unwrapResponse(
 /** Swamp extension model for Vercel Repository. Registered at `@swamp/vercel/vcr/repository`. */
 export const model = {
   type: "@swamp/vercel/vcr/repository",
-  version: "2026.08.03.1",
+  version: "2026.08.03.2",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -103,6 +103,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -153,12 +158,12 @@ export const model = {
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/v1/vcr/repository";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const rawResult = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
-        result = unwrapResponse(
-          result as Record<string, unknown>,
+        const result = unwrapResponse(
+          rawResult as Record<string, unknown>,
         ) as ResourceData;
         const instanceName = (g.name?.toString() ?? args.id).replace(
           /[\/\\]/g,
@@ -245,12 +250,12 @@ export const model = {
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/v1/vcr/repository";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const rawResult = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
-        result = unwrapResponse(
-          result as Record<string, unknown>,
+        const result = unwrapResponse(
+          rawResult as Record<string, unknown>,
         ) as ResourceData;
         const instanceName =
           (result.name?.toString() ?? g.name?.toString() ?? args.id).replace(
@@ -317,15 +322,14 @@ export const model = {
         if (!existing.id) {
           throw new Error("Stored state has no id - cannot sync");
         }
-        let result = await tryRead(endpoint, existing.id, { token: g.token }, {
-          teamId: g.teamId,
-          slug: g.slug,
-        }) as ResourceData | null;
-        if (result) {
-          result = unwrapResponse(
-            result as Record<string, unknown>,
-          ) as ResourceData;
-        }
+        const rawSyncResult = await tryRead(endpoint, existing.id, {
+          token: g.token,
+        }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
+        const result = rawSyncResult
+          ? unwrapResponse(
+            rawSyncResult as Record<string, unknown>,
+          ) as ResourceData
+          : null;
         if (result) {
           const handle = await context.writeResource(
             "state",

@@ -85,7 +85,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Access Groups. Registered at `@swamp/vercel/access-groups/access-groups`. */
 export const model = {
   type: "@swamp/vercel/access-groups/access-groups",
-  version: "2026.08.03.1",
+  version: "2026.08.03.2",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -114,6 +114,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.03.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -164,7 +169,7 @@ export const model = {
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/v1/access-groups";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -265,7 +270,7 @@ export const model = {
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
         const endpoint = "/v1/access-groups";
-        let result = await read(endpoint, args.id, { token: g.token }, {
+        const result = await read(endpoint, args.id, { token: g.token }, {
           teamId: g.teamId,
           slug: g.slug,
         }) as ResourceData;
@@ -334,9 +339,10 @@ export const model = {
         if (!existing.accessGroupId) {
           throw new Error("Stored state has no accessGroupId - cannot sync");
         }
-        let result = await tryRead(endpoint, existing.accessGroupId, {
+        const rawSyncResult = await tryRead(endpoint, existing.accessGroupId, {
           token: g.token,
         }, { teamId: g.teamId, slug: g.slug }) as ResourceData | null;
+        const result = rawSyncResult;
         if (result) {
           const handle = await context.writeResource(
             "state",

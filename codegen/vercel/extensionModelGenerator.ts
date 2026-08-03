@@ -201,13 +201,20 @@ export function generateVercelExtensionModel(
 
   const namingField = resource.namingField;
   const idField = resource.identifyingField;
-  // Helper to generate response unwrapping lines after an API call.
-  // When responseUnwrapKey is set, adds a line that extracts the resource from the envelope.
-  const unwrapLines = (varName: string): string[] => {
-    if (!resource.responseUnwrapKey) return [];
-    return [
-      `        ${varName} = unwrapResponse(${varName} as Record<string, unknown>) as ResourceData;`,
-    ];
+  const hasUnwrap = !!resource.responseUnwrapKey;
+
+  // Generate a const result = ... with optional unwrapping, avoiding lint issues with let
+  const resultAssign = (
+    apiCall: string,
+    type: string = "ResourceData",
+  ): string[] => {
+    if (hasUnwrap) {
+      return [
+        `        const rawResult = ${apiCall} as ${type};`,
+        `        const result = unwrapResponse(rawResult as Record<string, unknown>) as ${type};`,
+      ];
+    }
+    return [`        const result = ${apiCall} as ${type};`];
   };
 
   // Per-operation endpoint builders — each CRUD method uses its own versioned path
@@ -300,9 +307,10 @@ export function generateVercelExtensionModel(
     lines.push(`        const g = context.globalArgs;`);
     lines.push(...readEp);
     lines.push(
-      `        let result = await read(endpoint, args.id${authSuffix}${teamSuffix}) as ResourceData;`,
+      ...resultAssign(
+        `await read(endpoint, args.id${authSuffix}${teamSuffix})`,
+      ),
     );
-    lines.push(...unwrapLines("result"));
     lines.push(
       `        const instanceName = ${
         wrapWithSanitize(
@@ -422,9 +430,10 @@ export function generateVercelExtensionModel(
     lines.push(`        const g = context.globalArgs;`);
     lines.push(...readEp);
     lines.push(
-      `        let result = await read(endpoint, args.id${authSuffix}${teamSuffix}) as ResourceData;`,
+      ...resultAssign(
+        `await read(endpoint, args.id${authSuffix}${teamSuffix})`,
+      ),
     );
-    lines.push(...unwrapLines("result"));
     lines.push(
       `        const instanceName = ${
         wrapWithSanitize(
@@ -488,9 +497,10 @@ export function generateVercelExtensionModel(
       );
     }
     lines.push(
-      `        let result = await update(endpoint, existing.${idField}, body, "${resource.updateMethod}"${authSuffix}${teamSuffix}) as ResourceData;`,
+      ...resultAssign(
+        `await update(endpoint, existing.${idField}, body, "${resource.updateMethod}"${authSuffix}${teamSuffix})`,
+      ),
     );
-    lines.push(...unwrapLines("result"));
     lines.push(
       `        const handle = await context.writeResource("state", instanceName, result);`,
     );
@@ -572,12 +582,14 @@ export function generateVercelExtensionModel(
       `        if (!existing.${idField}) throw new Error("Stored state has no ${idField} - cannot sync");`,
     );
     lines.push(
-      `        let result = await tryRead(endpoint, existing.${idField}${authSuffix}${teamSuffix}) as ResourceData | null;`,
+      `        const rawSyncResult = await tryRead(endpoint, existing.${idField}${authSuffix}${teamSuffix}) as ResourceData | null;`,
     );
     if (resource.responseUnwrapKey) {
       lines.push(
-        `        if (result) result = unwrapResponse(result as Record<string, unknown>) as ResourceData;`,
+        `        const result = rawSyncResult ? unwrapResponse(rawSyncResult as Record<string, unknown>) as ResourceData : null;`,
       );
+    } else {
+      lines.push(`        const result = rawSyncResult;`);
     }
     lines.push(`        if (result) {`);
     lines.push(

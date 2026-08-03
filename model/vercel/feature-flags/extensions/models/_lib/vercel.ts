@@ -41,7 +41,7 @@ export interface TeamContext {
   slug?: string;
 }
 
-async function getAuth(overrides?: AuthOverrides): Promise<string> {
+function getAuth(overrides?: AuthOverrides): string {
   const token = overrides?.token ?? Deno.env.get("VERCEL_TOKEN");
   if (!token) {
     throw new Error(
@@ -73,7 +73,7 @@ async function request(
   team?: TeamContext,
   queryParams?: Record<string, string>,
 ): Promise<Response> {
-  const token = await getAuth(auth);
+  const token = getAuth(auth);
   const url = buildUrl(path, queryParams, team);
   const headers: Record<string, string> = {
     "Authorization": `Bearer ${token}`,
