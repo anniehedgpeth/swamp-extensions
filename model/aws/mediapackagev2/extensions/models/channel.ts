@@ -87,6 +87,7 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "The settings for what common media server data (CMSD) headers AWS Elemental MediaPackage includes in responses to the CDN.",
   ).optional(),
+  OutputLockingMode: z.enum(["EPOCH_LOCKED", "NON_EPOCH_LOCKED"]).optional(),
   Tags: z.array(TagSchema).optional(),
 });
 
@@ -109,6 +110,7 @@ const StateSchema = z.object({
   OutputHeaderConfiguration: z.object({
     PublishMQCS: z.boolean(),
   }).optional(),
+  OutputLockingMode: z.string().optional(),
   IngestEndpointUrls: z.array(z.string()).optional(),
   Tags: z.array(TagSchema).optional(),
 }).passthrough();
@@ -147,6 +149,7 @@ const InputsSchema = z.object({
   }).describe(
     "The settings for what common media server data (CMSD) headers AWS Elemental MediaPackage includes in responses to the CDN.",
   ).optional(),
+  OutputLockingMode: z.enum(["EPOCH_LOCKED", "NON_EPOCH_LOCKED"]).optional(),
   Tags: z.array(TagSchema).optional(),
 });
 
@@ -169,7 +172,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for MediaPackageV2 Channel. Registered at `@swamp/aws/mediapackagev2/channel`. */
 export const model = {
   type: "@swamp/aws/mediapackagev2/channel",
-  version: "2026.06.15.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -214,6 +217,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
+      description: "Added: OutputLockingMode",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -323,7 +331,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["ChannelGroupName", "ChannelName", "InputType"],
+          ["ChannelGroupName", "ChannelName", "InputType", "OutputLockingMode"],
           credentials,
         );
         const handle = await context.writeResource(

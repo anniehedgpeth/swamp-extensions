@@ -53,6 +53,7 @@ const ResourceSchema = z.object({
     id: z.string().optional(),
     projectId: z.string().optional(),
     name: z.string().optional(),
+    public: z.boolean().optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
   }).nullable().optional(),
@@ -84,7 +85,7 @@ function unwrapResponse(
 /** Swamp extension model for Vercel Repository. Registered at `@swamp/vercel/vcr/repository`. */
 export const model = {
   type: "@swamp/vercel/vcr/repository",
-  version: "2026.08.03.2",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -108,6 +109,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

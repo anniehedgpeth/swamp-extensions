@@ -97,6 +97,49 @@ const VisualReferenceSchema = z.object({
   BrowserType: z.enum(["CHROME", "FIREFOX"]).optional(),
 });
 
+const VPCConfigSchema = z.object({
+  VpcId: z.string().optional(),
+  SubnetIds: z.array(z.string()),
+  SecurityGroupIds: z.array(z.string()),
+  Ipv6AllowedForDualStack: z.boolean().describe(
+    "Allow outbound IPv6 traffic on VPC canaries that are connected to dual-stack subnets if set to true",
+  ).optional(),
+});
+
+const ReplicaReplicationStatusSchema = z.object({
+  State: z.string().describe(
+    "Replication state: InProgress, InSync, or Inconsistent",
+  ).optional(),
+});
+
+const ReplicaSchema = z.object({
+  Location: z.string().describe("AWS region for the replica (e.g., us-east-1)"),
+  VpcConfig: VPCConfigSchema.describe(
+    "VPC configuration for this replica location",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "Tags to apply to this replica canary and optionally its Lambda function",
+  ).optional(),
+  ResourcesToReplicateTags: z.array(z.enum(["lambda-function"])).describe(
+    "Resources to replicate tags to for this replica (e.g., lambda-function)",
+  ).optional(),
+  KmsKeyArn: z.string().regex(
+    new RegExp(
+      "^arn:[a-z0-9-]+:kms:[a-z0-9-]+:[0-9]{12}:(key/([a-f0-9-]{36}|mrk-[a-f0-9]{32})|alias/[a-zA-Z0-9:/_.-]+)$",
+    ),
+  ).describe(
+    "ARN of the KMS key used to encrypt the replica canary's Lambda function environment variables",
+  ).optional(),
+  CanaryState: z.string().describe(
+    "State of the replica canary (CREATING, READY, RUNNING, etc.)",
+  ).optional(),
+  LastModified: z.number().describe("Last modified timestamp of the replica")
+    .optional(),
+  ReplicationStatus: ReplicaReplicationStatusSchema.describe(
+    "Replication status for this replica",
+  ).optional(),
+});
+
 const GlobalArgsSchema = z.object({
   accessKeyId: z.string().meta({ sensitive: true }).describe(
     "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -151,7 +194,6 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   Tags: z.array(TagSchema).optional(),
   VPCConfig: z.object({
-    VpcId: z.string().optional(),
     SubnetIds: z.array(z.string()),
     SecurityGroupIds: z.array(z.string()),
     Ipv6AllowedForDualStack: z.boolean().describe(
@@ -195,6 +237,13 @@ const GlobalArgsSchema = z.object({
   ProvisionedResourceCleanup: z.enum(["AUTOMATIC", "OFF"]).describe(
     "Setting to control if provisioned resources created by Synthetics are deleted alongside the canary. Default is AUTOMATIC.",
   ).optional(),
+  KmsKeyArn: z.string().regex(
+    new RegExp(
+      "^arn:[a-z0-9-]+:kms:[a-z0-9-]+:[0-9]{12}:(key/([a-f0-9-]{36}|mrk-[a-f0-9]{32})|alias/[a-zA-Z0-9:/_.-]+)$",
+    ),
+  ).describe(
+    "KMS key ARN for encrypting the canary's Lambda function environment variables at rest. If omitted, Lambda uses an AWS-managed key.",
+  ).optional(),
   DryRunAndUpdate: z.boolean().describe(
     "Setting to control if UpdateCanary will perform a DryRun and validate it is PASSING before performing the Update. Default is FALSE.",
   ).optional(),
@@ -203,6 +252,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   VisualReferences: z.array(VisualReferenceSchema).describe(
     "List of visual references for the canary",
+  ).optional(),
+  Replicas: z.array(ReplicaSchema).describe(
+    "List of replica locations for multi-location canary execution",
   ).optional(),
 });
 
@@ -234,12 +286,7 @@ const StateSchema = z.object({
   SuccessRetentionPeriod: z.number().optional(),
   FailureRetentionPeriod: z.number().optional(),
   Tags: z.array(TagSchema).optional(),
-  VPCConfig: z.object({
-    VpcId: z.string(),
-    SubnetIds: z.array(z.string()),
-    SecurityGroupIds: z.array(z.string()),
-    Ipv6AllowedForDualStack: z.boolean(),
-  }).optional(),
+  VPCConfig: VPCConfigSchema.optional(),
   RunConfig: z.object({
     TimeoutInSeconds: z.number(),
     MemoryInMB: z.number(),
@@ -252,9 +299,11 @@ const StateSchema = z.object({
   DeleteLambdaResourcesOnCanaryDeletion: z.boolean().optional(),
   ResourcesToReplicateTags: z.array(z.string()).optional(),
   ProvisionedResourceCleanup: z.string().optional(),
+  KmsKeyArn: z.string().optional(),
   DryRunAndUpdate: z.boolean().optional(),
   BrowserConfigs: z.array(BrowserConfigSchema).optional(),
   VisualReferences: z.array(VisualReferenceSchema).optional(),
+  Replicas: z.array(ReplicaSchema).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -306,7 +355,6 @@ const InputsSchema = z.object({
   ).optional(),
   Tags: z.array(TagSchema).optional(),
   VPCConfig: z.object({
-    VpcId: z.string().optional(),
     SubnetIds: z.array(z.string()).optional(),
     SecurityGroupIds: z.array(z.string()).optional(),
     Ipv6AllowedForDualStack: z.boolean().describe(
@@ -350,6 +398,13 @@ const InputsSchema = z.object({
   ProvisionedResourceCleanup: z.enum(["AUTOMATIC", "OFF"]).describe(
     "Setting to control if provisioned resources created by Synthetics are deleted alongside the canary. Default is AUTOMATIC.",
   ).optional(),
+  KmsKeyArn: z.string().regex(
+    new RegExp(
+      "^arn:[a-z0-9-]+:kms:[a-z0-9-]+:[0-9]{12}:(key/([a-f0-9-]{36}|mrk-[a-f0-9]{32})|alias/[a-zA-Z0-9:/_.-]+)$",
+    ),
+  ).describe(
+    "KMS key ARN for encrypting the canary's Lambda function environment variables at rest. If omitted, Lambda uses an AWS-managed key.",
+  ).optional(),
   DryRunAndUpdate: z.boolean().describe(
     "Setting to control if UpdateCanary will perform a DryRun and validate it is PASSING before performing the Update. Default is FALSE.",
   ).optional(),
@@ -358,6 +413,9 @@ const InputsSchema = z.object({
   ).optional(),
   VisualReferences: z.array(VisualReferenceSchema).describe(
     "List of visual references for the canary",
+  ).optional(),
+  Replicas: z.array(ReplicaSchema).describe(
+    "List of replica locations for multi-location canary execution",
   ).optional(),
 });
 
@@ -380,7 +438,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Synthetics Canary. Registered at `@swamp/aws/synthetics/canary`. */
 export const model = {
   type: "@swamp/aws/synthetics/canary",
-  version: "2026.06.15.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -420,6 +478,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
+      description: "Added: KmsKeyArn, Replicas",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

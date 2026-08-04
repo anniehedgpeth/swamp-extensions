@@ -193,6 +193,9 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "An object specifying the details of the worker nodes available to the Kubernetes cluster.",
   ),
+  isolated_workers: z.boolean().describe(
+    "A boolean value indicating whether worker nodes in the cluster are not assigned public IP addresses. When omitted on create, the default value is false. When enabled, a NAT gateway must exist in the VPC where the cluster is created.",
+  ).optional(),
   token: z.string().meta({ sensitive: true }).describe(
     "DigitalOcean API token; overrides the DO_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -242,6 +245,7 @@ const ResourceSchema = z.object({
     day: z.string().optional(),
   }).nullable().optional(),
   auto_upgrade: z.boolean().optional(),
+  isolated_workers: z.boolean().optional(),
   status: z.object({
     state: z.string().optional(),
     message: z.string().optional(),
@@ -399,13 +403,14 @@ const InputsSchema = z.object({
       updated_at: z.string().optional(),
     })).optional(),
   })).optional(),
+  isolated_workers: z.boolean().optional(),
   token: z.string().meta({ sensitive: true }).optional(),
 });
 
 /** Swamp extension model for DigitalOcean kubernetes cluster. Registered at `@swamp/digitalocean/kubernetes-cluster`. */
 export const model = {
   type: "@swamp/digitalocean/kubernetes-cluster",
-  version: "2026.07.10.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.03.27.1",
@@ -477,6 +482,11 @@ export const model = {
       description: "Added: p2p_oci_registry_plugin",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.04.1",
+      description: "Added: isolated_workers",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -539,6 +549,9 @@ export const model = {
           body.maintenance_policy = g.maintenance_policy;
         }
         if (g.auto_upgrade !== undefined) body.auto_upgrade = g.auto_upgrade;
+        if (g.isolated_workers !== undefined) {
+          body.isolated_workers = g.isolated_workers;
+        }
         if (g.surge_upgrade !== undefined) body.surge_upgrade = g.surge_upgrade;
         if (g.ha !== undefined) body.ha = g.ha;
         if (g.control_plane_firewall !== undefined) {

@@ -41,6 +41,7 @@ import {
   isResourceNotFoundError,
   listResources,
   readResource,
+  updateResource,
 } from "./_lib/gcp.ts";
 
 /** Construct the fully-qualified resource name from parent and short name. */
@@ -79,6 +80,24 @@ const INSERT_CONFIG = {
     "parent": {
       "location": "path",
       "required": true,
+    },
+  },
+} as const;
+
+const PATCH_CONFIG = {
+  "id": "webcontentpublisher.organizations.publications.ctas.patch",
+  "path": "v1/{+name}",
+  "httpMethod": "PATCH",
+  "parameterOrder": [
+    "name",
+  ],
+  "parameters": {
+    "name": {
+      "location": "path",
+      "required": true,
+    },
+    "updateMask": {
+      "location": "query",
     },
   },
 } as const;
@@ -237,7 +256,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Content Publisher Publications.Ctas. Registered at `@swamp/gcp/webcontentpublisher/publications-ctas`. */
 export const model = {
   type: "@swamp/gcp/webcontentpublisher/publications-ctas",
-  version: "2026.07.29.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -278,6 +297,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -379,6 +406,92 @@ export const model = {
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update ctas attributes",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific ctas by name (e.g. one discovered by list)",
+        ).optional(),
+        waitForReady: z.boolean().describe(
+          "Wait for the resource to reach a ready state after update (default: true)",
+        ).optional(),
+      }),
+      execute: async (
+        args: { identifier?: string; waitForReady?: boolean },
+        context: any,
+      ) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const params: Record<string, string> = { project: projectId };
+        const existingName = existing["name"]?.toString();
+        if (existingName && existingName.includes("/")) {
+          params["name"] = existingName;
+        } else {
+          params["name"] = buildResourceName(
+            String(g["parent"] ?? ""),
+            existingName ?? g["name"]?.toString() ?? "",
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (g["displayName"] !== undefined) {
+          body["displayName"] = g["displayName"];
+        }
+        if (g["newsletterConfig"] !== undefined) {
+          body["newsletterConfig"] = g["newsletterConfig"];
+        }
+        if (g["type"] !== undefined) body["type"] = g["type"];
+        const updateMaskKeys = Object.keys(body);
+        if (updateMaskKeys.length > 0) {
+          params["updateMask"] = updateMaskKeys.join(",");
+        }
+        for (const key of Object.keys(existing)) {
+          if (
+            key === "fingerprint" || key === "labelFingerprint" ||
+            key === "etag" || key.endsWith("Fingerprint")
+          ) {
+            body[key] = existing[key];
+          }
+        }
+        const result = await updateResource(
+          BASE_URL,
+          PATCH_CONFIG,
+          params,
+          body,
+          GET_CONFIG,
+          (args.waitForReady ?? true)
+            ? {
+              "statusField": "state",
+              "readyValues": ["ACTIVE"],
+              "failedValues": [],
+            }
+            : undefined,
+          credentials,
+        ) as StateData;
         const handle = await context.writeResource(
           "state",
           instanceName,

@@ -46,6 +46,24 @@ const TagSchema = z.object({
   Key: z.string().min(1).max(128),
 });
 
+const BotMemberSchema = z.object({
+  BotMemberName: z.string().min(1).max(100).describe(
+    "The unique name of a bot that is a member of this network of bots.",
+  ),
+  BotMemberAliasName: z.string().min(1).max(100).describe(
+    "The alias name of a bot that is a member of this network of bots.",
+  ),
+  BotMemberId: z.string().min(10).max(10).describe(
+    "The unique ID of a bot that is a member of this network of bots.",
+  ),
+  BotMemberVersion: z.string().min(1).max(5).describe(
+    "The version of a bot that is a member of this network of bots.",
+  ),
+  BotMemberAliasId: z.string().min(10).max(10).describe(
+    "The alias ID of a bot that is a member of this network of bots.",
+  ),
+});
+
 const LambdaCodeHookSchema = z.object({
   LambdaArn: z.string().min(20).max(2048),
   CodeHookInterfaceVersion: z.string().min(1).max(5),
@@ -129,6 +147,9 @@ const GlobalArgsSchema = z.object({
   RoleArn: z.string().min(32).max(2048).regex(
     new RegExp("^arn:aws[a-zA-Z-]*:iam::[0-9]{12}:role/.*$"),
   ),
+  BotType: z.enum(["Bot", "BotNetwork"]).describe(
+    "The type of a bot to create.",
+  ).optional(),
   Name: z.string().min(1).max(100).regex(new RegExp("^([0-9a-zA-Z][_-]?)+$")),
   BotTags: z.array(TagSchema).optional(),
   TestBotAliasTags: z.array(TagSchema).optional(),
@@ -149,6 +170,9 @@ const GlobalArgsSchema = z.object({
   Replication: z.object({
     ReplicaRegions: z.array(z.string().min(2).max(25)),
   }).optional(),
+  BotMembers: z.array(BotMemberSchema).describe(
+    "The list of bot members in a network to be created.",
+  ).optional(),
   TestBotAliasSettings: z.object({
     Description: z.string().max(2000).describe("A description of the resource")
       .optional(),
@@ -170,6 +194,7 @@ const StateSchema = z.object({
     Enabled: z.boolean(),
   }).optional(),
   RoleArn: z.string().optional(),
+  BotType: z.string().optional(),
   Name: z.string().optional(),
   BotTags: z.array(TagSchema).optional(),
   TestBotAliasTags: z.array(TagSchema).optional(),
@@ -184,6 +209,7 @@ const StateSchema = z.object({
   Replication: z.object({
     ReplicaRegions: z.array(z.string()),
   }).optional(),
+  BotMembers: z.array(BotMemberSchema).optional(),
   TestBotAliasSettings: z.object({
     Description: z.string(),
     BotAliasLocaleSettings: z.array(BotAliasLocaleSettingsItemSchema),
@@ -215,6 +241,9 @@ const InputsSchema = z.object({
   RoleArn: z.string().min(32).max(2048).regex(
     new RegExp("^arn:aws[a-zA-Z-]*:iam::[0-9]{12}:role/.*$"),
   ).optional(),
+  BotType: z.enum(["Bot", "BotNetwork"]).describe(
+    "The type of a bot to create.",
+  ).optional(),
   Name: z.string().min(1).max(100).regex(new RegExp("^([0-9a-zA-Z][_-]?)+$"))
     .optional(),
   BotTags: z.array(TagSchema).optional(),
@@ -236,6 +265,9 @@ const InputsSchema = z.object({
   Replication: z.object({
     ReplicaRegions: z.array(z.string().min(2).max(25)).optional(),
   }).optional(),
+  BotMembers: z.array(BotMemberSchema).describe(
+    "The list of bot members in a network to be created.",
+  ).optional(),
   TestBotAliasSettings: z.object({
     Description: z.string().max(2000).describe("A description of the resource")
       .optional(),
@@ -270,7 +302,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Lex Bot. Registered at `@swamp/aws/lex/bot`. */
 export const model = {
   type: "@swamp/aws/lex/bot",
-  version: "2026.06.15.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -315,6 +347,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
+      description: "Added: BotType, BotMembers",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -424,7 +461,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          undefined,
+          ["BotType"],
           credentials,
         );
         const handle = await context.writeResource(

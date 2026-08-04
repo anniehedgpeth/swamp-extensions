@@ -203,8 +203,12 @@ const DashManifestConfigurationSchema = z.object({
   ).optional(),
   UriPathType: z.enum(["LEAF", "ROOT"]).optional(),
   AvailabilityStartTimeConfiguration: z.object({
-    FixedAvailabilityStartTime: z.string().optional(),
-  }).optional(),
+    FixedAvailabilityStartTime: z.string().describe(
+      "The fixed availability start time for the DASH manifest, in ISO 8601 date-time format. The value must have hourly granularity, meaning that the minutes, seconds, and fractional seconds must be zero. The value must be on or after 2024-01-01T00:00:00Z and must be at least 14 days before the current time.",
+    ).optional(),
+  }).describe(
+    "The configuration for the DASH availabilityStartTime attribute of the Media Presentation Description (MPD). Use this configuration to set a custom availability start time for your DASH manifest.",
+  ).optional(),
 });
 
 const ScteHlsSchema = z.object({
@@ -494,6 +498,8 @@ const GlobalArgsSchema = z.object({
     Encryption: EncryptionSchema.describe(
       "The parameters for encrypting content.",
     ).optional(),
+    OutputTimestampMode: z.enum(["PASSTHROUGH", "REBASED_TO_CHANNEL_START"])
+      .optional(),
   }).describe(
     "The segment configuration, including the segment name, duration, and other configuration values.",
   ).optional(),
@@ -529,6 +535,7 @@ const StateSchema = z.object({
     TsIncludeDvbSubtitles: z.boolean(),
     Scte: ScteSchema,
     Encryption: EncryptionSchema,
+    OutputTimestampMode: z.string(),
   }).optional(),
   StartoverWindowSeconds: z.number().optional(),
   UriSeparator: z.string().optional(),
@@ -604,6 +611,8 @@ const InputsSchema = z.object({
     Encryption: EncryptionSchema.describe(
       "The parameters for encrypting content.",
     ).optional(),
+    OutputTimestampMode: z.enum(["PASSTHROUGH", "REBASED_TO_CHANNEL_START"])
+      .optional(),
   }).describe(
     "The segment configuration, including the segment name, duration, and other configuration values.",
   ).optional(),
@@ -633,7 +642,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for MediaPackageV2 OriginEndpoint. Registered at `@swamp/aws/mediapackagev2/origin-endpoint`. */
 export const model = {
   type: "@swamp/aws/mediapackagev2/origin-endpoint",
-  version: "2026.06.17.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -682,6 +691,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -202,6 +202,36 @@ const GlobalArgsSchema = z.object({
   FunctionMapping: z.record(z.string(), z.string()).describe(
     "A map of event names to function identifiers for custom processing during session lifecycle events.",
   ).optional(),
+  AdsPersonalizationTimeouts: z.object({
+    AdsRequestTimeoutMilliseconds: z.number().int().describe(
+      "The maximum time, in milliseconds, that MediaTailor waits for a single ADS response during live or VOD playback. The default is 3000.",
+    ).optional(),
+    LiveMaximumAdsPersonalizationTimeMilliseconds: z.number().int().describe(
+      "The maximum total time, in milliseconds, that MediaTailor spends on ADS activity for live manifests. The default is 10000.",
+    ).optional(),
+    VodMaximumAdsPersonalizationTimeMilliseconds: z.number().int().describe(
+      "The maximum total time, in milliseconds, that MediaTailor spends on ADS activity for VOD manifests. The default is 10000.",
+    ).optional(),
+    PrefetchAdsRequestTimeoutMilliseconds: z.number().int().describe(
+      "The maximum time, in milliseconds, that MediaTailor waits for a single ADS response during prefetch retrieval. If not set, MediaTailor uses the AdsRequestTimeoutMilliseconds value.",
+    ).optional(),
+    PrefetchMaximumAdsPersonalizationTimeMilliseconds: z.number().int()
+      .describe(
+        "The maximum total time, in milliseconds, that MediaTailor spends on ADS activity during prefetch retrieval.",
+      ).optional(),
+  }).describe(
+    "The ad decision server (ADS) request timeouts and personalization time budgets for live, VOD, and prefetch workflows.",
+  ).optional(),
+  AdsPersonalizationConcurrency: z.object({
+    MaxConcurrentAdsRequests: z.number().int().describe(
+      "The maximum number of simultaneous requests that MediaTailor makes to the ADS for each manifest request. The default is 1.",
+    ).optional(),
+    EnableVodVastParallelization: z.boolean().describe(
+      "Enables parallel processing of ADS requests in VOD workflows when the ADS returns VAST responses. The default is false.",
+    ).optional(),
+  }).describe(
+    "The settings that control how many concurrent requests MediaTailor makes to the ad decision server (ADS).",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -257,6 +287,17 @@ const StateSchema = z.object({
     HttpRequest: HttpRequestSchema,
   }).optional(),
   FunctionMapping: z.record(z.string(), z.unknown()).optional(),
+  AdsPersonalizationTimeouts: z.object({
+    AdsRequestTimeoutMilliseconds: z.number(),
+    LiveMaximumAdsPersonalizationTimeMilliseconds: z.number(),
+    VodMaximumAdsPersonalizationTimeMilliseconds: z.number(),
+    PrefetchAdsRequestTimeoutMilliseconds: z.number(),
+    PrefetchMaximumAdsPersonalizationTimeMilliseconds: z.number(),
+  }).optional(),
+  AdsPersonalizationConcurrency: z.object({
+    MaxConcurrentAdsRequests: z.number(),
+    EnableVodVastParallelization: z.boolean(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -373,6 +414,36 @@ const InputsSchema = z.object({
   FunctionMapping: z.record(z.string(), z.string()).describe(
     "A map of event names to function identifiers for custom processing during session lifecycle events.",
   ).optional(),
+  AdsPersonalizationTimeouts: z.object({
+    AdsRequestTimeoutMilliseconds: z.number().int().describe(
+      "The maximum time, in milliseconds, that MediaTailor waits for a single ADS response during live or VOD playback. The default is 3000.",
+    ).optional(),
+    LiveMaximumAdsPersonalizationTimeMilliseconds: z.number().int().describe(
+      "The maximum total time, in milliseconds, that MediaTailor spends on ADS activity for live manifests. The default is 10000.",
+    ).optional(),
+    VodMaximumAdsPersonalizationTimeMilliseconds: z.number().int().describe(
+      "The maximum total time, in milliseconds, that MediaTailor spends on ADS activity for VOD manifests. The default is 10000.",
+    ).optional(),
+    PrefetchAdsRequestTimeoutMilliseconds: z.number().int().describe(
+      "The maximum time, in milliseconds, that MediaTailor waits for a single ADS response during prefetch retrieval. If not set, MediaTailor uses the AdsRequestTimeoutMilliseconds value.",
+    ).optional(),
+    PrefetchMaximumAdsPersonalizationTimeMilliseconds: z.number().int()
+      .describe(
+        "The maximum total time, in milliseconds, that MediaTailor spends on ADS activity during prefetch retrieval.",
+      ).optional(),
+  }).describe(
+    "The ad decision server (ADS) request timeouts and personalization time budgets for live, VOD, and prefetch workflows.",
+  ).optional(),
+  AdsPersonalizationConcurrency: z.object({
+    MaxConcurrentAdsRequests: z.number().int().describe(
+      "The maximum number of simultaneous requests that MediaTailor makes to the ADS for each manifest request. The default is 1.",
+    ).optional(),
+    EnableVodVastParallelization: z.boolean().describe(
+      "Enables parallel processing of ADS requests in VOD workflows when the ADS returns VAST responses. The default is false.",
+    ).optional(),
+  }).describe(
+    "The settings that control how many concurrent requests MediaTailor makes to the ad decision server (ADS).",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -394,7 +465,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for MediaTailor PlaybackConfiguration. Registered at `@swamp/aws/mediatailor/playback-configuration`. */
 export const model = {
   type: "@swamp/aws/mediatailor/playback-configuration",
-  version: "2026.06.15.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -434,6 +505,12 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "Added: FunctionMapping",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
+      description:
+        "Added: AdsPersonalizationTimeouts, AdsPersonalizationConcurrency",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

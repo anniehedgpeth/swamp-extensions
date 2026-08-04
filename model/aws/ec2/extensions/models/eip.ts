@@ -77,8 +77,12 @@ const GlobalArgsSchema = z.object({
   PublicIpv4Pool: z.string().describe(
     "The ID of an address pool that you own. Use this parameter to let Amazon EC2 select an address from the address pool. Updates to the PublicIpv4Pool property may require *some interruptions*. Updates on an EIP reassociates the address on its associated resource.",
   ).optional(),
-  IpamPoolId: z.string().optional(),
-  Address: z.string().optional(),
+  IpamPoolId: z.string().describe(
+    "The ID of an IPAM pool which has an Amazon-provided or BYOIP public IPv4 CIDR provisioned to it. For more information, see [Allocate sequential Elastic IP addresses from an IPAM pool](https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-eip-pool.html) in the *Amazon VPC IPAM User Guide*.",
+  ).optional(),
+  Address: z.string().describe(
+    "An Elastic IP address or a carrier IP address in a Wavelength Zone.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "Any tags assigned to the Elastic IP address. Updates to the Tags property may require *some interruptions*. Updates on an EIP reassociates the address on its associated resource.",
   ).optional(),
@@ -120,8 +124,12 @@ const InputsSchema = z.object({
   PublicIpv4Pool: z.string().describe(
     "The ID of an address pool that you own. Use this parameter to let Amazon EC2 select an address from the address pool. Updates to the PublicIpv4Pool property may require *some interruptions*. Updates on an EIP reassociates the address on its associated resource.",
   ).optional(),
-  IpamPoolId: z.string().optional(),
-  Address: z.string().optional(),
+  IpamPoolId: z.string().describe(
+    "The ID of an IPAM pool which has an Amazon-provided or BYOIP public IPv4 CIDR provisioned to it. For more information, see [Allocate sequential Elastic IP addresses from an IPAM pool](https://docs.aws.amazon.com/vpc/latest/ipam/tutorials-eip-pool.html) in the *Amazon VPC IPAM User Guide*.",
+  ).optional(),
+  Address: z.string().describe(
+    "An Elastic IP address or a carrier IP address in a Wavelength Zone.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "Any tags assigned to the Elastic IP address. Updates to the Tags property may require *some interruptions*. Updates on an EIP reassociates the address on its associated resource.",
   ).optional(),
@@ -146,7 +154,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EC2 EIP. Registered at `@swamp/aws/ec2/eip`. */
 export const model = {
   type: "@swamp/aws/ec2/eip",
-  version: "2026.06.15.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -185,6 +193,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

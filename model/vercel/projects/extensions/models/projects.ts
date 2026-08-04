@@ -850,6 +850,7 @@ const ResourceSchema = z.object({
     agent: z.array(z.string()).optional(),
     aiGatewayApiKey: z.array(z.string()).optional(),
     aiGatewayApiKeyOwnedBySelf: z.array(z.string()).optional(),
+    aiGatewayApiKeyZdrExemption: z.array(z.string()).optional(),
     aiGatewayBudget: z.array(z.string()).optional(),
     aiGatewayCredits: z.array(z.string()).optional(),
     aiGatewayPrivateModels: z.array(z.string()).optional(),
@@ -1223,7 +1224,6 @@ const ResourceSchema = z.object({
     })).optional(),
   }).nullable().optional(),
   tier: z.string().nullable().optional(),
-  flatRateTier: z.string().nullable().optional(),
   usageStatus: z.object({
     kind: z.string().optional(),
     exceededAllowanceUntil: z.number().optional(),
@@ -1583,7 +1583,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/projects/projects`. */
 export const model = {
   type: "@swamp/vercel/projects/projects",
-  version: "2026.08.03.3",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -1617,6 +1617,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1944,9 +1949,6 @@ export const model = {
           ]);
         }
         if (g.tier !== undefined) filters.push(["tier", String(g.tier)]);
-        if (g.flatRateTier !== undefined) {
-          filters.push(["flatRateTier", String(g.flatRateTier)]);
-        }
         if (g.v0 !== undefined) filters.push(["v0", String(g.v0)]);
         if (g.v0Created !== undefined) {
           filters.push(["v0Created", String(g.v0Created)]);

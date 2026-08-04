@@ -59,8 +59,8 @@ const UserProficiencySchema = z.object({
   AttributeValue: z.string().min(1).max(64).describe(
     "The value of user's proficiency. You must use value of predefined attribute present in the Amazon Connect instance.",
   ),
-  Level: z.number().min(1).max(5).describe(
-    "The level of the proficiency. The valid values are 1, 2, 3, 4 and 5.",
+  Level: z.number().min(0).max(10).describe(
+    "The level of the proficiency. The valid values are 0 to 10.",
   ),
 });
 
@@ -372,7 +372,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect User. Registered at `@swamp/aws/connect/user`. */
 export const model = {
   type: "@swamp/aws/connect/user",
-  version: "2026.07.09.1",
+  version: "2026.08.04.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -416,6 +416,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.09.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.04.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
