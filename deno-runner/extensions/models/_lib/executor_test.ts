@@ -1,0 +1,113 @@
+import { assertEquals } from "jsr:@std/assert@1.0.19";
+import { execute } from "./executor.ts";
+import type { DenoRunnerLogger } from "./types.ts";
+
+function makeLogger(): { logger: DenoRunnerLogger; logs: string[] } {
+  const logs: string[] = [];
+  const logger: DenoRunnerLogger = {
+    debug: (msg) => logs.push(`debug: ${msg}`),
+    info: (msg) => logs.push(`info: ${msg}`),
+    warn: (msg) => logs.push(`warn: ${msg}`),
+    error: (msg) => logs.push(`error: ${msg}`),
+  };
+  return { logger, logs };
+}
+
+// ---------------------------------------------------------------------------
+// Successful execution
+// ---------------------------------------------------------------------------
+
+Deno.test("execute runs a simple command and captures output", async () => {
+  const { logger } = makeLogger();
+  const result = await execute({
+    binaryPath: "/bin/echo",
+    args: ["hello", "world"],
+    workingDir: Deno.cwd(),
+    logger,
+    signal: new AbortController().signal,
+  });
+
+  assertEquals(result.stdout.trim(), "hello world");
+  assertEquals(result.exitCode, 0);
+  assertEquals(result.command, "deno hello world");
+});
+
+// ---------------------------------------------------------------------------
+// Non-zero exit code
+// ---------------------------------------------------------------------------
+
+Deno.test("execute captures non-zero exit code", async () => {
+  const { logger, logs } = makeLogger();
+  const result = await execute({
+    binaryPath: "/bin/sh",
+    args: ["-c", "exit 42"],
+    workingDir: Deno.cwd(),
+    logger,
+    signal: new AbortController().signal,
+  });
+
+  assertEquals(result.exitCode, 42);
+  assertEquals(logs.some((l) => l.includes("exited with code 42")), true);
+});
+
+// ---------------------------------------------------------------------------
+// Environment variables
+// ---------------------------------------------------------------------------
+
+Deno.test("execute passes extra env vars to subprocess", async () => {
+  const { logger } = makeLogger();
+  const result = await execute({
+    binaryPath: "/bin/sh",
+    args: ["-c", "echo $DENO_RUNNER_TEST_VAR"],
+    workingDir: Deno.cwd(),
+    env: { DENO_RUNNER_TEST_VAR: "test_value_123" },
+    logger,
+    signal: new AbortController().signal,
+  });
+
+  assertEquals(result.stdout.trim(), "test_value_123");
+  assertEquals(result.exitCode, 0);
+});
+
+// ---------------------------------------------------------------------------
+// Stderr capture
+// ---------------------------------------------------------------------------
+
+Deno.test("execute captures stderr", async () => {
+  const { logger } = makeLogger();
+  const result = await execute({
+    binaryPath: "/bin/sh",
+    args: ["-c", "echo err >&2; exit 1"],
+    workingDir: Deno.cwd(),
+    logger,
+    signal: new AbortController().signal,
+  });
+
+  assertEquals(result.stderr.trim(), "err");
+  assertEquals(result.exitCode, 1);
+});
+
+// ---------------------------------------------------------------------------
+// Working directory
+// ---------------------------------------------------------------------------
+
+Deno.test("execute respects working directory", async () => {
+  const tmpDir = await Deno.makeTempDir();
+  try {
+    const { logger } = makeLogger();
+    const result = await execute({
+      binaryPath: "/bin/sh",
+      args: ["-c", "pwd"],
+      workingDir: tmpDir,
+      logger,
+      signal: new AbortController().signal,
+    });
+
+    // macOS may use /private prefix for temp dirs
+    const normalized = result.stdout.trim().replace(/^\/private/, "");
+    const expectedNormalized = tmpDir.replace(/^\/private/, "");
+    assertEquals(normalized, expectedNormalized);
+  } finally {
+    await Deno.remove(tmpDir, { recursive: true });
+  }
+});

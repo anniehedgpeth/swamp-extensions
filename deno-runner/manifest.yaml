@@ -1,0 +1,56 @@
+manifestVersion: 1
+name: "@swamp/deno-runner"
+version: "2026.08.05.1"
+description: |
+  Install and run Deno commands. Manages Deno binary downloads with
+  checksum verification and provides generic command execution for CI
+  and development workflows.
+
+  Provider-agnostic: does not impose any project structure or command
+  conventions. You specify the Deno version and the arguments to run.
+
+  ## Methods
+
+  | Method    | What it does |
+  | --------- | ------------ |
+  | `install` | Ensure a specific Deno version is downloaded and cached. Returns the binary path and platform info. |
+  | `run`     | Run an arbitrary `deno` subcommand with the specified arguments (e.g. `check`, `test`, `lint`, `fmt`, `install --frozen`). |
+  | `task`    | Run a named task from `deno.json` with optional extra arguments. |
+
+  ## Usage
+
+  ```bash
+  swamp extension pull @swamp/deno-runner
+
+  swamp model create @swamp/deno-runner deno
+  swamp model edit deno
+
+  # Type-check
+  swamp model method run deno run \
+    --input 'args:json=["check", "src/main.ts"]'
+
+  # Run tests
+  swamp model method run deno run \
+    --input 'args:json=["test", "--allow-read", "--allow-env", "src/"]'
+
+  # Run a named task
+  swamp model method run deno task \
+    --input taskName=generate:aws \
+    --input 'taskArgs:json=["ec2", "s3"]'
+
+  # Verify lockfile
+  swamp model method run deno run \
+    --input 'args:json=["install", "--frozen"]'
+  ```
+repository: "https://github.com/swamp-club/swamp-extensions"
+models:
+  - deno_runner.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []
+labels:
+  - deno
+  - ci
+  - runtime
+  - toolchain

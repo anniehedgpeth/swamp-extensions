@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "agent-runner/**"
+      - "deno-runner/**"
       - "issue-lifecycle/**"
       - "ssh/**"
       - "kubernetes/**"
@@ -28,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       agent-runner: ${{ steps.filter.outputs.agent-runner }}
+      deno-runner: ${{ steps.filter.outputs.deno-runner }}
       issue-lifecycle: ${{ steps.filter.outputs.issue-lifecycle }}
       ssh: ${{ steps.filter.outputs.ssh }}
       kubernetes: ${{ steps.filter.outputs.kubernetes }}
@@ -54,6 +56,7 @@ jobs:
             echo "${name}=${found}" >> $GITHUB_OUTPUT
           }
           check_path agent-runner "agent-runner/"
+          check_path deno-runner "deno-runner/"
           check_path issue-lifecycle "issue-lifecycle/"
           check_path ssh "ssh/"
           check_path kubernetes "kubernetes/"
@@ -100,6 +103,51 @@ jobs:
     defaults:
       run:
         working-directory: agent-runner
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.x
+      - name: Verify lockfile is up to date
+        run: deno install --frozen
+
+  deno-runner-check:
+    name: deno-runner - ${{ matrix.task }}
+    needs: [changes]
+    if: needs.changes.outputs.deno-runner == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [check, lint, fmt, test]
+    defaults:
+      run:
+        working-directory: deno-runner
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.x
+      - name: deno ${{ matrix.task }}
+        run: |
+          if [ "${{ matrix.task }}" = "fmt" ]; then
+            deno fmt --check extensions/models/
+          elif [ "${{ matrix.task }}" = "lint" ]; then
+            deno lint extensions/models/
+          elif [ "${{ matrix.task }}" = "test" ]; then
+            deno test --allow-read --allow-write --allow-env --allow-run --allow-sys --allow-net extensions/models/
+          else
+            deno check extensions/models/deno_runner.ts
+          fi
+
+  deno-runner-lockfile:
+    name: deno-runner - lockfile up to date
+    needs: [changes]
+    if: needs.changes.outputs.deno-runner == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deno-runner
     steps:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
@@ -485,6 +533,8 @@ jobs:
       [
         agent-runner-check,
         agent-runner-lockfile,
+        deno-runner-check,
+        deno-runner-lockfile,
         issue-lifecycle-check,
         issue-lifecycle-lockfile,
         ssh-check,
