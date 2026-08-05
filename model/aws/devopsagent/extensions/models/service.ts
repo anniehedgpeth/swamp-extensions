@@ -80,6 +80,20 @@ const GlobalArgsSchema = z.object({
   KmsKeyArn: z.string().min(1).max(2048).describe(
     "The ARN of the KMS key to use for encryption.",
   ).optional(),
+  PrivateConnectionName: z.string().min(3).max(30).regex(
+    new RegExp("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"),
+  ).describe("The name of the private connection to use for VPC connectivity.")
+    .optional(),
+  TargetUrlPrivateConnectionName: z.string().min(3).max(30).regex(
+    new RegExp("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"),
+  ).describe(
+    "The name of the private connection to use for API calls (target URL) only. Cannot be specified when PrivateConnectionName is provided.",
+  ).optional(),
+  ExchangeUrlPrivateConnectionName: z.string().min(3).max(30).regex(
+    new RegExp("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"),
+  ).describe(
+    "The name of the private connection to use for OAuth token exchange requests only. Cannot be specified when PrivateConnectionName is provided.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
   ).optional(),
@@ -92,6 +106,9 @@ const StateSchema = z.object({
   AccessibleResources: z.array(z.record(z.string(), z.unknown())).optional(),
   AdditionalServiceDetails: z.record(z.string(), z.unknown()).optional(),
   KmsKeyArn: z.string().optional(),
+  PrivateConnectionName: z.string().optional(),
+  TargetUrlPrivateConnectionName: z.string().optional(),
+  ExchangeUrlPrivateConnectionName: z.string().optional(),
   Arn: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
 }).passthrough();
@@ -122,6 +139,20 @@ const InputsSchema = z.object({
   KmsKeyArn: z.string().min(1).max(2048).describe(
     "The ARN of the KMS key to use for encryption.",
   ).optional(),
+  PrivateConnectionName: z.string().min(3).max(30).regex(
+    new RegExp("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"),
+  ).describe("The name of the private connection to use for VPC connectivity.")
+    .optional(),
+  TargetUrlPrivateConnectionName: z.string().min(3).max(30).regex(
+    new RegExp("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"),
+  ).describe(
+    "The name of the private connection to use for API calls (target URL) only. Cannot be specified when PrivateConnectionName is provided.",
+  ).optional(),
+  ExchangeUrlPrivateConnectionName: z.string().min(3).max(30).regex(
+    new RegExp("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"),
+  ).describe(
+    "The name of the private connection to use for OAuth token exchange requests only. Cannot be specified when PrivateConnectionName is provided.",
+  ).optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
   ).optional(),
@@ -146,7 +177,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for DevOpsAgent Service. Registered at `@swamp/aws/devopsagent/service`. */
 export const model = {
   type: "@swamp/aws/devopsagent/service",
-  version: "2026.07.24.1",
+  version: "2026.08.05.1",
   upgrades: [
     {
       toVersion: "2026.03.27.1",
@@ -221,6 +252,12 @@ export const model = {
     {
       toVersion: "2026.07.24.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.05.1",
+      description:
+        "Added: PrivateConnectionName, TargetUrlPrivateConnectionName, ExchangeUrlPrivateConnectionName",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -338,6 +375,9 @@ export const model = {
             "PagerDuty",
             "AzureIdentity",
             "KmsKeyArn",
+            "PrivateConnectionName",
+            "TargetUrlPrivateConnectionName",
+            "ExchangeUrlPrivateConnectionName",
           ],
           credentials,
         );

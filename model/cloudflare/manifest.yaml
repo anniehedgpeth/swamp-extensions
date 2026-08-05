@@ -1,0 +1,19 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/cloudflare/"
+version: "2026.08.05.1"
+description: "Cloudflare  infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - cloudflare
+  -
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added:
+models:
+  - .ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

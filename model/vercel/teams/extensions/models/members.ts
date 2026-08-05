@@ -57,6 +57,7 @@ const GlobalArgsSchema = z.object({
   ]).describe("The role of the user to invite").optional(),
   teamPermissions: z.array(
     z.enum([
+      "ConnectorManager",
       "IntegrationManager",
       "CreateProject",
       "FullProductionDeployment",
@@ -122,6 +123,7 @@ const InputsSchema = z.object({
   ]).optional(),
   teamPermissions: z.array(
     z.enum([
+      "ConnectorManager",
       "IntegrationManager",
       "CreateProject",
       "FullProductionDeployment",
@@ -158,7 +160,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Members. Registered at `@swamp/vercel/teams/members`. */
 export const model = {
   type: "@swamp/vercel/teams/members",
-  version: "2026.08.03.3",
+  version: "2026.08.05.1",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -192,6 +194,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.05.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

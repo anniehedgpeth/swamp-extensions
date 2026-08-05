@@ -155,11 +155,12 @@ const TopicRelativeDateFilterSchema = z.object({
 });
 
 const TopicFilterSchema = z.object({
-  FilterDescription: z.string().min(0).max(256).optional(),
+  FilterDescription: z.string().min(0).max(500).optional(),
   FilterClass: z.enum([
     "ENFORCED_VALUE_FILTER",
     "CONDITIONAL_VALUE_FILTER",
     "NAMED_VALUE_FILTER",
+    "DASHBOARD_DEFAULT_FILTER",
   ]).optional(),
   FilterName: z.string().min(0).max(256),
   FilterSynonyms: z.array(z.string().min(0).max(256)).optional(),
@@ -170,6 +171,7 @@ const TopicFilterSchema = z.object({
     "NUMERIC_RANGE_FILTER",
     "DATE_RANGE_FILTER",
     "RELATIVE_DATE_FILTER",
+    "NULL_FILTER",
   ]).optional(),
   CategoryFilter: TopicCategoryFilterSchema.optional(),
   NumericEqualityFilter: TopicNumericEqualityFilterSchema.optional(),
@@ -244,7 +246,7 @@ const CellValueSynonymSchema = z.object({
 const TopicColumnSchema = z.object({
   ColumnName: z.string().min(0).max(256),
   ColumnFriendlyName: z.string().min(0).max(256).optional(),
-  ColumnDescription: z.string().min(0).max(256).optional(),
+  ColumnDescription: z.string().min(0).max(500).optional(),
   ColumnSynonyms: z.array(z.string().min(0).max(256)).optional(),
   ColumnDataRole: z.enum(["DIMENSION", "MEASURE"]).optional(),
   Aggregation: z.enum([
@@ -314,7 +316,7 @@ const TopicColumnSchema = z.object({
 
 const TopicCalculatedFieldSchema = z.object({
   CalculatedFieldName: z.string().min(0).max(256),
-  CalculatedFieldDescription: z.string().min(0).max(256).optional(),
+  CalculatedFieldDescription: z.string().min(0).max(500).optional(),
   Expression: z.string().min(1).max(4096),
   CalculatedFieldSynonyms: z.array(z.string().min(0).max(256)).optional(),
   IsIncludedInTopic: z.boolean().optional(),
@@ -421,7 +423,7 @@ const NamedEntityDefinitionSchema = z.object({
 
 const TopicNamedEntitySchema = z.object({
   EntityName: z.string().min(0).max(256),
-  EntityDescription: z.string().min(0).max(256).optional(),
+  EntityDescription: z.string().min(0).max(500).optional(),
   EntitySynonyms: z.array(z.string().min(0).max(256)).optional(),
   SemanticEntityType: SemanticEntityTypeSchema.optional(),
   Definition: z.array(NamedEntityDefinitionSchema).optional(),
@@ -463,10 +465,14 @@ const GlobalArgsSchema = z.object({
     .optional(),
   ConfigOptions: z.object({
     QBusinessInsightsEnabled: z.boolean().optional(),
-  }).describe("Model for configuration of a Topic").optional(),
-  CustomInstructions: z.object({
-    CustomInstructionsString: z.string().min(0).max(10000),
   }).optional(),
+  CustomInstructions: z.object({
+    CustomInstructionsString: z.string().min(0).max(10000).describe(
+      "A text field for providing additional guidance or context for response generation.",
+    ),
+  }).describe(
+    "Instructions that provide additional guidance and context for response generation.",
+  ).optional(),
   DataSets: z.array(DatasetMetadataSchema).optional(),
   Description: z.string().min(0).max(256).optional(),
   FolderArns: z.array(z.string()).optional(),
@@ -508,10 +514,14 @@ const InputsSchema = z.object({
     .optional(),
   ConfigOptions: z.object({
     QBusinessInsightsEnabled: z.boolean().optional(),
-  }).describe("Model for configuration of a Topic").optional(),
-  CustomInstructions: z.object({
-    CustomInstructionsString: z.string().min(0).max(10000).optional(),
   }).optional(),
+  CustomInstructions: z.object({
+    CustomInstructionsString: z.string().min(0).max(10000).describe(
+      "A text field for providing additional guidance or context for response generation.",
+    ).optional(),
+  }).describe(
+    "Instructions that provide additional guidance and context for response generation.",
+  ).optional(),
   DataSets: z.array(DatasetMetadataSchema).optional(),
   Description: z.string().min(0).max(256).optional(),
   FolderArns: z.array(z.string()).optional(),
@@ -542,7 +552,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for QuickSight Topic. Registered at `@swamp/aws/quicksight/topic`. */
 export const model = {
   type: "@swamp/aws/quicksight/topic",
-  version: "2026.06.18.1",
+  version: "2026.08.05.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -586,6 +596,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.05.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/appstream/stack-fleet-association
+// Auto-generated extension model for @swamp/aws/quicksight/topic-v2
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for AppStream StackFleetAssociation (AWS::AppStream::StackFleetAssociation).
+ * Swamp extension model for QuickSight TopicV2 (AWS::QuickSight::TopicV2).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -37,8 +37,34 @@ import {
   deleteResource,
   isResourceNotFoundError,
   readResource,
+  updateResource,
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
+
+const DataSetReferenceSchema = z.object({
+  DataSetArn: z.string(),
+  DataSetName: z.string().min(0).max(256).optional(),
+});
+
+const DataSetRelationEndpointSchema = z.object({
+  DataSetArn: z.string(),
+  ColumnNames: z.array(z.string()),
+});
+
+const DataSetRelationSchema = z.object({
+  Left: DataSetRelationEndpointSchema,
+  Right: DataSetRelationEndpointSchema,
+});
+
+const ResourcePermissionSchema = z.object({
+  Principal: z.string().min(1).max(256),
+  Actions: z.array(z.string()),
+});
+
+const TagSchema = z.object({
+  Key: z.string().min(1).max(128).describe("Tag key."),
+  Value: z.string().min(1).max(256).describe("Tag value."),
+});
 
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
@@ -56,17 +82,37 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  FleetName: z.string().describe(
-    "The name of the fleet. To associate a fleet with a stack, you must specify a dependency on the fleet resource.",
-  ),
-  StackName: z.string().describe(
-    "The name of the stack. To associate a fleet with a stack, you must specify a dependency on the stack resource.",
-  ),
+  AwsAccountId: z.string().min(12).max(12).regex(new RegExp("^[0-9]{12}$"))
+    .optional(),
+  CustomInstructions: z.object({
+    CustomInstructionsString: z.string().min(0).max(5000),
+  }).optional(),
+  DataSets: z.array(DataSetReferenceSchema).optional(),
+  DataSetRelations: z.array(DataSetRelationSchema).optional(),
+  Description: z.string().min(0).max(256).optional(),
+  FolderArns: z.array(z.string()).optional(),
+  Name: z.string().min(1).max(128).optional(),
+  Permissions: z.array(ResourcePermissionSchema).optional(),
+  Tags: z.array(TagSchema).optional(),
+  TopicId: z.string().min(0).max(256).regex(
+    new RegExp("^[A-Za-z0-9-_.\\\\+]*$"),
+  ).optional(),
 });
 
 const StateSchema = z.object({
-  FleetName: z.string(),
-  StackName: z.string(),
+  Arn: z.string().optional(),
+  AwsAccountId: z.string(),
+  CustomInstructions: z.object({
+    CustomInstructionsString: z.string(),
+  }).optional(),
+  DataSets: z.array(DataSetReferenceSchema).optional(),
+  DataSetRelations: z.array(DataSetRelationSchema).optional(),
+  Description: z.string().optional(),
+  FolderArns: z.array(z.string()).optional(),
+  Name: z.string().optional(),
+  Permissions: z.array(ResourcePermissionSchema).optional(),
+  Tags: z.array(TagSchema).optional(),
+  TopicId: z.string(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -77,11 +123,20 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  FleetName: z.string().describe(
-    "The name of the fleet. To associate a fleet with a stack, you must specify a dependency on the fleet resource.",
-  ).optional(),
-  StackName: z.string().describe(
-    "The name of the stack. To associate a fleet with a stack, you must specify a dependency on the stack resource.",
+  AwsAccountId: z.string().min(12).max(12).regex(new RegExp("^[0-9]{12}$"))
+    .optional(),
+  CustomInstructions: z.object({
+    CustomInstructionsString: z.string().min(0).max(5000).optional(),
+  }).optional(),
+  DataSets: z.array(DataSetReferenceSchema).optional(),
+  DataSetRelations: z.array(DataSetRelationSchema).optional(),
+  Description: z.string().min(0).max(256).optional(),
+  FolderArns: z.array(z.string()).optional(),
+  Name: z.string().min(1).max(128).optional(),
+  Permissions: z.array(ResourcePermissionSchema).optional(),
+  Tags: z.array(TagSchema).optional(),
+  TopicId: z.string().min(0).max(256).regex(
+    new RegExp("^[A-Za-z0-9-_.\\\\+]*$"),
   ).optional(),
 });
 
@@ -101,22 +156,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for AppStream StackFleetAssociation. Registered at `@swamp/aws/appstream/stack-fleet-association`. */
+/** Swamp extension model for QuickSight TopicV2. Registered at `@swamp/aws/quicksight/topic-v2`. */
 export const model = {
-  type: "@swamp/aws/appstream/stack-fleet-association",
-  version: "2026.06.15.1",
-  upgrades: [
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
+  type: "@swamp/aws/quicksight/topic-v2",
+  version: "2026.08.05.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "AppStream StackFleetAssociation resource state",
+      description: "QuickSight TopicV2 resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -124,7 +172,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a AppStream StackFleetAssociation",
+      description: "Create a QuickSight TopicV2",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -136,7 +184,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::AppStream::StackFleetAssociation",
+          "AWS::QuickSight::TopicV2",
           desiredState,
           credentials,
         ) as StateData;
@@ -153,16 +201,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a AppStream StackFleetAssociation",
+      description: "Get a QuickSight TopicV2",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the AppStream StackFleetAssociation",
+          "The primary identifier of the QuickSight TopicV2",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::AppStream::StackFleetAssociation",
+          "AWS::QuickSight::TopicV2",
           args.identifier,
           credentials,
         ) as StateData;
@@ -179,36 +227,8 @@ export const model = {
         return { dataHandles: [handle] };
       },
     },
-    delete: {
-      description: "Delete a AppStream StackFleetAssociation",
-      arguments: z.object({
-        identifier: z.string().describe(
-          "The primary identifier of the AppStream StackFleetAssociation",
-        ),
-      }),
-      execute: async (args: { identifier: string }, context: any) => {
-        const credentials = _buildCredentials(context.globalArgs);
-        const { existed } = await deleteResource(
-          "AWS::AppStream::StackFleetAssociation",
-          args.identifier,
-          credentials,
-        );
-        const instanceName =
-          (context.globalArgs.name?.toString() ?? args.identifier).replace(
-            /[\/\\]/g,
-            "_",
-          ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const handle = await context.writeResource("state", instanceName, {
-          identifier: args.identifier,
-          existed,
-          status: existed ? "deleted" : "not_found",
-          deletedAt: new Date().toISOString(),
-        });
-        return { dataHandles: [handle] };
-      },
-    },
-    sync: {
-      description: "Sync AppStream StackFleetAssociation state from AWS",
+    update: {
+      description: "Update a QuickSight TopicV2",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -227,8 +247,92 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const idParts = [
-          existing.FleetName?.toString(),
-          existing.StackName?.toString(),
+          existing.AwsAccountId?.toString(),
+          existing.TopicId?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
+        }
+        const identifier = idParts.join("|");
+        const currentState = await readResource(
+          "AWS::QuickSight::TopicV2",
+          identifier,
+          credentials,
+        ) as StateData;
+        const desiredState: Record<string, unknown> = { ...currentState };
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await updateResource(
+          "AWS::QuickSight::TopicV2",
+          identifier,
+          currentState,
+          desiredState,
+          ["AwsAccountId", "FolderArns", "TopicId", "Tags"],
+          credentials,
+        );
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete a QuickSight TopicV2",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the QuickSight TopicV2",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { existed } = await deleteResource(
+          "AWS::QuickSight::TopicV2",
+          args.identifier,
+          credentials,
+        );
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          identifier: args.identifier,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
+        return { dataHandles: [handle] };
+      },
+    },
+    sync: {
+      description: "Sync QuickSight TopicV2 state from AWS",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const idParts = [
+          existing.AwsAccountId?.toString(),
+          existing.TopicId?.toString(),
         ];
         if (idParts.some((p) => !p)) {
           throw new Error(
@@ -238,7 +342,7 @@ export const model = {
         const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::AppStream::StackFleetAssociation",
+            "AWS::QuickSight::TopicV2",
             identifier,
             credentials,
           ) as StateData;

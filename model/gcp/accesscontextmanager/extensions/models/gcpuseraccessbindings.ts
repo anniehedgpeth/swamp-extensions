@@ -126,6 +126,9 @@ const LIST_CONFIG = {
     "parent",
   ],
   "parameters": {
+    "filter": {
+      "location": "query",
+    },
     "pageSize": {
       "location": "query",
     },
@@ -187,10 +190,10 @@ const GlobalArgsSchema = z.object({
           "Optional. How long a user is allowed to take between actions before a new access token must be issued. Only set for Google Cloud apps.",
         ).optional(),
         sessionLength: z.string().describe(
-          "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param.",
+          "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param. If this field is set to zero, session_length_enabled must be set to false or left unset.",
         ).optional(),
         sessionLengthEnabled: z.boolean().describe(
-          "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite.",
+          "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite. If session_length is set to zero, this field must be false.",
         ).optional(),
         sessionReauthMethod: z.enum([
           "SESSION_REAUTH_METHOD_UNSPECIFIED",
@@ -218,10 +221,10 @@ const GlobalArgsSchema = z.object({
           "Optional. How long a user is allowed to take between actions before a new access token must be issued. Only set for Google Cloud apps.",
         ).optional(),
         sessionLength: z.string().describe(
-          "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param.",
+          "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param. If this field is set to zero, session_length_enabled must be set to false or left unset.",
         ).optional(),
         sessionLengthEnabled: z.boolean().describe(
-          "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite.",
+          "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite. If session_length is set to zero, this field must be false.",
         ).optional(),
         sessionReauthMethod: z.enum([
           "SESSION_REAUTH_METHOD_UNSPECIFIED",
@@ -264,10 +267,10 @@ const GlobalArgsSchema = z.object({
       "Optional. How long a user is allowed to take between actions before a new access token must be issued. Only set for Google Cloud apps.",
     ).optional(),
     sessionLength: z.string().describe(
-      "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param.",
+      "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param. If this field is set to zero, session_length_enabled must be set to false or left unset.",
     ).optional(),
     sessionLengthEnabled: z.boolean().describe(
-      "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite.",
+      "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite. If session_length is set to zero, this field must be false.",
     ).optional(),
     sessionReauthMethod: z.enum([
       "SESSION_REAUTH_METHOD_UNSPECIFIED",
@@ -380,10 +383,10 @@ const InputsSchema = z.object({
           "Optional. How long a user is allowed to take between actions before a new access token must be issued. Only set for Google Cloud apps.",
         ).optional(),
         sessionLength: z.string().describe(
-          "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param.",
+          "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param. If this field is set to zero, session_length_enabled must be set to false or left unset.",
         ).optional(),
         sessionLengthEnabled: z.boolean().describe(
-          "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite.",
+          "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite. If session_length is set to zero, this field must be false.",
         ).optional(),
         sessionReauthMethod: z.enum([
           "SESSION_REAUTH_METHOD_UNSPECIFIED",
@@ -411,10 +414,10 @@ const InputsSchema = z.object({
           "Optional. How long a user is allowed to take between actions before a new access token must be issued. Only set for Google Cloud apps.",
         ).optional(),
         sessionLength: z.string().describe(
-          "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param.",
+          "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param. If this field is set to zero, session_length_enabled must be set to false or left unset.",
         ).optional(),
         sessionLengthEnabled: z.boolean().describe(
-          "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite.",
+          "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite. If session_length is set to zero, this field must be false.",
         ).optional(),
         sessionReauthMethod: z.enum([
           "SESSION_REAUTH_METHOD_UNSPECIFIED",
@@ -457,10 +460,10 @@ const InputsSchema = z.object({
       "Optional. How long a user is allowed to take between actions before a new access token must be issued. Only set for Google Cloud apps.",
     ).optional(),
     sessionLength: z.string().describe(
-      "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param.",
+      "Optional. The session length. Setting this field to zero is equal to disabling session. Also can set infinite session by flipping the enabled bit to false below. If use_oidc_max_age is true, for OIDC apps, the session length will be the minimum of this field and OIDC max_age param. If this field is set to zero, session_length_enabled must be set to false or left unset.",
     ).optional(),
     sessionLengthEnabled: z.boolean().describe(
-      "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite.",
+      "Optional. This field enables or disables Google Cloud session length. When false, all fields set above will be disregarded and the session length is basically infinite. If session_length is set to zero, this field must be false.",
     ).optional(),
     sessionReauthMethod: z.enum([
       "SESSION_REAUTH_METHOD_UNSPECIFIED",
@@ -506,7 +509,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Access Context Manager GcpUserAccessBindings. Registered at `@swamp/gcp/accesscontextmanager/gcpuseraccessbindings`. */
 export const model = {
   type: "@swamp/gcp/accesscontextmanager/gcpuseraccessbindings",
-  version: "2026.07.29.1",
+  version: "2026.08.05.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -643,6 +646,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.05.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -931,6 +942,9 @@ export const model = {
     list: {
       description: "List gcpUserAccessBindings resources",
       arguments: z.object({
+        filter: z.string().describe(
+          'Optional. The literal filter to apply to the results returned. See https://google.aip.dev/160 for more details. Accepts values: * principal:group_key * principal:service_account OR principal:service_account_project_number. If this field is empty or not one of the above, the default value is "principal:group_key".',
+        ).optional(),
         pageSize: z.number().describe(
           "Optional. Maximum number of items to return. The server may return fewer items. If left blank, the server may return any number of items.",
         ).optional(),
@@ -944,6 +958,9 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
+        if (args["filter"] !== undefined) {
+          params["filter"] = String(args["filter"]);
+        }
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }

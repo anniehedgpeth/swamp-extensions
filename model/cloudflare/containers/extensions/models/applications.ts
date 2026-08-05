@@ -100,8 +100,10 @@ const GlobalArgsSchema = z.object({
     jurisdiction: z.string().optional(),
     regions: z.array(z.string()).optional(),
   }).optional(),
-  instances: z.number().int().describe("Number of deployments to create"),
-  max_instances: z.number().int().describe(
+  instances: z.number().int().min(0).describe(
+    "Number of deployments to create",
+  ),
+  max_instances: z.number().int().min(0).describe(
     "Maximum number of instances that the application will allow. This is relevant for applications that auto-scale.",
   ).optional(),
   observability: z.object({
@@ -287,8 +289,8 @@ const InputsSchema = z.object({
     jurisdiction: z.string().optional(),
     regions: z.array(z.string()).optional(),
   }).optional(),
-  instances: z.number().int().optional(),
-  max_instances: z.number().int().optional(),
+  instances: z.number().int().min(0).optional(),
+  max_instances: z.number().int().min(0).optional(),
   observability: z.object({
     logs: z.object({
       enabled: z.boolean().optional(),
@@ -310,7 +312,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Applications. Registered at `@swamp/cloudflare/containers/applications`. */
 export const model = {
   type: "@swamp/cloudflare/containers/applications",
-  version: "2026.08.02.1",
+  version: "2026.08.05.1",
   upgrades: [
     {
       toVersion: "2026.06.08.1",
@@ -342,6 +344,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.02.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.05.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

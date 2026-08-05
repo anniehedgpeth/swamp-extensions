@@ -87,6 +87,91 @@ const OnBehalfOfTokenExchangeConfigSchema = z.object({
   ).optional(),
 });
 
+const KmsKeySourceTypeSchema = z.object({
+  KmsKeyArn: z.string().min(1).max(2048).regex(
+    new RegExp(
+      "^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$",
+    ),
+  ).describe(
+    "The Amazon Resource Name (ARN) of the KMS key used to sign the JWT client assertion",
+  ),
+});
+
+const PrivateKeySourceSchema = z.object({
+  KmsKeySource: KmsKeySourceTypeSchema.describe(
+    "Contains the KMS key configuration for a JWT client assertion",
+  ).optional(),
+});
+
+const PrivateKeyJwtConfigSchema = z.object({
+  PrivateKeySource: PrivateKeySourceSchema.describe(
+    "Contains the private key source configuration for a JWT client assertion",
+  ).optional(),
+  SigningAlgorithm: z.enum(["RS256", "PS256", "ES256"]).describe(
+    "The algorithm used to sign the JWT client assertion",
+  ).optional(),
+  AdditionalHeaderClaims: z.record(z.string(), z.string().min(1).max(2048))
+    .describe(
+      "A map of additional claims to include in the JWT client assertion",
+    ).optional(),
+  AdditionalPayloadClaims: z.record(z.string(), z.string().min(1).max(2048))
+    .describe(
+      "A map of additional claims to include in the JWT client assertion",
+    ).optional(),
+});
+
+const SelfManagedLatticeResourceSchema = z.object({
+  ResourceConfigurationIdentifier: z.string().min(20).max(2048).regex(
+    new RegExp(
+      "^((rcfg-[0-9a-z]{17})|(arn:[a-z0-9\\-]+:vpc-lattice:[a-zA-Z0-9\\-]+:\\d{12}:resourceconfiguration/rcfg-[0-9a-z]{17}))$",
+    ),
+  ).describe("The ARN or ID of the VPC Lattice resource configuration"),
+});
+
+const ManagedVpcResourceSchema = z.object({
+  VpcIdentifier: z.string().regex(
+    new RegExp("^vpc-(([0-9a-z]{8})|([0-9a-z]{17}))$"),
+  ).describe("The ID of the VPC that contains your private resource"),
+  SubnetIds: z.array(z.string().regex(new RegExp("^subnet-[0-9a-zA-Z]{8,17}$")))
+    .describe(
+      "The subnet IDs within the VPC where the VPC Lattice resource gateway is placed",
+    ),
+  EndpointIpAddressType: z.enum(["IPV4", "IPV6"]).describe(
+    "The IP address type for the resource configuration endpoint",
+  ),
+  SecurityGroupIds: z.array(
+    z.string().regex(new RegExp("^sg-(([0-9a-z]{8})|([0-9a-z]{17}))$")),
+  ).describe(
+    "The security group IDs to associate with the VPC Lattice resource gateway",
+  ).optional(),
+  RoutingDomain: z.string().min(3).max(255).describe(
+    "An intermediate publicly resolvable domain used as the VPC Lattice resource configuration endpoint",
+  ).optional(),
+  Tags: z.record(
+    z.string(),
+    z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$")),
+  ).describe("Tags to apply to the managed VPC Lattice resource gateway")
+    .optional(),
+});
+
+const PrivateEndpointSchema = z.object({
+  SelfManagedLatticeResource: SelfManagedLatticeResourceSchema.describe(
+    "Configuration for a self-managed VPC Lattice resource. You create and manage the VPC Lattice resource gateway and resource configuration, then provide the resource configuration identifier.",
+  ).optional(),
+  ManagedVpcResource: ManagedVpcResourceSchema.describe(
+    "Configuration for a managed VPC Lattice resource. AgentCore creates and manages the VPC Lattice resource gateway and resource configuration on your behalf.",
+  ).optional(),
+});
+
+const PrivateEndpointOverrideSchema = z.object({
+  Domain: z.string().min(1).max(253).describe(
+    "The domain to override with a private endpoint",
+  ),
+  PrivateEndpoint: PrivateEndpointSchema.describe(
+    "The private endpoint configuration for connecting to private resources in your VPC",
+  ),
+});
+
 const CustomOauth2ProviderConfigInputSchema = z.object({
   OauthDiscovery: Oauth2DiscoverySchema.describe(
     "Discovery information for an OAuth2 provider",
@@ -107,8 +192,18 @@ const CustomOauth2ProviderConfigInputSchema = z.object({
     "CLIENT_SECRET_BASIC",
     "CLIENT_SECRET_POST",
     "AWS_IAM_ID_TOKEN_JWT",
+    "PRIVATE_KEY_JWT",
   ]).describe(
     "The client authentication method to use when authenticating with the token endpoint",
+  ).optional(),
+  PrivateKeyJwtConfig: PrivateKeyJwtConfigSchema.describe(
+    "Configuration for private_key_jwt client authentication (RFC 7523)",
+  ).optional(),
+  PrivateEndpoint: PrivateEndpointSchema.describe(
+    "The private endpoint configuration for connecting to private resources in your VPC",
+  ).optional(),
+  PrivateEndpointOverrides: z.array(PrivateEndpointOverrideSchema).describe(
+    "A list of private endpoint overrides. Each override maps a specific domain to a private endpoint, enabling secure connectivity through VPC Lattice resource configurations.",
   ).optional(),
 });
 
@@ -291,8 +386,18 @@ const GlobalArgsSchema = z.object({
       "CLIENT_SECRET_BASIC",
       "CLIENT_SECRET_POST",
       "AWS_IAM_ID_TOKEN_JWT",
+      "PRIVATE_KEY_JWT",
     ]).describe(
       "The client authentication method used when authenticating with the token endpoint",
+    ).optional(),
+    PrivateKeyJwtConfig: PrivateKeyJwtConfigSchema.describe(
+      "Configuration for private_key_jwt client authentication (RFC 7523)",
+    ).optional(),
+    PrivateEndpoint: PrivateEndpointSchema.describe(
+      "The private endpoint configuration for connecting to private resources in your VPC",
+    ).optional(),
+    PrivateEndpointOverrides: z.array(PrivateEndpointOverrideSchema).describe(
+      "The list of private endpoint overrides for the OAuth2 provider. Each override maps a specific domain to a private endpoint, enabling secure connectivity through VPC Lattice resource configurations.",
     ).optional(),
   }).describe("The output configuration for the OAuth2 provider").optional(),
   Tags: z.array(TagSchema).describe(
@@ -326,9 +431,13 @@ const StateSchema = z.object({
     ClientId: z.string(),
     OnBehalfOfTokenExchangeConfig: OnBehalfOfTokenExchangeConfigSchema,
     ClientAuthenticationMethod: z.string(),
+    PrivateKeyJwtConfig: PrivateKeyJwtConfigSchema,
+    PrivateEndpoint: PrivateEndpointSchema,
+    PrivateEndpointOverrides: z.array(PrivateEndpointOverrideSchema),
   }).optional(),
   CreatedTime: z.string().optional(),
   LastUpdatedTime: z.string().optional(),
+  Status: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
 }).passthrough();
 
@@ -418,8 +527,18 @@ const InputsSchema = z.object({
       "CLIENT_SECRET_BASIC",
       "CLIENT_SECRET_POST",
       "AWS_IAM_ID_TOKEN_JWT",
+      "PRIVATE_KEY_JWT",
     ]).describe(
       "The client authentication method used when authenticating with the token endpoint",
+    ).optional(),
+    PrivateKeyJwtConfig: PrivateKeyJwtConfigSchema.describe(
+      "Configuration for private_key_jwt client authentication (RFC 7523)",
+    ).optional(),
+    PrivateEndpoint: PrivateEndpointSchema.describe(
+      "The private endpoint configuration for connecting to private resources in your VPC",
+    ).optional(),
+    PrivateEndpointOverrides: z.array(PrivateEndpointOverrideSchema).describe(
+      "The list of private endpoint overrides for the OAuth2 provider. Each override maps a specific domain to a private endpoint, enabling secure connectivity through VPC Lattice resource configurations.",
     ).optional(),
   }).describe("The output configuration for the OAuth2 provider").optional(),
   Tags: z.array(TagSchema).describe(
@@ -446,7 +565,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore OAuth2CredentialProvider. Registered at `@swamp/aws/bedrockagentcore/oauth2credential-provider`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/oauth2credential-provider",
-  version: "2026.06.15.1",
+  version: "2026.08.05.1",
   upgrades: [
     {
       toVersion: "2026.04.23.1",
@@ -485,6 +604,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.05.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

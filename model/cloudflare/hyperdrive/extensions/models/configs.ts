@@ -65,7 +65,7 @@ const GlobalArgsSchema = z.object({
     port: z.number().int(),
   }),
   origin_connection_limit: z.number().int().min(5).describe(
-    "The (soft) maximum number of connections the Hyperdrive is allowed to make to the origin database.\n\nMaximum allowed: 20 for free tier accounts, 100 for paid tier accounts.\nIf not specified, defaults to 20 for free tier and 60 for paid tier.\nContact Cloudflare if you need a higher limit.\n",
+    "The (soft) maximum number of connections the Hyperdrive is allowed to make to the origin database.\n\nMaximum allowed: 20 for free tier accounts, 100 for paid tier accounts.\nIf not specified, defaults to 20 for free tier and 60 for paid tier.\nCertain Cloudflare-managed origins may be permitted a higher limit.\nContact Cloudflare if you need a higher limit.\n",
   ).optional(),
   created_on: z.string().describe(
     "Defines the creation time of the Hyperdrive configuration.",
@@ -149,7 +149,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Configs. Registered at `@swamp/cloudflare/hyperdrive/configs`. */
 export const model = {
   type: "@swamp/cloudflare/hyperdrive/configs",
-  version: "2026.07.24.1",
+  version: "2026.08.05.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -174,6 +174,11 @@ export const model = {
     {
       toVersion: "2026.07.24.1",
       description: "Added: restarted_on",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.05.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
