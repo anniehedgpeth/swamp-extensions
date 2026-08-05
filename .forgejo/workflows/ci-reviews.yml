@@ -31,7 +31,7 @@ jobs:
           CHANGED=$(git diff --name-only "${BASE_SHA}...${HEAD_SHA}")
 
           # Source changes that warrant a code review
-          if echo "$CHANGED" | grep -qE "^(agent-runner/|vault/|datastore/|codegen/|model/|issue-lifecycle/|ssh/|kubernetes/|workflows/|cve/|software-factory/|container-image/)"; then
+          if echo "$CHANGED" | grep -qE "^(agent-runner/|vault/|datastore/|codegen/|model/|issue-lifecycle/|ssh/|kubernetes/|workflows/|cve/|software-factory/|container-image/|git/)"; then
             echo "has_source=true" >> $GITHUB_OUTPUT
           else
             echo "has_source=false" >> $GITHUB_OUTPUT

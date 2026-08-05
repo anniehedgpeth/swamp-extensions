@@ -13,6 +13,7 @@ on:
       - "cve/**"
       - "software-factory/**"
       - "container-image/**"
+      - "git/**"
 
 permissions:
   contents: read
@@ -34,6 +35,7 @@ jobs:
       cve: ${{ steps.filter.outputs.cve }}
       software-factory: ${{ steps.filter.outputs.software-factory }}
       container-image: ${{ steps.filter.outputs.container-image }}
+      git: ${{ steps.filter.outputs.git }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -59,6 +61,7 @@ jobs:
           check_path cve "cve/"
           check_path software-factory "software-factory/"
           check_path container-image "container-image/"
+          check_path git "git/"
 
   agent-runner-check:
     name: agent-runner - ${{ matrix.task }}
@@ -430,6 +433,51 @@ jobs:
       - name: Verify lockfile is up to date
         run: deno install --frozen
 
+  git-check:
+    name: git - ${{ matrix.task }}
+    needs: [changes]
+    if: needs.changes.outputs.git == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [check, lint, fmt, test]
+    defaults:
+      run:
+        working-directory: git
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.x
+      - name: deno ${{ matrix.task }}
+        run: |
+          if [ "${{ matrix.task }}" = "fmt" ]; then
+            deno fmt --check extensions/models/
+          elif [ "${{ matrix.task }}" = "lint" ]; then
+            deno lint extensions/models/
+          elif [ "${{ matrix.task }}" = "test" ]; then
+            deno test --allow-read --allow-write --allow-env --allow-run --allow-sys extensions/models/
+          else
+            deno check extensions/models/git.ts
+          fi
+
+  git-lockfile:
+    name: git - lockfile up to date
+    needs: [changes]
+    if: needs.changes.outputs.git == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: git
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.x
+      - name: Verify lockfile is up to date
+        run: deno install --frozen
+
   gate:
     name: "Gate: Extensions"
     if: always()
@@ -451,6 +499,8 @@ jobs:
         software-factory-lockfile,
         container-image-check,
         container-image-lockfile,
+        git-check,
+        git-lockfile,
       ]
     runs-on: ubuntu-latest
     steps:
