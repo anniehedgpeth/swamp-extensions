@@ -1,0 +1,54 @@
+manifestVersion: 1
+name: "@swamp/agent-runner"
+version: "2026.08.05.1"
+description: |
+  Run AI coding agents (Claude, Codex) with structured output for CI
+  integration. Manages agent CLI binaries, resolves API tokens from
+  environment variables or vaults, and returns machine-readable verdicts
+  that CI pipelines can gate on.
+
+  Provider-agnostic: each agent backend (Claude Code CLI, OpenAI Codex CLI)
+  is a pluggable provider with its own binary management and CLI flag
+  translation. The common interface is prompt in, structured result out.
+
+  ## Methods
+
+  | Method   | What it does |
+  | -------- | ------------ |
+  | `review` | Run a coding agent review against a set of files and return a structured verdict (pass/fail) with findings. |
+  | `run`    | Run an arbitrary prompt through a coding agent and return the output. |
+
+  ## Providers
+
+  | Provider | CLI           | API key env var     |
+  | -------- | ------------- | ------------------- |
+  | `claude` | Claude Code   | `ANTHROPIC_API_KEY` |
+  | `codex`  | OpenAI Codex  | `CODEX_API_KEY`     |
+
+  ## Usage
+
+  ```bash
+  swamp extension pull @swamp/agent-runner
+
+  swamp model create @swamp/agent-runner reviewer
+  swamp model edit reviewer
+
+  swamp model method run reviewer review \
+    --input promptFile=.forgejo/prompts/review.md \
+    --input 'files:json=["src/main.ts","src/lib.ts"]' \
+    --json
+  ```
+repository: "https://github.com/swamp-club/swamp-extensions"
+models:
+  - agent_runner.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []
+labels:
+  - ai
+  - agent
+  - ci
+  - review
+  - claude
+  - codex
