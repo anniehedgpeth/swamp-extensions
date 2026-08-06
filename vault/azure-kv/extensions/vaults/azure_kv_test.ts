@@ -539,6 +539,197 @@ Deno.test({
   },
 });
 
+// --- Tag pass-through tests using a stateful mock ---
+
+function createStatefulMockServer(): {
+  server: Deno.HttpServer;
+  port: number;
+  secrets: Map<string, { value: string; tags: Record<string, string> }>;
+} {
+  const secrets = new Map<
+    string,
+    { value: string; tags: Record<string, string> }
+  >();
+
+  const server = Deno.serve({ port: 0, onListen: () => {} }, async (req) => {
+    const url = new URL(req.url);
+    const match = url.pathname.match(/^\/secrets\/([^/]+)\/?$/);
+    if (!match) {
+      return new Response(
+        JSON.stringify({ error: { code: "NotFound", message: "Not found" } }),
+        { status: 404, headers: { "content-type": "application/json" } },
+      );
+    }
+    const secretName = match[1];
+
+    if (req.method === "GET") {
+      const secret = secrets.get(secretName);
+      if (!secret) {
+        return new Response(
+          JSON.stringify({
+            error: { code: "SecretNotFound", message: "Secret not found" },
+          }),
+          { status: 404, headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          value: secret.value,
+          id: `http://localhost/secrets/${secretName}/1`,
+          attributes: { enabled: true },
+          tags: secret.tags,
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }
+
+    if (req.method === "PUT") {
+      const body = await req.json();
+      secrets.set(secretName, {
+        value: body.value,
+        tags: body.tags ?? {},
+      });
+      return new Response(
+        JSON.stringify({
+          value: body.value,
+          id: `http://localhost/secrets/${secretName}/1`,
+          attributes: { enabled: true },
+          tags: body.tags ?? {},
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        error: { code: "MethodNotAllowed", message: "Not allowed" },
+      }),
+      { status: 405, headers: { "content-type": "application/json" } },
+    );
+  });
+
+  const port = (server.addr as Deno.NetAddr).port;
+  return { server, port, secrets };
+}
+
+const INSECURE_CLIENT_OPTIONS = {
+  allowInsecureConnection: true,
+} as SecretClientOptions;
+
+Deno.test({
+  name: "azure-kv: put with tags passes tags to setSecret on new secret",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port, secrets } = createStatefulMockServer();
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+        INSECURE_CLIENT_OPTIONS,
+      );
+
+      await provider.put("new-secret", "my-value", {
+        tags: { environment: "production", team: "platform" },
+      });
+
+      const stored = secrets.get("new-secret");
+      assertExists(stored);
+      assertEquals(stored.value, "my-value");
+      assertEquals(stored.tags["environment"], "production");
+      assertEquals(stored.tags["team"], "platform");
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name: "azure-kv: put with tags merges with existing tags",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port, secrets } = createStatefulMockServer();
+    secrets.set("existing-secret", {
+      value: "old-value",
+      tags: { existing: "tag", environment: "staging" },
+    });
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+        INSECURE_CLIENT_OPTIONS,
+      );
+
+      await provider.put("existing-secret", "new-value", {
+        tags: { environment: "production", team: "platform" },
+      });
+
+      const stored = secrets.get("existing-secret");
+      assertExists(stored);
+      assertEquals(stored.value, "new-value");
+      assertEquals(stored.tags["existing"], "tag");
+      assertEquals(stored.tags["environment"], "production");
+      assertEquals(stored.tags["team"], "platform");
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name: "azure-kv: put without tags preserves existing tags (backward compat)",
+  // Azure SDK connection pool leaks resources in Deno
+  sanitizeResources: false,
+  fn: async () => {
+    const { server, port, secrets } = createStatefulMockServer();
+    secrets.set("tagged-secret", {
+      value: "old-value",
+      tags: { existing: "tag" },
+    });
+    try {
+      const fakeCredential = {
+        getToken: () =>
+          Promise.resolve({
+            token: "fake-token",
+            expiresOnTimestamp: Date.now() + 3600000,
+          }),
+      };
+      const provider = _createTestProvider(
+        "test-vault",
+        { vault_url: `http://localhost:${port}` },
+        fakeCredential,
+        INSECURE_CLIENT_OPTIONS,
+      );
+
+      await provider.put("tagged-secret", "new-value");
+
+      const stored = secrets.get("tagged-secret");
+      assertExists(stored);
+      assertEquals(stored.value, "new-value");
+      assertEquals(stored.tags["existing"], "tag");
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
 // --- Emulator-backed behavioral tests ---
 // Requires: docker pull --platform linux/amd64 ghcr.io/rokeller/azure-keyvault-emulator:v2
 // The emulator runs HTTPS on port 11001 with a self-signed cert.

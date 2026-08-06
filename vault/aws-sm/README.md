@@ -90,6 +90,18 @@ no `TracerProvider` is configured in the host process. When swamp is running wit
 OTel enabled, vault activity appears in traces with attributes following OTel
 semantic conventions (secret key, vault name, RPC method).
 
+## Tag-on-create
+
+When `swamp vault put` passes tags, they are included in the
+`CreateSecretCommand` as native AWS resource tags. This allows secrets to be
+created in accounts with strict IAM tag-on-create policies
+(`aws:RequestTag` condition keys) that would otherwise deny tagless
+`CreateSecret` calls.
+
+Tags are only applied during secret creation. If the secret already exists,
+the `put` updates the value via `PutSecretValue` and the tags parameter is
+ignored. To tag an existing secret, use `swamp vault annotate --label`.
+
 ## Secret key format
 
 Secret keys map directly to AWS Secrets Manager secret names, including

@@ -49,11 +49,19 @@ import { Attr, getTracer } from "./_lib/tracing.ts";
  * downstream consumers and tests can type-check against a public interface
  * rather than an inferred shape.
  */
+export interface VaultPutOptions {
+  tags?: Record<string, string>;
+}
+
 export interface VaultProvider {
   /** Fetches the current value of the given secret. */
   get(secretKey: string): Promise<string>;
   /** Writes a new value for the given secret, creating it if it does not exist. */
-  put(secretKey: string, secretValue: string): Promise<void>;
+  put(
+    secretKey: string,
+    secretValue: string,
+    options?: VaultPutOptions,
+  ): Promise<void>;
   /** Lists all secret keys visible to the vault. */
   list(): Promise<string[]>;
   /** Returns the swamp-assigned name of this vault instance. */
@@ -298,7 +306,11 @@ class AwsSmVaultProvider
     });
   }
 
-  async put(secretKey: string, secretValue: string): Promise<void> {
+  async put(
+    secretKey: string,
+    secretValue: string,
+    options?: VaultPutOptions,
+  ): Promise<void> {
     return await getTracer().startActiveSpan("aws-sm put", async (span) => {
       span.setAttributes({
         [Attr.RPC_SYSTEM]: "aws-api",
@@ -320,9 +332,14 @@ class AwsSmVaultProvider
           wrapped.name === "ResourceNotFoundException"
         ) {
           try {
+            const tags = options?.tags;
+            const awsTags = tags
+              ? Object.entries(tags).map(([Key, Value]) => ({ Key, Value }))
+              : undefined;
             const createCommand = new CreateSecretCommand({
               Name: secretKey,
               SecretString: secretValue,
+              ...(awsTags && { Tags: awsTags }),
             });
             await this.client.send(createCommand);
           } catch (createError) {

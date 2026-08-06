@@ -90,6 +90,17 @@ swamp vault annotate my-azure-kv API_KEY \
 swamp vault inspect my-azure-kv API_KEY --json
 ```
 
+## Tag-on-create
+
+When `swamp vault put` passes tags, they are included in the `setSecret` call
+as native Azure tags. This allows secrets to be created in environments with
+Azure RBAC tag conditions that would otherwise deny tagless operations.
+
+Unlike AWS, Azure Key Vault's `setSecret` replaces the entire secret (including
+tags) on every call. Tags passed to `put` are merged with any existing tags on
+the secret — new tags win on conflict, existing tags are preserved. This means
+tags are applied on both creation and update.
+
 ## License
 
 AGPLv3 — see [LICENSE.txt](./LICENSE.txt) for details.

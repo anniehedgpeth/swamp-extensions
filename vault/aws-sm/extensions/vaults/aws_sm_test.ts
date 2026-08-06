@@ -20,6 +20,7 @@
 import {
   assert,
   assertEquals,
+  assertExists,
   assertRejects,
   assertThrows,
 } from "jsr:@std/assert@1.0.19";
@@ -155,6 +156,12 @@ function startMockAwsServer(overrides: MockOverrides = {}): {
     if (target.includes("CreateSecret")) {
       if (overrides.CreateSecret) return mockResponse(overrides.CreateSecret);
       secrets.set(body.Name, body.SecretString);
+      const meta = ensureMetadata(body.Name);
+      if (body.Tags) {
+        for (const tag of body.Tags) {
+          meta.tags.set(tag.Key, tag.Value);
+        }
+      }
       return Response.json({ Name: body.Name });
     }
 
@@ -501,6 +508,72 @@ Deno.test({
       // No override on CreateSecret → mock writes to secrets Map.
       await provider.put("brand-new-key", "the-value");
       assertEquals(secrets.get("brand-new-key"), "the-value");
+    }, {
+      PutSecretValue: {
+        status: 400,
+        body: JSON.stringify({
+          __type: "ResourceNotFoundException",
+          Message: "Secret not found",
+        }),
+      },
+    });
+  },
+});
+
+Deno.test({
+  name: "aws-sm vault: put with tags passes Tags to CreateSecretCommand",
+  sanitizeResources: false,
+  fn: async () => {
+    await withMockAws(async (secrets, metadata) => {
+      const provider = vault.createProvider("test", { region: "us-east-1" });
+      await provider.put("tagged-secret", "my-value", {
+        tags: { environment: "production", team: "platform" },
+      });
+      assertEquals(secrets.get("tagged-secret"), "my-value");
+      const meta = metadata.get("tagged-secret");
+      assertExists(meta);
+      assertEquals(meta.tags.get("environment"), "production");
+      assertEquals(meta.tags.get("team"), "platform");
+    }, {
+      PutSecretValue: {
+        status: 400,
+        body: JSON.stringify({
+          __type: "ResourceNotFoundException",
+          Message: "Secret not found",
+        }),
+      },
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "aws-sm vault: put with tags on existing secret ignores tags (update path)",
+  sanitizeResources: false,
+  fn: async () => {
+    await withMockAws(async (secrets, metadata) => {
+      const provider = vault.createProvider("test", { region: "us-east-1" });
+      await provider.put("existing-key", "first-value");
+      await provider.put("existing-key", "second-value", {
+        tags: { environment: "staging" },
+      });
+      assertEquals(secrets.get("existing-key"), "second-value");
+      const meta = metadata.get("existing-key");
+      assertEquals(meta?.tags.size ?? 0, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "aws-sm vault: put without tags still works (backward compat)",
+  sanitizeResources: false,
+  fn: async () => {
+    await withMockAws(async (secrets, metadata) => {
+      const provider = vault.createProvider("test", { region: "us-east-1" });
+      await provider.put("no-tags-key", "value");
+      assertEquals(secrets.get("no-tags-key"), "value");
+      const meta = metadata.get("no-tags-key");
+      assertEquals(meta?.tags.size ?? 0, 0);
     }, {
       PutSecretValue: {
         status: 400,

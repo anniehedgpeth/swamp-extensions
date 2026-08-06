@@ -38,9 +38,17 @@ import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
 import { Attr, getTracer } from "./_lib/tracing.ts";
 import { AzureKvOperationError, wrapAzureKvError } from "./azure_kv_errors.ts";
 
+export interface VaultPutOptions {
+  tags?: Record<string, string>;
+}
+
 export interface VaultProvider {
   get(secretKey: string): Promise<string>;
-  put(secretKey: string, secretValue: string): Promise<void>;
+  put(
+    secretKey: string,
+    secretValue: string,
+    options?: VaultPutOptions,
+  ): Promise<void>;
   list(): Promise<string[]>;
   getName(): string;
 }
@@ -284,7 +292,11 @@ class AzureKvVaultProvider
     });
   }
 
-  async put(secretKey: string, secretValue: string): Promise<void> {
+  async put(
+    secretKey: string,
+    secretValue: string,
+    options?: VaultPutOptions,
+  ): Promise<void> {
     return await getTracer().startActiveSpan("azure-kv put", async (span) => {
       span.setAttributes({
         [Attr.RPC_SYSTEM]: "azure-api",
@@ -309,10 +321,15 @@ class AzureKvVaultProvider
             throw error;
           }
         }
+        const mergedTags: Record<string, string> = {
+          ...existingTags,
+          ...options?.tags,
+        };
+        const hasTags = Object.keys(mergedTags).length > 0;
         await this.client.setSecret(
           azureSecretName,
           secretValue,
-          existingTags ? { tags: existingTags } : undefined,
+          hasTags ? { tags: mergedTags } : undefined,
         );
       } catch (err) {
         if (err instanceof Error) {

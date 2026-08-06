@@ -81,6 +81,14 @@ swamp vault inspect my-1password my-api-key --json
 Label keys must not contain dots, brackets, slashes, or backslashes — these
 characters conflict with the 1Password CLI field reference syntax.
 
+## Tag-on-create
+
+When `swamp vault put` passes tags, they are stored as fields in the
+`swamp-labels` section of the 1Password item. Tags are applied on both
+creation and update. Tag keys are validated with the same rules as annotation
+label keys — dots, brackets, slashes, backslashes, and equals signs are
+rejected.
+
 ## License
 
 AGPLv3 — see [LICENSE.txt](./LICENSE.txt) for details.

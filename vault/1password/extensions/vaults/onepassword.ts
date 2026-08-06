@@ -37,11 +37,19 @@ import { Attr, getTracer } from "./_lib/tracing.ts";
  * downstream consumers and tests can type-check against a public interface
  * rather than an inferred shape.
  */
+export interface VaultPutOptions {
+  tags?: Record<string, string>;
+}
+
 export interface VaultProvider {
   /** Fetches the current value of the given secret. */
   get(secretKey: string): Promise<string>;
   /** Writes a new value for the given secret, creating it if it does not exist. */
-  put(secretKey: string, secretValue: string): Promise<void>;
+  put(
+    secretKey: string,
+    secretValue: string,
+    options?: VaultPutOptions,
+  ): Promise<void>;
   /** Lists all secret keys visible to the vault. */
   list(): Promise<string[]>;
   /** Returns the swamp-assigned name of this vault instance. */
@@ -244,7 +252,11 @@ class OnePasswordVaultProvider implements VaultProvider {
     });
   }
 
-  async put(secretKey: string, secretValue: string): Promise<void> {
+  async put(
+    secretKey: string,
+    secretValue: string,
+    options?: VaultPutOptions,
+  ): Promise<void> {
     return await getTracer().startActiveSpan("1password put", async (span) => {
       span.setAttributes({
         [Attr.RPC_SYSTEM]: "op-cli",
@@ -263,10 +275,17 @@ class OnePasswordVaultProvider implements VaultProvider {
           );
         }
 
+        const tags = options?.tags;
+        if (tags) {
+          for (const key of Object.keys(tags)) {
+            validateLabelKey(key);
+          }
+        }
+
         if (secretValue.includes('"')) {
-          await this.putViaTemplate(parsed, secretValue);
+          await this.putViaTemplate(parsed, secretValue, tags);
         } else {
-          await this.putViaFieldAssignment(parsed, secretValue);
+          await this.putViaFieldAssignment(parsed, secretValue, tags);
         }
       } catch (err) {
         if (err instanceof Error) {
@@ -284,9 +303,17 @@ class OnePasswordVaultProvider implements VaultProvider {
   private async putViaFieldAssignment(
     parsed: ParsedSecretKey,
     secretValue: string,
+    tags?: Record<string, string>,
   ): Promise<void> {
     const editField = parsed.field.replace(/\//g, ".");
     const itemExists = await this.itemExists(parsed.item);
+
+    const tagArgs: string[] = [];
+    if (tags) {
+      for (const [key, value] of Object.entries(tags)) {
+        tagArgs.push(`${SWAMP_LABELS_SECTION}.${key}[text]=${value}`);
+      }
+    }
 
     if (itemExists) {
       const args = [
@@ -294,6 +321,7 @@ class OnePasswordVaultProvider implements VaultProvider {
         "edit",
         parsed.item,
         `${editField}=${secretValue}`,
+        ...tagArgs,
         "--vault",
         this.opVault,
       ];
@@ -310,6 +338,7 @@ class OnePasswordVaultProvider implements VaultProvider {
         "--title",
         parsed.item,
         `${editField}=${secretValue}`,
+        ...tagArgs,
         "--vault",
         this.opVault,
       ];
@@ -323,6 +352,7 @@ class OnePasswordVaultProvider implements VaultProvider {
   private async putViaTemplate(
     parsed: ParsedSecretKey,
     secretValue: string,
+    tags?: Record<string, string>,
   ): Promise<void> {
     const existingItem = await this.getItemJson(parsed.item);
     const templatePath = Deno.makeTempFileSync({ suffix: ".json" });
@@ -380,6 +410,36 @@ class OnePasswordVaultProvider implements VaultProvider {
         }
 
         existingItem.fields = fields;
+
+        if (tags) {
+          const sectionId = `section-${SWAMP_LABELS_SECTION}`;
+          let section = existingItem.sections?.find(
+            (s: { id: string }) => s.id === sectionId,
+          );
+          if (!section) {
+            section = { id: sectionId, label: SWAMP_LABELS_SECTION };
+            existingItem.sections = existingItem.sections ?? [];
+            existingItem.sections.push(section);
+          }
+          for (const [key, value] of Object.entries(tags)) {
+            const existing = fields.find(
+              (f: OpItemField) =>
+                f.section?.id === sectionId && f.label === key,
+            );
+            if (existing) {
+              existing.value = value;
+            } else {
+              fields.push({
+                id: `${sectionId}-${key}`,
+                type: "STRING",
+                label: key,
+                value,
+                section: { id: sectionId },
+              });
+            }
+          }
+        }
+
         Deno.writeTextFileSync(templatePath, JSON.stringify(existingItem));
 
         const args = [
@@ -419,6 +479,20 @@ class OnePasswordVaultProvider implements VaultProvider {
             label: editField,
             value: secretValue,
           });
+        }
+
+        if (tags) {
+          const sectionId = `section-${SWAMP_LABELS_SECTION}`;
+          sections.push({ id: sectionId, label: SWAMP_LABELS_SECTION });
+          for (const [key, value] of Object.entries(tags)) {
+            fields.push({
+              id: `${sectionId}-${key}`,
+              type: "STRING",
+              label: key,
+              value,
+              section: { id: sectionId },
+            });
+          }
         }
 
         const template = {

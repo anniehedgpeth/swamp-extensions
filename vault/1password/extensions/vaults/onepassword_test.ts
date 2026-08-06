@@ -208,12 +208,14 @@ function createOpMock() {
       }
       const titleIdx = args.indexOf("--title");
       const title = titleIdx >= 0 ? args[titleIdx + 1] : "";
-      const fieldArg = args.find((a) => a.includes("=") && !a.startsWith("--"));
-      if (fieldArg && title) {
-        const eqIdx = fieldArg.indexOf("=");
-        const fieldRef = fieldArg.slice(0, eqIdx);
-        const value = fieldArg.slice(eqIdx + 1);
-        const data = ensureItem(title);
+      const data = ensureItem(title);
+      for (const arg of args) {
+        if (arg.startsWith("--") || !arg.includes("=")) continue;
+        const eqIdx = arg.indexOf("=");
+        let fieldRef = arg.slice(0, eqIdx);
+        const value = arg.slice(eqIdx + 1);
+        const typeMatch = fieldRef.match(/^(.+)\[(\w+)\]$/);
+        if (typeMatch) fieldRef = typeMatch[1];
         const dotIdx = fieldRef.indexOf(".");
         if (dotIdx >= 0) {
           const section = fieldRef.slice(0, dotIdx);
@@ -861,4 +863,109 @@ Deno.test("1password vault: provider has delete method (duck-typing gate)", () =
     op_vault: "Engineering",
   });
   assertEquals(typeof provider.delete, "function");
+});
+
+// --- Tag pass-through tests ---
+
+Deno.test("1password vault: put with tags creates item with swamp-labels fields", async () => {
+  const { calls } = await withMockedCommand(createOpMock(), async () => {
+    const provider = vault.createProvider("test", {
+      op_vault: "Engineering",
+    });
+    await provider.put("tagged-item", "my-value", {
+      tags: { environment: "production", team: "platform" },
+    });
+  });
+
+  const createCall = calls.find(
+    (c) => c.command === "op" && c.args[0] === "item" && c.args[1] === "create",
+  );
+  assertEquals(
+    createCall !== undefined,
+    true,
+    "expected an op item create call",
+  );
+  const fieldArgs = createCall!.args.filter(
+    (a: string) => a.includes("=") && !a.startsWith("--"),
+  );
+  assertEquals(fieldArgs.includes("password=my-value"), true);
+  assertEquals(
+    fieldArgs.includes("swamp-labels.environment[text]=production"),
+    true,
+  );
+  assertEquals(
+    fieldArgs.includes("swamp-labels.team[text]=platform"),
+    true,
+  );
+});
+
+Deno.test("1password vault: put with tags on existing item adds swamp-labels fields", async () => {
+  const { calls } = await withMockedCommand(createOpMock(), async () => {
+    const provider = vault.createProvider("test", {
+      op_vault: "Engineering",
+    });
+    await provider.put("existing-item", "first-value");
+    await provider.put("existing-item", "second-value", {
+      tags: { env: "staging" },
+    });
+  });
+
+  const editCalls = calls.filter(
+    (c) => c.command === "op" && c.args[0] === "item" && c.args[1] === "edit",
+  );
+  assertEquals(
+    editCalls.length >= 1,
+    true,
+    "expected at least one op item edit call",
+  );
+  const lastEdit = editCalls[editCalls.length - 1];
+  const fieldArgs = lastEdit.args.filter(
+    (a: string) => a.includes("=") && !a.startsWith("--"),
+  );
+  assertEquals(
+    fieldArgs.includes("swamp-labels.env[text]=staging"),
+    true,
+  );
+});
+
+Deno.test("1password vault: put without tags still works (backward compat)", async () => {
+  const { result } = await withMockedCommand(createOpMock(), async () => {
+    const provider = vault.createProvider("test", {
+      op_vault: "Engineering",
+    });
+    await provider.put("no-tags", "value-123");
+    return await provider.get("no-tags");
+  });
+
+  assertEquals(result, "value-123");
+});
+
+Deno.test("1password vault: put with invalid tag key rejects", async () => {
+  await withMockedCommand(createOpMock(), async () => {
+    const provider = vault.createProvider("test", {
+      op_vault: "Engineering",
+    });
+    await assertRejects(
+      () =>
+        provider.put("item", "value", {
+          tags: { "invalid.key": "value" },
+        }),
+      Error,
+      "Invalid label key",
+    );
+  });
+});
+
+Deno.test("1password vault: put with tags via template path includes tag fields", async () => {
+  const { result } = await withMockedCommand(createOpMock(), async () => {
+    const provider = vault.createProvider("test", {
+      op_vault: "Engineering",
+    });
+    await provider.put("template-item", 'value-with-"quotes"', {
+      tags: { env: "prod" },
+    });
+    return await provider.get("template-item");
+  });
+
+  assertEquals(result, 'value-with-"quotes"');
 });
