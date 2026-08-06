@@ -160,6 +160,9 @@ const GlobalArgsSchema = z.object({
     nameRequired: z.boolean().describe(
       "Optional. Whether the user is required to provide their name to sign up.",
     ).optional(),
+    optInRequired: z.boolean().describe(
+      "Optional. Whether checking the opt-in checkbox is required.",
+    ).optional(),
     title: z.string().describe(
       "Required. The title of the newsletter signup prompt.",
     ).optional(),
@@ -184,6 +187,7 @@ const StateSchema = z.object({
     customConsentText: z.string(),
     customMessage: z.string(),
     nameRequired: z.boolean(),
+    optInRequired: z.boolean(),
     title: z.string(),
   }).optional(),
   state: z.string().optional(),
@@ -213,6 +217,9 @@ const InputsSchema = z.object({
     ).optional(),
     nameRequired: z.boolean().describe(
       "Optional. Whether the user is required to provide their name to sign up.",
+    ).optional(),
+    optInRequired: z.boolean().describe(
+      "Optional. Whether checking the opt-in checkbox is required.",
     ).optional(),
     title: z.string().describe(
       "Required. The title of the newsletter signup prompt.",
@@ -256,7 +263,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Content Publisher Publications.Ctas. Registered at `@swamp/gcp/webcontentpublisher/publications-ctas`. */
 export const model = {
   type: "@swamp/gcp/webcontentpublisher/publications-ctas",
-  version: "2026.08.04.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -300,6 +307,14 @@ export const model = {
     },
     {
       toVersion: "2026.08.04.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.08.06.1",
       description: "Removed: quotaProject",
       upgradeAttributes: (old: Record<string, unknown>) => {
         const { quotaProject: _quotaProject, ...rest } = old;

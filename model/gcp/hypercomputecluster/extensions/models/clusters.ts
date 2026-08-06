@@ -445,6 +445,7 @@ const GlobalArgsSchema = z.object({
             "NEARLINE",
             "COLDLINE",
             "ARCHIVE",
+            "RAPID",
           ]).describe(
             "Optional. Immutable. If set, uses the provided storage class as the bucket's default storage class.",
           ).optional(),
@@ -860,6 +861,7 @@ const InputsSchema = z.object({
             "NEARLINE",
             "COLDLINE",
             "ARCHIVE",
+            "RAPID",
           ]).describe(
             "Optional. Immutable. If set, uses the provided storage class as the bucket's default storage class.",
           ).optional(),
@@ -962,7 +964,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Cluster Director Clusters. Registered at `@swamp/gcp/hypercomputecluster/clusters`. */
 export const model = {
   type: "@swamp/gcp/hypercomputecluster/clusters",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1148,6 +1150,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

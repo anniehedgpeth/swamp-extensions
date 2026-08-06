@@ -3503,6 +3503,36 @@ const GlobalArgsSchema = z.object({
     })).describe(
       "Optional. “Out of bed” segments that can overlap with sleep stages.",
     ).optional(),
+    shortAwakenings: z.array(z.object({
+      createTime: z.string().describe(
+        "Output only. Creation time of this sleep stages segment.",
+      ).optional(),
+      endTime: z.string().describe("Required. Sleep stage end time.")
+        .optional(),
+      endUtcOffset: z.string().describe(
+        "Required. The offset of the user's local time at the end of the sleep stage relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+      startTime: z.string().describe("Required. Sleep stage start time.")
+        .optional(),
+      startUtcOffset: z.string().describe(
+        "Required. The offset of the user's local time at the start of the sleep stage relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+      type: z.enum([
+        "SLEEP_STAGE_TYPE_UNSPECIFIED",
+        "AWAKE",
+        "LIGHT",
+        "DEEP",
+        "REM",
+        "ASLEEP",
+        "RESTLESS",
+      ]).describe("Required. Sleep stage type: AWAKE, DEEP, REM, LIGHT etc.")
+        .optional(),
+      updateTime: z.string().describe(
+        "Output only. Last update time of this sleep stages segment.",
+      ).optional(),
+    })).describe(
+      "Output only. List of short awake segments (under a set threshold) that are part of the sleep session. These can overlap with sleep stages.",
+    ).optional(),
     stages: z.array(z.object({
       createTime: z.string().describe(
         "Output only. Creation time of this sleep stages segment.",
@@ -5195,6 +5225,15 @@ const StateSchema = z.object({
       endUtcOffset: z.string(),
       startTime: z.string(),
       startUtcOffset: z.string(),
+    })),
+    shortAwakenings: z.array(z.object({
+      createTime: z.string(),
+      endTime: z.string(),
+      endUtcOffset: z.string(),
+      startTime: z.string(),
+      startUtcOffset: z.string(),
+      type: z.string(),
+      updateTime: z.string(),
     })),
     stages: z.array(z.object({
       createTime: z.string(),
@@ -8765,6 +8804,36 @@ const InputsSchema = z.object({
     })).describe(
       "Optional. “Out of bed” segments that can overlap with sleep stages.",
     ).optional(),
+    shortAwakenings: z.array(z.object({
+      createTime: z.string().describe(
+        "Output only. Creation time of this sleep stages segment.",
+      ).optional(),
+      endTime: z.string().describe("Required. Sleep stage end time.")
+        .optional(),
+      endUtcOffset: z.string().describe(
+        "Required. The offset of the user's local time at the end of the sleep stage relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+      startTime: z.string().describe("Required. Sleep stage start time.")
+        .optional(),
+      startUtcOffset: z.string().describe(
+        "Required. The offset of the user's local time at the start of the sleep stage relative to the Coordinated Universal Time (UTC).",
+      ).optional(),
+      type: z.enum([
+        "SLEEP_STAGE_TYPE_UNSPECIFIED",
+        "AWAKE",
+        "LIGHT",
+        "DEEP",
+        "REM",
+        "ASLEEP",
+        "RESTLESS",
+      ]).describe("Required. Sleep stage type: AWAKE, DEEP, REM, LIGHT etc.")
+        .optional(),
+      updateTime: z.string().describe(
+        "Output only. Last update time of this sleep stages segment.",
+      ).optional(),
+    })).describe(
+      "Output only. List of short awake segments (under a set threshold) that are part of the sleep session. These can overlap with sleep stages.",
+    ).optional(),
     stages: z.array(z.object({
       createTime: z.string().describe(
         "Output only. Creation time of this sleep stages segment.",
@@ -9313,7 +9382,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Health Users.DataTypes.DataPoints. Registered at `@swamp/gcp/health/users-datatypes-datapoints`. */
 export const model = {
   type: "@swamp/gcp/health/users-datatypes-datapoints",
-  version: "2026.08.03.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -9575,6 +9644,14 @@ export const model = {
       toVersion: "2026.08.03.1",
       description:
         "Added: menstrualPeriod, moods, ovulationTest, symptoms. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
       upgradeAttributes: (old: Record<string, unknown>) => {
         const { quotaProject: _quotaProject, ...rest } = old;
         return rest;

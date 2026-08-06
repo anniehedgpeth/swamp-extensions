@@ -205,7 +205,7 @@ const GlobalArgsSchema = z.object({
     "Required. The name of the release config whose release_compilation_result should be executed. Must be in the format `projects/*/locations/*/repositories/*/releaseConfigs/*`.",
   ).optional(),
   timeZone: z.string().describe(
-    "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the time zone database (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If left unspecified, the default is UTC.",
+    "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If left unspecified, the default is `UTC`.",
   ).optional(),
   workflowConfigId: z.string().describe(
     "Required. The ID to use for the workflow config, which will become the final component of the workflow config's resource name.",
@@ -309,7 +309,7 @@ const InputsSchema = z.object({
     "Required. The name of the release config whose release_compilation_result should be executed. Must be in the format `projects/*/locations/*/repositories/*/releaseConfigs/*`.",
   ).optional(),
   timeZone: z.string().describe(
-    "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the time zone database (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If left unspecified, the default is UTC.",
+    "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If left unspecified, the default is `UTC`.",
   ).optional(),
   workflowConfigId: z.string().describe(
     "Required. The ID to use for the workflow config, which will become the final component of the workflow config's resource name.",
@@ -347,7 +347,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.WorkflowConfigs. Registered at `@swamp/gcp/dataform/repositories-workflowconfigs`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-workflowconfigs",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -473,6 +473,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

@@ -373,7 +373,14 @@ const GlobalArgsSchema = z.object({
   })).describe("Collection of ENV Variables the Project will use").optional(),
   gitRepository: z.object({
     repo: z.string(),
-    type: z.enum(["github", "github-limited", "gitlab", "bitbucket", "vercel"]),
+    type: z.enum([
+      "github",
+      "github-limited",
+      "gitlab",
+      "bitbucket",
+      "vercel",
+      "cursor-origin",
+    ]),
   }).describe(
     "The Git Repository that will be connected to the project. When this is defined, any pushes to the specified connected Git Repository will be automatically deployed",
   ).optional(),
@@ -850,6 +857,7 @@ const ResourceSchema = z.object({
     agent: z.array(z.string()).optional(),
     aiGatewayApiKey: z.array(z.string()).optional(),
     aiGatewayApiKeyOwnedBySelf: z.array(z.string()).optional(),
+    aiGatewayApiKeySpendAttribution: z.array(z.string()).optional(),
     aiGatewayApiKeyZdrExemption: z.array(z.string()).optional(),
     aiGatewayBudget: z.array(z.string()).optional(),
     aiGatewayCredits: z.array(z.string()).optional(),
@@ -1575,7 +1583,14 @@ const InputsSchema = z.object({
   })).optional(),
   gitRepository: z.object({
     repo: z.string(),
-    type: z.enum(["github", "github-limited", "gitlab", "bitbucket", "vercel"]),
+    type: z.enum([
+      "github",
+      "github-limited",
+      "gitlab",
+      "bitbucket",
+      "vercel",
+      "cursor-origin",
+    ]),
   }).optional(),
   token: z.string().meta({ sensitive: true }).optional(),
 });
@@ -1583,7 +1598,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/projects/projects`. */
 export const model = {
   type: "@swamp/vercel/projects/projects",
-  version: "2026.08.04.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -1622,6 +1637,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.04.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

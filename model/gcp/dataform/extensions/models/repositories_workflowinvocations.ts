@@ -218,6 +218,10 @@ const StateSchema = z.object({
     startTime: z.string(),
   }).optional(),
   name: z.string(),
+  pipelineConfig: z.object({
+    path: z.string(),
+    pipelineType: z.string(),
+  }).optional(),
   privateResourceMetadata: z.object({
     userScoped: z.boolean(),
   }).optional(),
@@ -312,7 +316,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.WorkflowInvocations. Registered at `@swamp/gcp/dataform/repositories-workflowinvocations`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-workflowinvocations",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -442,6 +446,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

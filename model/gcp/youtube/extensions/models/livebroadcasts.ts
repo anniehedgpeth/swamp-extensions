@@ -179,6 +179,40 @@ const GlobalArgsSchema = z.object({
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
   contentDetails: z.object({
+    availabilityConfig: z.object({
+      globalConfig: z.object({
+        excludedRegionCodes: z.array(z.string()).describe(
+          "Optional. Regions where video is blocked",
+        ).optional(),
+        interval: z.object({
+          endTime: z.string().describe(
+            "Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.",
+          ).optional(),
+          startTime: z.string().describe(
+            "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
+          ).optional(),
+        }).describe(
+          "Default time window where video is available for all non-blocked regions Not supported for upcoming / active live broadcasts. If start time is unspecified, video is already available If end time is unspecified, video is available forever Specified start and end times cannot be more than five years in the future.",
+        ).optional(),
+      }).describe(
+        "Video is available in all regions except the ones specified in the config.",
+      ).optional(),
+      regionsConfig: z.object({
+        regionIntervals: z.array(z.object({
+          interval: z.unknown().describe(
+            "Time window where video is available for the region. Not supported for upcoming / active live broadcasts. If start time is unspecified, video is already available If end time is unspecified, video is available forever Specified start and end times cannot be more than five years in the future.",
+          ).optional(),
+          regionCode: z.unknown().describe(
+            "Required. Region where video is available",
+          ).optional(),
+        })).describe(
+          "Required. List of regions and time windows where video is available. If a region is specified multiple times, the union of all intervals is used.",
+        ).optional(),
+      }).describe("Video is available in the specified regions only.")
+        .optional(),
+    }).describe(
+      "Optional. The broadcast's availability config. Used to set specific region availability or block specific regions It is optional - if not set, it is not enforced.",
+    ).optional(),
     boundStreamId: z.string().describe(
       "This value uniquely identifies the live stream bound to the broadcast.",
     ).optional(),
@@ -425,6 +459,21 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   contentDetails: z.object({
+    availabilityConfig: z.object({
+      globalConfig: z.object({
+        excludedRegionCodes: z.array(z.string()),
+        interval: z.object({
+          endTime: z.string(),
+          startTime: z.string(),
+        }),
+      }),
+      regionsConfig: z.object({
+        regionIntervals: z.array(z.object({
+          interval: z.unknown(),
+          regionCode: z.unknown(),
+        })),
+      }),
+    }),
     boundStreamId: z.string(),
     boundStreamLastUpdateTimeMs: z.string(),
     closedCaptionsType: z.string(),
@@ -520,6 +569,40 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
   contentDetails: z.object({
+    availabilityConfig: z.object({
+      globalConfig: z.object({
+        excludedRegionCodes: z.array(z.string()).describe(
+          "Optional. Regions where video is blocked",
+        ).optional(),
+        interval: z.object({
+          endTime: z.string().describe(
+            "Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.",
+          ).optional(),
+          startTime: z.string().describe(
+            "Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.",
+          ).optional(),
+        }).describe(
+          "Default time window where video is available for all non-blocked regions Not supported for upcoming / active live broadcasts. If start time is unspecified, video is already available If end time is unspecified, video is available forever Specified start and end times cannot be more than five years in the future.",
+        ).optional(),
+      }).describe(
+        "Video is available in all regions except the ones specified in the config.",
+      ).optional(),
+      regionsConfig: z.object({
+        regionIntervals: z.array(z.object({
+          interval: z.unknown().describe(
+            "Time window where video is available for the region. Not supported for upcoming / active live broadcasts. If start time is unspecified, video is already available If end time is unspecified, video is available forever Specified start and end times cannot be more than five years in the future.",
+          ).optional(),
+          regionCode: z.unknown().describe(
+            "Required. Region where video is available",
+          ).optional(),
+        })).describe(
+          "Required. List of regions and time windows where video is available. If a region is specified multiple times, the union of all intervals is used.",
+        ).optional(),
+      }).describe("Video is available in the specified regions only.")
+        .optional(),
+    }).describe(
+      "Optional. The broadcast's availability config. Used to set specific region availability or block specific regions It is optional - if not set, it is not enforced.",
+    ).optional(),
     boundStreamId: z.string().describe(
       "This value uniquely identifies the live stream bound to the broadcast.",
     ).optional(),
@@ -789,7 +872,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data LiveBroadcasts. Registered at `@swamp/gcp/youtube/livebroadcasts`. */
 export const model = {
   type: "@swamp/gcp/youtube/livebroadcasts",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -900,6 +983,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

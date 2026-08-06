@@ -155,7 +155,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe("Required. The PolicyQuery the Setting applies to.").optional(),
   setting: z.object({
-    type: z.string().describe("Required. Immutable. The type of the Setting..")
+    type: z.string().describe("Required. Immutable. The type of the Setting.")
       .optional(),
     value: z.record(z.string(), z.string()).describe(
       "Required. The value of the Setting.",
@@ -206,7 +206,7 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe("Required. The PolicyQuery the Setting applies to.").optional(),
   setting: z.object({
-    type: z.string().describe("Required. Immutable. The type of the Setting..")
+    type: z.string().describe("Required. Immutable. The type of the Setting.")
       .optional(),
     value: z.record(z.string(), z.string()).describe(
       "Required. The value of the Setting.",
@@ -239,7 +239,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Identity Policies. Registered at `@swamp/gcp/cloudidentity/policies`. */
 export const model = {
   type: "@swamp/gcp/cloudidentity/policies",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -440,6 +440,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

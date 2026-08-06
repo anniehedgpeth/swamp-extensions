@@ -187,7 +187,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     contactInfos: z.array(z.object({
       countryCode: z.string().describe(
-        "Optional. Country code of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name * zip_codes",
+        "Optional. Country code of the member. Must also be set with the following fields: * hashed_first_name * hashed_last_name * zip_codes",
       ).optional(),
       hashedEmails: z.array(z.string()).describe(
         "Optional. A list of SHA256 hashed email of the member. Before hashing, remove all whitespace and make sure the string is all lowercase.",
@@ -331,7 +331,7 @@ const InputsSchema = z.object({
     ).optional(),
     contactInfos: z.array(z.object({
       countryCode: z.string().describe(
-        "Optional. Country code of the member. Must also be set with the following fields: * country_code * hashed_first_name * hashed_last_name * zip_codes",
+        "Optional. Country code of the member. Must also be set with the following fields: * hashed_first_name * hashed_last_name * zip_codes",
       ).optional(),
       hashedEmails: z.array(z.string()).describe(
         "Optional. A list of SHA256 hashed email of the member. Before hashing, remove all whitespace and make sure the string is all lowercase.",
@@ -417,7 +417,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 FirstPartyAndPartnerAudiences. Registered at `@swamp/gcp/displayvideo/firstpartyandpartneraudiences`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/firstpartyandpartneraudiences",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -553,6 +553,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

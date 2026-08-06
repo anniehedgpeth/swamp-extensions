@@ -404,7 +404,7 @@ const GlobalArgsSchema = z.object({
     "NOT_SYNTHETIC",
     "IS_SYNTHETIC",
   ]).describe(
-    "Optional. Whether the creative contains synthetic content or was created using AI.",
+    "Optional. Whether to add a label to the creative as created or edited using AI when served in regions with local AI labeling regulations.",
   ).optional(),
   thirdPartyTag: z.string().describe(
     "Optional. The original third-party tag used for the creative. Required and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_STANDARD` * `CREATIVE_TYPE_EXPANDABLE`",
@@ -825,7 +825,7 @@ const InputsSchema = z.object({
     "NOT_SYNTHETIC",
     "IS_SYNTHETIC",
   ]).describe(
-    "Optional. Whether the creative contains synthetic content or was created using AI.",
+    "Optional. Whether to add a label to the creative as created or edited using AI when served in regions with local AI labeling regulations.",
   ).optional(),
   thirdPartyTag: z.string().describe(
     "Optional. The original third-party tag used for the creative. Required and only valid for third-party tag creatives. Third-party tag creatives are creatives with following hosting_source: * `HOSTING_SOURCE_THIRD_PARTY` combined with following creative_type: * `CREATIVE_TYPE_STANDARD` * `CREATIVE_TYPE_EXPANDABLE`",
@@ -914,7 +914,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.Creatives. Registered at `@swamp/gcp/displayvideo/advertisers-creatives`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-creatives",
-  version: "2026.07.29.2",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1052,6 +1052,14 @@ export const model = {
       toVersion: "2026.07.29.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

@@ -218,7 +218,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.Workspaces. Registered at `@swamp/gcp/dataform/repositories-workspaces`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-workspaces",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -351,6 +351,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -805,8 +813,10 @@ export const model = {
     },
     install_npm_packages: {
       description: "install npm packages",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, unknown>, context: any) => {
+      arguments: z.object({
+        pipelineConfig: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
@@ -825,6 +835,10 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         params["workspace"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (args["pipelineConfig"] !== undefined) {
+          body["pipelineConfig"] = args["pipelineConfig"];
+        }
         const result = await createResource(
           BASE_URL,
           {
@@ -838,7 +852,7 @@ export const model = {
             },
           },
           params,
-          {},
+          body,
           undefined,
           undefined,
           undefined,

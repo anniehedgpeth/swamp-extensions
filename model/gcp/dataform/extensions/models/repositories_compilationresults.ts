@@ -149,9 +149,29 @@ const GlobalArgsSchema = z.object({
       gcsOutputBucket: z.string().describe(
         "Optional. The Google Cloud Storage location to upload the result to. Format: `gs://bucket-name`.",
       ).optional(),
+      gcsRepositorySnapshotDestination: z.object({
+        repositorySnapshotUri: z.string().describe(
+          "Optional. The Google Cloud Storage destination to upload the repository snapshot to. Format: `gs://bucket-name/path/`.",
+        ).optional(),
+      }).describe(
+        "Optional. The Google Cloud Storage destination to upload the snapshot to. For empty URI it defaults to the provided gcs_output_bucket. Format: `gs://bucket-name/path/`.",
+      ).optional(),
     }).describe("Optional. The default notebook runtime options.").optional(),
     defaultSchema: z.string().describe(
       "Optional. The default schema (BigQuery dataset ID).",
+    ).optional(),
+    pipelineConfig: z.object({
+      path: z.string().describe(
+        "Required. The relative path within the Git repository where the pipeline is defined. For example, for a Dataform pipeline, it is a path to the folder where `workflow_settings.yaml` or `dataform.json` is located.",
+      ).optional(),
+      pipelineType: z.enum([
+        "PIPELINE_TYPE_UNSPECIFIED",
+        "DATAFORM",
+        "SQL",
+        "NOTEBOOK",
+      ]).describe("Required. The type of the pipeline.").optional(),
+    }).describe(
+      "Optional. The pipeline options which defines the pipeline type and path within the Git repository.",
     ).optional(),
     schemaSuffix: z.string().describe(
       "Optional. The suffix that should be appended to all schema (BigQuery dataset ID) names.",
@@ -192,8 +212,15 @@ const StateSchema = z.object({
     defaultNotebookRuntimeOptions: z.object({
       aiPlatformNotebookRuntimeTemplate: z.string(),
       gcsOutputBucket: z.string(),
+      gcsRepositorySnapshotDestination: z.object({
+        repositorySnapshotUri: z.string(),
+      }),
     }),
     defaultSchema: z.string(),
+    pipelineConfig: z.object({
+      path: z.string(),
+      pipelineType: z.string(),
+    }),
     schemaSuffix: z.string(),
     tablePrefix: z.string(),
     vars: z.record(z.string(), z.unknown()),
@@ -213,6 +240,11 @@ const StateSchema = z.object({
     kmsKeyVersionName: z.string(),
   }).optional(),
   dataformCoreVersion: z.string().optional(),
+  gcsRepositorySnapshotMetadata: z.object({
+    crc32cChecksum: z.string(),
+    generation: z.string(),
+    repositorySnapshotUri: z.string(),
+  }).optional(),
   gitCommitish: z.string().optional(),
   internalMetadata: z.string().optional(),
   name: z.string(),
@@ -256,9 +288,29 @@ const InputsSchema = z.object({
       gcsOutputBucket: z.string().describe(
         "Optional. The Google Cloud Storage location to upload the result to. Format: `gs://bucket-name`.",
       ).optional(),
+      gcsRepositorySnapshotDestination: z.object({
+        repositorySnapshotUri: z.string().describe(
+          "Optional. The Google Cloud Storage destination to upload the repository snapshot to. Format: `gs://bucket-name/path/`.",
+        ).optional(),
+      }).describe(
+        "Optional. The Google Cloud Storage destination to upload the snapshot to. For empty URI it defaults to the provided gcs_output_bucket. Format: `gs://bucket-name/path/`.",
+      ).optional(),
     }).describe("Optional. The default notebook runtime options.").optional(),
     defaultSchema: z.string().describe(
       "Optional. The default schema (BigQuery dataset ID).",
+    ).optional(),
+    pipelineConfig: z.object({
+      path: z.string().describe(
+        "Required. The relative path within the Git repository where the pipeline is defined. For example, for a Dataform pipeline, it is a path to the folder where `workflow_settings.yaml` or `dataform.json` is located.",
+      ).optional(),
+      pipelineType: z.enum([
+        "PIPELINE_TYPE_UNSPECIFIED",
+        "DATAFORM",
+        "SQL",
+        "NOTEBOOK",
+      ]).describe("Required. The type of the pipeline.").optional(),
+    }).describe(
+      "Optional. The pipeline options which defines the pipeline type and path within the Git repository.",
     ).optional(),
     schemaSuffix: z.string().describe(
       "Optional. The suffix that should be appended to all schema (BigQuery dataset ID) names.",
@@ -314,7 +366,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.CompilationResults. Registered at `@swamp/gcp/dataform/repositories-compilationresults`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-compilationresults",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -462,6 +514,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

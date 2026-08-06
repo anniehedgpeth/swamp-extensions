@@ -63,12 +63,12 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "Controls which fields the API ingests. Defaults to all available\nfields when absent.\n",
   ).optional(),
-  dataset: z.string().describe(
-    "Dataset type name to create (e.g. `http_requests`).",
-  ),
   filter: z.string().describe(
     "Optional Logpush filter predicate to restrict which events are ingested.\nIf provided, replaces the dataset's default filter entirely.\nSee [Logpush filters](https://developers.cloudflare.com/logs/reference/filters/)\nfor syntax and examples.\n",
   ).optional(),
+  dataset: z.string().describe(
+    "Dataset type name to create (e.g. `http_requests`).",
+  ),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -93,6 +93,7 @@ const ResourceSchema = z.object({
     enabled: z.boolean().optional(),
     name: z.string().optional(),
   })).optional(),
+  filter: z.string().optional(),
   id: z.string(),
 }).passthrough();
 
@@ -108,8 +109,8 @@ const InputsSchema = z.object({
     enabled: z.boolean(),
     name: z.string(),
   })).optional(),
-  dataset: z.string().optional(),
   filter: z.string().optional(),
+  dataset: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -118,7 +119,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Datasets. Registered at `@swamp/cloudflare/logs/datasets`. */
 export const model = {
   type: "@swamp/cloudflare/logs/datasets",
-  version: "2026.08.02.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -148,6 +149,11 @@ export const model = {
     {
       toVersion: "2026.08.02.1",
       description: "Added: deletion_protection, filter",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -252,10 +258,10 @@ export const model = {
         if (g.enabled !== undefined) {
           filters.push(["enabled", String(g.enabled)]);
         }
+        if (g.filter !== undefined) filters.push(["filter", String(g.filter)]);
         if (g.dataset !== undefined) {
           filters.push(["dataset", String(g.dataset)]);
         }
-        if (g.filter !== undefined) filters.push(["filter", String(g.filter)]);
         if (filters.length === 0) {
           throw new Error(
             "At least one global argument must be set to filter by",
@@ -375,6 +381,7 @@ export const model = {
         }
         if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.fields !== undefined) body.fields = g.fields;
+        if (g.filter !== undefined) body.filter = g.filter;
         const result = await update(endpoint, existing.id, body, "PUT", {
           apiToken: g.apiToken,
           apiKey: g.apiKey,

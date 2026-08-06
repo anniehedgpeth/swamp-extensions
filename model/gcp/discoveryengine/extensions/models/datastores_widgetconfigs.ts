@@ -197,6 +197,12 @@ const GlobalArgsSchema = z.object({
     dataSourceDisplayName: z.string().describe(
       "Output only. The display name of the data source.",
     ).optional(),
+    dataSourceEndUserDisplayName: z.string().describe(
+      "Output only. The end-user-facing display name of the data source, sourced from `ConnectorSource.end_user_display_name`. When unset, clients fall back to `data_source_display_name`.",
+    ).optional(),
+    dataSourceVersion: z.number().describe(
+      "Output only. The version of the connector definition backing this collection, mirroring `DataConnector.data_source_version`.",
+    ).optional(),
     dataStoreComponents: z.array(z.object({
       dataStoreConfigType: z.enum([
         "DATA_STORE_CONFIG_TYPE_UNSPECIFIED",
@@ -222,6 +228,27 @@ const GlobalArgsSchema = z.object({
       .optional(),
     id: z.string().describe(
       "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID. For synthetic placeholder entries (see message-level comment) this is a synthetic placeholder id, not a real collection_id.",
+    ).optional(),
+    isFirstParty: z.boolean().describe(
+      "Output only. Whether this is a first-party (Google-owned) connector, as opposed to a third-party connector. Used by the frontend to group 1P vs 3P connectors. Sourced from `ConnectorSource.is_first_party` once that field is universally populated (b/534727761); until then derived from `ConnectorSource.connector_type == FIRST_PARTY`.",
+    ).optional(),
+    metadata: z.object({
+      author: z.string().describe(
+        'Optional. The party that authored the connector, e.g. "Google" or a third-party provider name. Lets end users see who authored a connector (future: third-party-authored connectors).',
+      ).optional(),
+      description: z.string().describe(
+        "Optional. Human-readable description of the connector, shown on the connector detail page. One connector has a single description.",
+      ).optional(),
+      note: z.string().describe(
+        "Optional. Free-form, multi-line note about the connector's capabilities or a custom note that can be set for the connector.",
+      ).optional(),
+      shortDescription: z.string().describe(
+        "Optional. Short, subtitle-length description of the connector (e.g. shown beneath the connector name in list and detail views).",
+      ).optional(),
+      title: z.string().describe("Optional. Display title of the connector.")
+        .optional(),
+    }).describe(
+      "Output only. User-facing connector metadata (`title`, `description`, `short_description`, `author`, `note`), retrieved from the registry `ConnectorSource.metadata` (joined by data source). Shown on the connector detail page.",
     ).optional(),
     name: z.string().describe(
       "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field. For synthetic placeholder entries (see message-level comment) this carries a synthetic placeholder collection id that does not correspond to a real collection. Callers must not attempt to resolve / GET this resource until the user authorizes the connector.",
@@ -492,7 +519,7 @@ const GlobalArgsSchema = z.object({
         "FEATURE_STATE_OFF",
       ]),
     ).describe(
-      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `disable-skills` * `disable-projects` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence`",
+      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `skills` * `skill-sharing` * `skill-sharing-without-admin-approval` * `disable-projects` * `sobi` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence` * `workflow-agents` * `in-app-notifications`",
     ).optional(),
     generativeAnswerConfig: z.object({
       disableRelatedQuestions: z.boolean().describe(
@@ -639,6 +666,8 @@ const StateSchema = z.object({
     connectorIconLink: z.string(),
     dataSource: z.string(),
     dataSourceDisplayName: z.string(),
+    dataSourceEndUserDisplayName: z.string(),
+    dataSourceVersion: z.number(),
     dataStoreComponents: z.array(z.object({
       dataStoreConfigType: z.string(),
       displayName: z.string(),
@@ -648,6 +677,14 @@ const StateSchema = z.object({
     })),
     displayName: z.string(),
     id: z.string(),
+    isFirstParty: z.boolean(),
+    metadata: z.object({
+      author: z.string(),
+      description: z.string(),
+      note: z.string(),
+      shortDescription: z.string(),
+      title: z.string(),
+    }),
     name: z.string(),
   })).optional(),
   configId: z.string().optional(),
@@ -903,6 +940,12 @@ const InputsSchema = z.object({
     dataSourceDisplayName: z.string().describe(
       "Output only. The display name of the data source.",
     ).optional(),
+    dataSourceEndUserDisplayName: z.string().describe(
+      "Output only. The end-user-facing display name of the data source, sourced from `ConnectorSource.end_user_display_name`. When unset, clients fall back to `data_source_display_name`.",
+    ).optional(),
+    dataSourceVersion: z.number().describe(
+      "Output only. The version of the connector definition backing this collection, mirroring `DataConnector.data_source_version`.",
+    ).optional(),
     dataStoreComponents: z.array(z.object({
       dataStoreConfigType: z.enum([
         "DATA_STORE_CONFIG_TYPE_UNSPECIFIED",
@@ -928,6 +971,27 @@ const InputsSchema = z.object({
       .optional(),
     id: z.string().describe(
       "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID. For synthetic placeholder entries (see message-level comment) this is a synthetic placeholder id, not a real collection_id.",
+    ).optional(),
+    isFirstParty: z.boolean().describe(
+      "Output only. Whether this is a first-party (Google-owned) connector, as opposed to a third-party connector. Used by the frontend to group 1P vs 3P connectors. Sourced from `ConnectorSource.is_first_party` once that field is universally populated (b/534727761); until then derived from `ConnectorSource.connector_type == FIRST_PARTY`.",
+    ).optional(),
+    metadata: z.object({
+      author: z.string().describe(
+        'Optional. The party that authored the connector, e.g. "Google" or a third-party provider name. Lets end users see who authored a connector (future: third-party-authored connectors).',
+      ).optional(),
+      description: z.string().describe(
+        "Optional. Human-readable description of the connector, shown on the connector detail page. One connector has a single description.",
+      ).optional(),
+      note: z.string().describe(
+        "Optional. Free-form, multi-line note about the connector's capabilities or a custom note that can be set for the connector.",
+      ).optional(),
+      shortDescription: z.string().describe(
+        "Optional. Short, subtitle-length description of the connector (e.g. shown beneath the connector name in list and detail views).",
+      ).optional(),
+      title: z.string().describe("Optional. Display title of the connector.")
+        .optional(),
+    }).describe(
+      "Output only. User-facing connector metadata (`title`, `description`, `short_description`, `author`, `note`), retrieved from the registry `ConnectorSource.metadata` (joined by data source). Shown on the connector detail page.",
     ).optional(),
     name: z.string().describe(
       "The name of the collection. It should be collection resource name. Format: `projects/{project}/locations/{location}/collections/{collection_id}`. For APIs under WidgetService, such as WidgetService.LookupWidgetConfig, the project number and location part is erased in this field. For synthetic placeholder entries (see message-level comment) this carries a synthetic placeholder collection id that does not correspond to a real collection. Callers must not attempt to resolve / GET this resource until the user authorizes the connector.",
@@ -1198,7 +1262,7 @@ const InputsSchema = z.object({
         "FEATURE_STATE_OFF",
       ]),
     ).describe(
-      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `disable-skills` * `disable-projects` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence`",
+      "Output only. Feature config for the engine to opt in or opt out of features. Supported keys: * `agent-gallery` * `no-code-agent-builder` * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-sharing` * `personalization-memory` * `personalization-suggested-highlights` * `mobile-app-access` * `disable-agent-sharing` * `disable-image-generation` * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-content` * `disable-google-drive-upload` * `disable-welcome-emails` * `disable-canvas` * `canvas-workspace` * `skills` * `skill-sharing` * `skill-sharing-without-admin-approval` * `disable-projects` * `sobi` * `enable-end-user-sharing-with-groups` * `single-agent-orchestration` * `multi-agent-orchestration` * `cross-product-intelligence` * `workflow-agents` * `in-app-notifications`",
     ).optional(),
     generativeAnswerConfig: z.object({
       disableRelatedQuestions: z.boolean().describe(
@@ -1336,7 +1400,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/datastores-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores-widgetconfigs",
-  version: "2026.07.29.2",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1568,6 +1632,14 @@ export const model = {
       toVersion: "2026.07.29.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

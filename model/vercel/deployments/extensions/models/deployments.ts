@@ -52,9 +52,6 @@ const GlobalArgsSchema = z.object({
   })).describe(
     "The files to include in the deployment. Each entry is either an inlined file (with `data` and `encoding`) or a reference to a previously uploaded file (with `sha` and `size`). Required for non-git deployments. Cannot be used together with `gitSource`.",
   ).optional(),
-  gitAccessToken: z.string().max(1024).describe(
-    "A read-only GitHub access token scoped to the requested repository. Use a token with a lifetime of 24 hours or less that remains valid until source retrieval completes.",
-  ).optional(),
   gitMetadata: z.object({
     remoteUrl: z.string().optional(),
     commitAuthorName: z.string().optional(),
@@ -212,7 +209,6 @@ const InputsSchema = z.object({
     encoding: z.enum(["base64", "utf-8"]).optional(),
     file: z.string(),
   })).optional(),
-  gitAccessToken: z.string().max(1024).optional(),
   gitMetadata: z.object({
     remoteUrl: z.string().optional(),
     commitAuthorName: z.string().optional(),
@@ -340,7 +336,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Deployments. Registered at `@swamp/vercel/deployments/deployments`. */
 export const model = {
   type: "@swamp/vercel/deployments/deployments",
-  version: "2026.08.04.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -377,6 +373,14 @@ export const model = {
       description: "Added: gitAccessToken",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: gitAccessToken",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { gitAccessToken: _gitAccessToken, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -401,9 +405,6 @@ export const model = {
         }
         if (g.deploymentId !== undefined) body.deploymentId = g.deploymentId;
         if (g.files !== undefined) body.files = g.files;
-        if (g.gitAccessToken !== undefined) {
-          body.gitAccessToken = g.gitAccessToken;
-        }
         if (g.gitMetadata !== undefined) body.gitMetadata = g.gitMetadata;
         if (g.gitSource !== undefined) body.gitSource = g.gitSource;
         if (g.meta !== undefined) body.meta = g.meta;
@@ -476,9 +477,6 @@ export const model = {
         }
         if (g.deploymentId !== undefined) {
           filters.push(["deploymentId", String(g.deploymentId)]);
-        }
-        if (g.gitAccessToken !== undefined) {
-          filters.push(["gitAccessToken", String(g.gitAccessToken)]);
         }
         if (g.monorepoManager !== undefined) {
           filters.push(["monorepoManager", String(g.monorepoManager)]);

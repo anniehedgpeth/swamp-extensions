@@ -106,6 +106,24 @@ const StateSchema = z.object({
       severity: z.string(),
     })),
     maxSeverity: z.string(),
+    perScannerVerdict: z.object({
+      maliciousContentLlmResult: z.object({
+        maxSeverity: z.string(),
+        scanStatus: z.string(),
+      }),
+      maliciousContentStaticResult: z.object({
+        maxSeverity: z.string(),
+        scanStatus: z.string(),
+      }),
+      malwareScan: z.object({
+        scanStatus: z.string(),
+        verdict: z.string(),
+      }),
+      workspacePolicy: z.object({
+        scanStatus: z.string(),
+        verdict: z.string(),
+      }),
+    }),
     skillName: z.string(),
   }).optional(),
   attestation: z.object({
@@ -787,7 +805,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud On-Demand Scanning Scans.Vulnerabilities. Registered at `@swamp/gcp/ondemandscanning/scans-vulnerabilities`. */
 export const model = {
   type: "@swamp/gcp/ondemandscanning/scans-vulnerabilities",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -988,6 +1006,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

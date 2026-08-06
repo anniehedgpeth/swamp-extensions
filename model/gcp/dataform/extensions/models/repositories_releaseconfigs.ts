@@ -178,9 +178,29 @@ const GlobalArgsSchema = z.object({
       gcsOutputBucket: z.string().describe(
         "Optional. The Google Cloud Storage location to upload the result to. Format: `gs://bucket-name`.",
       ).optional(),
+      gcsRepositorySnapshotDestination: z.object({
+        repositorySnapshotUri: z.string().describe(
+          "Optional. The Google Cloud Storage destination to upload the repository snapshot to. Format: `gs://bucket-name/path/`.",
+        ).optional(),
+      }).describe(
+        "Optional. The Google Cloud Storage destination to upload the snapshot to. For empty URI it defaults to the provided gcs_output_bucket. Format: `gs://bucket-name/path/`.",
+      ).optional(),
     }).describe("Optional. The default notebook runtime options.").optional(),
     defaultSchema: z.string().describe(
       "Optional. The default schema (BigQuery dataset ID).",
+    ).optional(),
+    pipelineConfig: z.object({
+      path: z.string().describe(
+        "Required. The relative path within the Git repository where the pipeline is defined. For example, for a Dataform pipeline, it is a path to the folder where `workflow_settings.yaml` or `dataform.json` is located.",
+      ).optional(),
+      pipelineType: z.enum([
+        "PIPELINE_TYPE_UNSPECIFIED",
+        "DATAFORM",
+        "SQL",
+        "NOTEBOOK",
+      ]).describe("Required. The type of the pipeline.").optional(),
+    }).describe(
+      "Optional. The pipeline options which defines the pipeline type and path within the Git repository.",
     ).optional(),
     schemaSuffix: z.string().describe(
       "Optional. The suffix that should be appended to all schema (BigQuery dataset ID) names.",
@@ -209,7 +229,7 @@ const GlobalArgsSchema = z.object({
     "Optional. The name of the currently released compilation result for this release config. This value is updated when a compilation result is automatically created from this release config (using cron_schedule), or when this resource is updated by API call (perhaps to roll back to an earlier release). The compilation result must have been created using this release config. Must be in the format `projects/*/locations/*/repositories/*/compilationResults/*`.",
   ).optional(),
   timeZone: z.string().describe(
-    "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the time zone database (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If left unspecified, the default is UTC.",
+    "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If left unspecified, the default is `UTC`.",
   ).optional(),
   releaseConfigId: z.string().describe(
     "Required. The ID to use for the release config, which will become the final component of the release config's resource name.",
@@ -232,8 +252,15 @@ const StateSchema = z.object({
     defaultNotebookRuntimeOptions: z.object({
       aiPlatformNotebookRuntimeTemplate: z.string(),
       gcsOutputBucket: z.string(),
+      gcsRepositorySnapshotDestination: z.object({
+        repositorySnapshotUri: z.string(),
+      }),
     }),
     defaultSchema: z.string(),
+    pipelineConfig: z.object({
+      path: z.string(),
+      pipelineType: z.string(),
+    }),
     schemaSuffix: z.string(),
     tablePrefix: z.string(),
     vars: z.record(z.string(), z.unknown()),
@@ -287,9 +314,29 @@ const InputsSchema = z.object({
       gcsOutputBucket: z.string().describe(
         "Optional. The Google Cloud Storage location to upload the result to. Format: `gs://bucket-name`.",
       ).optional(),
+      gcsRepositorySnapshotDestination: z.object({
+        repositorySnapshotUri: z.string().describe(
+          "Optional. The Google Cloud Storage destination to upload the repository snapshot to. Format: `gs://bucket-name/path/`.",
+        ).optional(),
+      }).describe(
+        "Optional. The Google Cloud Storage destination to upload the snapshot to. For empty URI it defaults to the provided gcs_output_bucket. Format: `gs://bucket-name/path/`.",
+      ).optional(),
     }).describe("Optional. The default notebook runtime options.").optional(),
     defaultSchema: z.string().describe(
       "Optional. The default schema (BigQuery dataset ID).",
+    ).optional(),
+    pipelineConfig: z.object({
+      path: z.string().describe(
+        "Required. The relative path within the Git repository where the pipeline is defined. For example, for a Dataform pipeline, it is a path to the folder where `workflow_settings.yaml` or `dataform.json` is located.",
+      ).optional(),
+      pipelineType: z.enum([
+        "PIPELINE_TYPE_UNSPECIFIED",
+        "DATAFORM",
+        "SQL",
+        "NOTEBOOK",
+      ]).describe("Required. The type of the pipeline.").optional(),
+    }).describe(
+      "Optional. The pipeline options which defines the pipeline type and path within the Git repository.",
     ).optional(),
     schemaSuffix: z.string().describe(
       "Optional. The suffix that should be appended to all schema (BigQuery dataset ID) names.",
@@ -318,7 +365,7 @@ const InputsSchema = z.object({
     "Optional. The name of the currently released compilation result for this release config. This value is updated when a compilation result is automatically created from this release config (using cron_schedule), or when this resource is updated by API call (perhaps to roll back to an earlier release). The compilation result must have been created using this release config. Must be in the format `projects/*/locations/*/repositories/*/compilationResults/*`.",
   ).optional(),
   timeZone: z.string().describe(
-    "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the time zone database (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If left unspecified, the default is UTC.",
+    "Optional. Specifies the time zone to be used when interpreting cron_schedule. Must be a time zone name from the [time zone database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If left unspecified, the default is `UTC`.",
   ).optional(),
   releaseConfigId: z.string().describe(
     "Required. The ID to use for the release config, which will become the final component of the release config's resource name.",
@@ -356,7 +403,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataform Repositories.ReleaseConfigs. Registered at `@swamp/gcp/dataform/repositories-releaseconfigs`. */
 export const model = {
   type: "@swamp/gcp/dataform/repositories-releaseconfigs",
-  version: "2026.07.29.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -517,6 +564,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

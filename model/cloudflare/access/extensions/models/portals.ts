@@ -44,10 +44,10 @@ import {
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   allow_code_mode: z.boolean().describe(
-    "Deprecated: use `code_mode` instead. Legacy on/off toggle for Dynamic Workers (codemode). `true` maps to any non-off `code_mode`; `false` maps to `code_mode: off`.",
+    "Deprecated: use `code_mode` for new integrations. `true` maps to any non-off Code Mode policy; `false` maps to `code_mode: off`. If both fields are sent, they must be consistent or the request returns a 400.",
   ).optional(),
   code_mode: z.enum(["off", "opt_in", "default_on", "enforced"]).describe(
-    "Controls Dynamic Workers (codemode) availability for this portal. `off` disables codemode. `opt_in` makes it available but clients must opt in per session. `default_on` enables it by default with a client override. `enforced` requires codemode for every session with no override.",
+    "Code Mode policy for this portal. `off`: Code Mode is unavailable; query parameters are ignored. `opt_in`: Code Mode is off by default; clients turn it on with `?codemode=search_and_execute`. `default_on`: Code Mode is on by default; clients can opt out with `?codemode=off`. `enforced`: Code Mode is always on; query parameters are ignored. Defaults to `opt_in` when omitted on create. If both `code_mode` and `allow_code_mode` are sent, they must be consistent or the request returns a 400.",
   ).optional(),
   description: z.string().max(512).optional(),
   hostname: z.string().regex(
@@ -221,7 +221,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Portals. Registered at `@swamp/cloudflare/access/portals`. */
 export const model = {
   type: "@swamp/cloudflare/access/portals",
-  version: "2026.08.02.1",
+  version: "2026.08.06.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -261,6 +261,11 @@ export const model = {
     {
       toVersion: "2026.08.02.1",
       description: "Added: code_mode",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.06.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
