@@ -272,6 +272,8 @@ const GlobalArgsSchema = z.object({
       "PQ_SIGN_ML_DSA_44_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_65_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_87_EXTERNAL_MU",
+      "KEM_ECDH_P256",
+      "KEM_ECDH_P384",
       "AES_256_KWP",
     ]).describe(
       "Required. Algorithm to use when creating a CryptoKeyVersion based on this template. For backwards compatibility, GOOGLE_SYMMETRIC_ENCRYPTION is implied if both this field is omitted and CryptoKey.purpose is ENCRYPT_DECRYPT.",
@@ -465,6 +467,8 @@ const InputsSchema = z.object({
       "PQ_SIGN_ML_DSA_44_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_65_EXTERNAL_MU",
       "PQ_SIGN_ML_DSA_87_EXTERNAL_MU",
+      "KEM_ECDH_P256",
+      "KEM_ECDH_P384",
       "AES_256_KWP",
     ]).describe(
       "Required. Algorithm to use when creating a CryptoKeyVersion based on this template. For backwards compatibility, GOOGLE_SYMMETRIC_ENCRYPTION is implied if both this field is omitted and CryptoKey.purpose is ENCRYPT_DECRYPT.",
@@ -524,7 +528,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings.CryptoKeys. Registered at `@swamp/gcp/cloudkms/keyrings-cryptokeys`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings-cryptokeys",
-  version: "2026.07.29.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -676,6 +680,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

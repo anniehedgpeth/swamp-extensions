@@ -87,6 +87,10 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
+  RateLimit: z.string().regex(new RegExp("^[0-9]+\\.?[0-9]*(Mbps|Gbps|Tbps)$"))
+    .describe(
+      "The rate limit (bandwidth allocation) for the virtual interface. The value must be one of the supported bandwidth values (e.g., 50Mbps, 1Gbps, 10Gbps) and cannot exceed the bandwidth of the parent connection or LAG.",
+    ).optional(),
   BgpPeers: z.array(BgpPeerSchema).describe(
     "The BGP peers configured on this virtual interface..",
   ),
@@ -122,6 +126,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  RateLimit: z.string().optional(),
   BgpPeers: z.array(BgpPeerSchema).optional(),
   ConnectionId: z.string().optional(),
   DirectConnectGatewayId: z.string().optional(),
@@ -143,6 +148,10 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
+  RateLimit: z.string().regex(new RegExp("^[0-9]+\\.?[0-9]*(Mbps|Gbps|Tbps)$"))
+    .describe(
+      "The rate limit (bandwidth allocation) for the virtual interface. The value must be one of the supported bandwidth values (e.g., 50Mbps, 1Gbps, 10Gbps) and cannot exceed the bandwidth of the parent connection or LAG.",
+    ).optional(),
   BgpPeers: z.array(BgpPeerSchema).describe(
     "The BGP peers configured on this virtual interface..",
   ).optional(),
@@ -197,7 +206,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for DirectConnect TransitVirtualInterface. Registered at `@swamp/aws/directconnect/transit-virtual-interface`. */
 export const model = {
   type: "@swamp/aws/directconnect/transit-virtual-interface",
-  version: "2026.06.15.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -237,6 +246,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
+      description: "Added: RateLimit",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

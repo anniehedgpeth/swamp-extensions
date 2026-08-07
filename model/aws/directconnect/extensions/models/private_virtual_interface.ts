@@ -90,6 +90,22 @@ const GlobalArgsSchema = z.object({
   BgpPeers: z.array(BgpPeerSchema).describe(
     "The BGP peers configured on this virtual interface.",
   ),
+  DirectConnectGatewayId: z.string().regex(
+    new RegExp(
+      "^(arn:aws[a-z-]*:directconnect::[0-9]{12}:dx-gateway/)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    ),
+  ).describe("The ID or ARN of the Direct Connect gateway.").optional(),
+  EnableSiteLink: z.boolean().describe(
+    "Indicates whether to enable or disable SiteLink.",
+  ).optional(),
+  Vlan: z.number().int().min(0).max(4095).describe("The ID of the VLAN."),
+  Mtu: z.number().int().describe(
+    "The maximum transmission unit (MTU), in bytes. The supported values are 1500 and 9001. The default value is 1500.",
+  ).optional(),
+  RateLimit: z.string().regex(new RegExp("^[0-9]+\\.?[0-9]*(Mbps|Gbps|Tbps)$"))
+    .describe(
+      "The rate limit (bandwidth allocation) for the virtual interface. The value must be one of the supported bandwidth values (e.g., 50Mbps, 1Gbps, 10Gbps) and cannot exceed the bandwidth of the parent connection or LAG.",
+    ).optional(),
   ConnectionId: z.string().regex(
     new RegExp(
       "^((arn:aws[a-z-]*:directconnect:[a-z0-9-]+:[0-9]{12}:(dxcon/dxcon|dxlag/dxlag))|dx(con|lag))-[a-z0-9A-Z]{8,21}$",
@@ -100,19 +116,10 @@ const GlobalArgsSchema = z.object({
   ).describe(
     "The Amazon Resource Name (ARN) of the role to allocate the private virtual interface. Needs directconnect:AllocatePrivateVirtualInterface permissions and tag permissions if applicable.",
   ).optional(),
-  DirectConnectGatewayId: z.string().regex(
-    new RegExp(
-      "^(arn:aws[a-z-]*:directconnect::[0-9]{12}:dx-gateway/)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-    ),
-  ).describe("The ID or ARN of the Direct Connect gateway.").optional(),
-  EnableSiteLink: z.boolean().describe(
-    "Indicates whether to enable or disable SiteLink.",
-  ).optional(),
   VirtualInterfaceName: z.string().regex(new RegExp("^[\\w \\-_,\\/]{1,100}$"))
     .describe(
       "The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).",
     ),
-  Vlan: z.number().int().min(0).max(4095).describe("The ID of the VLAN."),
   VirtualGatewayId: z.string().regex(
     new RegExp(
       "^(arn:aws[a-z-]*:ec2:[a-z0-9-]+:[0-9]{12}:vpn-gateway/)?vgw-[a-zA-Z0-9]{8,32}$",
@@ -121,24 +128,22 @@ const GlobalArgsSchema = z.object({
   Tags: z.array(TagSchema).describe(
     "The tags associated with the private virtual interface.",
   ).optional(),
-  Mtu: z.number().int().describe(
-    "The maximum transmission unit (MTU), in bytes. The supported values are 1500 and 9001. The default value is 1500.",
-  ).optional(),
 });
 
 const StateSchema = z.object({
   BgpPeers: z.array(BgpPeerSchema).optional(),
-  ConnectionId: z.string().optional(),
-  AllocatePrivateVirtualInterfaceRoleArn: z.string().optional(),
   DirectConnectGatewayId: z.string().optional(),
   EnableSiteLink: z.boolean().optional(),
-  VirtualInterfaceId: z.string().optional(),
-  VirtualInterfaceName: z.string().optional(),
   VirtualInterfaceArn: z.string(),
   Vlan: z.number().optional(),
+  Mtu: z.number().optional(),
+  RateLimit: z.string().optional(),
+  ConnectionId: z.string().optional(),
+  AllocatePrivateVirtualInterfaceRoleArn: z.string().optional(),
+  VirtualInterfaceId: z.string().optional(),
+  VirtualInterfaceName: z.string().optional(),
   VirtualGatewayId: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
-  Mtu: z.number().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -152,6 +157,23 @@ const InputsSchema = z.object({
   BgpPeers: z.array(BgpPeerSchema).describe(
     "The BGP peers configured on this virtual interface.",
   ).optional(),
+  DirectConnectGatewayId: z.string().regex(
+    new RegExp(
+      "^(arn:aws[a-z-]*:directconnect::[0-9]{12}:dx-gateway/)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    ),
+  ).describe("The ID or ARN of the Direct Connect gateway.").optional(),
+  EnableSiteLink: z.boolean().describe(
+    "Indicates whether to enable or disable SiteLink.",
+  ).optional(),
+  Vlan: z.number().int().min(0).max(4095).describe("The ID of the VLAN.")
+    .optional(),
+  Mtu: z.number().int().describe(
+    "The maximum transmission unit (MTU), in bytes. The supported values are 1500 and 9001. The default value is 1500.",
+  ).optional(),
+  RateLimit: z.string().regex(new RegExp("^[0-9]+\\.?[0-9]*(Mbps|Gbps|Tbps)$"))
+    .describe(
+      "The rate limit (bandwidth allocation) for the virtual interface. The value must be one of the supported bandwidth values (e.g., 50Mbps, 1Gbps, 10Gbps) and cannot exceed the bandwidth of the parent connection or LAG.",
+    ).optional(),
   ConnectionId: z.string().regex(
     new RegExp(
       "^((arn:aws[a-z-]*:directconnect:[a-z0-9-]+:[0-9]{12}:(dxcon/dxcon|dxlag/dxlag))|dx(con|lag))-[a-z0-9A-Z]{8,21}$",
@@ -162,20 +184,10 @@ const InputsSchema = z.object({
   ).describe(
     "The Amazon Resource Name (ARN) of the role to allocate the private virtual interface. Needs directconnect:AllocatePrivateVirtualInterface permissions and tag permissions if applicable.",
   ).optional(),
-  DirectConnectGatewayId: z.string().regex(
-    new RegExp(
-      "^(arn:aws[a-z-]*:directconnect::[0-9]{12}:dx-gateway/)?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-    ),
-  ).describe("The ID or ARN of the Direct Connect gateway.").optional(),
-  EnableSiteLink: z.boolean().describe(
-    "Indicates whether to enable or disable SiteLink.",
-  ).optional(),
   VirtualInterfaceName: z.string().regex(new RegExp("^[\\w \\-_,\\/]{1,100}$"))
     .describe(
       "The name of the virtual interface assigned by the customer network. The name has a maximum of 100 characters. The following are valid characters: a-z, 0-9 and a hyphen (-).",
     ).optional(),
-  Vlan: z.number().int().min(0).max(4095).describe("The ID of the VLAN.")
-    .optional(),
   VirtualGatewayId: z.string().regex(
     new RegExp(
       "^(arn:aws[a-z-]*:ec2:[a-z0-9-]+:[0-9]{12}:vpn-gateway/)?vgw-[a-zA-Z0-9]{8,32}$",
@@ -183,9 +195,6 @@ const InputsSchema = z.object({
   ).describe("The ID or ARN of the virtual private gateway.").optional(),
   Tags: z.array(TagSchema).describe(
     "The tags associated with the private virtual interface.",
-  ).optional(),
-  Mtu: z.number().int().describe(
-    "The maximum transmission unit (MTU), in bytes. The supported values are 1500 and 9001. The default value is 1500.",
   ).optional(),
 });
 
@@ -208,7 +217,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for DirectConnect PrivateVirtualInterface. Registered at `@swamp/aws/directconnect/private-virtual-interface`. */
 export const model = {
   type: "@swamp/aws/directconnect/private-virtual-interface",
-  version: "2026.06.15.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -248,6 +257,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
+      description: "Added: RateLimit",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

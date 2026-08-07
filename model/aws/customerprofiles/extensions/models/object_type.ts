@@ -60,7 +60,7 @@ const ObjectTypeFieldSchema = z.object({
 });
 
 const FieldMapSchema = z.object({
-  Name: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9_-]+$"))
+  Name: z.string().min(1).max(64).regex(new RegExp("^[a-zA-Z0-9_.-]+$"))
     .optional(),
   ObjectTypeField: ObjectTypeFieldSchema.describe(
     "Represents a field in a ProfileObjectType.",
@@ -92,6 +92,7 @@ const ObjectTypeKeySchema = z.object({
       "LOYALTY_PROMOTION",
       "WEB_ANALYTICS",
       "DEVICE",
+      "COMMUNICATION_RECORD",
     ]),
   ).describe(
     "The types of keys that a ProfileObject can have. Each ProfileObject can have only 1 UNIQUE key but multiple PROFILE keys. PROFILE means that this key can be used to tie an object to a PROFILE. UNIQUE means that it can be used to uniquely identify an object. If a key a is marked as SECONDARY, it will be used to search for profiles after all other PROFILE keys have been searched. A LOOKUP_ONLY key is only used to match a profile but is not persisted to be used for searching of the profile. A NEW_ONLY key is only used if the profile does not already exist before the object is ingested, otherwise it is only used for matching objects to profiles.",
@@ -251,7 +252,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CustomerProfiles ObjectType. Registered at `@swamp/aws/customerprofiles/object-type`. */
 export const model = {
   type: "@swamp/aws/customerprofiles/object-type",
-  version: "2026.06.15.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -290,6 +291,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

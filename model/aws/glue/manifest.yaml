@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/glue"
-version: "2026.08.06.1"
+version: "2026.08.07.1"
 description: "AWS GLUE infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -10,11 +10,12 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Added: workflow
+  - Added: custom_entity_type
 models:
   - blueprint.ts
   - catalog.ts
   - crawler.ts
+  - custom_entity_type.ts
   - data_catalog_encryption_settings.ts
   - database.ts
   - identity_center_configuration.ts

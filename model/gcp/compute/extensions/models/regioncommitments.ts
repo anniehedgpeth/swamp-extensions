@@ -337,6 +337,16 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Specify the reservation sharing policy. If unspecified, the reservation will not be shared with Google Cloud managed services.",
     ).optional(),
+    resourceMetadata: z.object({
+      apiVersion: z.string().describe(
+        'The version of the API interface that this resource was retrieved through. For example, `"2025-01-01"` or `"2025-01-01-preview"`.',
+      ).optional(),
+      resourceType: z.string().describe(
+        'The canonical resource type name in the format of a resource type as defined by [AIP-123](https://google.aip.dev/123). For example, `"compute.googleapis.com/Instance"`.',
+      ).optional(),
+    }).describe(
+      "Output only. [Output Only] Contains standard resource metadata for an Allocation resource. It is populated for each instance of the Allocation resource, and includes the api_version the instance was retrieved through, and its canonical resource_type name.",
+    ).optional(),
     resourcePolicies: z.record(z.string(), z.string()).describe(
       "Resource policies to be added to this reservation. The key is defined by user, and the value is resource policy url. This is to define placement policy with reservation.",
     ).optional(),
@@ -619,6 +629,10 @@ const StateSchema = z.object({
     reservationSharingPolicy: z.object({
       serviceShareType: z.string(),
     }),
+    resourceMetadata: z.object({
+      apiVersion: z.string(),
+      resourceType: z.string(),
+    }),
     resourcePolicies: z.record(z.string(), z.unknown()),
     resourceStatus: z.object({
       healthInfo: z.object({
@@ -856,6 +870,16 @@ const InputsSchema = z.object({
       ]).describe("Sharing config for all Google Cloud services.").optional(),
     }).describe(
       "Specify the reservation sharing policy. If unspecified, the reservation will not be shared with Google Cloud managed services.",
+    ).optional(),
+    resourceMetadata: z.object({
+      apiVersion: z.string().describe(
+        'The version of the API interface that this resource was retrieved through. For example, `"2025-01-01"` or `"2025-01-01-preview"`.',
+      ).optional(),
+      resourceType: z.string().describe(
+        'The canonical resource type name in the format of a resource type as defined by [AIP-123](https://google.aip.dev/123). For example, `"compute.googleapis.com/Instance"`.',
+      ).optional(),
+    }).describe(
+      "Output only. [Output Only] Contains standard resource metadata for an Allocation resource. It is populated for each instance of the Allocation resource, and includes the api_version the instance was retrieved through, and its canonical resource_type name.",
     ).optional(),
     resourcePolicies: z.record(z.string(), z.string()).describe(
       "Resource policies to be added to this reservation. The key is defined by user, and the value is resource policy url. This is to define placement policy with reservation.",
@@ -1105,7 +1129,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionCommitments. Registered at `@swamp/gcp/compute/regioncommitments`. */
 export const model = {
   type: "@swamp/gcp/compute/regioncommitments",
-  version: "2026.07.29.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -1332,6 +1356,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

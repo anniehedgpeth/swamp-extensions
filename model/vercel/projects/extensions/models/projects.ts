@@ -799,6 +799,20 @@ const ResourceSchema = z.object({
       linearShift: z.boolean().optional(),
     })).optional(),
     canaryResponseHeader: z.boolean().optional(),
+    gate: z.object({
+      enabled: z.boolean().optional(),
+      checks: z.array(z.object({
+        type: z.string().optional(),
+        minSampleSize: z.number().optional(),
+        excludeStatusCodes: z.array(z.number()).optional(),
+        excludePaths: z.array(z.string()).optional(),
+        ingestWatermarkSeconds: z.number().optional(),
+      })).optional(),
+      failureThreshold: z.number().optional(),
+      windowSize: z.number().optional(),
+      action: z.string().optional(),
+      dryRun: z.boolean().optional(),
+    }).optional(),
   }).nullable().optional(),
   defaultResourceConfig: z.object({
     elasticConcurrencyEnabled: z.boolean().optional(),
@@ -1598,7 +1612,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/projects/projects`. */
 export const model = {
   type: "@swamp/vercel/projects/projects",
-  version: "2026.08.06.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -1642,6 +1656,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.06.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -171,7 +171,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Trace Traces. Registered at `@swamp/gcp/cloudtrace/traces`. */
 export const model = {
   type: "@swamp/gcp/cloudtrace/traces",
-  version: "2026.07.29.2",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -217,6 +217,14 @@ export const model = {
       toVersion: "2026.07.29.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -324,7 +332,7 @@ export const model = {
       description: "List traces resources",
       arguments: z.object({
         endTime: z.string().describe(
-          "End of the time interval (inclusive) during which the trace data was collected from the application.",
+          "Required. End of the time interval (inclusive) during which the trace data was collected from the application.",
         ).optional(),
         filter: z.string().describe(
           "Optional. A filter against properties of the trace. See [filter syntax documentation](https://cloud.google.com/trace/docs/trace-filters) for details.",
@@ -336,7 +344,7 @@ export const model = {
           "Optional. Maximum number of traces to return. If not specified or <= 0, the implementation selects a reasonable value. The implementation may return fewer traces than the requested page size.",
         ).optional(),
         startTime: z.string().describe(
-          "Start of the time interval (inclusive) during which the trace data was collected from the application.",
+          "Required. Start of the time interval (inclusive) during which the trace data was collected from the application.",
         ).optional(),
         view: z.string().describe(
           "Optional. Type of data returned for traces in the list. Default is `MINIMAL`.",

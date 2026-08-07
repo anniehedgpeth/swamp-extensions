@@ -1,0 +1,418 @@
+// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/aws/mediatailor/function
+// Do not edit manually. Re-generate with: deno task generate:aws
+
+// deno-lint-ignore-file no-explicit-any
+
+/**
+ * Swamp extension model for MediaTailor Function (AWS::MediaTailor::Function).
+ *
+ * Wraps the CloudFormation resource type as a swamp model so create,
+ * get, update, delete, and sync can be driven through `swamp model`.
+ *
+ * @module
+ */
+
+import { z } from "npm:zod@4.3.6";
+import {
+  createResource,
+  deleteResource,
+  isResourceNotFoundError,
+  readResource,
+  updateResource,
+} from "./_lib/aws.ts";
+import type { AwsCredentials } from "./_lib/aws.ts";
+
+const FunctionRefSchema = z.object({
+  RunCondition: z.string().describe(
+    "A conditional expression that determines whether this function should execute.",
+  ).optional(),
+  FunctionId: z.string().describe("The identifier of the function to execute.")
+    .optional(),
+});
+
+const TagSchema = z.object({
+  Key: z.string(),
+  Value: z.string(),
+});
+
+const GlobalArgsSchema = z.object({
+  accessKeyId: z.string().meta({ sensitive: true }).describe(
+    "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  secretAccessKey: z.string().meta({ sensitive: true }).describe(
+    "AWS secret access key; overrides AWS_SECRET_ACCESS_KEY environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  sessionToken: z.string().meta({ sensitive: true }).describe(
+    "AWS session token for temporary credentials; overrides AWS_SESSION_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  region: z.string().describe(
+    "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
+  ).optional(),
+  FunctionId: z.string().describe("The unique identifier for the function."),
+  FunctionType: z.enum(["HTTP_REQUEST", "CUSTOM_OUTPUT", "SEQUENTIAL_EXECUTOR"])
+    .describe(
+      "The type of the function. Determines which configuration object is used.",
+    ),
+  Description: z.string().describe("A description of the function.").optional(),
+  HttpRequestConfiguration: z.object({
+    Runtime: z.enum(["JSONATA"]).describe(
+      "The runtime environment for the function expression language.",
+    ),
+    Output: z.record(z.string(), z.string()).describe(
+      "A map of output key-value pairs. Keys must start with session., temp., avail., scte., or be a valid adsRequest directive.",
+    ).optional(),
+    MethodType: z.enum(["GET", "POST"]).describe(
+      "The HTTP method type for the request.",
+    ),
+    RequestTimeoutMilliseconds: z.number().int().describe(
+      "The timeout in milliseconds for the HTTP request. Maximum value is 2000.",
+    ),
+    Url: z.string().describe("The URL endpoint for the HTTP request."),
+    Body: z.string().describe("The body of the HTTP request.").optional(),
+    Headers: z.record(z.string(), z.string()).describe(
+      "A map of HTTP headers to include in the request.",
+    ).optional(),
+  }).describe("Configuration for HTTP request functions.").optional(),
+  CustomOutputConfiguration: z.object({
+    Runtime: z.enum(["JSONATA"]).describe(
+      "The runtime environment for the function expression language.",
+    ),
+    Output: z.record(z.string(), z.string()).describe(
+      "A map of output key-value pairs that define the custom output.",
+    ).optional(),
+  }).describe("Configuration for custom output functions.").optional(),
+  SequentialExecutorConfiguration: z.object({
+    Runtime: z.enum(["JSONATA"]).describe(
+      "The runtime environment for the function expression language.",
+    ),
+    Output: z.record(z.string(), z.string()).describe(
+      "A map of output key-value pairs that define the final output from sequential execution.",
+    ).optional(),
+    FunctionList: z.array(FunctionRefSchema).describe(
+      "The list of functions to execute sequentially.",
+    ),
+    TimeoutMilliseconds: z.number().int().describe(
+      "The timeout in milliseconds for the entire sequential execution chain.",
+    ),
+  }).describe("Configuration for sequential executor functions.").optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags to assign to the function resource.",
+  ).optional(),
+});
+
+const StateSchema = z.object({
+  Arn: z.string().optional(),
+  FunctionId: z.string(),
+  FunctionType: z.string().optional(),
+  Description: z.string().optional(),
+  HttpRequestConfiguration: z.object({
+    Runtime: z.string(),
+    Output: z.record(z.string(), z.unknown()),
+    MethodType: z.string(),
+    RequestTimeoutMilliseconds: z.number(),
+    Url: z.string(),
+    Body: z.string(),
+    Headers: z.record(z.string(), z.unknown()),
+  }).optional(),
+  CustomOutputConfiguration: z.object({
+    Runtime: z.string(),
+    Output: z.record(z.string(), z.unknown()),
+  }).optional(),
+  SequentialExecutorConfiguration: z.object({
+    Runtime: z.string(),
+    Output: z.record(z.string(), z.unknown()),
+    FunctionList: z.array(FunctionRefSchema),
+    TimeoutMilliseconds: z.number(),
+  }).optional(),
+  Tags: z.array(TagSchema).optional(),
+}).passthrough();
+
+type StateData = z.infer<typeof StateSchema>;
+
+const InputsSchema = z.object({
+  accessKeyId: z.string().meta({ sensitive: true }).optional(),
+  secretAccessKey: z.string().meta({ sensitive: true }).optional(),
+  sessionToken: z.string().meta({ sensitive: true }).optional(),
+  region: z.string().optional(),
+  FunctionId: z.string().describe("The unique identifier for the function.")
+    .optional(),
+  FunctionType: z.enum(["HTTP_REQUEST", "CUSTOM_OUTPUT", "SEQUENTIAL_EXECUTOR"])
+    .describe(
+      "The type of the function. Determines which configuration object is used.",
+    ).optional(),
+  Description: z.string().describe("A description of the function.").optional(),
+  HttpRequestConfiguration: z.object({
+    Runtime: z.enum(["JSONATA"]).describe(
+      "The runtime environment for the function expression language.",
+    ).optional(),
+    Output: z.record(z.string(), z.string()).describe(
+      "A map of output key-value pairs. Keys must start with session., temp., avail., scte., or be a valid adsRequest directive.",
+    ).optional(),
+    MethodType: z.enum(["GET", "POST"]).describe(
+      "The HTTP method type for the request.",
+    ).optional(),
+    RequestTimeoutMilliseconds: z.number().int().describe(
+      "The timeout in milliseconds for the HTTP request. Maximum value is 2000.",
+    ).optional(),
+    Url: z.string().describe("The URL endpoint for the HTTP request.")
+      .optional(),
+    Body: z.string().describe("The body of the HTTP request.").optional(),
+    Headers: z.record(z.string(), z.string()).describe(
+      "A map of HTTP headers to include in the request.",
+    ).optional(),
+  }).describe("Configuration for HTTP request functions.").optional(),
+  CustomOutputConfiguration: z.object({
+    Runtime: z.enum(["JSONATA"]).describe(
+      "The runtime environment for the function expression language.",
+    ).optional(),
+    Output: z.record(z.string(), z.string()).describe(
+      "A map of output key-value pairs that define the custom output.",
+    ).optional(),
+  }).describe("Configuration for custom output functions.").optional(),
+  SequentialExecutorConfiguration: z.object({
+    Runtime: z.enum(["JSONATA"]).describe(
+      "The runtime environment for the function expression language.",
+    ).optional(),
+    Output: z.record(z.string(), z.string()).describe(
+      "A map of output key-value pairs that define the final output from sequential execution.",
+    ).optional(),
+    FunctionList: z.array(FunctionRefSchema).describe(
+      "The list of functions to execute sequentially.",
+    ).optional(),
+    TimeoutMilliseconds: z.number().int().describe(
+      "The timeout in milliseconds for the entire sequential execution chain.",
+    ).optional(),
+  }).describe("Configuration for sequential executor functions.").optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags to assign to the function resource.",
+  ).optional(),
+});
+
+const _credentialKeys = new Set([
+  "accessKeyId",
+  "secretAccessKey",
+  "sessionToken",
+  "region",
+]);
+
+function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
+  return {
+    accessKeyId: g.accessKeyId as string | undefined,
+    secretAccessKey: g.secretAccessKey as string | undefined,
+    sessionToken: g.sessionToken as string | undefined,
+    region: g.region as string | undefined,
+  };
+}
+
+/** Swamp extension model for MediaTailor Function. Registered at `@swamp/aws/mediatailor/function`. */
+export const model = {
+  type: "@swamp/aws/mediatailor/function",
+  version: "2026.08.07.1",
+  globalArguments: GlobalArgsSchema,
+  inputsSchema: InputsSchema,
+  resources: {
+    state: {
+      description: "MediaTailor Function resource state",
+      schema: StateSchema,
+      lifetime: "infinite",
+      garbageCollection: 10,
+    },
+  },
+  methods: {
+    create: {
+      description: "Create a MediaTailor Function",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const desiredState: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(g)) {
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await createResource(
+          "AWS::MediaTailor::Function",
+          desiredState,
+          credentials,
+        ) as StateData;
+        const instanceName =
+          ((result.FunctionId ?? g.FunctionId)?.toString() ?? "current")
+            .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    get: {
+      description: "Get a MediaTailor Function",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the MediaTailor Function",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const result = await readResource(
+          "AWS::MediaTailor::Function",
+          args.identifier,
+          credentials,
+        ) as StateData;
+        const instanceName =
+          ((result.FunctionId ?? context.globalArgs.FunctionId)?.toString() ??
+            args.identifier).replace(/[\/\\]/g, "_").replace(/\.\./g, "_")
+            .replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update a MediaTailor Function",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.FunctionId?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const identifier = existing.FunctionId?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
+        }
+        const currentState = await readResource(
+          "AWS::MediaTailor::Function",
+          identifier,
+          credentials,
+        ) as StateData;
+        const desiredState: Record<string, unknown> = { ...currentState };
+        for (const [key, value] of Object.entries(g)) {
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await updateResource(
+          "AWS::MediaTailor::Function",
+          identifier,
+          currentState,
+          desiredState,
+          ["FunctionId"],
+          credentials,
+        );
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete a MediaTailor Function",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the MediaTailor Function",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { existed } = await deleteResource(
+          "AWS::MediaTailor::Function",
+          args.identifier,
+          credentials,
+        );
+        const instanceName =
+          (context.globalArgs.FunctionId?.toString() ?? args.identifier)
+            .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          identifier: args.identifier,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
+        return { dataHandles: [handle] };
+      },
+    },
+    sync: {
+      description: "Sync MediaTailor Function state from AWS",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.FunctionId?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const identifier = existing.FunctionId?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
+        }
+        try {
+          const result = await readResource(
+            "AWS::MediaTailor::Function",
+            identifier,
+            credentials,
+          ) as StateData;
+          const handle = await context.writeResource(
+            "state",
+            instanceName,
+            result,
+          );
+          return { dataHandles: [handle] };
+        } catch (error: unknown) {
+          if (isResourceNotFoundError(error)) {
+            const handle = await context.writeResource("state", instanceName, {
+              identifier,
+              status: "not_found",
+              syncedAt: new Date().toISOString(),
+            });
+            return { dataHandles: [handle] };
+          }
+          throw error;
+        }
+      },
+    },
+  },
+};

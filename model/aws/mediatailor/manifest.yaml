@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/mediatailor"
-version: "2026.08.06.1"
+version: "2026.08.07.1"
 description: "AWS MEDIATAILOR infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,9 +9,12 @@ labels:
   - mediatailor
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: function
 models:
   - channel.ts
   - channel_policy.ts
+  - function.ts
   - live_source.ts
   - playback_configuration.ts
   - source_location.ts

@@ -446,6 +446,10 @@ const StateSchema = z.object({
   reservationSharingPolicy: z.object({
     serviceShareType: z.string(),
   }).optional(),
+  resourceMetadata: z.object({
+    apiVersion: z.string(),
+    resourceType: z.string(),
+  }).optional(),
   resourcePolicies: z.record(z.string(), z.unknown()).optional(),
   resourceStatus: z.object({
     healthInfo: z.object({
@@ -737,7 +741,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Reservations. Registered at `@swamp/gcp/compute/reservations`. */
 export const model = {
   type: "@swamp/gcp/compute/reservations",
-  version: "2026.07.29.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -941,6 +945,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

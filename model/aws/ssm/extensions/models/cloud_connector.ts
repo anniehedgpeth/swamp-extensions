@@ -1,0 +1,387 @@
+// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/aws/ssm/cloud-connector
+// Do not edit manually. Re-generate with: deno task generate:aws
+
+// deno-lint-ignore-file no-explicit-any
+
+/**
+ * Swamp extension model for SSM CloudConnector (AWS::SSM::CloudConnector).
+ *
+ * Wraps the CloudFormation resource type as a swamp model so create,
+ * get, update, delete, and sync can be driven through `swamp model`.
+ *
+ * @module
+ */
+
+import { z } from "npm:zod@4.3.6";
+import {
+  createResource,
+  deleteResource,
+  isResourceNotFoundError,
+  readResource,
+  updateResource,
+} from "./_lib/aws.ts";
+import type { AwsCredentials } from "./_lib/aws.ts";
+
+const AzureSubscriptionSchema = z.object({
+  Id: z.string().min(1).max(256).regex(
+    new RegExp(
+      "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+    ),
+  ).describe("The Azure subscription ID."),
+  DisplayName: z.string().min(0).max(128).regex(
+    new RegExp("^([\\p{L}\\p{Z}\\p{N}\\p{P}\\p{M}]*)$", "u"),
+  ).describe("The display name of the Azure subscription.").optional(),
+});
+
+const ConfigurationTargetsSchema = z.object({
+  Subscriptions: z.array(AzureSubscriptionSchema).describe(
+    "List of Azure subscriptions.",
+  ),
+});
+
+const AzureConfigurationSchema = z.object({
+  TenantId: z.string().regex(
+    new RegExp(
+      "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+    ),
+  ).describe("The Azure AD tenant ID. Cannot be changed after creation."),
+  TenantDisplayName: z.string().min(0).max(256).regex(
+    new RegExp("^([\\p{L}\\p{Z}\\p{N}\\p{P}\\p{M}]*)$", "u"),
+  ).describe("The display name of the Azure AD tenant.").optional(),
+  ApplicationId: z.string().regex(
+    new RegExp(
+      "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+    ),
+  ).describe("The Azure AD application ID."),
+  ApplicationDisplayName: z.string().min(0).max(256).regex(
+    new RegExp("^([\\p{L}\\p{Z}\\p{N}\\p{P}\\p{M}]*)$", "u"),
+  ).describe("The display name of the Azure AD application.").optional(),
+  Targets: ConfigurationTargetsSchema.describe(
+    "The targets for the cloud connector. If omitted, the entire tenant is targeted.",
+  ).optional(),
+});
+
+const TagSchema = z.object({
+  Key: z.string().min(1).max(128),
+  Value: z.string().min(0).max(256),
+});
+
+const GlobalArgsSchema = z.object({
+  name: z.string().describe(
+    "Instance name for this resource (used as the unique identifier in the factory pattern)",
+  ),
+  accessKeyId: z.string().meta({ sensitive: true }).describe(
+    "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  secretAccessKey: z.string().meta({ sensitive: true }).describe(
+    "AWS secret access key; overrides AWS_SECRET_ACCESS_KEY environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  sessionToken: z.string().meta({ sensitive: true }).describe(
+    "AWS session token for temporary credentials; overrides AWS_SESSION_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  region: z.string().describe(
+    "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
+  ).optional(),
+  DisplayName: z.string().min(1).max(256).regex(
+    new RegExp("^[\\p{L}\\p{Z}\\p{N}\\p{P}\\p{M}]*$", "u"),
+  ).describe("The display name of the cloud connector."),
+  Description: z.string().min(1).max(1024).regex(
+    new RegExp("^[\\p{L}\\p{Z}\\p{N}\\p{P}\\p{M}]*$", "u"),
+  ).describe("The description of the cloud connector.").optional(),
+  RoleArn: z.string().min(20).max(2048).regex(
+    new RegExp("^arn:aws[a-z0-9-]*:iam::\\d{12}:role/[\\w-/.@+=,]{1,1017}$"),
+  ).describe("The IAM role ARN used by the cloud connector."),
+  Configuration: z.object({
+    AzureConfiguration: AzureConfigurationSchema.describe(
+      "Configuration for connecting to Azure.",
+    ),
+  }).describe("The configuration for the cloud connector."),
+  ConfigConnectorArn: z.string().min(1).max(512).regex(
+    new RegExp(
+      "^arn:aws(-cn|-us-gov)?:config:[a-z0-9-]+:\\d{12}:connector/.+$",
+    ),
+  ).describe("The ARN of the AWS Config connector."),
+  Tags: z.array(TagSchema).describe("Tags to apply to the cloud connector.")
+    .optional(),
+});
+
+const StateSchema = z.object({
+  CloudConnectorArn: z.string(),
+  CloudConnectorId: z.string().optional(),
+  DisplayName: z.string().optional(),
+  Description: z.string().optional(),
+  RoleArn: z.string().optional(),
+  Configuration: z.object({
+    AzureConfiguration: AzureConfigurationSchema,
+  }).optional(),
+  ConfigConnectorArn: z.string().optional(),
+  Tags: z.array(TagSchema).optional(),
+  CreatedAt: z.string().optional(),
+  UpdatedAt: z.string().optional(),
+}).passthrough();
+
+type StateData = z.infer<typeof StateSchema>;
+
+const InputsSchema = z.object({
+  name: z.string().optional(),
+  accessKeyId: z.string().meta({ sensitive: true }).optional(),
+  secretAccessKey: z.string().meta({ sensitive: true }).optional(),
+  sessionToken: z.string().meta({ sensitive: true }).optional(),
+  region: z.string().optional(),
+  DisplayName: z.string().min(1).max(256).regex(
+    new RegExp("^[\\p{L}\\p{Z}\\p{N}\\p{P}\\p{M}]*$", "u"),
+  ).describe("The display name of the cloud connector.").optional(),
+  Description: z.string().min(1).max(1024).regex(
+    new RegExp("^[\\p{L}\\p{Z}\\p{N}\\p{P}\\p{M}]*$", "u"),
+  ).describe("The description of the cloud connector.").optional(),
+  RoleArn: z.string().min(20).max(2048).regex(
+    new RegExp("^arn:aws[a-z0-9-]*:iam::\\d{12}:role/[\\w-/.@+=,]{1,1017}$"),
+  ).describe("The IAM role ARN used by the cloud connector.").optional(),
+  Configuration: z.object({
+    AzureConfiguration: AzureConfigurationSchema.describe(
+      "Configuration for connecting to Azure.",
+    ).optional(),
+  }).describe("The configuration for the cloud connector.").optional(),
+  ConfigConnectorArn: z.string().min(1).max(512).regex(
+    new RegExp(
+      "^arn:aws(-cn|-us-gov)?:config:[a-z0-9-]+:\\d{12}:connector/.+$",
+    ),
+  ).describe("The ARN of the AWS Config connector.").optional(),
+  Tags: z.array(TagSchema).describe("Tags to apply to the cloud connector.")
+    .optional(),
+});
+
+const _credentialKeys = new Set([
+  "accessKeyId",
+  "secretAccessKey",
+  "sessionToken",
+  "region",
+]);
+
+function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
+  return {
+    accessKeyId: g.accessKeyId as string | undefined,
+    secretAccessKey: g.secretAccessKey as string | undefined,
+    sessionToken: g.sessionToken as string | undefined,
+    region: g.region as string | undefined,
+  };
+}
+
+/** Swamp extension model for SSM CloudConnector. Registered at `@swamp/aws/ssm/cloud-connector`. */
+export const model = {
+  type: "@swamp/aws/ssm/cloud-connector",
+  version: "2026.08.07.1",
+  globalArguments: GlobalArgsSchema,
+  inputsSchema: InputsSchema,
+  resources: {
+    state: {
+      description: "SSM CloudConnector resource state",
+      schema: StateSchema,
+      lifetime: "infinite",
+      garbageCollection: 10,
+    },
+  },
+  methods: {
+    create: {
+      description: "Create a SSM CloudConnector",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const desiredState: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await createResource(
+          "AWS::SSM::CloudConnector",
+          desiredState,
+          credentials,
+        ) as StateData;
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    get: {
+      description: "Get a SSM CloudConnector",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the SSM CloudConnector",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const result = await readResource(
+          "AWS::SSM::CloudConnector",
+          args.identifier,
+          credentials,
+        ) as StateData;
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update a SSM CloudConnector",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const identifier = existing.CloudConnectorArn?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
+        }
+        const currentState = await readResource(
+          "AWS::SSM::CloudConnector",
+          identifier,
+          credentials,
+        ) as StateData;
+        const desiredState: Record<string, unknown> = { ...currentState };
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await updateResource(
+          "AWS::SSM::CloudConnector",
+          identifier,
+          currentState,
+          desiredState,
+          ["RoleArn", "ConfigConnectorArn", "TenantId"],
+          credentials,
+        );
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete a SSM CloudConnector",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the SSM CloudConnector",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { existed } = await deleteResource(
+          "AWS::SSM::CloudConnector",
+          args.identifier,
+          credentials,
+        );
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          identifier: args.identifier,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
+        return { dataHandles: [handle] };
+      },
+    },
+    sync: {
+      description: "Sync SSM CloudConnector state from AWS",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const identifier = existing.CloudConnectorArn?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
+        }
+        try {
+          const result = await readResource(
+            "AWS::SSM::CloudConnector",
+            identifier,
+            credentials,
+          ) as StateData;
+          const handle = await context.writeResource(
+            "state",
+            instanceName,
+            result,
+          );
+          return { dataHandles: [handle] };
+        } catch (error: unknown) {
+          if (isResourceNotFoundError(error)) {
+            const handle = await context.writeResource("state", instanceName, {
+              identifier,
+              status: "not_found",
+              syncedAt: new Date().toISOString(),
+            });
+            return { dataHandles: [handle] };
+          }
+          throw error;
+        }
+      },
+    },
+  },
+};

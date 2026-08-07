@@ -125,6 +125,9 @@ const StateSchema = z.object({
   }).optional(),
   description: z.string().optional(),
   detail: z.object({
+    customThreatScenario: z.object({
+      documentCondition: z.string(),
+    }),
     customerProfile: z.object({
       citations: z.array(z.object({
         citationId: z.string(),
@@ -286,7 +289,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Threat Intelligence Configurations. Registered at `@swamp/gcp/threatintelligence/configurations`. */
 export const model = {
   type: "@swamp/gcp/threatintelligence/configurations",
-  version: "2026.07.29.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -427,6 +430,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

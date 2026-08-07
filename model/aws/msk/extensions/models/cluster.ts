@@ -157,6 +157,12 @@ const BrokerLogsSchema = z.object({
   Firehose: FirehoseSchema.optional(),
 });
 
+const AuthorizerLogsSchema = z.object({
+  S3: S3Schema.optional(),
+  CloudWatchLogs: CloudWatchLogsSchema.optional(),
+  Firehose: FirehoseSchema.optional(),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -203,7 +209,8 @@ const GlobalArgsSchema = z.object({
     Unauthenticated: UnauthenticatedSchema.optional(),
   }).optional(),
   LoggingInfo: z.object({
-    BrokerLogs: BrokerLogsSchema,
+    BrokerLogs: BrokerLogsSchema.optional(),
+    AuthorizerLogs: AuthorizerLogsSchema.optional(),
   }).optional(),
   Tags: z.record(z.string(), z.string()).describe(
     "A key-value pair to associate with a resource.",
@@ -249,6 +256,7 @@ const StateSchema = z.object({
   }).optional(),
   LoggingInfo: z.object({
     BrokerLogs: BrokerLogsSchema,
+    AuthorizerLogs: AuthorizerLogsSchema,
   }).optional(),
   Tags: z.record(z.string(), z.unknown()).optional(),
   ConfigurationInfo: z.object({
@@ -303,6 +311,7 @@ const InputsSchema = z.object({
   }).optional(),
   LoggingInfo: z.object({
     BrokerLogs: BrokerLogsSchema.optional(),
+    AuthorizerLogs: AuthorizerLogsSchema.optional(),
   }).optional(),
   Tags: z.record(z.string(), z.string()).describe(
     "A key-value pair to associate with a resource.",
@@ -338,7 +347,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for MSK Cluster. Registered at `@swamp/aws/msk/cluster`. */
 export const model = {
   type: "@swamp/aws/msk/cluster",
-  version: "2026.06.15.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -382,6 +391,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

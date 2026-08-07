@@ -48,14 +48,10 @@ const OAuthCredentialProviderSchema = z.object({
   Scopes: z.array(z.string().min(1).max(128)),
   CustomParameters: z.record(z.string(), z.string().min(1).max(2048))
     .optional(),
-  GrantType: z.enum([
-    "AUTHORIZATION_CODE",
-    "CLIENT_CREDENTIALS",
-    "TOKEN_EXCHANGE",
-  ]).optional(),
+  GrantType: z.unknown().optional(),
   DefaultReturnUrl: z.string().min(1).max(2048).regex(
-    new RegExp("\\w+:(\\/?\\/?)[^\\s]+"),
-  ).describe("Return URL for OAuth callback.").optional(),
+    new RegExp("^\\w+:(\\/?\\/?)[^\\s]+$"),
+  ).optional(),
 });
 
 const ApiKeyCredentialProviderSchema = z.object({
@@ -100,6 +96,12 @@ const ManagedVpcResourceSchema = z.object({
     z.string().regex(new RegExp("^sg-(([0-9a-z]{8})|([0-9a-z]{17}))$")),
   ).optional(),
   RoutingDomain: z.string().min(3).max(255).optional(),
+  Tags: z.record(
+    z.string(),
+    z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$")),
+  ).describe(
+    "Tags applied to the AWS-managed VPC Lattice resource gateway when it is created on your behalf (tag-on-create). Useful for cost allocation. These tags are forwarded to VPC Lattice and are not stored on the gateway target itself.",
+  ).optional(),
 });
 
 const GlobalArgsSchema = z.object({
@@ -126,9 +128,9 @@ const GlobalArgsSchema = z.object({
     new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$"),
   ).optional(),
   MetadataConfiguration: z.object({
-    AllowedRequestHeaders: z.array(z.string()).optional(),
-    AllowedQueryParameters: z.array(z.string()).optional(),
-    AllowedResponseHeaders: z.array(z.string()).optional(),
+    AllowedRequestHeaders: z.array(z.string().min(1).max(100)).optional(),
+    AllowedQueryParameters: z.array(z.string().min(1).max(40)).optional(),
+    AllowedResponseHeaders: z.array(z.string().min(1).max(100)).optional(),
   }).optional(),
   Name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).optional(),
   PrivateEndpoint: z.object({
@@ -175,11 +177,11 @@ const StateSchema = z.object({
     ResourceGatewayArn: z.string(),
     ResourceAssociationArn: z.string(),
   })).optional(),
+  ProtocolType: z.string().optional(),
   Status: z.string().optional(),
   StatusReasons: z.array(z.string()).optional(),
   TargetId: z.string(),
   UpdatedAt: z.string().optional(),
-  ProtocolType: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -198,9 +200,9 @@ const InputsSchema = z.object({
     new RegExp("^([0-9a-z][-]?){1,100}-[0-9a-z]{10}$"),
   ).optional(),
   MetadataConfiguration: z.object({
-    AllowedRequestHeaders: z.array(z.string()).optional(),
-    AllowedQueryParameters: z.array(z.string()).optional(),
-    AllowedResponseHeaders: z.array(z.string()).optional(),
+    AllowedRequestHeaders: z.array(z.string().min(1).max(100)).optional(),
+    AllowedQueryParameters: z.array(z.string().min(1).max(40)).optional(),
+    AllowedResponseHeaders: z.array(z.string().min(1).max(100)).optional(),
   }).optional(),
   Name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).optional(),
   PrivateEndpoint: z.object({
@@ -234,7 +236,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore GatewayTarget. Registered at `@swamp/aws/bedrockagentcore/gateway-target`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/gateway-target",
-  version: "2026.06.18.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -293,6 +295,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

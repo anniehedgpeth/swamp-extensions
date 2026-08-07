@@ -41,32 +41,24 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const ClaimMatchValueTypeSchema = z.object({
-  MatchValueString: z.string().regex(new RegExp("[A-Za-z0-9_.-]+")).describe(
-    "The string value to match for",
-  ).optional(),
-  MatchValueStringList: z.array(z.string().regex(new RegExp("[A-Za-z0-9_.-]+")))
-    .describe("The list of strings to check for a match").optional(),
-});
-
 const AuthorizingClaimMatchValueTypeSchema = z.object({
-  ClaimMatchOperator: z.enum(["EQUALS", "CONTAINS", "CONTAINS_ANY"]).describe(
-    "The relationship between the claim field value and the value or values being matched",
-  ),
-  ClaimMatchValue: ClaimMatchValueTypeSchema.describe(
-    "The value or values in the custom claim to match for",
-  ),
+  ClaimMatchValue: z.object({
+    MatchValueString: z.string().min(1).max(255).regex(
+      new RegExp("^[A-Za-z0-9_.:/-]+$"),
+    ).optional(),
+    MatchValueStringList: z.array(
+      z.string().min(1).max(255).regex(new RegExp("^[A-Za-z0-9_.:/-]+$")),
+    ).optional(),
+  }),
+  ClaimMatchOperator: z.enum(["EQUALS", "CONTAINS", "CONTAINS_ANY"]),
 });
 
 const CustomClaimValidationTypeSchema = z.object({
-  AuthorizingClaimMatchValue: AuthorizingClaimMatchValueTypeSchema.describe(
-    "The value or values in the custom claim to match and relationship of match",
+  InboundTokenClaimName: z.string().min(1).max(255).regex(
+    new RegExp("^[A-Za-z0-9_.-:]+$"),
   ),
-  InboundTokenClaimName: z.string().regex(new RegExp("[A-Za-z0-9_.-:]+"))
-    .describe("The name of the custom claim to validate"),
-  InboundTokenClaimValueType: z.enum(["STRING", "STRING_ARRAY"]).describe(
-    "Token claim data type",
-  ),
+  InboundTokenClaimValueType: z.enum(["STRING", "STRING_ARRAY"]),
+  AuthorizingClaimMatchValue: AuthorizingClaimMatchValueTypeSchema,
 });
 
 const ManagedVpcResourceSchema = z.object({
@@ -74,7 +66,7 @@ const ManagedVpcResourceSchema = z.object({
     new RegExp("^vpc-(([0-9a-z]{8})|([0-9a-z]{17}))$"),
   ),
   SubnetIds: z.array(
-    z.string().regex(new RegExp("^subnet-(([0-9a-z]{8})|([0-9a-z]{17}))$")),
+    z.string().regex(new RegExp("^subnet-[0-9a-zA-Z]{8,17}$")),
   ),
   EndpointIpAddressType: z.enum(["IPV4", "IPV6"]),
   SecurityGroupIds: z.array(
@@ -90,7 +82,17 @@ const CustomJWTAuthorizerConfigurationSchema = z.object({
   AllowedAudience: z.array(z.string()).optional(),
   AllowedClients: z.array(z.string()).optional(),
   AllowedScopes: z.array(
-    z.string().regex(new RegExp("[\\x21\\x23-\\x5B\\x5D-\\x7E]+")),
+    z.string().min(1).max(255).regex(
+      new RegExp("^[\\x21\\x23-\\x5B\\x5D-\\x7E]+$"),
+    ),
+  ).optional(),
+  AdvertisedScopeMapping: z.record(
+    z.string(),
+    z.string().min(1).max(255).regex(
+      new RegExp("^[\\x21\\x23-\\x5B\\x5D-\\x7E]+$"),
+    ),
+  ).describe(
+    "Maps an originalScope (from allowedScopes) to an advertisedScope exposed in WWW-Authenticate / Protected Resource Metadata.",
   ).optional(),
   CustomClaims: z.array(CustomClaimValidationTypeSchema).optional(),
   PrivateEndpoint: z.object({
@@ -108,13 +110,20 @@ const CustomJWTAuthorizerConfigurationSchema = z.object({
 const LambdaInterceptorConfigurationSchema = z.object({
   Arn: z.string().min(1).max(170).regex(
     new RegExp(
-      "^arn:[a-z0-9-]{1,20}:lambda:([a-z]{2}(-gov)?-[a-z]+-\\d{1}):(\\d{12}):function:([a-zA-Z0-9-_.]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$",
+      "^arn:(aws[a-zA-Z-]*)?:lambda:([a-z]{2}(-gov)?-[a-z]+-\\d{1}):(\\d{12}):function:([a-zA-Z0-9-_.]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?$",
     ),
   ),
 });
 
+const InterceptorPayloadFilterSchema = z.object({
+  Exclude: z.array(z.object({
+    Field: z.enum(["RESPONSE_BODY"]).optional(),
+  })),
+});
+
 const InterceptorInputConfigurationSchema = z.object({
   PassRequestHeaders: z.boolean(),
+  PayloadFilter: InterceptorPayloadFilterSchema.optional(),
 });
 
 const GatewayInterceptorConfigurationSchema = z.object({
@@ -126,7 +135,7 @@ const GatewayInterceptorConfigurationSchema = z.object({
 });
 
 const SessionConfigurationSchema = z.object({
-  SessionTimeoutInSeconds: z.number().int().min(900).max(28800).optional(),
+  SessionTimeoutInSeconds: z.number().min(900).max(28800).optional(),
 });
 
 const StreamingConfigurationSchema = z.object({
@@ -170,31 +179,25 @@ const GlobalArgsSchema = z.object({
   ExceptionLevel: z.enum(["DEBUG"]).optional(),
   InterceptorConfigurations: z.array(GatewayInterceptorConfigurationSchema)
     .optional(),
+  KmsKeyArn: z.string().min(1).max(2048).regex(
+    new RegExp(
+      "^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$",
+    ),
+  ).optional(),
+  Name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,48}$")),
   PolicyEngineConfiguration: z.object({
     Arn: z.string().min(1).max(170).regex(
       new RegExp(
-        "^arn:[a-z0-9-]{1,20}:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:policy-engine/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9_]{10}$",
+        "^arn:aws:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:policy-engine\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9_]{10}$",
       ),
-    ).describe(
-      "The ARN of the policy engine. The policy engine contains Cedar policies that define fine-grained authorization rules specifying who can perform what actions on which resources as agents interact through the gateway.",
     ),
-    Mode: z.enum(["LOG_ONLY", "ENFORCE"]).describe(
-      "The enforcement mode for the policy engine. LOG_ONLY - The policy engine evaluates each action against your policies and adds traces on whether tool calls would be allowed or denied, but does not enforce the decision. Use this mode to test and validate policies before enabling enforcement. ENFORCE - The policy engine evaluates actions against your policies and enforces decisions by allowing or denying agent operations. Test and validate policies in LOG_ONLY mode before enabling enforcement to avoid unintended denials or adversely affecting production traffic.",
-    ),
-  }).describe(
-    "The configuration for a policy engine associated with a gateway. A policy engine is a collection of policies that evaluates and authorizes agent tool calls. When associated with a gateway, the policy engine intercepts all agent requests and determines whether to allow or deny each action based on the defined policies.",
-  ).optional(),
-  KmsKeyArn: z.string().min(1).max(2048).regex(
-    new RegExp(
-      "^arn:[a-z0-9-]{1,20}:kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$",
-    ),
-  ).optional(),
-  Name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")),
+    Mode: z.enum(["LOG_ONLY", "ENFORCE"]),
+  }).optional(),
   ProtocolConfiguration: z.object({
     Mcp: MCPGatewayConfigurationSchema.optional(),
   }).optional(),
   RoleArn: z.string().min(1).max(2048).regex(
-    new RegExp("^arn:[a-z0-9-]{1,20}:iam::([0-9]{12})?:role/.+$"),
+    new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$"),
   ),
   Tags: z.record(
     z.string(),
@@ -213,17 +216,17 @@ const StateSchema = z.object({
   CreatedAt: z.string().optional(),
   Description: z.string().optional(),
   ExceptionLevel: z.string().optional(),
+  GatewayArn: z.string().optional(),
+  GatewayIdentifier: z.string(),
+  GatewayUrl: z.string().optional(),
   InterceptorConfigurations: z.array(GatewayInterceptorConfigurationSchema)
     .optional(),
+  KmsKeyArn: z.string().optional(),
+  Name: z.string().optional(),
   PolicyEngineConfiguration: z.object({
     Arn: z.string(),
     Mode: z.string(),
   }).optional(),
-  GatewayArn: z.string().optional(),
-  GatewayIdentifier: z.string(),
-  GatewayUrl: z.string().optional(),
-  KmsKeyArn: z.string().optional(),
-  Name: z.string().optional(),
   ProtocolConfiguration: z.object({
     Mcp: MCPGatewayConfigurationSchema,
   }).optional(),
@@ -254,31 +257,25 @@ const InputsSchema = z.object({
   ExceptionLevel: z.enum(["DEBUG"]).optional(),
   InterceptorConfigurations: z.array(GatewayInterceptorConfigurationSchema)
     .optional(),
+  KmsKeyArn: z.string().min(1).max(2048).regex(
+    new RegExp(
+      "^arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$",
+    ),
+  ).optional(),
+  Name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,48}$")).optional(),
   PolicyEngineConfiguration: z.object({
     Arn: z.string().min(1).max(170).regex(
       new RegExp(
-        "^arn:[a-z0-9-]{1,20}:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:policy-engine/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9_]{10}$",
+        "^arn:aws:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:policy-engine\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9_]{10}$",
       ),
-    ).describe(
-      "The ARN of the policy engine. The policy engine contains Cedar policies that define fine-grained authorization rules specifying who can perform what actions on which resources as agents interact through the gateway.",
     ).optional(),
-    Mode: z.enum(["LOG_ONLY", "ENFORCE"]).describe(
-      "The enforcement mode for the policy engine. LOG_ONLY - The policy engine evaluates each action against your policies and adds traces on whether tool calls would be allowed or denied, but does not enforce the decision. Use this mode to test and validate policies before enabling enforcement. ENFORCE - The policy engine evaluates actions against your policies and enforces decisions by allowing or denying agent operations. Test and validate policies in LOG_ONLY mode before enabling enforcement to avoid unintended denials or adversely affecting production traffic.",
-    ).optional(),
-  }).describe(
-    "The configuration for a policy engine associated with a gateway. A policy engine is a collection of policies that evaluates and authorizes agent tool calls. When associated with a gateway, the policy engine intercepts all agent requests and determines whether to allow or deny each action based on the defined policies.",
-  ).optional(),
-  KmsKeyArn: z.string().min(1).max(2048).regex(
-    new RegExp(
-      "^arn:[a-z0-9-]{1,20}:kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}$",
-    ),
-  ).optional(),
-  Name: z.string().regex(new RegExp("^([0-9a-zA-Z][-]?){1,100}$")).optional(),
+    Mode: z.enum(["LOG_ONLY", "ENFORCE"]).optional(),
+  }).optional(),
   ProtocolConfiguration: z.object({
     Mcp: MCPGatewayConfigurationSchema.optional(),
   }).optional(),
   RoleArn: z.string().min(1).max(2048).regex(
-    new RegExp("^arn:[a-z0-9-]{1,20}:iam::([0-9]{12})?:role/.+$"),
+    new RegExp("^arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+$"),
   ).optional(),
   Tags: z.record(
     z.string(),
@@ -308,7 +305,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore Gateway. Registered at `@swamp/aws/bedrockagentcore/gateway`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/gateway",
-  version: "2026.07.20.1",
+  version: "2026.08.07.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -375,6 +372,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.07.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
