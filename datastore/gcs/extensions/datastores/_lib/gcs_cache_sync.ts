@@ -2802,7 +2802,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
     if (this.lazyPullActive) return false;
     for (const [rel, entry] of Object.entries(this.index.entries)) {
       if (isInternalCacheFile(rel)) continue;
-      const localPath = assertSafePath(this.cachePath, rel);
+      const localPath = assertSafePath(this.cachePath, this.localRelPath(rel));
       try {
         const stat = await Deno.stat(localPath);
         if (stat.size !== entry.size) return false;

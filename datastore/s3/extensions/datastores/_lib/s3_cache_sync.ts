@@ -2954,7 +2954,10 @@ export class S3CacheSyncService implements DatastoreSyncService {
     for (const [rel, entry] of Object.entries(this.index.entries)) {
       if (isInternalCacheFile(rel)) continue;
       try {
-        const localPath = assertSafePath(this.cachePath, rel);
+        const localPath = assertSafePath(
+          this.cachePath,
+          this.localRelPath(rel),
+        );
         const stat = await Deno.stat(localPath);
         if (stat.size !== entry.size) return false;
       } catch {

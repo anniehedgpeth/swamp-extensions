@@ -6621,3 +6621,109 @@ Deno.test("isInternalCacheFile excludes _control/ paths", () => {
   assert(isInternalCacheFile("_control/pending-runs/run-1"));
   assert(!isInternalCacheFile("data/control-panel/file.yaml"));
 });
+
+// -- swamp-club#1556: localHasAllRemoteEntries must use localRelPath in namespaced mode --
+
+function seedV2RepoNamespaced(
+  mock: ReturnType<typeof createMockGcsClient>,
+  namespace: string,
+  entries: Record<
+    string,
+    { key: string; size: number; lastModified: string }
+  >,
+  commitSeq: number,
+): void {
+  const partitions = new Map<string, Record<string, unknown>>();
+  for (const [rel, entry] of Object.entries(entries)) {
+    const key = GcsCacheSyncService.partitionKeyFromPath(rel);
+    if (!key) continue;
+    let bucket = partitions.get(key);
+    if (!bucket) {
+      bucket = {};
+      partitions.set(key, bucket);
+    }
+    bucket[rel] = entry;
+  }
+  for (const [key, shardEntries] of partitions) {
+    mock.storage.set(
+      `${namespace}/_index/${key}.json`,
+      new TextEncoder().encode(
+        JSON.stringify({ version: 1, entries: shardEntries }),
+      ),
+    );
+  }
+  mock.storage.set(
+    `${namespace}/_index/_meta.json`,
+    new TextEncoder().encode(JSON.stringify({
+      version: 2,
+      partitions: [...partitions.keys()].sort(),
+      commitSeq,
+    })),
+  );
+}
+
+Deno.test("swamp-club#1556: commitPush marks sidecar clean in namespaced mode when all files present", async () => {
+  const cachePath = await Deno.makeTempDir({
+    prefix: "gcssync-1556-ns-clean-",
+  });
+  try {
+    const mock = createMockGcsClient();
+    const ts = new Date().toISOString();
+    const entries = {
+      "data/t1/m1/d1/1/raw": {
+        key: "data/t1/m1/d1/1/raw",
+        size: 4,
+        lastModified: ts,
+      },
+    };
+    seedV2RepoNamespaced(mock, "my-ns", entries, 5);
+    mock.storage.set(
+      "my-ns/data/t1/m1/d1/1/raw",
+      new TextEncoder().encode("aaa\n"),
+    );
+
+    await seedFile(cachePath, "my-ns/data/t1/m1/d1/1/raw", "aaa\n");
+    await seedFile(
+      cachePath,
+      "my-ns/.namespace.json",
+      JSON.stringify({
+        namespace: "my-ns",
+        repoId: "test",
+        registeredAt: "2026-01-01T00:00:00Z",
+      }),
+    );
+    // Seed a sidecar with dataKeyMigrated=true so preparePush skips the
+    // migration codepath (which unconditionally writes localDirty=false)
+    // and instead exercises the localHasAllRemoteEntries check.
+    await seedFile(
+      cachePath,
+      ".datastore-sync-state.json",
+      JSON.stringify({
+        version: 2,
+        remoteIndexETag: "",
+        lastVerifiedAt: "",
+        localDirty: true,
+        dirtyPaths: [],
+        bulkInvalidated: false,
+        lazyPullActive: false,
+        dirtyPathsOverflowed: false,
+        dataKeyMigrated: true,
+      }),
+    );
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+
+    const manifest = await service.preparePush({ namespace: "my-ns" });
+    await service.commitPush(manifest, { namespace: "my-ns" });
+
+    const sidecarPath = join(cachePath, ".datastore-sync-state.json");
+    const sidecar = JSON.parse(await Deno.readTextFile(sidecarPath));
+    assertEquals(
+      sidecar.localDirty,
+      false,
+      "sidecar must be marked clean when all remote entries exist locally under the namespace",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
