@@ -127,6 +127,43 @@ export const BranchArgsSchema = z.object({
 
 export type BranchArgs = z.infer<typeof BranchArgsSchema>;
 
+export const PullArgsSchema = z.object({
+  remote: safeRefOptional
+    .describe("Remote name (defaults to global remote)"),
+  branch: safeRefOptional
+    .describe("Branch to pull"),
+  rebase: z.boolean().default(false)
+    .describe("Rebase local commits on top of upstream (--rebase)"),
+  ffOnly: z.boolean().default(false)
+    .describe("Only fast-forward, fail if not possible (--ff-only)"),
+});
+
+export type PullArgs = z.infer<typeof PullArgsSchema>;
+
+export const FetchArgsSchema = z.object({
+  remote: safeRefOptional
+    .describe("Remote name (defaults to global remote)"),
+  tags: z.boolean().default(false)
+    .describe("Fetch all tags from the remote (--tags)"),
+  prune: z.boolean().default(false)
+    .describe("Remove remote-tracking refs that no longer exist (--prune)"),
+  depth: z.number().int().min(0).optional()
+    .describe("Limit fetch to specified depth"),
+});
+
+export type FetchArgs = z.infer<typeof FetchArgsSchema>;
+
+export const CherryPickArgsSchema = z.object({
+  commits: z.array(safeRef).optional()
+    .describe("Commit SHAs to cherry-pick (in order)"),
+  noCommit: z.boolean().default(false)
+    .describe("Apply changes without committing (--no-commit)"),
+  abort: z.boolean().default(false)
+    .describe("Abort an in-progress cherry-pick (--abort)"),
+});
+
+export type CherryPickArgs = z.infer<typeof CherryPickArgsSchema>;
+
 export const ConfigArgsSchema = z.object({
   key: z.string().min(1).refine(
     (v) => !v.startsWith("-"),
@@ -203,6 +240,28 @@ export const BranchResultSchema = z.object({
   current: z.string().optional(),
   branches: z.array(z.string()).optional(),
   created: z.boolean().optional(),
+});
+
+export const PullResultSchema = z.object({
+  remote: z.string(),
+  branch: z.string().optional(),
+  alreadyUpToDate: z.boolean(),
+  raw: z.string(),
+});
+
+export const FetchResultSchema = z.object({
+  remote: z.string(),
+  tags: z.boolean(),
+  pruned: z.boolean(),
+  raw: z.string(),
+});
+
+export const CherryPickResultSchema = z.object({
+  commits: z.array(z.string()),
+  conflict: z.boolean(),
+  conflictFiles: z.array(z.string()).optional(),
+  aborted: z.boolean().optional(),
+  raw: z.string(),
 });
 
 export const ConfigResultSchema = z.object({

@@ -4,12 +4,15 @@ import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
 import { GlobalArgsSchema } from "./schemas.ts";
 import type {
   BranchArgs,
+  CherryPickArgs,
   CloneArgs,
   CommitArgs,
   ConfigArgs,
   DiffArgs,
+  FetchArgs,
   GlobalArgs,
   LogArgs,
+  PullArgs,
   PushArgs,
   StatusArgs,
 } from "./schemas.ts";
@@ -645,6 +648,286 @@ export async function runConfig(
         resourceName,
         { key: args.key, value },
         { tags: { method: "config", key: args.key } },
+      );
+
+      return { dataHandles: [handle] };
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// pull
+// ---------------------------------------------------------------------------
+
+export async function runPull(
+  args: PullArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan("git.pull", async (span) => {
+    try {
+      const globals = resolveGlobalArgs(ctx.globalArgs);
+      const remote = args.remote || globals.remote;
+      const argv = ["pull"];
+
+      if (args.rebase) {
+        argv.push("--rebase");
+      }
+      if (args.ffOnly) {
+        argv.push("--ff-only");
+      }
+
+      argv.push(remote);
+      if (args.branch) {
+        argv.push(args.branch);
+      }
+
+      const result = await execGit(argv, { cwd: globals.repoPath });
+      if (result.exitCode !== 0) {
+        throw new Error(
+          `git pull failed (exit ${result.exitCode}): ${result.stderr}`,
+        );
+      }
+
+      const raw = result.stdout + result.stderr;
+      const alreadyUpToDate = raw.includes("Already up to date");
+
+      span.setAttribute(Attr.METHOD, "pull");
+      span.setAttribute(Attr.REMOTE, remote);
+      span.setAttribute(Attr.EXIT_CODE, result.exitCode);
+
+      ctx.logger.info(
+        `pulled from ${remote}${
+          alreadyUpToDate ? " (already up to date)" : ""
+        }`,
+      );
+
+      const handle = await ctx.writeResource(
+        "pullResult",
+        "pull",
+        {
+          remote,
+          ...(args.branch ? { branch: args.branch } : {}),
+          alreadyUpToDate,
+          raw: raw.trim(),
+        },
+        {
+          tags: { method: "pull", remote },
+        },
+      );
+
+      return { dataHandles: [handle] };
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// fetch
+// ---------------------------------------------------------------------------
+
+export async function runFetch(
+  args: FetchArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan("git.fetch", async (span) => {
+    try {
+      const globals = resolveGlobalArgs(ctx.globalArgs);
+      const remote = args.remote || globals.remote;
+      const argv = ["fetch"];
+
+      if (args.tags) {
+        argv.push("--tags");
+      }
+      if (args.prune) {
+        argv.push("--prune");
+      }
+      if (args.depth !== undefined && args.depth > 0) {
+        argv.push("--depth", String(args.depth));
+      }
+
+      argv.push(remote);
+
+      const result = await execGit(argv, { cwd: globals.repoPath });
+      if (result.exitCode !== 0) {
+        throw new Error(
+          `git fetch failed (exit ${result.exitCode}): ${result.stderr}`,
+        );
+      }
+
+      span.setAttribute(Attr.METHOD, "fetch");
+      span.setAttribute(Attr.REMOTE, remote);
+      span.setAttribute(Attr.EXIT_CODE, result.exitCode);
+
+      ctx.logger.info(
+        `fetched from ${remote}${args.tags ? " (with tags)" : ""}${
+          args.prune ? " (pruned)" : ""
+        }`,
+      );
+
+      const handle = await ctx.writeResource(
+        "fetchResult",
+        "fetch",
+        {
+          remote,
+          tags: args.tags,
+          pruned: args.prune,
+          raw: (result.stdout + result.stderr).trim(),
+        },
+        {
+          tags: { method: "fetch", remote },
+        },
+      );
+
+      return { dataHandles: [handle] };
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// cherry-pick
+// ---------------------------------------------------------------------------
+
+export async function runCherryPick(
+  args: CherryPickArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan("git.cherry-pick", async (span) => {
+    try {
+      const globals = resolveGlobalArgs(ctx.globalArgs);
+      const cwd = globals.repoPath;
+
+      if (args.abort) {
+        const result = await execGit(["cherry-pick", "--abort"], { cwd });
+        if (result.exitCode !== 0) {
+          throw new Error(
+            `git cherry-pick --abort failed (exit ${result.exitCode}): ${result.stderr}`,
+          );
+        }
+
+        span.setAttribute(Attr.METHOD, "cherry-pick");
+        span.setAttribute(Attr.EXIT_CODE, result.exitCode);
+
+        ctx.logger.info("aborted cherry-pick");
+
+        const handle = await ctx.writeResource(
+          "cherryPickResult",
+          "cherry-pick-abort",
+          {
+            commits: [],
+            conflict: false,
+            aborted: true,
+            raw: (result.stdout + result.stderr).trim(),
+          },
+          {
+            tags: { method: "cherry-pick", action: "abort" },
+          },
+        );
+
+        return { dataHandles: [handle] };
+      }
+
+      if (!args.commits || args.commits.length === 0) {
+        throw new Error(
+          "commits are required when not aborting a cherry-pick",
+        );
+      }
+
+      const argv = ["cherry-pick"];
+      if (args.noCommit) {
+        argv.push("--no-commit");
+      }
+      argv.push("--", ...args.commits);
+
+      const result = await execGit(argv, { cwd });
+      const raw = (result.stdout + result.stderr).trim();
+
+      if (result.exitCode !== 0) {
+        const isConflict = raw.includes("CONFLICT") ||
+          raw.includes("could not apply");
+
+        if (!isConflict) {
+          throw new Error(
+            `git cherry-pick failed (exit ${result.exitCode}): ${result.stderr}`,
+          );
+        }
+
+        const statusResult = await execGit(
+          ["diff", "--name-only", "--diff-filter=U"],
+          { cwd },
+        );
+        const conflictFiles = statusResult.stdout
+          .split("\n")
+          .filter((l) => l.trim().length > 0);
+
+        span.setAttribute(Attr.METHOD, "cherry-pick");
+        span.setAttribute(Attr.EXIT_CODE, result.exitCode);
+
+        ctx.logger.warn(
+          `cherry-pick conflict: ${conflictFiles.length} file(s)`,
+        );
+
+        const handle = await ctx.writeResource(
+          "cherryPickResult",
+          "cherry-pick",
+          {
+            commits: args.commits,
+            conflict: true,
+            conflictFiles,
+            raw,
+          },
+          {
+            tags: { method: "cherry-pick", conflict: "true" },
+          },
+        );
+
+        return { dataHandles: [handle] };
+      }
+
+      span.setAttribute(Attr.METHOD, "cherry-pick");
+      span.setAttribute(
+        Attr.CHERRY_PICK_SHA,
+        args.commits.join(","),
+      );
+      span.setAttribute(Attr.EXIT_CODE, result.exitCode);
+
+      ctx.logger.info(
+        `cherry-picked ${args.commits.length} commit(s)`,
+      );
+
+      const handle = await ctx.writeResource(
+        "cherryPickResult",
+        "cherry-pick",
+        {
+          commits: args.commits,
+          conflict: false,
+          raw,
+        },
+        {
+          tags: { method: "cherry-pick" },
+        },
       );
 
       return { dataHandles: [handle] };

@@ -98,9 +98,9 @@ Deno.test("globalArguments accepts full config", () => {
 // Resource declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 8 resource specs exist", () => {
+Deno.test("all 11 resource specs exist", () => {
   const names = Object.keys(model.resources);
-  assertEquals(names.length, 8);
+  assertEquals(names.length, 11);
   for (
     const name of [
       "cloneResult",
@@ -111,6 +111,9 @@ Deno.test("all 8 resource specs exist", () => {
       "pushResult",
       "branchResult",
       "configResult",
+      "pullResult",
+      "fetchResult",
+      "cherryPickResult",
     ]
   ) {
     assertEquals(
@@ -136,9 +139,9 @@ Deno.test("resources have description and schema", () => {
 // Method declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 8 methods exist", () => {
+Deno.test("all 11 methods exist", () => {
   const names = Object.keys(model.methods);
-  assertEquals(names.length, 8);
+  assertEquals(names.length, 11);
   for (
     const name of [
       "clone",
@@ -147,6 +150,9 @@ Deno.test("all 8 methods exist", () => {
       "log",
       "commit",
       "push",
+      "pull",
+      "fetch",
+      "cherry_pick",
       "branch",
       "config",
     ]
@@ -174,10 +180,22 @@ Deno.test("methods have description and execute function", () => {
 // Check declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("git-available check exists", () => {
+Deno.test("git-available check exists and covers new methods", () => {
   assertEquals(typeof model.checks["git-available"].execute, "function");
   assertEquals(
     model.checks["git-available"].appliesTo.includes("clone"),
+    true,
+  );
+  assertEquals(
+    model.checks["git-available"].appliesTo.includes("pull"),
+    true,
+  );
+  assertEquals(
+    model.checks["git-available"].appliesTo.includes("fetch"),
+    true,
+  );
+  assertEquals(
+    model.checks["git-available"].appliesTo.includes("cherry_pick"),
     true,
   );
 });
@@ -190,6 +208,18 @@ Deno.test("repo-initialized check exists and excludes clone", () => {
   );
   assertEquals(
     model.checks["repo-initialized"].appliesTo.includes("diff"),
+    true,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("pull"),
+    true,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("fetch"),
+    true,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("cherry_pick"),
     true,
   );
 });
@@ -1263,4 +1293,487 @@ Deno.test("harness readResource returns null for missing", async () => {
   const { ctx } = makeHarness();
   const result = await ctx.readResource("nonexistent");
   assertEquals(result, null);
+});
+
+// ---------------------------------------------------------------------------
+// pull schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("PullArgs defaults", () => {
+  const result = model.methods.pull.arguments.parse({});
+  assertEquals(result.rebase, false);
+  assertEquals(result.ffOnly, false);
+});
+
+Deno.test("PullArgs rejects remote starting with dash", () => {
+  const result = model.methods.pull.arguments.safeParse({
+    remote: "--mirror",
+  });
+  assertEquals(result.success, false);
+});
+
+Deno.test("PullArgs rejects branch starting with dash", () => {
+  const result = model.methods.pull.arguments.safeParse({
+    branch: "--upload-pack",
+  });
+  assertEquals(result.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// pull operation
+// ---------------------------------------------------------------------------
+
+Deno.test("pull: basic pull from origin", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("Updating abc1234..def5678\nFast-forward\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.pull.execute({}, ctx);
+
+    const argv = calls[0];
+    assertEquals(argv.includes("pull"), true);
+    assertEquals(argv.includes("origin"), true);
+
+    assertEquals(writes[0].specName, "pullResult");
+    assertEquals(writes[0].data.remote, "origin");
+    assertEquals(writes[0].data.alreadyUpToDate, false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("pull: already up to date", async () => {
+  setCommandExecutor(() => ok("Already up to date.\n"));
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.pull.execute({}, ctx);
+
+    assertEquals(writes[0].data.alreadyUpToDate, true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("pull: with rebase flag", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("Already up to date.\n");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await model.methods.pull.execute({ rebase: true }, ctx);
+
+    assertEquals(calls[0].includes("--rebase"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("pull: with ff-only flag", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("Already up to date.\n");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await model.methods.pull.execute({ ffOnly: true }, ctx);
+
+    assertEquals(calls[0].includes("--ff-only"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("pull: with specific branch", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("Already up to date.\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.pull.execute({ branch: "develop" }, ctx);
+
+    assertEquals(calls[0].includes("develop"), true);
+    assertEquals(writes[0].data.branch, "develop");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("pull: override remote", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("Already up to date.\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.pull.execute({ remote: "upstream" }, ctx);
+
+    assertEquals(calls[0].includes("upstream"), true);
+    assertEquals(writes[0].data.remote, "upstream");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("pull: throws on failure", async () => {
+  setCommandExecutor(() => fail("fatal: not a git repository"));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.pull.execute({}, ctx),
+      Error,
+      "git pull failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// fetch schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("FetchArgs defaults", () => {
+  const result = model.methods.fetch.arguments.parse({});
+  assertEquals(result.tags, false);
+  assertEquals(result.prune, false);
+});
+
+Deno.test("FetchArgs rejects remote starting with dash", () => {
+  const result = model.methods.fetch.arguments.safeParse({
+    remote: "--upload-pack",
+  });
+  assertEquals(result.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// fetch operation
+// ---------------------------------------------------------------------------
+
+Deno.test("fetch: basic fetch from origin", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.fetch.execute({}, ctx);
+
+    const argv = calls[0];
+    assertEquals(argv.includes("fetch"), true);
+    assertEquals(argv.includes("origin"), true);
+    assertEquals(argv.includes("--tags"), false);
+
+    assertEquals(writes[0].specName, "fetchResult");
+    assertEquals(writes[0].data.remote, "origin");
+    assertEquals(writes[0].data.tags, false);
+    assertEquals(writes[0].data.pruned, false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("fetch: with tags", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.fetch.execute({ tags: true }, ctx);
+
+    assertEquals(calls[0].includes("--tags"), true);
+    assertEquals(writes[0].data.tags, true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("fetch: with prune", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.fetch.execute({ prune: true }, ctx);
+
+    assertEquals(calls[0].includes("--prune"), true);
+    assertEquals(writes[0].data.pruned, true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("fetch: with depth", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await model.methods.fetch.execute({ depth: 5 }, ctx);
+
+    assertEquals(calls[0].includes("--depth"), true);
+    assertEquals(calls[0].includes("5"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("fetch: override remote", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.fetch.execute({ remote: "upstream", tags: true }, ctx);
+
+    assertEquals(calls[0].includes("upstream"), true);
+    assertEquals(writes[0].data.remote, "upstream");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("fetch: throws on failure", async () => {
+  setCommandExecutor(() => fail("fatal: not a git repository"));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.fetch.execute({}, ctx),
+      Error,
+      "git fetch failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// cherry_pick schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("CherryPickArgs defaults", () => {
+  const result = model.methods.cherry_pick.arguments.parse({});
+  assertEquals(result.noCommit, false);
+  assertEquals(result.abort, false);
+});
+
+Deno.test("CherryPickArgs rejects commits starting with dash", () => {
+  const result = model.methods.cherry_pick.arguments.safeParse({
+    commits: ["--exec=malicious"],
+  });
+  assertEquals(result.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// cherry_pick operation
+// ---------------------------------------------------------------------------
+
+Deno.test("cherry_pick: single commit success", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("[main abc1234] cherry picked commit\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.cherry_pick.execute(
+      { commits: ["abc1234"] },
+      ctx,
+    );
+
+    const argv = calls[0];
+    assertEquals(argv.includes("cherry-pick"), true);
+    const dashIdx = argv.indexOf("--");
+    assertEquals(dashIdx > 0, true);
+    assertEquals(argv.includes("abc1234"), true);
+
+    assertEquals(writes[0].specName, "cherryPickResult");
+    assertEquals(writes[0].data.conflict, false);
+    assertEquals((writes[0].data.commits as string[])[0], "abc1234");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("cherry_pick: multiple commits", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.cherry_pick.execute(
+      { commits: ["abc1234", "def5678"] },
+      ctx,
+    );
+
+    const argv = calls[0];
+    assertEquals(argv.includes("abc1234"), true);
+    assertEquals(argv.includes("def5678"), true);
+    assertEquals((writes[0].data.commits as string[]).length, 2);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("cherry_pick: with noCommit flag", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await model.methods.cherry_pick.execute(
+      { commits: ["abc1234"], noCommit: true },
+      ctx,
+    );
+
+    assertEquals(calls[0].includes("--no-commit"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("cherry_pick: conflict detection", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) {
+      return {
+        stdout: "",
+        stderr:
+          "error: could not apply abc1234... some commit\nhint: after resolving the conflicts",
+        exitCode: 1,
+      };
+    }
+    return ok("src/main.ts\nsrc/lib.ts\n");
+  });
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.cherry_pick.execute(
+      { commits: ["abc1234"] },
+      ctx,
+    );
+
+    assertEquals(writes[0].data.conflict, true);
+    const conflictFiles = writes[0].data.conflictFiles as string[];
+    assertEquals(conflictFiles.length, 2);
+    assertEquals(conflictFiles[0], "src/main.ts");
+    assertEquals(logs.some((l) => l.level === "warn"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("cherry_pick: CONFLICT marker detection", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) {
+      return {
+        stdout: "CONFLICT (content): Merge conflict in src/main.ts\n",
+        stderr: "",
+        exitCode: 1,
+      };
+    }
+    return ok("src/main.ts\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.cherry_pick.execute(
+      { commits: ["abc1234"] },
+      ctx,
+    );
+
+    assertEquals(writes[0].data.conflict, true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("cherry_pick: non-conflict error throws", async () => {
+  setCommandExecutor(() => fail("fatal: bad object abc1234"));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () =>
+        model.methods.cherry_pick.execute(
+          { commits: ["abc1234"] },
+          ctx,
+        ),
+      Error,
+      "git cherry-pick failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("cherry_pick: abort success", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.cherry_pick.execute({ abort: true }, ctx);
+
+    assertEquals(calls[0].includes("cherry-pick"), true);
+    assertEquals(calls[0].includes("--abort"), true);
+
+    assertEquals(writes[0].data.aborted, true);
+    assertEquals(writes[0].data.conflict, false);
+    assertEquals((writes[0].data.commits as string[]).length, 0);
+    assertEquals(logs.some((l) => l.message.includes("aborted")), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("cherry_pick: abort when no cherry-pick in progress throws", async () => {
+  setCommandExecutor(() => fail("error: no cherry-pick or revert in progress"));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.cherry_pick.execute({ abort: true }, ctx),
+      Error,
+      "git cherry-pick --abort failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("cherry_pick: requires commits when not aborting", async () => {
+  setCommandExecutor(() => ok(""));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.cherry_pick.execute({}, ctx),
+      Error,
+      "commits are required",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
 });

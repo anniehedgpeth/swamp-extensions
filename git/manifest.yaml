@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/git"
-version: "2026.08.05.1"
+version: "2026.08.07.1"
 description: |
   Git repository operations for swamp workflows. Wraps the git CLI
   and returns structured data (file lists, commit objects, status
@@ -20,6 +20,9 @@ description: |
   | `log`    | Commit history with structured entries (SHA, author, date, message). |
   | `commit` | Stage files and create a commit. |
   | `push`   | Push commits to a remote (with optional force and set-upstream). |
+  | `pull`   | Pull changes from a remote (with optional rebase and ff-only). |
+  | `fetch`  | Fetch refs from a remote with optional tag and prune support. |
+  | `cherry_pick` | Cherry-pick commits or abort an in-progress cherry-pick. |
   | `branch` | Create, switch, or list branches. |
   | `config` | Get or set git configuration values. |
 

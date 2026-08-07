@@ -2,6 +2,8 @@ import { z } from "npm:zod@4.3.6";
 import {
   BranchArgsSchema,
   BranchResultSchema,
+  CherryPickArgsSchema,
+  CherryPickResultSchema,
   CloneArgsSchema,
   CloneResultSchema,
   CommitArgsSchema,
@@ -10,9 +12,13 @@ import {
   ConfigResultSchema,
   DiffArgsSchema,
   DiffResultSchema,
+  FetchArgsSchema,
+  FetchResultSchema,
   GlobalArgsSchema,
   LogArgsSchema,
   LogResultSchema,
+  PullArgsSchema,
+  PullResultSchema,
   PushArgsSchema,
   PushResultSchema,
   StatusArgsSchema,
@@ -20,11 +26,14 @@ import {
 } from "./_lib/schemas.ts";
 import {
   runBranch,
+  runCherryPick,
   runClone,
   runCommit,
   runConfig,
   runDiff,
+  runFetch,
   runLog,
+  runPull,
   runPush,
   runStatus,
 } from "./_lib/operations.ts";
@@ -37,20 +46,23 @@ import type { GitContext } from "./_lib/types.ts";
  * @module
  */
 
-/** Git model — clone, diff, status, log, commit, push, branch, config. */
+/** Git model — clone, diff, status, log, commit, push, pull, fetch, cherry_pick, branch, config. */
 export const model = {
   type: "@swamp/git",
-  version: "2026.08.05.1",
+  version: "2026.08.07.1",
 
   globalArguments: GlobalArgsSchema,
 
-  upgrades: [] as Array<{
-    toVersion: string;
-    description: string;
-    upgradeAttributes: (
-      old: Record<string, unknown>,
-    ) => Record<string, unknown>;
-  }>,
+  upgrades: [
+    {
+      toVersion: "2026.08.07.1",
+      description:
+        "Add pull, fetch, and cherry_pick methods. No globalArguments changes.",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ): Record<string, unknown> => old,
+    },
+  ],
 
   resources: {
     cloneResult: {
@@ -104,6 +116,25 @@ export const model = {
       lifetime: "ephemeral" as const,
       garbageCollection: 5,
     },
+    pullResult: {
+      description: "Result of a git pull operation",
+      schema: PullResultSchema,
+      lifetime: "ephemeral" as const,
+      garbageCollection: 5,
+    },
+    fetchResult: {
+      description: "Result of a git fetch operation",
+      schema: FetchResultSchema,
+      lifetime: "ephemeral" as const,
+      garbageCollection: 5,
+    },
+    cherryPickResult: {
+      description:
+        "Cherry-pick result: applied commits, conflict status, and conflicting files",
+      schema: CherryPickResultSchema,
+      lifetime: "ephemeral" as const,
+      garbageCollection: 5,
+    },
   },
 
   checks: {
@@ -117,6 +148,9 @@ export const model = {
         "log",
         "commit",
         "push",
+        "pull",
+        "fetch",
+        "cherry_pick",
         "branch",
         "config",
       ],
@@ -131,6 +165,9 @@ export const model = {
         "log",
         "commit",
         "push",
+        "pull",
+        "fetch",
+        "cherry_pick",
         "branch",
         "config",
       ],
@@ -181,6 +218,28 @@ export const model = {
       arguments: BranchArgsSchema,
       execute: (args: z.input<typeof BranchArgsSchema>, ctx: GitContext) =>
         runBranch(BranchArgsSchema.parse(args), ctx),
+    },
+    pull: {
+      description: "Pull changes from a remote into the current branch",
+      arguments: PullArgsSchema,
+      execute: (args: z.input<typeof PullArgsSchema>, ctx: GitContext) =>
+        runPull(PullArgsSchema.parse(args), ctx),
+    },
+    fetch: {
+      description:
+        "Fetch refs from a remote with optional tag and prune support",
+      arguments: FetchArgsSchema,
+      execute: (args: z.input<typeof FetchArgsSchema>, ctx: GitContext) =>
+        runFetch(FetchArgsSchema.parse(args), ctx),
+    },
+    cherry_pick: {
+      description:
+        "Cherry-pick commits onto the current branch, or abort an in-progress cherry-pick",
+      arguments: CherryPickArgsSchema,
+      execute: (
+        args: z.input<typeof CherryPickArgsSchema>,
+        ctx: GitContext,
+      ) => runCherryPick(CherryPickArgsSchema.parse(args), ctx),
     },
     config: {
       description: "Get or set git configuration values",

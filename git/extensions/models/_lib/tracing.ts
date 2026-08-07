@@ -15,4 +15,5 @@ export const Attr = {
   BRANCH: "git.branch",
   REMOTE: "git.remote",
   COMMIT_SHA: "git.commit_sha",
+  CHERRY_PICK_SHA: "git.cherry_pick_sha",
 } as const;
