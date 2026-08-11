@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: deno check
         run: deno check extensions/models/*.ts
 
@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: Verify lockfile is up to date
         run: deno install --frozen
 
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: deno check (sample)
         run: |
           for service in healthimaging quicksight sns apigateway ec2; do
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: Verify all AWS lockfiles are up to date
         run: |
           failed=false
@@ -96,7 +96,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: deno check (sample)
         run: |
           for service in groupssettings container storage dataproc compute; do
@@ -112,7 +112,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: Verify all GCP lockfiles are up to date
         run: |
           failed=false
@@ -133,7 +133,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: deno check (sample)
         run: |
           for service in r2 load-balancing pages; do
@@ -149,7 +149,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: Verify all Cloudflare lockfiles are up to date
         run: |
           failed=false
@@ -170,7 +170,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: deno check (sample)
         run: |
           for service in projects deployments domains dns edge-config; do
@@ -186,7 +186,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: Verify all Vercel lockfiles are up to date
         run: |
           failed=false
@@ -214,7 +214,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: deno ${{ matrix.task }}
         run: |
           if [ "${{ matrix.task }}" = "fmt" ]; then
@@ -235,7 +235,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.x
+          deno-version: v2.8.x
       - name: Verify lockfile is up to date
         run: deno install --frozen
 
