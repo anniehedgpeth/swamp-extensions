@@ -5008,10 +5008,33 @@ Deno.test("partitionKeyFromPath: workflow-runs/ per-workflow key", () => {
   );
 });
 
-Deno.test("partitionKeyFromPath: workflows-evaluated/ per-workflow key", () => {
+Deno.test("partitionKeyFromPath: workflows-evaluated/ single-shard key", () => {
+  assertEquals(
+    S3CacheSyncService.partitionKeyFromPath(
+      "workflows-evaluated/workflow-063a0cb1.yaml",
+    ),
+    "workflows-evaluated",
+  );
+});
+
+Deno.test("partitionKeyFromPath: workflows-evaluated/ deeper path also works", () => {
   assertEquals(
     S3CacheSyncService.partitionKeyFromPath("workflows-evaluated/wf-2/file"),
-    "workflows-evaluated--wf-2",
+    "workflows-evaluated",
+  );
+});
+
+Deno.test("partitionKeyFromPath: root-level file returns _root", () => {
+  assertEquals(
+    S3CacheSyncService.partitionKeyFromPath(".catalog-export.json"),
+    "_root",
+  );
+});
+
+Deno.test("partitionKeyFromPath: empty string returns undefined", () => {
+  assertEquals(
+    S3CacheSyncService.partitionKeyFromPath(""),
+    undefined,
   );
 });
 
@@ -5297,6 +5320,111 @@ Deno.test("migrateMonolithToShards: partitions monolith into shards", async () =
       "data--t1--m1 shard should exist",
     );
     assert(mock.storage.has("_index/audit.json"), "audit shard should exist");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("migrateMonolithToShards: preserves shallow-path entries", async () => {
+  const cachePath = await Deno.makeTempDir({
+    prefix: "s3sync-migrate-shallow-",
+  });
+  try {
+    const mock = createMockS3Client();
+
+    const index = {
+      version: 1,
+      lastPulled: "2026-01-01T00:00:00Z",
+      entries: {
+        "data/t1/m1/d1/1/raw": {
+          key: "data/t1/m1/d1/1/raw",
+          size: 4,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+        "workflows-evaluated/workflow-063a0cb1.yaml": {
+          key: "workflows-evaluated/workflow-063a0cb1.yaml",
+          size: 200,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+        "workflows-evaluated/workflow-e14e03ef.yaml": {
+          key: "workflows-evaluated/workflow-e14e03ef.yaml",
+          size: 180,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+        ".catalog-export.json": {
+          key: ".catalog-export.json",
+          size: 5800000,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+      },
+    };
+    mock.storage.set(
+      ".datastore-index.json",
+      new TextEncoder().encode(JSON.stringify(index)),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    const meta = await service.migrateMonolithToShards();
+
+    assertEquals(meta.version, 2);
+    assert(
+      meta.partitions.includes("workflows-evaluated"),
+      "should have workflows-evaluated partition",
+    );
+    assert(
+      meta.partitions.includes("_root"),
+      "should have _root partition for root-level files",
+    );
+    assert(
+      meta.partitions.includes("data--t1--m1"),
+      "should have data partition",
+    );
+
+    assert(
+      mock.storage.has("_index/workflows-evaluated.json"),
+      "workflows-evaluated shard should exist",
+    );
+    assert(
+      mock.storage.has("_index/_root.json"),
+      "_root shard should exist",
+    );
+
+    const weShard = JSON.parse(
+      new TextDecoder().decode(
+        mock.storage.get("_index/workflows-evaluated.json")!,
+      ),
+    );
+    assertEquals(
+      Object.keys(weShard.entries).length,
+      2,
+      "workflows-evaluated shard should contain both entries",
+    );
+
+    const rootShard = JSON.parse(
+      new TextDecoder().decode(mock.storage.get("_index/_root.json")!),
+    );
+    assertEquals(
+      Object.keys(rootShard.entries).length,
+      1,
+      "_root shard should contain .catalog-export.json",
+    );
+    assert(
+      ".catalog-export.json" in rootShard.entries,
+      "_root shard should have .catalog-export.json",
+    );
+
+    let totalEntries = 0;
+    for (const key of meta.partitions) {
+      const shardData = JSON.parse(
+        new TextDecoder().decode(mock.storage.get(`_index/${key}.json`)!),
+      );
+      totalEntries += Object.keys(shardData.entries).length;
+    }
+    assertEquals(
+      totalEntries,
+      4,
+      "sum of shard entries must equal original entry count",
+    );
   } finally {
     await Deno.remove(cachePath, { recursive: true });
   }

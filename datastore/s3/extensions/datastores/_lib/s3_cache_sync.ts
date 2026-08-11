@@ -897,6 +897,22 @@ export class S3CacheSyncService implements DatastoreSyncService {
             allEntries,
           );
 
+          let partitionedCount = 0;
+          for (const bucket of partitions.values()) {
+            partitionedCount += Object.keys(bucket).length;
+          }
+          if (partitionedCount !== entryCount) {
+            const missing = Object.keys(allEntries).filter(
+              (rel) => !S3CacheSyncService.partitionKeyFromPath(rel),
+            );
+            throw new Error(
+              `[s3-sync] Migration aborted: ${entryCount} index entries but only ${partitionedCount} could be partitioned. ` +
+                `${entryCount - partitionedCount} entry/entries dropped: ${
+                  missing.slice(0, 10).join(", ")
+                }`,
+            );
+          }
+
           console.info(
             `[s3-sync] Migrating monolithic index to shard-first: ${entryCount} entries → ${partitions.size} shard(s)`,
           );
@@ -3030,15 +3046,20 @@ export class S3CacheSyncService implements DatastoreSyncService {
    * Per-model (data/, outputs/, definitions-evaluated/):
    *   `{subdir}--{type segments}--{modelId}`
    *
-   * Per-workflow (workflow-runs/, workflows-evaluated/):
+   * Per-workflow (workflow-runs/):
    *   `{subdir}--{workflowId}`
    *
-   * Single-shard (auto-definitions, audit, telemetry, logs, files):
+   * Single-shard (workflows-evaluated, auto-definitions, audit, telemetry, logs, files):
    *   `{subdir}`
+   *
+   * Root-level files (single segment, no subdirectory):
+   *   `_root`
    */
   static partitionKeyFromPath(rel: string): string | undefined {
     const segments = rel.split("/");
-    if (segments.length < 2) return undefined;
+    if (segments.length < 2) {
+      return segments.length === 1 && segments[0] !== "" ? "_root" : undefined;
+    }
     const subdir = segments[0];
 
     switch (subdir) {
@@ -3051,11 +3072,11 @@ export class S3CacheSyncService implements DatastoreSyncService {
           : segments.length - 1;
         return segments.slice(0, prefixEnd).join("--");
       }
-      case "workflow-runs":
-      case "workflows-evaluated": {
+      case "workflow-runs": {
         if (segments.length < 3) return undefined;
         return `${subdir}--${segments[1]}`;
       }
+      case "workflows-evaluated":
       case "auto-definitions":
       case "audit":
       case "telemetry":
@@ -3075,10 +3096,14 @@ export class S3CacheSyncService implements DatastoreSyncService {
     entries: Record<string, IndexEntry>,
   ): Map<string, Record<string, IndexEntry>> {
     const partitions = new Map<string, Record<string, IndexEntry>>();
+    const dropped: string[] = [];
 
     for (const [rel, entry] of Object.entries(entries)) {
       const key = S3CacheSyncService.partitionKeyFromPath(rel);
-      if (!key) continue;
+      if (!key) {
+        dropped.push(rel);
+        continue;
+      }
 
       let bucket = partitions.get(key);
       if (!bucket) {
@@ -3086,6 +3111,14 @@ export class S3CacheSyncService implements DatastoreSyncService {
         partitions.set(key, bucket);
       }
       bucket[rel] = entry;
+    }
+
+    if (dropped.length > 0) {
+      console.warn(
+        `[s3-sync] ${dropped.length} index entry/entries could not be partitioned and were skipped: ${
+          dropped.slice(0, 5).join(", ")
+        }${dropped.length > 5 ? ` (and ${dropped.length - 5} more)` : ""}`,
+      );
     }
 
     return partitions;
