@@ -44,10 +44,14 @@ import {
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   config: z.object({
-    api_url: z.string(),
-    auth_url: z.string(),
-    client_id: z.string(),
-    client_secret: z.string(),
+    api_url: z.string().optional(),
+    auth_url: z.string().optional(),
+    client_id: z.string().optional(),
+    client_secret: z.string().optional(),
+    customer_id: z.string().optional(),
+    client_key: z.string().optional(),
+    access_client_id: z.string().optional(),
+    access_client_secret: z.string().optional(),
   }),
   interval: z.string().describe(
     "The interval between each posture check with the third-party API. Use `m` for minutes (e.g. `5m`) and `h` for hours (e.g. `12h`).",
@@ -91,10 +95,14 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   config: z.object({
-    api_url: z.string(),
-    auth_url: z.string(),
-    client_id: z.string(),
-    client_secret: z.string(),
+    api_url: z.string().optional(),
+    auth_url: z.string().optional(),
+    client_id: z.string().optional(),
+    client_secret: z.string().optional(),
+    customer_id: z.string().optional(),
+    client_key: z.string().optional(),
+    access_client_id: z.string().optional(),
+    access_client_secret: z.string().optional(),
   }).optional(),
   interval: z.string().optional(),
   name: z.string().optional(),
@@ -116,7 +124,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Integration. Registered at `@swamp/cloudflare/devices/integration`. */
 export const model = {
   type: "@swamp/cloudflare/devices/integration",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -135,6 +143,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

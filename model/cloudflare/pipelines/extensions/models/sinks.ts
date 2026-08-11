@@ -42,7 +42,7 @@ const GlobalArgsSchema = z.object({
     credentials: z.object({
       access_key_id: z.string(),
       secret_access_key: z.string(),
-    }),
+    }).optional(),
     file_naming: z.object({
       prefix: z.string().optional(),
       strategy: z.enum(["serial", "uuid", "uuid_v7", "ulid"]).optional(),
@@ -58,12 +58,18 @@ const GlobalArgsSchema = z.object({
       inactivity_seconds: z.number().int().min(1).optional(),
       interval_seconds: z.number().int().min(1).optional(),
     }).optional(),
+    namespace: z.string().optional(),
+    table_name: z.string().optional(),
+    token: z.string().optional(),
   }).optional(),
   format: z.object({
     decimal_encoding: z.enum(["number", "string", "bytes"]).optional(),
     timestamp_format: z.enum(["rfc3339", "unix_millis"]).optional(),
     unstructured: z.boolean().optional(),
-    type: z.enum(["json"]),
+    type: z.enum(["json", "parquet"]),
+    compression: z.enum(["uncompressed", "snappy", "gzip", "zstd", "lz4"])
+      .optional(),
+    row_group_bytes: z.number().int().min(0).optional(),
   }).optional(),
   name: z.string().min(1).max(128).describe("Defines the name of the Sink."),
   schema: z.object({
@@ -109,6 +115,8 @@ const ResourceSchema = z.object({
       inactivity_seconds: z.number().optional(),
       interval_seconds: z.number().optional(),
     }).optional(),
+    namespace: z.string().optional(),
+    table_name: z.string().optional(),
   }).optional(),
   created_at: z.string().optional(),
   format: z.object({
@@ -116,6 +124,8 @@ const ResourceSchema = z.object({
     timestamp_format: z.string().optional(),
     unstructured: z.boolean().optional(),
     type: z.string().optional(),
+    compression: z.string().optional(),
+    row_group_bytes: z.number().optional(),
   }).optional(),
   id: z.string(),
   modified_at: z.string().optional(),
@@ -143,7 +153,7 @@ const InputsSchema = z.object({
     credentials: z.object({
       access_key_id: z.string(),
       secret_access_key: z.string(),
-    }),
+    }).optional(),
     file_naming: z.object({
       prefix: z.string().optional(),
       strategy: z.enum(["serial", "uuid", "uuid_v7", "ulid"]).optional(),
@@ -159,12 +169,18 @@ const InputsSchema = z.object({
       inactivity_seconds: z.number().int().min(1).optional(),
       interval_seconds: z.number().int().min(1).optional(),
     }).optional(),
+    namespace: z.string().optional(),
+    table_name: z.string().optional(),
+    token: z.string().optional(),
   }).optional(),
   format: z.object({
     decimal_encoding: z.enum(["number", "string", "bytes"]).optional(),
     timestamp_format: z.enum(["rfc3339", "unix_millis"]).optional(),
     unstructured: z.boolean().optional(),
-    type: z.enum(["json"]),
+    type: z.enum(["json", "parquet"]),
+    compression: z.enum(["uncompressed", "snappy", "gzip", "zstd", "lz4"])
+      .optional(),
+    row_group_bytes: z.number().int().min(0).optional(),
   }).optional(),
   name: z.string().min(1).max(128).optional(),
   schema: z.object({
@@ -186,7 +202,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Sinks. Registered at `@swamp/cloudflare/pipelines/sinks`. */
 export const model = {
   type: "@swamp/cloudflare/pipelines/sinks",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -205,6 +221,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

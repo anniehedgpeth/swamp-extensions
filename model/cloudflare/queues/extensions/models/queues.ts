@@ -59,14 +59,15 @@ const GlobalArgsSchema = z.object({
       max_wait_time_ms: z.number().optional(),
       retry_delay: z.number().optional(),
     }).optional(),
-    type: z.enum(["worker"]).optional(),
+    type: z.enum(["worker", "http_pull"]).optional(),
   })).optional(),
   consumers_total_count: z.number().optional(),
   created_on: z.string().optional(),
   modified_on: z.string().optional(),
   producers: z.array(z.object({
     script: z.string().optional(),
-    type: z.enum(["worker"]).optional(),
+    type: z.enum(["worker", "r2_bucket"]).optional(),
+    bucket_name: z.string().optional(),
   })).optional(),
   producers_total_count: z.number().optional(),
   queue_id: z.string().optional(),
@@ -109,6 +110,7 @@ const ResourceSchema = z.object({
   producers: z.array(z.object({
     script: z.string().optional(),
     type: z.string().optional(),
+    bucket_name: z.string().optional(),
   })).optional(),
   producers_total_count: z.number().optional(),
   queue_id: z.string().optional(),
@@ -139,14 +141,15 @@ const InputsSchema = z.object({
       max_wait_time_ms: z.number().optional(),
       retry_delay: z.number().optional(),
     }).optional(),
-    type: z.enum(["worker"]).optional(),
+    type: z.enum(["worker", "http_pull"]).optional(),
   })).optional(),
   consumers_total_count: z.number().optional(),
   created_on: z.string().optional(),
   modified_on: z.string().optional(),
   producers: z.array(z.object({
     script: z.string().optional(),
-    type: z.enum(["worker"]).optional(),
+    type: z.enum(["worker", "r2_bucket"]).optional(),
+    bucket_name: z.string().optional(),
   })).optional(),
   producers_total_count: z.number().optional(),
   queue_id: z.string().optional(),
@@ -164,7 +167,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Queues. Registered at `@swamp/cloudflare/queues/queues`. */
 export const model = {
   type: "@swamp/cloudflare/queues/queues",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -183,6 +186,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

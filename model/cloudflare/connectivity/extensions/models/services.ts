@@ -45,10 +45,16 @@ const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   created_at: z.string().optional(),
   host: z.object({
-    ipv4: z.string(),
+    ipv4: z.string().optional(),
     network: z.object({
       tunnel_id: z.string(),
-    }),
+    }).optional(),
+    ipv6: z.string().optional(),
+    hostname: z.string().optional(),
+    resolver_network: z.object({
+      resolver_ips: z.array(z.string()).optional(),
+      tunnel_id: z.string(),
+    }).optional(),
   }),
   name: z.string(),
   service_id: z.string().optional(),
@@ -99,6 +105,12 @@ const ResourceSchema = z.object({
       network: z.object({
         tunnel_id: z.string().optional(),
       }).optional(),
+      ipv6: z.string().optional(),
+      hostname: z.string().optional(),
+      resolver_network: z.object({
+        resolver_ips: z.array(z.string()).optional(),
+        tunnel_id: z.string().optional(),
+      }).optional(),
     }).optional(),
     name: z.string().optional(),
     service_id: z.string().optional(),
@@ -109,6 +121,8 @@ const ResourceSchema = z.object({
     updated_at: z.string().optional(),
     http_port: z.number().optional(),
     https_port: z.number().optional(),
+    app_protocol: z.string().optional(),
+    tcp_port: z.number().optional(),
   }).optional(),
   id: z.string(),
 }).passthrough();
@@ -119,10 +133,16 @@ const InputsSchema = z.object({
   account_id: z.string().optional(),
   created_at: z.string().optional(),
   host: z.object({
-    ipv4: z.string(),
+    ipv4: z.string().optional(),
     network: z.object({
       tunnel_id: z.string(),
-    }),
+    }).optional(),
+    ipv6: z.string().optional(),
+    hostname: z.string().optional(),
+    resolver_network: z.object({
+      resolver_ips: z.array(z.string()).optional(),
+      tunnel_id: z.string(),
+    }).optional(),
   }).optional(),
   name: z.string().optional(),
   service_id: z.string().optional(),
@@ -143,7 +163,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Services. Registered at `@swamp/cloudflare/connectivity/services`. */
 export const model = {
   type: "@swamp/cloudflare/connectivity/services",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -162,6 +182,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

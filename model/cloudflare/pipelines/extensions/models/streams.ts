@@ -57,7 +57,10 @@ const GlobalArgsSchema = z.object({
     decimal_encoding: z.enum(["number", "string", "bytes"]).optional(),
     timestamp_format: z.enum(["rfc3339", "unix_millis"]).optional(),
     unstructured: z.boolean().optional(),
-    type: z.enum(["json"]),
+    type: z.enum(["json", "parquet"]),
+    compression: z.enum(["uncompressed", "snappy", "gzip", "zstd", "lz4"])
+      .optional(),
+    row_group_bytes: z.number().int().min(0).optional(),
   }).optional(),
   name: z.string().min(1).max(128).describe(
     "Specifies the name of the Stream.",
@@ -91,6 +94,8 @@ const ResourceSchema = z.object({
     timestamp_format: z.string().optional(),
     unstructured: z.boolean().optional(),
     type: z.string().optional(),
+    compression: z.string().optional(),
+    row_group_bytes: z.number().optional(),
   }).optional(),
   http: z.object({
     authentication: z.boolean().optional(),
@@ -136,7 +141,10 @@ const InputsSchema = z.object({
     decimal_encoding: z.enum(["number", "string", "bytes"]).optional(),
     timestamp_format: z.enum(["rfc3339", "unix_millis"]).optional(),
     unstructured: z.boolean().optional(),
-    type: z.enum(["json"]),
+    type: z.enum(["json", "parquet"]),
+    compression: z.enum(["uncompressed", "snappy", "gzip", "zstd", "lz4"])
+      .optional(),
+    row_group_bytes: z.number().int().min(0).optional(),
   }).optional(),
   name: z.string().min(1).max(128).optional(),
   schema: z.object({
@@ -157,7 +165,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Streams. Registered at `@swamp/cloudflare/pipelines/streams`. */
 export const model = {
   type: "@swamp/cloudflare/pipelines/streams",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -176,6 +184,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

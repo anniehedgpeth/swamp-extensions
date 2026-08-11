@@ -58,7 +58,8 @@ const GlobalArgsSchema = z.object({
   }).describe("The name and type of DNS record for the Spectrum application."),
   edge_ips: z.object({
     connectivity: z.enum(["all", "ipv4", "ipv6"]).optional(),
-    type: z.enum(["dynamic"]).optional(),
+    type: z.enum(["dynamic", "static"]).optional(),
+    ips: z.array(z.string()).optional(),
   }).optional(),
   ip_firewall: z.boolean().describe(
     "Enables IP Access Rules for this application.\nNotes: Only available for TCP applications.",
@@ -129,6 +130,7 @@ const ResourceSchema = z.object({
     edge_ips: z.object({
       connectivity: z.string().optional(),
       type: z.string().optional(),
+      ips: z.array(z.string()).optional(),
     }).optional(),
     ip_firewall: z.boolean().optional(),
     origin_direct: z.array(z.string()).optional(),
@@ -162,7 +164,8 @@ const InputsSchema = z.object({
   }).optional(),
   edge_ips: z.object({
     connectivity: z.enum(["all", "ipv4", "ipv6"]).optional(),
-    type: z.enum(["dynamic"]).optional(),
+    type: z.enum(["dynamic", "static"]).optional(),
+    ips: z.array(z.string()).optional(),
   }).optional(),
   ip_firewall: z.boolean().optional(),
   origin_direct: z.array(z.string()).optional(),
@@ -185,7 +188,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Apps. Registered at `@swamp/cloudflare/spectrum/apps`. */
 export const model = {
   type: "@swamp/cloudflare/spectrum/apps",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -209,6 +212,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

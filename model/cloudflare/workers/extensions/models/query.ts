@@ -80,8 +80,9 @@ const GlobalArgsSchema = z.object({
       key: z.string().optional(),
       keyType: z.enum(["string", "number", "boolean"]).optional(),
       operator: z.enum([
-        "uniq",
         "count",
+        "COUNT",
+        "uniq",
         "max",
         "min",
         "sum",
@@ -100,7 +101,6 @@ const GlobalArgsSchema = z.object({
         "stddev",
         "variance",
         "COUNT_DISTINCT",
-        "COUNT",
         "MAX",
         "MIN",
         "SUM",
@@ -319,6 +319,14 @@ const ResourceSchema = z.object({
         spanId: z.string().optional(),
         traceId: z.string().optional(),
         truncated: z.boolean().optional(),
+        cpuTimeMs: z.number().optional(),
+        diagnosticsChannelEvents: z.array(z.object({
+          channel: z.string().optional(),
+          message: z.string().optional(),
+          timestamp: z.number().optional(),
+        })).optional(),
+        dispatchNamespace: z.string().optional(),
+        wallTimeMs: z.number().optional(),
       }).optional(),
       dataset: z.string().optional(),
       source: z.string().optional(),
@@ -373,6 +381,10 @@ const ResourceSchema = z.object({
           filterCombination: z.string().optional(),
           filters: z.array(z.string()).optional(),
           kind: z.string().optional(),
+          key: z.string().optional(),
+          operation: z.string().optional(),
+          type: z.string().optional(),
+          value: z.string().optional(),
         })).optional(),
         groupBys: z.array(z.object({
           type: z.string().optional(),
@@ -457,8 +469,9 @@ const InputsSchema = z.object({
       key: z.string().optional(),
       keyType: z.enum(["string", "number", "boolean"]).optional(),
       operator: z.enum([
-        "uniq",
         "count",
+        "COUNT",
+        "uniq",
         "max",
         "min",
         "sum",
@@ -477,7 +490,6 @@ const InputsSchema = z.object({
         "stddev",
         "variance",
         "COUNT_DISTINCT",
-        "COUNT",
         "MAX",
         "MIN",
         "SUM",
@@ -541,7 +553,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Query. Registered at `@swamp/cloudflare/workers/query`. */
 export const model = {
   type: "@swamp/cloudflare/workers/query",
-  version: "2026.07.25.1",
+  version: "2026.08.11.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -566,6 +578,16 @@ export const model = {
     {
       toVersion: "2026.07.25.1",
       description: "Added: chartType",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.2",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

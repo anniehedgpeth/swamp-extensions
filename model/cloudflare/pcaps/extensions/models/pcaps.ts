@@ -107,6 +107,12 @@ const ResourceSchema = z.object({
     system: z.string().optional(),
     time_limit: z.number().optional(),
     type: z.string().optional(),
+    byte_limit: z.number().optional(),
+    colo_name: z.string().optional(),
+    destination_conf: z.string().optional(),
+    error_message: z.string().optional(),
+    packets_captured: z.number().optional(),
+    stop_requested: z.string().optional(),
   }).optional(),
   success: z.boolean().optional(),
   id: z.string(),
@@ -140,7 +146,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Pcaps. Registered at `@swamp/cloudflare/pcaps/pcaps`. */
 export const model = {
   type: "@swamp/cloudflare/pcaps/pcaps",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -159,6 +165,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -50,12 +50,11 @@ const GlobalArgsSchema = z.object({
     branch: z.string().min(1).max(256),
     provider_account_id: z.string(),
     provider_account_name: z.string(),
-    provider_type: z.enum(["github", "gitlab"]),
+    provider_type: z.enum(["github", "gitlab", "gitlab_internal"]),
     repo_id: z.string(),
     repo_name: z.string(),
-  }).describe(
-    "GitHub or GitLab repository input for creating a Worker build configuration",
-  ),
+    grant_id: z.string().min(1).optional(),
+  }),
   production_settings: z.object({
     build_caching_enabled: z.boolean().optional(),
     build_command: z.string(),
@@ -113,9 +112,10 @@ const InputsSchema = z.object({
     branch: z.string().min(1).max(256),
     provider_account_id: z.string(),
     provider_account_name: z.string(),
-    provider_type: z.enum(["github", "gitlab"]),
+    provider_type: z.enum(["github", "gitlab", "gitlab_internal"]),
     repo_id: z.string(),
     repo_name: z.string(),
+    grant_id: z.string().min(1).optional(),
   }).optional(),
   production_settings: z.object({
     build_caching_enabled: z.boolean().optional(),
@@ -136,7 +136,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Workers. Registered at `@swamp/cloudflare/builds/workers`. */
 export const model = {
   type: "@swamp/cloudflare/builds/workers",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.07.18.1",
@@ -145,6 +145,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

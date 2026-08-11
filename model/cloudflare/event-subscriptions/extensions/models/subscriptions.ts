@@ -54,7 +54,19 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   name: z.string().describe("Name of the subscription").optional(),
   source: z.object({
-    type: z.enum(["images"]).optional(),
+    type: z.enum([
+      "images",
+      "kv",
+      "r2",
+      "superSlurper",
+      "vectorize",
+      "workersAi.model",
+      "workersBuilds.worker",
+      "workflows.workflow",
+    ]).optional(),
+    model_name: z.string().optional(),
+    worker_name: z.string().optional(),
+    workflow_name: z.string().optional(),
   }).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -80,6 +92,9 @@ const ResourceSchema = z.object({
   name: z.string().optional(),
   source: z.object({
     type: z.string().optional(),
+    model_name: z.string().optional(),
+    worker_name: z.string().optional(),
+    workflow_name: z.string().optional(),
   }).optional(),
 }).passthrough();
 
@@ -95,7 +110,19 @@ const InputsSchema = z.object({
   events: z.array(z.string()).optional(),
   name: z.string().optional(),
   source: z.object({
-    type: z.enum(["images"]).optional(),
+    type: z.enum([
+      "images",
+      "kv",
+      "r2",
+      "superSlurper",
+      "vectorize",
+      "workersAi.model",
+      "workersBuilds.worker",
+      "workflows.workflow",
+    ]).optional(),
+    model_name: z.string().optional(),
+    worker_name: z.string().optional(),
+    workflow_name: z.string().optional(),
   }).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
@@ -105,7 +132,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Subscriptions. Registered at `@swamp/cloudflare/event-subscriptions/subscriptions`. */
 export const model = {
   type: "@swamp/cloudflare/event-subscriptions/subscriptions",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -124,6 +151,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

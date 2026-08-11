@@ -50,7 +50,8 @@ const GlobalArgsSchema = z.object({
       accessKeyId: z.string(),
       secretAccessKey: z.string(),
     }),
-    vendor: z.enum(["s3"]),
+    vendor: z.enum(["s3", "gcs", "r2"]),
+    jurisdiction: z.enum(["default", "eu", "fedramp"]).optional(),
   }).optional(),
   target: z.object({
     bucket: z.string(),
@@ -83,6 +84,7 @@ const ResourceSchema = z.object({
     keys: z.array(z.string()).optional(),
     pathPrefix: z.string().optional(),
     vendor: z.string().optional(),
+    jurisdiction: z.string().optional(),
   }).optional(),
   status: z.string().optional(),
   target: z.object({
@@ -108,7 +110,8 @@ const InputsSchema = z.object({
       accessKeyId: z.string(),
       secretAccessKey: z.string(),
     }),
-    vendor: z.enum(["s3"]),
+    vendor: z.enum(["s3", "gcs", "r2"]),
+    jurisdiction: z.enum(["default", "eu", "fedramp"]).optional(),
   }).optional(),
   target: z.object({
     bucket: z.string(),
@@ -127,7 +130,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Jobs. Registered at `@swamp/cloudflare/slurper/jobs`. */
 export const model = {
   type: "@swamp/cloudflare/slurper/jobs",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -146,6 +149,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

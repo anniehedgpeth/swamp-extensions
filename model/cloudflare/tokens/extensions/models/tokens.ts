@@ -73,7 +73,7 @@ const GlobalArgsSchema = z.object({
       }).optional(),
       name: z.string().optional(),
     })),
-    resources: z.record(z.string(), z.unknown()),
+    resources: z.string(),
   })).describe("List of access policies assigned to the token."),
   status: z.enum(["active", "disabled", "expired"]).describe(
     "Status of the token.",
@@ -114,7 +114,7 @@ const ResourceSchema = z.object({
       }).optional(),
       name: z.string().optional(),
     })).optional(),
-    resources: z.record(z.string(), z.unknown()).optional(),
+    resources: z.string().optional(),
   })).optional(),
   status: z.string().optional(),
 }).passthrough();
@@ -147,7 +147,7 @@ const InputsSchema = z.object({
       }).optional(),
       name: z.string().optional(),
     })),
-    resources: z.record(z.string(), z.unknown()),
+    resources: z.string(),
   })).optional(),
   status: z.enum(["active", "disabled", "expired"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -158,7 +158,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Tokens. Registered at `@swamp/cloudflare/tokens/tokens`. */
 export const model = {
   type: "@swamp/cloudflare/tokens/tokens",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -177,6 +177,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

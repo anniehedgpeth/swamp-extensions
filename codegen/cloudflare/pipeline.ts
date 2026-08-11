@@ -341,6 +341,15 @@ export async function generateCloudflareModels(options: {
   const errors: string[] = [];
 
   for (const [serviceName, svcResources] of serviceResources) {
+    // Defense-in-depth: buildResource already filters empty services, but
+    // guard here too so a future parser change can't write to model/cloudflare/.
+    if (!serviceName) {
+      throw new Error(
+        "Refusing to generate a Cloudflare service package with an empty name. " +
+          `Resources: ${svcResources.map((r) => r.basePath).join(", ")}`,
+      );
+    }
+
     const extensionName = `@swamp/cloudflare/${serviceName}`;
     const placeholderVersion = "VERSION_PLACEHOLDER";
     const serviceOutputDir = `${options.outputDir}/cloudflare/${serviceName}`;
@@ -1059,8 +1068,17 @@ function buildResource(
 
   const { scope, resourcePath } = extractScopeAndPath(basePath);
   if (scope === "other") return null;
+  if (!resourcePath) return null;
 
   const service = deriveService(resourcePath, scope);
+
+  // Build slug from the last segment of the resource path
+  const pathSegments = resourcePath.split("/");
+  const lastSegment = pathSegments[pathSegments.length - 1];
+  const modelSlug = lastSegment.replace(/_/g, "-");
+  const fileName = `${lastSegment}.ts`;
+
+  if (!service || !modelSlug) return null;
 
   // Extract properties from POST body
   const { properties: createProps, required: createRequired } =
@@ -1105,12 +1123,6 @@ function buildResource(
 
   // Detect pagination style from the list GET on basePath
   const paginationStyle = detectPagination(baseMethods.get);
-
-  // Build slug from the last segment of the resource path
-  const pathSegments = resourcePath.split("/");
-  const lastSegment = pathSegments[pathSegments.length - 1];
-  const modelSlug = lastSegment.replace(/_/g, "-");
-  const fileName = `${lastSegment}.ts`;
 
   // Build display name
   const displayName = lastSegment
@@ -1236,8 +1248,12 @@ function flattenDisjunction(
     const flattened = flattenSchema(branch, spec);
     if (flattened.properties) {
       for (const [key, val] of Object.entries(flattened.properties)) {
-        if (!allProps[key]) {
+        const existing = allProps[key];
+        if (!existing) {
           allProps[key] = val;
+        } else if (existing.enum && val.enum) {
+          const merged = [...new Set([...existing.enum, ...val.enum])];
+          allProps[key] = { ...existing, enum: merged };
         }
       }
     }
@@ -1413,20 +1429,19 @@ function normalizeProperty(
 
   const resolved = resolveSchema(schema, spec);
 
-  // Handle oneOf — pick the first non-null variant
-  if (resolved.oneOf) {
-    for (const variant of resolved.oneOf) {
-      const resolvedVariant = resolveSchema(variant, spec);
-      if (resolvedVariant.type && resolvedVariant.type !== "null") {
-        return normalizeProperty(resolvedVariant, spec);
-      }
+  // Handle oneOf/anyOf — merge object variants so enum values are unioned
+  if (resolved.oneOf || resolved.anyOf) {
+    const variants = resolved.oneOf ?? resolved.anyOf!;
+    const objectVariants = variants
+      .map((v) => resolveSchema(v, spec))
+      .filter((v) => v.type === "object" || v.properties);
+    if (objectVariants.length > 1) {
+      return normalizeProperty(
+        flattenDisjunction(objectVariants, spec),
+        spec,
+      );
     }
-    return { type: "string", description: resolved.description };
-  }
-
-  // Handle anyOf similarly
-  if (resolved.anyOf) {
-    for (const variant of resolved.anyOf) {
+    for (const variant of variants) {
       const resolvedVariant = resolveSchema(variant, spec);
       if (resolvedVariant.type && resolvedVariant.type !== "null") {
         return normalizeProperty(resolvedVariant, spec);

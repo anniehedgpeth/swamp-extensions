@@ -45,6 +45,8 @@ const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   caching: z.object({
     disabled: z.boolean().optional(),
+    max_age: z.number().int().optional(),
+    stale_while_revalidate: z.number().int().optional(),
   }).optional(),
   mtls: z.object({
     ca_certificate_id: z.string().optional(),
@@ -61,8 +63,11 @@ const GlobalArgsSchema = z.object({
     password: z.string().optional(),
     scheme: z.enum(["postgres", "postgresql", "mysql"]).optional(),
     user: z.string().optional(),
-    host: z.string(),
-    port: z.number().int(),
+    host: z.string().optional(),
+    port: z.number().int().optional(),
+    access_client_id: z.string().optional(),
+    access_client_secret: z.string().optional(),
+    service_id: z.string().optional(),
   }),
   origin_connection_limit: z.number().int().min(5).describe(
     "The (soft) maximum number of connections the Hyperdrive is allowed to make to the origin database.\n\nMaximum allowed: 20 for free tier accounts, 100 for paid tier accounts.\nIf not specified, defaults to 20 for free tier and 60 for paid tier.\nCertain Cloudflare-managed origins may be permitted a higher limit.\nContact Cloudflare if you need a higher limit.\n",
@@ -93,6 +98,8 @@ const GlobalArgsSchema = z.object({
 const ResourceSchema = z.object({
   caching: z.object({
     disabled: z.boolean().optional(),
+    max_age: z.number().optional(),
+    stale_while_revalidate: z.number().optional(),
   }).optional(),
   created_on: z.string().optional(),
   id: z.string(),
@@ -110,6 +117,9 @@ const ResourceSchema = z.object({
     user: z.string().optional(),
     host: z.string().optional(),
     port: z.number().optional(),
+    access_client_id: z.string().optional(),
+    access_client_secret: z.string().optional(),
+    service_id: z.string().optional(),
   }).optional(),
   origin_connection_limit: z.number().optional(),
   restarted_on: z.string().optional(),
@@ -121,6 +131,8 @@ const InputsSchema = z.object({
   account_id: z.string().optional(),
   caching: z.object({
     disabled: z.boolean().optional(),
+    max_age: z.number().int().optional(),
+    stale_while_revalidate: z.number().int().optional(),
   }).optional(),
   mtls: z.object({
     ca_certificate_id: z.string().optional(),
@@ -133,8 +145,11 @@ const InputsSchema = z.object({
     password: z.string().optional(),
     scheme: z.enum(["postgres", "postgresql", "mysql"]).optional(),
     user: z.string().optional(),
-    host: z.string(),
-    port: z.number().int(),
+    host: z.string().optional(),
+    port: z.number().int().optional(),
+    access_client_id: z.string().optional(),
+    access_client_secret: z.string().optional(),
+    service_id: z.string().optional(),
   }).optional(),
   origin_connection_limit: z.number().int().min(5).optional(),
   created_on: z.string().optional(),
@@ -149,7 +164,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Configs. Registered at `@swamp/cloudflare/hyperdrive/configs`. */
 export const model = {
   type: "@swamp/cloudflare/hyperdrive/configs",
-  version: "2026.08.05.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -178,6 +193,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.05.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

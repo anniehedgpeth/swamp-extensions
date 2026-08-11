@@ -46,7 +46,7 @@ const GlobalArgsSchema = z.object({
   read_replication: z.object({
     mode: z.enum(["auto", "disabled"]),
   }).describe("Configuration for D1 read replication.").optional(),
-  jurisdiction: z.enum(["eu", "fedramp"]).describe(
+  jurisdiction: z.enum(["eu", "fedramp", "us"]).describe(
     "Specify the location to restrict the D1 database to run and store data. If this option is present, the location hint is ignored.",
   ).optional(),
   name: z.string().regex(new RegExp("^[a-zA-Z0-9][a-zA-Z0-9_-]*$")).describe(
@@ -88,7 +88,7 @@ const InputsSchema = z.object({
   read_replication: z.object({
     mode: z.enum(["auto", "disabled"]),
   }).optional(),
-  jurisdiction: z.enum(["eu", "fedramp"]).optional(),
+  jurisdiction: z.enum(["eu", "fedramp", "us"]).optional(),
   name: z.string().regex(new RegExp("^[a-zA-Z0-9][a-zA-Z0-9_-]*$")).optional(),
   primary_location_hint: z.enum(["wnam", "enam", "weur", "eeur", "apac", "oc"])
     .optional(),
@@ -100,7 +100,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Database. Registered at `@swamp/cloudflare/d1/database`. */
 export const model = {
   type: "@swamp/cloudflare/d1/database",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -119,6 +119,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

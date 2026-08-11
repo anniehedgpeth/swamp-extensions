@@ -63,7 +63,7 @@ const GlobalArgsSchema = z.object({
     "The available actions that a rule can apply to a matched request.",
   ).optional(),
   configuration: z.object({
-    target: z.enum(["ip"]).optional(),
+    target: z.enum(["ip", "ip6", "ip_range", "asn", "country"]).optional(),
     value: z.string().optional(),
   }),
   created_on: z.string().describe("The timestamp of when the rule was created.")
@@ -135,7 +135,7 @@ const InputsSchema = z.object({
     ]),
   ).optional(),
   configuration: z.object({
-    target: z.enum(["ip"]).optional(),
+    target: z.enum(["ip", "ip6", "ip_range", "asn", "country"]).optional(),
     value: z.string().optional(),
   }).optional(),
   created_on: z.string().optional(),
@@ -162,7 +162,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Rules. Registered at `@swamp/cloudflare/firewall/rules`. */
 export const model = {
   type: "@swamp/cloudflare/firewall/rules",
-  version: "2026.07.24.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -186,6 +186,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

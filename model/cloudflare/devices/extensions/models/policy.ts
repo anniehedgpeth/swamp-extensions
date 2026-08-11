@@ -72,8 +72,9 @@ const GlobalArgsSchema = z.object({
     "Whether the policy will be applied to matching devices.",
   ).optional(),
   exclude: z.array(z.object({
-    address: z.string(),
+    address: z.string().optional(),
     description: z.string().max(100).optional(),
+    host: z.string().optional(),
   })).describe(
     "List of routes excluded in the WARP client's tunnel. Both 'exclude' and 'include' cannot be set in the same request.",
   ).optional(),
@@ -89,8 +90,9 @@ const GlobalArgsSchema = z.object({
     "Global Acceleration settings for China. When configured, WARP clients connect to the Global Accelerator addresses instead of the default ones. Please contact your account representative to enable this feature on your account. See https://developers.cloudflare.com/china-network/concepts/global-acceleration/.",
   ).optional(),
   include: z.array(z.object({
-    address: z.string(),
+    address: z.string().optional(),
     description: z.string().max(100).optional(),
+    host: z.string().optional(),
   })).describe(
     "List of routes included in the WARP client's tunnel. Both 'exclude' and 'include' cannot be set in the same request.",
   ).optional(),
@@ -160,6 +162,7 @@ const ResourceSchema = z.object({
   exclude: z.array(z.object({
     address: z.string().optional(),
     description: z.string().optional(),
+    host: z.string().optional(),
   })).optional(),
   exclude_office_ips: z.boolean().optional(),
   fallback_domains: z.array(z.object({
@@ -177,6 +180,7 @@ const ResourceSchema = z.object({
   include: z.array(z.object({
     address: z.string().optional(),
     description: z.string().optional(),
+    host: z.string().optional(),
   })).optional(),
   lan_allow_minutes: z.number().optional(),
   lan_allow_subnet_size: z.number().optional(),
@@ -221,8 +225,9 @@ const InputsSchema = z.object({
   })).optional(),
   enabled: z.boolean().optional(),
   exclude: z.array(z.object({
-    address: z.string(),
+    address: z.string().optional(),
     description: z.string().max(100).optional(),
+    host: z.string().optional(),
   })).optional(),
   exclude_office_ips: z.boolean().optional(),
   global_acceleration: z.object({
@@ -232,8 +237,9 @@ const InputsSchema = z.object({
     wireguard_endpoints: z.array(z.string()),
   }).optional(),
   include: z.array(z.object({
-    address: z.string(),
+    address: z.string().optional(),
     description: z.string().max(100).optional(),
+    host: z.string().optional(),
   })).optional(),
   lan_allow_minutes: z.number().optional(),
   lan_allow_subnet_size: z.number().optional(),
@@ -261,7 +267,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Policy. Registered at `@swamp/cloudflare/devices/policy`. */
 export const model = {
   type: "@swamp/cloudflare/devices/policy",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -285,6 +291,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

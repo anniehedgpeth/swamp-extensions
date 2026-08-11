@@ -98,8 +98,23 @@ const GlobalArgsSchema = z.object({
     "The custom pages that will be displayed when applicable for this application",
   ).optional(),
   destinations: z.array(z.object({
-    type: z.enum(["public"]).optional(),
+    type: z.enum([
+      "public",
+      "private",
+      "via_mcp_server_portal",
+      "worker",
+      "preview_worker",
+      "all_workers",
+      "all_preview_workers",
+    ]),
     uri: z.string().optional(),
+    cidr: z.string().optional(),
+    hostname: z.string().optional(),
+    l4_protocol: z.enum(["tcp", "udp"]).optional(),
+    port_range: z.string().optional(),
+    vnet_id: z.string().optional(),
+    mcp_server_id: z.string().optional(),
+    worker_id: z.string().optional(),
   })).describe(
     "List of destinations secured by Access. This supersedes `self_hosted_domains` to allow for more flexibility in defining different types of domains. If `destinations` are provided, then `self_hosted_domains` will be ignored.\n",
   ).optional(),
@@ -156,9 +171,20 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   scim_config: z.object({
     authentication: z.array(z.object({
-      password: z.string(),
-      scheme: z.enum(["httpbasic"]),
-      user: z.string(),
+      password: z.string().optional(),
+      scheme: z.enum([
+        "httpbasic",
+        "oauthbearertoken",
+        "oauth2",
+        "access_service_token",
+      ]),
+      user: z.string().optional(),
+      token: z.string().optional(),
+      authorization_url: z.string().optional(),
+      client_id: z.string().optional(),
+      client_secret: z.string().optional(),
+      scopes: z.array(z.string()).optional(),
+      token_url: z.string().optional(),
     })).optional(),
     deactivate_on_delete: z.boolean().optional(),
     enabled: z.boolean().optional(),
@@ -199,8 +225,269 @@ const GlobalArgsSchema = z.object({
     "Determines if users can access this application via a clientless browser isolation URL.\nThis allows users to access private domains without connecting to Gateway. The option requires\nClientless Browser Isolation to be set up with policies that allow users of this application.\n",
   ).optional(),
   policies: z.array(z.object({
+    account_id: z.string().max(32).optional(),
     id: z.string().max(36).optional(),
     precedence: z.number().int().optional(),
+    decision: z.enum(["allow", "deny", "non_identity", "bypass"]),
+    exclude: z.array(z.object({
+      group: z.object({
+        id: z.string(),
+      }).optional(),
+      any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+      auth_context: z.object({
+        ac_id: z.string(),
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      auth_method: z.object({
+        auth_method: z.string(),
+      }).optional(),
+      azureAD: z.object({
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      certificate: z.record(z.string(), z.unknown()).optional(),
+      common_name: z.object({
+        common_name: z.string(),
+      }).optional(),
+      geo: z.object({
+        country_code: z.string(),
+      }).optional(),
+      device_posture: z.object({
+        integration_uid: z.string(),
+      }).optional(),
+      email_domain: z.object({
+        domain: z.string(),
+      }).optional(),
+      email_list: z.object({
+        id: z.string(),
+      }).optional(),
+      email: z.object({
+        email: z.string(),
+      }).optional(),
+      everyone: z.record(z.string(), z.unknown()).optional(),
+      external_evaluation: z.object({
+        evaluate_url: z.string(),
+        keys_url: z.string(),
+      }).optional(),
+      "github-organization": z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+        team: z.string().optional(),
+      }).optional(),
+      gsuite: z.object({
+        email: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      login_method: z.object({
+        id: z.string(),
+      }).optional(),
+      ip_list: z.object({
+        id: z.string(),
+      }).optional(),
+      ip: z.object({
+        ip: z.string(),
+      }).optional(),
+      okta: z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+      }).optional(),
+      saml: z.object({
+        attribute_name: z.string(),
+        attribute_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      oidc: z.object({
+        claim_name: z.string(),
+        claim_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      service_token: z.object({
+        token_id: z.string(),
+      }).optional(),
+      linked_app_token: z.object({
+        app_uid: z.string(),
+      }).optional(),
+      user_risk_score: z.object({
+        user_risk_score: z.array(z.enum(["low", "medium", "high", "unscored"])),
+      }).optional(),
+      cloudflare_account_member: z.object({
+        account_id: z.string().max(32).optional(),
+      }).optional(),
+    })).optional(),
+    include: z.array(z.object({
+      group: z.object({
+        id: z.string(),
+      }).optional(),
+      any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+      auth_context: z.object({
+        ac_id: z.string(),
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      auth_method: z.object({
+        auth_method: z.string(),
+      }).optional(),
+      azureAD: z.object({
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      certificate: z.record(z.string(), z.unknown()).optional(),
+      common_name: z.object({
+        common_name: z.string(),
+      }).optional(),
+      geo: z.object({
+        country_code: z.string(),
+      }).optional(),
+      device_posture: z.object({
+        integration_uid: z.string(),
+      }).optional(),
+      email_domain: z.object({
+        domain: z.string(),
+      }).optional(),
+      email_list: z.object({
+        id: z.string(),
+      }).optional(),
+      email: z.object({
+        email: z.string(),
+      }).optional(),
+      everyone: z.record(z.string(), z.unknown()).optional(),
+      external_evaluation: z.object({
+        evaluate_url: z.string(),
+        keys_url: z.string(),
+      }).optional(),
+      "github-organization": z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+        team: z.string().optional(),
+      }).optional(),
+      gsuite: z.object({
+        email: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      login_method: z.object({
+        id: z.string(),
+      }).optional(),
+      ip_list: z.object({
+        id: z.string(),
+      }).optional(),
+      ip: z.object({
+        ip: z.string(),
+      }).optional(),
+      okta: z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+      }).optional(),
+      saml: z.object({
+        attribute_name: z.string(),
+        attribute_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      oidc: z.object({
+        claim_name: z.string(),
+        claim_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      service_token: z.object({
+        token_id: z.string(),
+      }).optional(),
+      linked_app_token: z.object({
+        app_uid: z.string(),
+      }).optional(),
+      user_risk_score: z.object({
+        user_risk_score: z.array(z.enum(["low", "medium", "high", "unscored"])),
+      }).optional(),
+      cloudflare_account_member: z.object({
+        account_id: z.string().max(32).optional(),
+      }).optional(),
+    })),
+    name: z.string(),
+    require: z.array(z.object({
+      group: z.object({
+        id: z.string(),
+      }).optional(),
+      any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+      auth_context: z.object({
+        ac_id: z.string(),
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      auth_method: z.object({
+        auth_method: z.string(),
+      }).optional(),
+      azureAD: z.object({
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      certificate: z.record(z.string(), z.unknown()).optional(),
+      common_name: z.object({
+        common_name: z.string(),
+      }).optional(),
+      geo: z.object({
+        country_code: z.string(),
+      }).optional(),
+      device_posture: z.object({
+        integration_uid: z.string(),
+      }).optional(),
+      email_domain: z.object({
+        domain: z.string(),
+      }).optional(),
+      email_list: z.object({
+        id: z.string(),
+      }).optional(),
+      email: z.object({
+        email: z.string(),
+      }).optional(),
+      everyone: z.record(z.string(), z.unknown()).optional(),
+      external_evaluation: z.object({
+        evaluate_url: z.string(),
+        keys_url: z.string(),
+      }).optional(),
+      "github-organization": z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+        team: z.string().optional(),
+      }).optional(),
+      gsuite: z.object({
+        email: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      login_method: z.object({
+        id: z.string(),
+      }).optional(),
+      ip_list: z.object({
+        id: z.string(),
+      }).optional(),
+      ip: z.object({
+        ip: z.string(),
+      }).optional(),
+      okta: z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+      }).optional(),
+      saml: z.object({
+        attribute_name: z.string(),
+        attribute_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      oidc: z.object({
+        claim_name: z.string(),
+        claim_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      service_token: z.object({
+        token_id: z.string(),
+      }).optional(),
+      linked_app_token: z.object({
+        app_uid: z.string(),
+      }).optional(),
+      user_risk_score: z.object({
+        user_risk_score: z.array(z.enum(["low", "medium", "high", "unscored"])),
+      }).optional(),
+      cloudflare_account_member: z.object({
+        account_id: z.string().max(32).optional(),
+      }).optional(),
+    })).optional(),
   })).describe(
     "The policies that Access applies to the application, in ascending order of precedence. Items can reference existing policies or create new policies exclusive to the application. Reusable and inline policies are mutually exclusive.",
   ).optional(),
@@ -234,6 +521,40 @@ const GlobalArgsSchema = z.object({
     sp_entity_id: z.string().optional(),
     sso_endpoint: z.string().optional(),
     updated_at: z.string().optional(),
+    access_token_lifetime: z.string().optional(),
+    allow_pkce_without_client_secret: z.boolean().optional(),
+    app_launcher_url: z.string().optional(),
+    client_id: z.string().optional(),
+    client_secret: z.string().optional(),
+    custom_claims: z.array(z.object({
+      name: z.string().optional(),
+      required: z.boolean().optional(),
+      scope: z.enum(["groups", "profile", "email", "openid"]).optional(),
+      source: z.object({
+        name: z.string().optional(),
+        name_by_idp: z.record(z.string(), z.unknown()).optional(),
+      }).optional(),
+    })).optional(),
+    grant_types: z.array(
+      z.enum([
+        "authorization_code",
+        "authorization_code_with_pkce",
+        "refresh_tokens",
+        "hybrid",
+        "implicit",
+      ]),
+    ).optional(),
+    group_filter_regex: z.string().optional(),
+    hybrid_and_implicit_options: z.object({
+      return_access_token_from_authorization_endpoint: z.boolean().optional(),
+      return_id_token_from_authorization_endpoint: z.boolean().optional(),
+    }).optional(),
+    redirect_uris: z.array(z.string()).optional(),
+    refresh_token_options: z.object({
+      lifetime: z.string().optional(),
+    }).optional(),
+    scopes: z.array(z.enum(["openid", "groups", "email", "profile"]))
+      .optional(),
   }).optional(),
   app_launcher_logo_url: z.string().describe(
     "The image URL of the logo shown in the App Launcher header.",
@@ -321,6 +642,13 @@ const ResourceSchema = z.object({
     destinations: z.array(z.object({
       type: z.string().optional(),
       uri: z.string().optional(),
+      cidr: z.string().optional(),
+      hostname: z.string().optional(),
+      l4_protocol: z.string().optional(),
+      port_range: z.string().optional(),
+      vnet_id: z.string().optional(),
+      mcp_server_id: z.string().optional(),
+      worker_id: z.string().optional(),
     })).optional(),
     domain: z.string().optional(),
     eager_redirect_cookie_setting: z.boolean().optional(),
@@ -355,6 +683,12 @@ const ResourceSchema = z.object({
         password: z.string().optional(),
         scheme: z.string().optional(),
         user: z.string().optional(),
+        token: z.string().optional(),
+        authorization_url: z.string().optional(),
+        client_id: z.string().optional(),
+        client_secret: z.string().optional(),
+        scopes: z.array(z.string()).optional(),
+        token_url: z.string().optional(),
       })).optional(),
       deactivate_on_delete: z.boolean().optional(),
       enabled: z.boolean().optional(),
@@ -387,11 +721,173 @@ const ResourceSchema = z.object({
         group: z.object({
           id: z.string().optional(),
         }).optional(),
+        any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+        auth_context: z.object({
+          ac_id: z.string().optional(),
+          id: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        auth_method: z.object({
+          auth_method: z.string().optional(),
+        }).optional(),
+        azureAD: z.object({
+          id: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        certificate: z.record(z.string(), z.unknown()).optional(),
+        common_name: z.object({
+          common_name: z.string().optional(),
+        }).optional(),
+        geo: z.object({
+          country_code: z.string().optional(),
+        }).optional(),
+        device_posture: z.object({
+          integration_uid: z.string().optional(),
+        }).optional(),
+        email_domain: z.object({
+          domain: z.string().optional(),
+        }).optional(),
+        email_list: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        email: z.object({
+          email: z.string().optional(),
+        }).optional(),
+        everyone: z.record(z.string(), z.unknown()).optional(),
+        external_evaluation: z.object({
+          evaluate_url: z.string().optional(),
+          keys_url: z.string().optional(),
+        }).optional(),
+        "github-organization": z.object({
+          identity_provider_id: z.string().optional(),
+          name: z.string().optional(),
+          team: z.string().optional(),
+        }).optional(),
+        gsuite: z.object({
+          email: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        login_method: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        ip_list: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        ip: z.object({
+          ip: z.string().optional(),
+        }).optional(),
+        okta: z.object({
+          identity_provider_id: z.string().optional(),
+          name: z.string().optional(),
+        }).optional(),
+        saml: z.object({
+          attribute_name: z.string().optional(),
+          attribute_value: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        oidc: z.object({
+          claim_name: z.string().optional(),
+          claim_value: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        service_token: z.object({
+          token_id: z.string().optional(),
+        }).optional(),
+        linked_app_token: z.object({
+          app_uid: z.string().optional(),
+        }).optional(),
+        user_risk_score: z.object({
+          user_risk_score: z.array(z.string()).optional(),
+        }).optional(),
+        cloudflare_account_member: z.object({
+          account_id: z.string().optional(),
+        }).optional(),
       })).optional(),
       id: z.string().optional(),
       include: z.array(z.object({
         group: z.object({
           id: z.string().optional(),
+        }).optional(),
+        any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+        auth_context: z.object({
+          ac_id: z.string().optional(),
+          id: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        auth_method: z.object({
+          auth_method: z.string().optional(),
+        }).optional(),
+        azureAD: z.object({
+          id: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        certificate: z.record(z.string(), z.unknown()).optional(),
+        common_name: z.object({
+          common_name: z.string().optional(),
+        }).optional(),
+        geo: z.object({
+          country_code: z.string().optional(),
+        }).optional(),
+        device_posture: z.object({
+          integration_uid: z.string().optional(),
+        }).optional(),
+        email_domain: z.object({
+          domain: z.string().optional(),
+        }).optional(),
+        email_list: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        email: z.object({
+          email: z.string().optional(),
+        }).optional(),
+        everyone: z.record(z.string(), z.unknown()).optional(),
+        external_evaluation: z.object({
+          evaluate_url: z.string().optional(),
+          keys_url: z.string().optional(),
+        }).optional(),
+        "github-organization": z.object({
+          identity_provider_id: z.string().optional(),
+          name: z.string().optional(),
+          team: z.string().optional(),
+        }).optional(),
+        gsuite: z.object({
+          email: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        login_method: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        ip_list: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        ip: z.object({
+          ip: z.string().optional(),
+        }).optional(),
+        okta: z.object({
+          identity_provider_id: z.string().optional(),
+          name: z.string().optional(),
+        }).optional(),
+        saml: z.object({
+          attribute_name: z.string().optional(),
+          attribute_value: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        oidc: z.object({
+          claim_name: z.string().optional(),
+          claim_value: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        service_token: z.object({
+          token_id: z.string().optional(),
+        }).optional(),
+        linked_app_token: z.object({
+          app_uid: z.string().optional(),
+        }).optional(),
+        user_risk_score: z.object({
+          user_risk_score: z.array(z.string()).optional(),
+        }).optional(),
+        cloudflare_account_member: z.object({
+          account_id: z.string().optional(),
         }).optional(),
       })).optional(),
       name: z.string().optional(),
@@ -399,9 +895,163 @@ const ResourceSchema = z.object({
         group: z.object({
           id: z.string().optional(),
         }).optional(),
+        any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+        auth_context: z.object({
+          ac_id: z.string().optional(),
+          id: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        auth_method: z.object({
+          auth_method: z.string().optional(),
+        }).optional(),
+        azureAD: z.object({
+          id: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        certificate: z.record(z.string(), z.unknown()).optional(),
+        common_name: z.object({
+          common_name: z.string().optional(),
+        }).optional(),
+        geo: z.object({
+          country_code: z.string().optional(),
+        }).optional(),
+        device_posture: z.object({
+          integration_uid: z.string().optional(),
+        }).optional(),
+        email_domain: z.object({
+          domain: z.string().optional(),
+        }).optional(),
+        email_list: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        email: z.object({
+          email: z.string().optional(),
+        }).optional(),
+        everyone: z.record(z.string(), z.unknown()).optional(),
+        external_evaluation: z.object({
+          evaluate_url: z.string().optional(),
+          keys_url: z.string().optional(),
+        }).optional(),
+        "github-organization": z.object({
+          identity_provider_id: z.string().optional(),
+          name: z.string().optional(),
+          team: z.string().optional(),
+        }).optional(),
+        gsuite: z.object({
+          email: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        login_method: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        ip_list: z.object({
+          id: z.string().optional(),
+        }).optional(),
+        ip: z.object({
+          ip: z.string().optional(),
+        }).optional(),
+        okta: z.object({
+          identity_provider_id: z.string().optional(),
+          name: z.string().optional(),
+        }).optional(),
+        saml: z.object({
+          attribute_name: z.string().optional(),
+          attribute_value: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        oidc: z.object({
+          claim_name: z.string().optional(),
+          claim_value: z.string().optional(),
+          identity_provider_id: z.string().optional(),
+        }).optional(),
+        service_token: z.object({
+          token_id: z.string().optional(),
+        }).optional(),
+        linked_app_token: z.object({
+          app_uid: z.string().optional(),
+        }).optional(),
+        user_risk_score: z.object({
+          user_risk_score: z.array(z.string()).optional(),
+        }).optional(),
+        cloudflare_account_member: z.object({
+          account_id: z.string().optional(),
+        }).optional(),
       })).optional(),
       updated_at: z.string().optional(),
+      account_id: z.string().optional(),
       precedence: z.number().optional(),
+    })).optional(),
+    saas_app: z.object({
+      auth_type: z.string().optional(),
+      consumer_service_url: z.string().optional(),
+      created_at: z.string().optional(),
+      custom_attributes: z.array(z.object({
+        friendly_name: z.string().optional(),
+        name: z.string().optional(),
+        name_format: z.string().optional(),
+        required: z.boolean().optional(),
+        source: z.object({
+          name: z.string().optional(),
+          name_by_idp: z.array(z.object({
+            idp_id: z.string().optional(),
+            source_name: z.string().optional(),
+          })).optional(),
+        }).optional(),
+      })).optional(),
+      default_relay_state: z.string().optional(),
+      idp_entity_id: z.string().optional(),
+      name_id_format: z.string().optional(),
+      name_id_transform_jsonata: z.string().optional(),
+      public_key: z.string().optional(),
+      saml_attribute_transform_jsonata: z.string().optional(),
+      sp_entity_id: z.string().optional(),
+      sso_endpoint: z.string().optional(),
+      updated_at: z.string().optional(),
+      access_token_lifetime: z.string().optional(),
+      allow_pkce_without_client_secret: z.boolean().optional(),
+      app_launcher_url: z.string().optional(),
+      client_id: z.string().optional(),
+      client_secret: z.string().optional(),
+      custom_claims: z.array(z.object({
+        name: z.string().optional(),
+        required: z.boolean().optional(),
+        scope: z.string().optional(),
+        source: z.object({
+          name: z.string().optional(),
+          name_by_idp: z.record(z.string(), z.unknown()).optional(),
+        }).optional(),
+      })).optional(),
+      grant_types: z.array(z.string()).optional(),
+      group_filter_regex: z.string().optional(),
+      hybrid_and_implicit_options: z.object({
+        return_access_token_from_authorization_endpoint: z.boolean().optional(),
+        return_id_token_from_authorization_endpoint: z.boolean().optional(),
+      }).optional(),
+      redirect_uris: z.array(z.string()).optional(),
+      refresh_token_options: z.object({
+        lifetime: z.string().optional(),
+      }).optional(),
+      scopes: z.array(z.string()).optional(),
+    }).optional(),
+    app_launcher_logo_url: z.string().optional(),
+    bg_color: z.string().optional(),
+    footer_links: z.array(z.object({
+      name: z.string().optional(),
+      url: z.string().optional(),
+    })).optional(),
+    header_bg_color: z.string().optional(),
+    landing_page_design: z.object({
+      button_color: z.string().optional(),
+      button_text_color: z.string().optional(),
+      image_url: z.string().optional(),
+      message: z.string().optional(),
+      title: z.string().optional(),
+    }).optional(),
+    skip_app_launcher_login_page: z.boolean().optional(),
+    target_criteria: z.array(z.object({
+      port: z.number().optional(),
+      target_attributes: z.record(z.string(), z.unknown()).optional(),
+      protocol: z.string().optional(),
     })).optional(),
   }).optional(),
   id: z.string(),
@@ -444,8 +1094,23 @@ const InputsSchema = z.object({
   custom_non_identity_deny_url: z.string().optional(),
   custom_pages: z.array(z.string()).optional(),
   destinations: z.array(z.object({
-    type: z.enum(["public"]).optional(),
+    type: z.enum([
+      "public",
+      "private",
+      "via_mcp_server_portal",
+      "worker",
+      "preview_worker",
+      "all_workers",
+      "all_preview_workers",
+    ]),
     uri: z.string().optional(),
+    cidr: z.string().optional(),
+    hostname: z.string().optional(),
+    l4_protocol: z.enum(["tcp", "udp"]).optional(),
+    port_range: z.string().optional(),
+    vnet_id: z.string().optional(),
+    mcp_server_id: z.string().optional(),
+    worker_id: z.string().optional(),
   })).optional(),
   domain: z.string().optional(),
   eager_redirect_cookie_setting: z.boolean().optional(),
@@ -479,9 +1144,20 @@ const InputsSchema = z.object({
   same_site_cookie_attribute: z.string().optional(),
   scim_config: z.object({
     authentication: z.array(z.object({
-      password: z.string(),
-      scheme: z.enum(["httpbasic"]),
-      user: z.string(),
+      password: z.string().optional(),
+      scheme: z.enum([
+        "httpbasic",
+        "oauthbearertoken",
+        "oauth2",
+        "access_service_token",
+      ]),
+      user: z.string().optional(),
+      token: z.string().optional(),
+      authorization_url: z.string().optional(),
+      client_id: z.string().optional(),
+      client_secret: z.string().optional(),
+      scopes: z.array(z.string()).optional(),
+      token_url: z.string().optional(),
     })).optional(),
     deactivate_on_delete: z.boolean().optional(),
     enabled: z.boolean().optional(),
@@ -508,8 +1184,269 @@ const InputsSchema = z.object({
   type: z.string().optional(),
   use_clientless_isolation_app_launcher_url: z.boolean().optional(),
   policies: z.array(z.object({
+    account_id: z.string().max(32).optional(),
     id: z.string().max(36).optional(),
     precedence: z.number().int().optional(),
+    decision: z.enum(["allow", "deny", "non_identity", "bypass"]),
+    exclude: z.array(z.object({
+      group: z.object({
+        id: z.string(),
+      }).optional(),
+      any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+      auth_context: z.object({
+        ac_id: z.string(),
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      auth_method: z.object({
+        auth_method: z.string(),
+      }).optional(),
+      azureAD: z.object({
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      certificate: z.record(z.string(), z.unknown()).optional(),
+      common_name: z.object({
+        common_name: z.string(),
+      }).optional(),
+      geo: z.object({
+        country_code: z.string(),
+      }).optional(),
+      device_posture: z.object({
+        integration_uid: z.string(),
+      }).optional(),
+      email_domain: z.object({
+        domain: z.string(),
+      }).optional(),
+      email_list: z.object({
+        id: z.string(),
+      }).optional(),
+      email: z.object({
+        email: z.string(),
+      }).optional(),
+      everyone: z.record(z.string(), z.unknown()).optional(),
+      external_evaluation: z.object({
+        evaluate_url: z.string(),
+        keys_url: z.string(),
+      }).optional(),
+      "github-organization": z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+        team: z.string().optional(),
+      }).optional(),
+      gsuite: z.object({
+        email: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      login_method: z.object({
+        id: z.string(),
+      }).optional(),
+      ip_list: z.object({
+        id: z.string(),
+      }).optional(),
+      ip: z.object({
+        ip: z.string(),
+      }).optional(),
+      okta: z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+      }).optional(),
+      saml: z.object({
+        attribute_name: z.string(),
+        attribute_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      oidc: z.object({
+        claim_name: z.string(),
+        claim_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      service_token: z.object({
+        token_id: z.string(),
+      }).optional(),
+      linked_app_token: z.object({
+        app_uid: z.string(),
+      }).optional(),
+      user_risk_score: z.object({
+        user_risk_score: z.array(z.enum(["low", "medium", "high", "unscored"])),
+      }).optional(),
+      cloudflare_account_member: z.object({
+        account_id: z.string().max(32).optional(),
+      }).optional(),
+    })).optional(),
+    include: z.array(z.object({
+      group: z.object({
+        id: z.string(),
+      }).optional(),
+      any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+      auth_context: z.object({
+        ac_id: z.string(),
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      auth_method: z.object({
+        auth_method: z.string(),
+      }).optional(),
+      azureAD: z.object({
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      certificate: z.record(z.string(), z.unknown()).optional(),
+      common_name: z.object({
+        common_name: z.string(),
+      }).optional(),
+      geo: z.object({
+        country_code: z.string(),
+      }).optional(),
+      device_posture: z.object({
+        integration_uid: z.string(),
+      }).optional(),
+      email_domain: z.object({
+        domain: z.string(),
+      }).optional(),
+      email_list: z.object({
+        id: z.string(),
+      }).optional(),
+      email: z.object({
+        email: z.string(),
+      }).optional(),
+      everyone: z.record(z.string(), z.unknown()).optional(),
+      external_evaluation: z.object({
+        evaluate_url: z.string(),
+        keys_url: z.string(),
+      }).optional(),
+      "github-organization": z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+        team: z.string().optional(),
+      }).optional(),
+      gsuite: z.object({
+        email: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      login_method: z.object({
+        id: z.string(),
+      }).optional(),
+      ip_list: z.object({
+        id: z.string(),
+      }).optional(),
+      ip: z.object({
+        ip: z.string(),
+      }).optional(),
+      okta: z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+      }).optional(),
+      saml: z.object({
+        attribute_name: z.string(),
+        attribute_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      oidc: z.object({
+        claim_name: z.string(),
+        claim_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      service_token: z.object({
+        token_id: z.string(),
+      }).optional(),
+      linked_app_token: z.object({
+        app_uid: z.string(),
+      }).optional(),
+      user_risk_score: z.object({
+        user_risk_score: z.array(z.enum(["low", "medium", "high", "unscored"])),
+      }).optional(),
+      cloudflare_account_member: z.object({
+        account_id: z.string().max(32).optional(),
+      }).optional(),
+    })),
+    name: z.string(),
+    require: z.array(z.object({
+      group: z.object({
+        id: z.string(),
+      }).optional(),
+      any_valid_service_token: z.record(z.string(), z.unknown()).optional(),
+      auth_context: z.object({
+        ac_id: z.string(),
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      auth_method: z.object({
+        auth_method: z.string(),
+      }).optional(),
+      azureAD: z.object({
+        id: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      certificate: z.record(z.string(), z.unknown()).optional(),
+      common_name: z.object({
+        common_name: z.string(),
+      }).optional(),
+      geo: z.object({
+        country_code: z.string(),
+      }).optional(),
+      device_posture: z.object({
+        integration_uid: z.string(),
+      }).optional(),
+      email_domain: z.object({
+        domain: z.string(),
+      }).optional(),
+      email_list: z.object({
+        id: z.string(),
+      }).optional(),
+      email: z.object({
+        email: z.string(),
+      }).optional(),
+      everyone: z.record(z.string(), z.unknown()).optional(),
+      external_evaluation: z.object({
+        evaluate_url: z.string(),
+        keys_url: z.string(),
+      }).optional(),
+      "github-organization": z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+        team: z.string().optional(),
+      }).optional(),
+      gsuite: z.object({
+        email: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      login_method: z.object({
+        id: z.string(),
+      }).optional(),
+      ip_list: z.object({
+        id: z.string(),
+      }).optional(),
+      ip: z.object({
+        ip: z.string(),
+      }).optional(),
+      okta: z.object({
+        identity_provider_id: z.string(),
+        name: z.string(),
+      }).optional(),
+      saml: z.object({
+        attribute_name: z.string(),
+        attribute_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      oidc: z.object({
+        claim_name: z.string(),
+        claim_value: z.string(),
+        identity_provider_id: z.string(),
+      }).optional(),
+      service_token: z.object({
+        token_id: z.string(),
+      }).optional(),
+      linked_app_token: z.object({
+        app_uid: z.string(),
+      }).optional(),
+      user_risk_score: z.object({
+        user_risk_score: z.array(z.enum(["low", "medium", "high", "unscored"])),
+      }).optional(),
+      cloudflare_account_member: z.object({
+        account_id: z.string().max(32).optional(),
+      }).optional(),
+    })).optional(),
   })).optional(),
   saas_app: z.object({
     auth_type: z.enum(["saml", "oidc"]).optional(),
@@ -541,6 +1478,40 @@ const InputsSchema = z.object({
     sp_entity_id: z.string().optional(),
     sso_endpoint: z.string().optional(),
     updated_at: z.string().optional(),
+    access_token_lifetime: z.string().optional(),
+    allow_pkce_without_client_secret: z.boolean().optional(),
+    app_launcher_url: z.string().optional(),
+    client_id: z.string().optional(),
+    client_secret: z.string().optional(),
+    custom_claims: z.array(z.object({
+      name: z.string().optional(),
+      required: z.boolean().optional(),
+      scope: z.enum(["groups", "profile", "email", "openid"]).optional(),
+      source: z.object({
+        name: z.string().optional(),
+        name_by_idp: z.record(z.string(), z.unknown()).optional(),
+      }).optional(),
+    })).optional(),
+    grant_types: z.array(
+      z.enum([
+        "authorization_code",
+        "authorization_code_with_pkce",
+        "refresh_tokens",
+        "hybrid",
+        "implicit",
+      ]),
+    ).optional(),
+    group_filter_regex: z.string().optional(),
+    hybrid_and_implicit_options: z.object({
+      return_access_token_from_authorization_endpoint: z.boolean().optional(),
+      return_id_token_from_authorization_endpoint: z.boolean().optional(),
+    }).optional(),
+    redirect_uris: z.array(z.string()).optional(),
+    refresh_token_options: z.object({
+      lifetime: z.string().optional(),
+    }).optional(),
+    scopes: z.array(z.enum(["openid", "groups", "email", "profile"]))
+      .optional(),
   }).optional(),
   app_launcher_logo_url: z.string().optional(),
   bg_color: z.string().optional(),
@@ -570,7 +1541,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Apps. Registered at `@swamp/cloudflare/access/apps`. */
 export const model = {
   type: "@swamp/cloudflare/access/apps",
-  version: "2026.07.24.1",
+  version: "2026.08.11.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -599,6 +1570,16 @@ export const model = {
     },
     {
       toVersion: "2026.07.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -118,8 +118,10 @@ const GlobalArgsSchema = z.object({
     "Grace period for active instances to stay alive before becoming eligible for shutdown signal due to a rollout, in seconds.\nDefaults to 0.\n",
   ).optional(),
   durable_objects: z.object({
-    namespace_id: z.string(),
-  }).describe("Durable object configuration using a namespace ID").optional(),
+    namespace_id: z.string().optional(),
+    class_name: z.string().optional(),
+    script_name: z.string().optional(),
+  }).optional(),
   name: z.string().describe("The name for this application"),
   scheduling_policy: z.enum(["default"]).describe(
     "The scheduling policy to use for an application",
@@ -300,7 +302,9 @@ const InputsSchema = z.object({
   }).optional(),
   rollout_active_grace_period: z.number().int().min(0).max(604800).optional(),
   durable_objects: z.object({
-    namespace_id: z.string(),
+    namespace_id: z.string().optional(),
+    class_name: z.string().optional(),
+    script_name: z.string().optional(),
   }).optional(),
   name: z.string().optional(),
   scheduling_policy: z.enum(["default"]).optional(),
@@ -312,7 +316,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Applications. Registered at `@swamp/cloudflare/containers/applications`. */
 export const model = {
   type: "@swamp/cloudflare/containers/applications",
-  version: "2026.08.05.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.06.08.1",
@@ -349,6 +353,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.05.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

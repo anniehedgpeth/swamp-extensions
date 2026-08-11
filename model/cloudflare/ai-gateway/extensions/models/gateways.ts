@@ -51,9 +51,16 @@ const GlobalArgsSchema = z.object({
   cache_ttl: z.number().int().min(0),
   collect_logs: z.boolean(),
   dlp: z.object({
-    action: z.enum(["BLOCK", "FLAG"]),
+    action: z.enum(["BLOCK", "FLAG"]).optional(),
     enabled: z.boolean(),
-    profiles: z.array(z.string()),
+    profiles: z.array(z.string()).optional(),
+    policies: z.array(z.object({
+      action: z.enum(["FLAG", "BLOCK"]),
+      check: z.array(z.enum(["REQUEST", "RESPONSE"])),
+      enabled: z.boolean(),
+      id: z.string(),
+      profiles: z.array(z.string()),
+    })).optional(),
   }).optional(),
   guardrails: z.object({
     prompt: z.object({
@@ -167,6 +174,13 @@ const ResourceSchema = z.object({
     action: z.string().optional(),
     enabled: z.boolean().optional(),
     profiles: z.array(z.string()).optional(),
+    policies: z.array(z.object({
+      action: z.string().optional(),
+      check: z.array(z.string()).optional(),
+      enabled: z.boolean().optional(),
+      id: z.string().optional(),
+      profiles: z.array(z.string()).optional(),
+    })).optional(),
   }).optional(),
   guardrails: z.object({
     prompt: z.object({
@@ -262,9 +276,16 @@ const InputsSchema = z.object({
   cache_ttl: z.number().int().min(0).optional(),
   collect_logs: z.boolean().optional(),
   dlp: z.object({
-    action: z.enum(["BLOCK", "FLAG"]),
+    action: z.enum(["BLOCK", "FLAG"]).optional(),
     enabled: z.boolean(),
-    profiles: z.array(z.string()),
+    profiles: z.array(z.string()).optional(),
+    policies: z.array(z.object({
+      action: z.enum(["FLAG", "BLOCK"]),
+      check: z.array(z.enum(["REQUEST", "RESPONSE"])),
+      enabled: z.boolean(),
+      id: z.string(),
+      profiles: z.array(z.string()),
+    })).optional(),
   }).optional(),
   guardrails: z.object({
     prompt: z.object({
@@ -357,7 +378,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Gateways. Registered at `@swamp/cloudflare/ai-gateway/gateways`. */
 export const model = {
   type: "@swamp/cloudflare/ai-gateway/gateways",
-  version: "2026.08.02.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -386,6 +407,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.02.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

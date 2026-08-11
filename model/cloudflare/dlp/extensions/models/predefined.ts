@@ -119,6 +119,15 @@ const ResourceSchema = z.object({
       profile_id: z.string().optional(),
       updated_at: z.string().optional(),
       type: z.string().optional(),
+      confidence: z.object({
+        ai_context_available: z.boolean().optional(),
+        available: z.boolean().optional(),
+      }).optional(),
+      deprecated: z.boolean().optional(),
+      variant: z.string().optional(),
+      case_sensitive: z.boolean().optional(),
+      secret: z.boolean().optional(),
+      word_list: z.string().optional(),
     })).optional(),
     id: z.string().optional(),
     name: z.string().optional(),
@@ -140,9 +149,19 @@ const ResourceSchema = z.object({
       profile_id: z.string().optional(),
       updated_at: z.string().optional(),
       type: z.string().optional(),
+      confidence: z.object({
+        ai_context_available: z.boolean().optional(),
+        available: z.boolean().optional(),
+      }).optional(),
+      deprecated: z.boolean().optional(),
+      variant: z.string().optional(),
+      case_sensitive: z.boolean().optional(),
+      secret: z.boolean().optional(),
+      word_list: z.string().optional(),
     })).optional(),
     updated_at: z.string().optional(),
     type: z.string().optional(),
+    open_access: z.boolean().optional(),
   }).optional(),
   id: z.string(),
 }).passthrough();
@@ -175,7 +194,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Predefined. Registered at `@swamp/cloudflare/dlp/predefined`. */
 export const model = {
   type: "@swamp/cloudflare/dlp/predefined",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -194,6 +213,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

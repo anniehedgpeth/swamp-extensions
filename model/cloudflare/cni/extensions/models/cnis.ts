@@ -52,6 +52,9 @@ const GlobalArgsSchema = z.object({
     extra_prefixes: z.array(z.string()),
     md5_key: z.string().optional(),
   }).optional(),
+  bgp_mode: z.enum(["dynamic_route_exchange", "advertise_only"]).describe(
+    "The BGP mode for a CNI.\n\nControls the customer-facing data path:\n* `DynamicRouteExchange` — Full BGP: routes flow through to conduit via CRE / bgp-bridge /\nbgp-bridge-receiver.\n* `AdvertiseOnly` — static advertisement via taserver, no routes exchanged with Conduit",
+  ).optional(),
   cust_ip: z.string().describe(
     "Customer end of the point-to-point link\n\nThis should always be inside the same prefix as `p2p_ip`.",
   ).optional(),
@@ -82,6 +85,7 @@ const ResourceSchema = z.object({
     extra_prefixes: z.array(z.string()).optional(),
     md5_key: z.string().optional(),
   }).optional(),
+  bgp_mode: z.string().optional(),
   cust_ip: z.string().optional(),
   id: z.string(),
   interconnect: z.string().optional(),
@@ -104,6 +108,7 @@ const InputsSchema = z.object({
     extra_prefixes: z.array(z.string()),
     md5_key: z.string().optional(),
   }).optional(),
+  bgp_mode: z.enum(["dynamic_route_exchange", "advertise_only"]).optional(),
   cust_ip: z.string().optional(),
   id: z.string().optional(),
   interconnect: z.string().optional(),
@@ -121,7 +126,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Cnis. Registered at `@swamp/cloudflare/cni/cnis`. */
 export const model = {
   type: "@swamp/cloudflare/cni/cnis",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -141,6 +146,11 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Added: bgp_mode",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -216,6 +226,9 @@ export const model = {
         const filters: [string, string][] = [];
         if (g.account !== undefined) {
           filters.push(["account", String(g.account)]);
+        }
+        if (g.bgp_mode !== undefined) {
+          filters.push(["bgp_mode", String(g.bgp_mode)]);
         }
         if (g.cust_ip !== undefined) {
           filters.push(["cust_ip", String(g.cust_ip)]);
@@ -324,6 +337,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g.account !== undefined) body.account = g.account;
         if (g.bgp !== undefined) body.bgp = g.bgp;
+        if (g.bgp_mode !== undefined) body.bgp_mode = g.bgp_mode;
         if (g.cust_ip !== undefined) body.cust_ip = g.cust_ip;
         if (g.id !== undefined) body.id = g.id;
         if (g.interconnect !== undefined) body.interconnect = g.interconnect;

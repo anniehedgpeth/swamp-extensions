@@ -44,7 +44,7 @@ import {
 const GlobalArgsSchema = z.object({
   zone_id: z.string().describe("Cloudflare zone ID"),
   configurations: z.array(z.object({
-    target: z.enum(["ip"]).optional(),
+    target: z.enum(["ip", "ip_range"]).optional(),
     value: z.string().optional(),
   })).describe(
     "A list of IP addresses or CIDR ranges that will be allowed to access the URLs specified in the Zone Lockdown rule. You can include any number of `ip` or `ip_range` configurations.",
@@ -90,7 +90,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   zone_id: z.string().optional(),
   configurations: z.array(z.object({
-    target: z.enum(["ip"]).optional(),
+    target: z.enum(["ip", "ip_range"]).optional(),
     value: z.string().optional(),
   })).optional(),
   urls: z.array(z.string()).optional(),
@@ -105,7 +105,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Lockdowns. Registered at `@swamp/cloudflare/firewall/lockdowns`. */
 export const model = {
   type: "@swamp/cloudflare/firewall/lockdowns",
-  version: "2026.07.21.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -124,6 +124,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
