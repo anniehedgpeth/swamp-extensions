@@ -1,0 +1,85 @@
+manifestVersion: 1
+name: "@swamp/gcp-sm"
+version: "2026.08.11.0"
+description: |
+  Read, write, and delete secrets stored in Google Cloud Secret Manager, with
+  support for vault annotations (`swamp vault annotate` / `swamp vault inspect`).
+  Emits OpenTelemetry spans for vault operations so failures and latency are
+  attributable in traces when a TracerProvider is configured.
+
+  Deletion is immediate and irreversible — GCP Secret Manager has no recovery
+  window. The secret and all its versions are permanently removed.
+
+  ## Authentication
+
+  Uses the standard GCP credential chain via the gcloud CLI — no credentials
+  in config. Provide credentials via one of:
+  - Environment variable: `GCP_ACCESS_TOKEN` (pre-obtained OAuth2 token)
+  - Inline JSON: `GOOGLE_APPLICATION_CREDENTIALS_JSON`
+  - File path: `GOOGLE_APPLICATION_CREDENTIALS`
+  - Application Default Credentials: `gcloud auth application-default login`
+
+  ## Required IAM Permissions
+
+  - `secretmanager.secrets.create`
+  - `secretmanager.secrets.get`
+  - `secretmanager.secrets.list`
+  - `secretmanager.secrets.update`
+  - `secretmanager.secrets.delete`
+  - `secretmanager.versions.add`
+  - `secretmanager.versions.access`
+
+  ## Annotations
+
+  Annotations map to native GCP Secret Manager primitives:
+  - **notes** → secret `annotations` field (`swamp-notes` key)
+  - **url** → secret `annotations` field (`swamp-url` key)
+  - **labels** → secret `labels` field (`swamp-` prefixed keys)
+
+  ```bash
+  swamp vault annotate my-gcp-sm API_KEY \
+    --url https://console.cloud.google.com/security/secret-manager \
+    --note "Production API key" \
+    --label env=prod --label team=infra
+  swamp vault inspect my-gcp-sm API_KEY --json
+  ```
+
+  ## Usage
+
+  ```bash
+  swamp vault create @swamp/gcp-sm my-gcp-sm \
+    --config '{"project_id": "my-project"}' --json
+
+  swamp vault read-secret my-gcp-sm my-secret --json
+  swamp vault put my-gcp-sm my-secret "s3cr3t" --json
+  swamp vault delete my-gcp-sm my-secret --json
+  swamp vault list-keys my-gcp-sm --json
+  ```
+
+  ## Emulator Support
+
+  For local development and testing, set `api_endpoint` to point at a GCP
+  Secret Manager emulator (e.g. floci-gcp). Authentication is skipped when
+  a custom endpoint is configured.
+
+  ```bash
+  swamp vault create @swamp/gcp-sm my-local-sm \
+    --config '{"project_id": "floci-local", "api_endpoint": "http://localhost:4588"}' --json
+  ```
+
+  ## Secret Key Format
+
+  Secret keys are mapped to GCP secret IDs. Slashes in key names are replaced
+  with hyphens (`/` → `-`) since GCP secret IDs only allow `[a-zA-Z0-9_-]`.
+repository: "https://github.com/swamp-club/swamp-extensions"
+vaults:
+  - gcp_sm.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []
+labels:
+  - vault
+  - gcp
+  - secret-manager
+  - secrets

@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        vault: [1password, aws-sm, azure-kv]
+        vault: [1password, aws-sm, azure-kv, gcp-sm]
         task: [check, lint, fmt, test]
     defaults:
       run:
@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        vault: [1password, aws-sm, azure-kv]
+        vault: [1password, aws-sm, azure-kv, gcp-sm]
     defaults:
       run:
         working-directory: vault/${{ matrix.vault }}
