@@ -305,6 +305,20 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Optional. Time zone of VM Cluster to set. Defaults to UTC if not specified.",
     ).optional(),
+    vmBackupStorageType: z.enum([
+      "VM_BACKUP_STORAGE_TYPE_UNSPECIFIED",
+      "VM_BACKUP_STORAGE_TYPE_LOCAL",
+      "VM_BACKUP_STORAGE_TYPE_EXASCALE",
+    ]).describe(
+      "Optional. Specifies whether VM backups are stored on local DB server storage or Exascale storage.",
+    ).optional(),
+    vmFileSystemStorageType: z.enum([
+      "VM_FILE_SYSTEM_STORAGE_TYPE_UNSPECIFIED",
+      "VM_FILE_SYSTEM_STORAGE_TYPE_LOCAL",
+      "VM_FILE_SYSTEM_STORAGE_TYPE_EXASCALE",
+    ]).describe(
+      "Optional. Specifies whether VM file system storage / VM images are stored on local DB server storage or Exascale storage.",
+    ).optional(),
   }).describe("Optional. Various properties of the VM Cluster.").optional(),
   cloudVmClusterId: z.string().describe(
     "Required. The ID of the VM Cluster to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
@@ -377,6 +391,8 @@ const StateSchema = z.object({
       id: z.string(),
       version: z.string(),
     }),
+    vmBackupStorageType: z.string(),
+    vmFileSystemStorageType: z.string(),
   }).optional(),
 }).passthrough();
 
@@ -545,6 +561,20 @@ const InputsSchema = z.object({
     }).describe(
       "Optional. Time zone of VM Cluster to set. Defaults to UTC if not specified.",
     ).optional(),
+    vmBackupStorageType: z.enum([
+      "VM_BACKUP_STORAGE_TYPE_UNSPECIFIED",
+      "VM_BACKUP_STORAGE_TYPE_LOCAL",
+      "VM_BACKUP_STORAGE_TYPE_EXASCALE",
+    ]).describe(
+      "Optional. Specifies whether VM backups are stored on local DB server storage or Exascale storage.",
+    ).optional(),
+    vmFileSystemStorageType: z.enum([
+      "VM_FILE_SYSTEM_STORAGE_TYPE_UNSPECIFIED",
+      "VM_FILE_SYSTEM_STORAGE_TYPE_LOCAL",
+      "VM_FILE_SYSTEM_STORAGE_TYPE_EXASCALE",
+    ]).describe(
+      "Optional. Specifies whether VM file system storage / VM images are stored on local DB server storage or Exascale storage.",
+    ).optional(),
   }).describe("Optional. Various properties of the VM Cluster.").optional(),
   cloudVmClusterId: z.string().describe(
     "Required. The ID of the VM Cluster to create. This value is restricted to (^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$) and must be a maximum of 63 characters in length. The value must start with a letter and end with a letter or a number.",
@@ -582,7 +612,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud CloudVmClusters. Registered at `@swamp/gcp/oracledatabase/cloudvmclusters`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/cloudvmclusters",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -739,6 +769,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

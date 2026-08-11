@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/dataexchange/entitled-data-sets
+// Auto-generated extension model for @swamp/aws/wickr/network
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for DataExchange EntitledDataSets (AWS::DataExchange::EntitledDataSets).
+ * Swamp extension model for Wickr Network (AWS::Wickr::Network).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -32,7 +32,13 @@
  */
 
 import { z } from "npm:zod@4.3.6";
-import { isResourceNotFoundError, readResource } from "./_lib/aws.ts";
+import {
+  createResource,
+  deleteResource,
+  isResourceNotFoundError,
+  readResource,
+  updateResource,
+} from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
 const GlobalArgsSchema = z.object({
@@ -51,28 +57,22 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  AssetType: z.enum([
-    "S3_SNAPSHOT",
-    "REDSHIFT_DATA_SHARE",
-    "API_GATEWAY_API",
-    "S3_DATA_ACCESS",
-    "LAKE_FORMATION_DATA_PERMISSION",
-  ]).describe("The type of asset that is added to a data set.").optional(),
-  Description: z.string().describe("A description for the data set.")
-    .optional(),
-  Name: z.string().describe("The name of the data set.").optional(),
+  NetworkName: z.string().describe(
+    "The name of the network. Must be between 1 and 20 characters.",
+  ),
+  AccessLevel: z.enum(["STANDARD", "PREMIUM"]).describe(
+    "The access level of the network, which determines available features and capabilities.",
+  ),
 });
 
 const StateSchema = z.object({
-  Arn: z.string(),
-  DataSetId: z.string().optional(),
-  AssetType: z.string().optional(),
-  Description: z.string().optional(),
-  Name: z.string().optional(),
-  Origin: z.string().optional(),
-  SourceId: z.string().optional(),
-  CreatedAt: z.string().optional(),
-  UpdatedAt: z.string().optional(),
+  NetworkArn: z.string(),
+  NetworkId: z.string().optional(),
+  NetworkName: z.string().optional(),
+  AccessLevel: z.string().optional(),
+  AwsAccountId: z.string().optional(),
+  Standing: z.number().optional(),
+  MigrationState: z.number().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -83,16 +83,12 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  AssetType: z.enum([
-    "S3_SNAPSHOT",
-    "REDSHIFT_DATA_SHARE",
-    "API_GATEWAY_API",
-    "S3_DATA_ACCESS",
-    "LAKE_FORMATION_DATA_PERMISSION",
-  ]).describe("The type of asset that is added to a data set.").optional(),
-  Description: z.string().describe("A description for the data set.")
-    .optional(),
-  Name: z.string().describe("The name of the data set.").optional(),
+  NetworkName: z.string().describe(
+    "The name of the network. Must be between 1 and 20 characters.",
+  ).optional(),
+  AccessLevel: z.enum(["STANDARD", "PREMIUM"]).describe(
+    "The access level of the network, which determines available features and capabilities.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -111,39 +107,61 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for DataExchange EntitledDataSets. Registered at `@swamp/aws/dataexchange/entitled-data-sets`. */
+/** Swamp extension model for Wickr Network. Registered at `@swamp/aws/wickr/network`. */
 export const model = {
-  type: "@swamp/aws/dataexchange/entitled-data-sets",
-  version: "2026.07.18.1",
-  upgrades: [
-    {
-      toVersion: "2026.07.18.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
+  type: "@swamp/aws/wickr/network",
+  version: "2026.08.11.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "DataExchange EntitledDataSets resource state",
+      description: "Wickr Network resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
     },
   },
   methods: {
+    create: {
+      description: "Create a Wickr Network",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const desiredState: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await createResource(
+          "AWS::Wickr::Network",
+          desiredState,
+          credentials,
+        ) as StateData;
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
     get: {
-      description: "Get a DataExchange EntitledDataSets",
+      description: "Get a Wickr Network",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the DataExchange EntitledDataSets",
+          "The primary identifier of the Wickr Network",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::DataExchange::EntitledDataSets",
+          "AWS::Wickr::Network",
           args.identifier,
           credentials,
         ) as StateData;
@@ -160,8 +178,8 @@ export const model = {
         return { dataHandles: [handle] };
       },
     },
-    sync: {
-      description: "Sync DataExchange EntitledDataSets state from AWS",
+    update: {
+      description: "Update a Wickr Network",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -179,13 +197,91 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.Arn?.toString();
+        const identifier = existing.NetworkArn?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
+        }
+        const currentState = await readResource(
+          "AWS::Wickr::Network",
+          identifier,
+          credentials,
+        ) as StateData;
+        const desiredState: Record<string, unknown> = { ...currentState };
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await updateResource(
+          "AWS::Wickr::Network",
+          identifier,
+          currentState,
+          desiredState,
+          ["AccessLevel"],
+          credentials,
+        );
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete a Wickr Network",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the Wickr Network",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { existed } = await deleteResource(
+          "AWS::Wickr::Network",
+          args.identifier,
+          credentials,
+        );
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          identifier: args.identifier,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
+        return { dataHandles: [handle] };
+      },
+    },
+    sync: {
+      description: "Sync Wickr Network state from AWS",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const identifier = existing.NetworkArn?.toString();
         if (!identifier) {
           throw new Error("No identifier found in existing state");
         }
         try {
           const result = await readResource(
-            "AWS::DataExchange::EntitledDataSets",
+            "AWS::Wickr::Network",
             identifier,
             credentials,
           ) as StateData;

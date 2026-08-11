@@ -42,12 +42,12 @@ import {
 import type { AwsCredentials } from "./_lib/aws.ts";
 
 const TagSchema = z.object({
-  Key: z.string().min(1).max(128).describe(
-    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
-  ),
   Value: z.string().min(0).max(256).describe(
     "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
   ).optional(),
+  Key: z.string().min(1).max(128).describe(
+    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
 });
 
 const GlobalArgsSchema = z.object({
@@ -66,16 +66,11 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Username: z.string().min(1).max(64).describe(
-    "The username for the InfluxDB cluster.",
-  ).optional(),
-  Password: z.string().min(8).max(64).regex(new RegExp("^[a-zA-Z0-9]+$"))
-    .describe("The password for the InfluxDB cluster.").optional(),
   Organization: z.string().min(1).max(64).describe(
     "The organization for the InfluxDB cluster.",
   ).optional(),
-  Bucket: z.string().min(2).max(64).regex(new RegExp('^[^_][^"]*$')).describe(
-    "The bucket for the InfluxDB cluster.",
+  Port: z.number().int().min(1024).max(65535).describe(
+    "The port number on which InfluxDB accepts connections.",
   ).optional(),
   DbInstanceType: z.enum([
     "db.influx.medium",
@@ -91,26 +86,38 @@ const GlobalArgsSchema = z.object({
   VpcSubnetIds: z.array(z.string()).describe(
     "A list of EC2 subnet IDs for this InfluxDB cluster.",
   ).optional(),
+  DeploymentType: z.enum(["MULTI_NODE_READ_REPLICAS"]).describe(
+    "Deployment type of the InfluxDB cluster.",
+  ).optional(),
+  Name: z.string().min(3).max(40).regex(
+    new RegExp("^[a-zA-z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*$"),
+  ).describe("The unique name that is associated with the InfluxDB cluster.")
+    .optional(),
   VpcSecurityGroupIds: z.array(z.string()).describe(
     "A list of Amazon EC2 VPC security groups to associate with this InfluxDB cluster.",
   ).optional(),
-  PubliclyAccessible: z.boolean().describe(
-    "Attach a public IP to the customer ENI.",
+  NetworkType: z.enum(["IPV4", "DUAL"]).describe(
+    "Network type of the InfluxDB cluster.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "An arbitrary set of tags (key-value pairs) for this DB cluster.",
+  ).optional(),
+  Password: z.string().min(8).max(64).regex(new RegExp("^[a-zA-Z0-9]+$"))
+    .describe("The password for the InfluxDB cluster.").optional(),
+  DbParameterGroupIdentifier: z.string().min(3).max(64).regex(
+    new RegExp("^[a-zA-Z0-9]+$"),
+  ).describe("The name of an existing InfluxDB parameter group.").optional(),
+  FailoverMode: z.enum(["AUTOMATIC", "NO_FAILOVER"]).describe(
+    "Failover mode of the InfluxDB cluster.",
+  ).optional(),
+  AllocatedStorage: z.number().int().min(20).max(15360).describe(
+    "The allocated storage for the InfluxDB cluster.",
   ).optional(),
   DbStorageType: z.enum([
     "InfluxIOIncludedT1",
     "InfluxIOIncludedT2",
     "InfluxIOIncludedT3",
   ]).describe("The storage type of the InfluxDB cluster.").optional(),
-  AllocatedStorage: z.number().int().min(20).max(15360).describe(
-    "The allocated storage for the InfluxDB cluster.",
-  ).optional(),
-  DbParameterGroupIdentifier: z.string().min(3).max(64).regex(
-    new RegExp("^[a-zA-Z0-9]+$"),
-  ).describe("The name of an existing InfluxDB parameter group.").optional(),
-  Port: z.number().int().min(1024).max(65535).describe(
-    "The port number on which InfluxDB accepts connections.",
-  ).optional(),
   LogDeliveryConfiguration: z.object({
     S3Configuration: z.object({
       BucketName: z.string().min(3).max(63).regex(
@@ -127,55 +134,65 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Configuration for sending logs to customer account from the InfluxDB cluster.",
   ).optional(),
-  Name: z.string().min(3).max(40).regex(
-    new RegExp("^[a-zA-z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*$"),
-  ).describe("The unique name that is associated with the InfluxDB cluster.")
-    .optional(),
-  DeploymentType: z.enum(["MULTI_NODE_READ_REPLICAS"]).describe(
-    "Deployment type of the InfluxDB cluster.",
+  Username: z.string().min(1).max(64).describe(
+    "The username for the InfluxDB cluster.",
   ).optional(),
-  Tags: z.array(TagSchema).describe(
-    "An arbitrary set of tags (key-value pairs) for this DB cluster.",
+  Bucket: z.string().min(2).max(64).regex(new RegExp('^[^_][^"]*$')).describe(
+    "The bucket for the InfluxDB cluster.",
   ).optional(),
-  NetworkType: z.enum(["IPV4", "DUAL"]).describe(
-    "Network type of the InfluxDB cluster.",
+  PubliclyAccessible: z.boolean().describe(
+    "Attach a public IP to the customer ENI.",
   ).optional(),
-  FailoverMode: z.enum(["AUTOMATIC", "NO_FAILOVER"]).describe(
-    "Failover mode of the InfluxDB cluster.",
-  ).optional(),
+  MaintenanceSchedule: z.object({
+    Timezone: z.string().min(1).max(64).regex(
+      new RegExp("^(UTC|[A-Za-z_]+/[A-Za-z0-9_]+(/[A-Za-z0-9_]+)?)$"),
+    ).describe("The IANA timezone identifier for the maintenance schedule."),
+    PreferredMaintenanceWindow: z.string().min(0).max(19).regex(
+      new RegExp(
+        "^$|^(Mon|Tue|Wed|Thu|Fri|Sat|Sun):([01]\\d|2[0-3]):[0-5]\\d-(Mon|Tue|Wed|Thu|Fri|Sat|Sun):([01]\\d|2[0-3]):[0-5]\\d$",
+      ),
+    ).describe(
+      "The preferred maintenance window in format ddd:HH:MM-ddd:HH:MM.",
+    ),
+  }).describe("The maintenance schedule for the InfluxDB cluster.").optional(),
 });
 
 const StateSchema = z.object({
-  Username: z.string().optional(),
-  Password: z.string().optional(),
   Organization: z.string().optional(),
-  Bucket: z.string().optional(),
+  InfluxAuthParametersSecretArn: z.string().optional(),
+  Port: z.number().optional(),
   DbInstanceType: z.string().optional(),
   VpcSubnetIds: z.array(z.string()).optional(),
+  DeploymentType: z.string().optional(),
+  Name: z.string().optional(),
+  Endpoint: z.string().optional(),
   VpcSecurityGroupIds: z.array(z.string()).optional(),
-  PubliclyAccessible: z.boolean().optional(),
-  DbStorageType: z.string().optional(),
-  AllocatedStorage: z.number().optional(),
+  NetworkType: z.string().optional(),
+  NextMaintenanceTime: z.string().optional(),
+  EngineType: z.string().optional(),
+  Tags: z.array(TagSchema).optional(),
+  Password: z.string().optional(),
   DbParameterGroupIdentifier: z.string().optional(),
-  Port: z.number().optional(),
+  Status: z.string().optional(),
+  FailoverMode: z.string().optional(),
+  ReaderEndpoint: z.string().optional(),
+  AllocatedStorage: z.number().optional(),
+  DbStorageType: z.string().optional(),
   LogDeliveryConfiguration: z.object({
     S3Configuration: z.object({
       BucketName: z.string(),
       Enabled: z.boolean(),
     }),
   }).optional(),
-  Status: z.string().optional(),
-  Arn: z.string().optional(),
-  Name: z.string().optional(),
-  Endpoint: z.string().optional(),
-  ReaderEndpoint: z.string().optional(),
-  InfluxAuthParametersSecretArn: z.string().optional(),
+  Username: z.string().optional(),
+  Bucket: z.string().optional(),
+  PubliclyAccessible: z.boolean().optional(),
   Id: z.string(),
-  DeploymentType: z.string().optional(),
-  Tags: z.array(TagSchema).optional(),
-  NetworkType: z.string().optional(),
-  FailoverMode: z.string().optional(),
-  EngineType: z.string().optional(),
+  Arn: z.string().optional(),
+  MaintenanceSchedule: z.object({
+    Timezone: z.string(),
+    PreferredMaintenanceWindow: z.string(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -186,16 +203,11 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Username: z.string().min(1).max(64).describe(
-    "The username for the InfluxDB cluster.",
-  ).optional(),
-  Password: z.string().min(8).max(64).regex(new RegExp("^[a-zA-Z0-9]+$"))
-    .describe("The password for the InfluxDB cluster.").optional(),
   Organization: z.string().min(1).max(64).describe(
     "The organization for the InfluxDB cluster.",
   ).optional(),
-  Bucket: z.string().min(2).max(64).regex(new RegExp('^[^_][^"]*$')).describe(
-    "The bucket for the InfluxDB cluster.",
+  Port: z.number().int().min(1024).max(65535).describe(
+    "The port number on which InfluxDB accepts connections.",
   ).optional(),
   DbInstanceType: z.enum([
     "db.influx.medium",
@@ -211,26 +223,38 @@ const InputsSchema = z.object({
   VpcSubnetIds: z.array(z.string()).describe(
     "A list of EC2 subnet IDs for this InfluxDB cluster.",
   ).optional(),
+  DeploymentType: z.enum(["MULTI_NODE_READ_REPLICAS"]).describe(
+    "Deployment type of the InfluxDB cluster.",
+  ).optional(),
+  Name: z.string().min(3).max(40).regex(
+    new RegExp("^[a-zA-z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*$"),
+  ).describe("The unique name that is associated with the InfluxDB cluster.")
+    .optional(),
   VpcSecurityGroupIds: z.array(z.string()).describe(
     "A list of Amazon EC2 VPC security groups to associate with this InfluxDB cluster.",
   ).optional(),
-  PubliclyAccessible: z.boolean().describe(
-    "Attach a public IP to the customer ENI.",
+  NetworkType: z.enum(["IPV4", "DUAL"]).describe(
+    "Network type of the InfluxDB cluster.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "An arbitrary set of tags (key-value pairs) for this DB cluster.",
+  ).optional(),
+  Password: z.string().min(8).max(64).regex(new RegExp("^[a-zA-Z0-9]+$"))
+    .describe("The password for the InfluxDB cluster.").optional(),
+  DbParameterGroupIdentifier: z.string().min(3).max(64).regex(
+    new RegExp("^[a-zA-Z0-9]+$"),
+  ).describe("The name of an existing InfluxDB parameter group.").optional(),
+  FailoverMode: z.enum(["AUTOMATIC", "NO_FAILOVER"]).describe(
+    "Failover mode of the InfluxDB cluster.",
+  ).optional(),
+  AllocatedStorage: z.number().int().min(20).max(15360).describe(
+    "The allocated storage for the InfluxDB cluster.",
   ).optional(),
   DbStorageType: z.enum([
     "InfluxIOIncludedT1",
     "InfluxIOIncludedT2",
     "InfluxIOIncludedT3",
   ]).describe("The storage type of the InfluxDB cluster.").optional(),
-  AllocatedStorage: z.number().int().min(20).max(15360).describe(
-    "The allocated storage for the InfluxDB cluster.",
-  ).optional(),
-  DbParameterGroupIdentifier: z.string().min(3).max(64).regex(
-    new RegExp("^[a-zA-Z0-9]+$"),
-  ).describe("The name of an existing InfluxDB parameter group.").optional(),
-  Port: z.number().int().min(1024).max(65535).describe(
-    "The port number on which InfluxDB accepts connections.",
-  ).optional(),
   LogDeliveryConfiguration: z.object({
     S3Configuration: z.object({
       BucketName: z.string().min(3).max(63).regex(
@@ -247,22 +271,28 @@ const InputsSchema = z.object({
   }).describe(
     "Configuration for sending logs to customer account from the InfluxDB cluster.",
   ).optional(),
-  Name: z.string().min(3).max(40).regex(
-    new RegExp("^[a-zA-z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*$"),
-  ).describe("The unique name that is associated with the InfluxDB cluster.")
-    .optional(),
-  DeploymentType: z.enum(["MULTI_NODE_READ_REPLICAS"]).describe(
-    "Deployment type of the InfluxDB cluster.",
+  Username: z.string().min(1).max(64).describe(
+    "The username for the InfluxDB cluster.",
   ).optional(),
-  Tags: z.array(TagSchema).describe(
-    "An arbitrary set of tags (key-value pairs) for this DB cluster.",
+  Bucket: z.string().min(2).max(64).regex(new RegExp('^[^_][^"]*$')).describe(
+    "The bucket for the InfluxDB cluster.",
   ).optional(),
-  NetworkType: z.enum(["IPV4", "DUAL"]).describe(
-    "Network type of the InfluxDB cluster.",
+  PubliclyAccessible: z.boolean().describe(
+    "Attach a public IP to the customer ENI.",
   ).optional(),
-  FailoverMode: z.enum(["AUTOMATIC", "NO_FAILOVER"]).describe(
-    "Failover mode of the InfluxDB cluster.",
-  ).optional(),
+  MaintenanceSchedule: z.object({
+    Timezone: z.string().min(1).max(64).regex(
+      new RegExp("^(UTC|[A-Za-z_]+/[A-Za-z0-9_]+(/[A-Za-z0-9_]+)?)$"),
+    ).describe("The IANA timezone identifier for the maintenance schedule.")
+      .optional(),
+    PreferredMaintenanceWindow: z.string().min(0).max(19).regex(
+      new RegExp(
+        "^$|^(Mon|Tue|Wed|Thu|Fri|Sat|Sun):([01]\\d|2[0-3]):[0-5]\\d-(Mon|Tue|Wed|Thu|Fri|Sat|Sun):([01]\\d|2[0-3]):[0-5]\\d$",
+      ),
+    ).describe(
+      "The preferred maintenance window in format ddd:HH:MM-ddd:HH:MM.",
+    ).optional(),
+  }).describe("The maintenance schedule for the InfluxDB cluster.").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -284,7 +314,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Timestream InfluxDBCluster. Registered at `@swamp/aws/timestream/influx-dbcluster`. */
 export const model = {
   type: "@swamp/aws/timestream/influx-dbcluster",
-  version: "2026.06.15.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -324,6 +354,11 @@ export const model = {
     {
       toVersion: "2026.06.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Added: MaintenanceSchedule",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -13,8 +13,8 @@ the live state in GCP. Available methods:
 - **delete** — remove the resource from GCP
 - **sync** — refresh all resource properties from the API
 
-Use `swamp model type describe @swamp/gcp/redis/aclpolicies_revisions` to see
-the full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/gcp/redis/aclpolicies` to see the full
+list of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -65,17 +65,17 @@ gcloud config set project my-project
 ## Usage
 
 ```bash
-# Create a new aclpolicies_revisions model
-swamp model create @swamp/gcp/redis/aclpolicies_revisions my-aclpolicies_revisions
+# Create a new aclpolicies model
+swamp model create @swamp/gcp/redis/aclpolicies my-aclpolicies
 
 # Edit the model to configure its properties
-swamp model edit my-aclpolicies_revisions
+swamp model edit my-aclpolicies
 
 # Create the resource in GCP
-swamp model method run my-aclpolicies_revisions create
+swamp model method run my-aclpolicies create
 
 # Sync current state from GCP
-swamp model method run my-aclpolicies_revisions sync
+swamp model method run my-aclpolicies sync
 ```
 
 ## License

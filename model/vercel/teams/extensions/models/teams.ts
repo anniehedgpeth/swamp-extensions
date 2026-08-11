@@ -74,6 +74,9 @@ const GlobalArgsSchema = z.object({
   sensitiveEnvironmentVariablePolicy: z.string().describe(
     "Sensitive environment variable policy: one of on, off or default.",
   ).optional(),
+  disjunctiveProductionSecretPolicy: z.string().describe(
+    "Require production secrets to be in their own environment group: one of on, off or default.",
+  ).optional(),
   remoteCaching: z.object({
     enabled: z.boolean().optional(),
   }).describe("Whether or not remote caching is enabled for the team")
@@ -343,6 +346,7 @@ const ResourceSchema = z.object({
   enablePreviewFeedback: z.string().nullable().optional(),
   enableProductionFeedback: z.string().nullable().optional(),
   sensitiveEnvironmentVariablePolicy: z.string().nullable().optional(),
+  disjunctiveProductionSecretPolicy: z.string().nullable().optional(),
   hideIpAddresses: z.boolean().nullable().optional(),
   hideIpAddressesInLogDrains: z.boolean().nullable().optional(),
   dpAccessRequestsMode: z.string().nullable().optional(),
@@ -448,6 +452,7 @@ const InputsSchema = z.object({
   enablePreviewFeedback: z.string().optional(),
   enableProductionFeedback: z.string().optional(),
   sensitiveEnvironmentVariablePolicy: z.string().optional(),
+  disjunctiveProductionSecretPolicy: z.string().optional(),
   remoteCaching: z.object({
     enabled: z.boolean().optional(),
   }).optional(),
@@ -601,7 +606,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Teams. Registered at `@swamp/vercel/teams/teams`. */
 export const model = {
   type: "@swamp/vercel/teams/teams",
-  version: "2026.08.05.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -641,6 +646,11 @@ export const model = {
     {
       toVersion: "2026.08.05.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Added: disjunctiveProductionSecretPolicy",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -747,6 +757,12 @@ export const model = {
           filters.push([
             "sensitiveEnvironmentVariablePolicy",
             String(g.sensitiveEnvironmentVariablePolicy),
+          ]);
+        }
+        if (g.disjunctiveProductionSecretPolicy !== undefined) {
+          filters.push([
+            "disjunctiveProductionSecretPolicy",
+            String(g.disjunctiveProductionSecretPolicy),
           ]);
         }
         if (g.hideIpAddresses !== undefined) {
@@ -950,6 +966,10 @@ export const model = {
         if (g.sensitiveEnvironmentVariablePolicy !== undefined) {
           body.sensitiveEnvironmentVariablePolicy =
             g.sensitiveEnvironmentVariablePolicy;
+        }
+        if (g.disjunctiveProductionSecretPolicy !== undefined) {
+          body.disjunctiveProductionSecretPolicy =
+            g.disjunctiveProductionSecretPolicy;
         }
         if (g.remoteCaching !== undefined) body.remoteCaching = g.remoteCaching;
         if (g.hideIpAddresses !== undefined) {

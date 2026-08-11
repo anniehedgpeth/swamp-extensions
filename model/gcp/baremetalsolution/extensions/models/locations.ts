@@ -153,7 +153,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bare Metal Solution Locations. Registered at `@swamp/gcp/baremetalsolution/locations`. */
 export const model = {
   type: "@swamp/gcp/baremetalsolution/locations",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -265,6 +265,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -371,7 +379,7 @@ export const model = {
       description: "List locations resources",
       arguments: z.object({
         extraLocationTypes: z.string().describe(
-          "Optional. Do not use this field. It is unsupported and is ignored unless explicitly documented otherwise. This is primarily for internal usage.",
+          "Optional. Do not use this field unless explicitly documented otherwise. This is primarily for internal usage.",
         ).optional(),
         filter: z.string().describe(
           'A filter to narrow down results to a preferred subset. The filtering language accepts strings like `"displayName=tokyo"`, and is documented in more detail in [AIP-160](https://google.aip.dev/160).',

@@ -210,10 +210,13 @@ const GlobalArgsSchema = z.object({
               "Optional. Configures speaker diarization.",
             ).optional(),
             languageAuto: z.unknown().describe(
-              "Optional. The model will detect the language automatically.",
+              "Optional. Deprecated: Use top-level `language_codes` instead. The model will detect the language automatically.",
+            ).optional(),
+            languageCodes: z.unknown().describe(
+              "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
             ).optional(),
             languageHints: z.unknown().describe(
-              "Optional. Specifies one or more languages in the audio.",
+              "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
             ).optional(),
             wordTimestamp: z.unknown().describe(
               "Optional. Configures word-level timestamp generation.",
@@ -438,14 +441,18 @@ const GlobalArgsSchema = z.object({
             "Optional. Configures speaker diarization.",
           ).optional(),
           languageAuto: z.object({}).describe(
-            "Optional. The model will detect the language automatically.",
+            "Optional. Deprecated: Use top-level `language_codes` instead. The model will detect the language automatically.",
+          ).optional(),
+          languageCodes: z.array(z.unknown()).describe(
+            "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
           ).optional(),
           languageHints: z.object({
             languageCodes: z.unknown().describe(
-              "Required. BCP-47 language codes. At least one must be specified.",
+              "Required. Deprecated: Use top-level `language_codes` instead. BCP-47 language codes. At least one must be specified.",
             ).optional(),
-          }).describe("Optional. Specifies one or more languages in the audio.")
-            .optional(),
+          }).describe(
+            "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
+          ).optional(),
           wordTimestamp: z.boolean().describe(
             "Optional. Configures word-level timestamp generation.",
           ).optional(),
@@ -915,6 +922,7 @@ const StateSchema = z.object({
             customVocabulary: z.unknown(),
             diarization: z.unknown(),
             languageAuto: z.unknown(),
+            languageCodes: z.unknown(),
             languageHints: z.unknown(),
             wordTimestamp: z.unknown(),
           }),
@@ -997,6 +1005,7 @@ const StateSchema = z.object({
           customVocabulary: z.array(z.unknown()),
           diarization: z.boolean(),
           languageAuto: z.object({}),
+          languageCodes: z.array(z.unknown()),
           languageHints: z.object({
             languageCodes: z.unknown(),
           }),
@@ -1388,10 +1397,13 @@ const InputsSchema = z.object({
               "Optional. Configures speaker diarization.",
             ).optional(),
             languageAuto: z.unknown().describe(
-              "Optional. The model will detect the language automatically.",
+              "Optional. Deprecated: Use top-level `language_codes` instead. The model will detect the language automatically.",
+            ).optional(),
+            languageCodes: z.unknown().describe(
+              "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
             ).optional(),
             languageHints: z.unknown().describe(
-              "Optional. Specifies one or more languages in the audio.",
+              "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
             ).optional(),
             wordTimestamp: z.unknown().describe(
               "Optional. Configures word-level timestamp generation.",
@@ -1616,14 +1628,18 @@ const InputsSchema = z.object({
             "Optional. Configures speaker diarization.",
           ).optional(),
           languageAuto: z.object({}).describe(
-            "Optional. The model will detect the language automatically.",
+            "Optional. Deprecated: Use top-level `language_codes` instead. The model will detect the language automatically.",
+          ).optional(),
+          languageCodes: z.array(z.unknown()).describe(
+            "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
           ).optional(),
           languageHints: z.object({
             languageCodes: z.unknown().describe(
-              "Required. BCP-47 language codes. At least one must be specified.",
+              "Required. Deprecated: Use top-level `language_codes` instead. BCP-47 language codes. At least one must be specified.",
             ).optional(),
-          }).describe("Optional. Specifies one or more languages in the audio.")
-            .optional(),
+          }).describe(
+            "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
+          ).optional(),
           wordTimestamp: z.boolean().describe(
             "Optional. Configures word-level timestamp generation.",
           ).optional(),
@@ -2049,7 +2065,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform TuningJobs. Registered at `@swamp/gcp/aiplatform/tuningjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/tuningjobs",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2238,6 +2254,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

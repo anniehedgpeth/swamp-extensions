@@ -172,6 +172,13 @@ const GlobalArgsSchema = z.object({
   displayName: z.string().describe(
     "Required. The display name of the Evaluation Run.",
   ).optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string().describe(
+      "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
+    ).optional(),
+  }).describe(
+    "Optional. Customer-managed encryption key spec for this EvaluationRun. If set, this EvaluationRun will be secured by this key.",
+  ).optional(),
   evaluationConfig: z.object({
     autoraterConfig: z.object({
       autoraterModel: z.string().describe(
@@ -192,14 +199,18 @@ const GlobalArgsSchema = z.object({
             "Optional. Configures speaker diarization.",
           ).optional(),
           languageAuto: z.object({}).describe(
-            "Optional. The model will detect the language automatically.",
+            "Optional. Deprecated: Use top-level `language_codes` instead. The model will detect the language automatically.",
+          ).optional(),
+          languageCodes: z.array(z.unknown()).describe(
+            "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
           ).optional(),
           languageHints: z.object({
             languageCodes: z.unknown().describe(
-              "Required. BCP-47 language codes. At least one must be specified.",
+              "Required. Deprecated: Use top-level `language_codes` instead. BCP-47 language codes. At least one must be specified.",
             ).optional(),
-          }).describe("Optional. Specifies one or more languages in the audio.")
-            .optional(),
+          }).describe(
+            "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
+          ).optional(),
           wordTimestamp: z.boolean().describe(
             "Optional. Configures word-level timestamp generation.",
           ).optional(),
@@ -814,6 +825,13 @@ const GlobalArgsSchema = z.object({
         agentEngine: z.string().describe(
           "Optional. The resource name of the Agent Engine. Format: projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine} For example: projects/123/locations/us-central1/reasoningEngines/456",
         ).optional(),
+        geminiAgentConfig: z.object({
+          geminiAgent: z.string().describe(
+            "Required. The resource name of the Gemini Agent. Format: `projects/{project}/locations/{location}/agents/{agent}`. For example: `projects/123/locations/us-central1/agents/my-agent`.",
+          ).optional(),
+        }).describe(
+          "Optional. Config for scraping a Gemini Agent via the Interactions API. The scraping service creates interactions against the agent and returns the resulting interaction traces for evaluation.",
+        ).optional(),
         sessionInput: z.object({
           parameters: z.record(z.string(), z.unknown()).describe(
             'Optional. Additional parameters for the session, like app_name, etc. For example, {"app_name": "my-app"}.',
@@ -951,14 +969,18 @@ const GlobalArgsSchema = z.object({
             "Optional. Configures speaker diarization.",
           ).optional(),
           languageAuto: z.object({}).describe(
-            "Optional. The model will detect the language automatically.",
+            "Optional. Deprecated: Use top-level `language_codes` instead. The model will detect the language automatically.",
+          ).optional(),
+          languageCodes: z.array(z.unknown()).describe(
+            "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
           ).optional(),
           languageHints: z.object({
             languageCodes: z.unknown().describe(
-              "Required. BCP-47 language codes. At least one must be specified.",
+              "Required. Deprecated: Use top-level `language_codes` instead. BCP-47 language codes. At least one must be specified.",
             ).optional(),
-          }).describe("Optional. Specifies one or more languages in the audio.")
-            .optional(),
+          }).describe(
+            "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
+          ).optional(),
           wordTimestamp: z.boolean().describe(
             "Optional. Configures word-level timestamp generation.",
           ).optional(),
@@ -1254,6 +1276,9 @@ const StateSchema = z.object({
     evaluationSet: z.string(),
   }).optional(),
   displayName: z.string().optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string(),
+  }).optional(),
   error: z.object({
     code: z.number(),
     details: z.array(z.record(z.string(), z.unknown())),
@@ -1269,6 +1294,7 @@ const StateSchema = z.object({
           customVocabulary: z.array(z.unknown()),
           diarization: z.boolean(),
           languageAuto: z.object({}),
+          languageCodes: z.array(z.unknown()),
           languageHints: z.object({
             languageCodes: z.unknown(),
           }),
@@ -1568,6 +1594,13 @@ const InputsSchema = z.object({
   displayName: z.string().describe(
     "Required. The display name of the Evaluation Run.",
   ).optional(),
+  encryptionSpec: z.object({
+    kmsKeyName: z.string().describe(
+      "Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format `projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}`.",
+    ).optional(),
+  }).describe(
+    "Optional. Customer-managed encryption key spec for this EvaluationRun. If set, this EvaluationRun will be secured by this key.",
+  ).optional(),
   evaluationConfig: z.object({
     autoraterConfig: z.object({
       autoraterModel: z.string().describe(
@@ -1588,14 +1621,18 @@ const InputsSchema = z.object({
             "Optional. Configures speaker diarization.",
           ).optional(),
           languageAuto: z.object({}).describe(
-            "Optional. The model will detect the language automatically.",
+            "Optional. Deprecated: Use top-level `language_codes` instead. The model will detect the language automatically.",
+          ).optional(),
+          languageCodes: z.array(z.unknown()).describe(
+            "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
           ).optional(),
           languageHints: z.object({
             languageCodes: z.unknown().describe(
-              "Required. BCP-47 language codes. At least one must be specified.",
+              "Required. Deprecated: Use top-level `language_codes` instead. BCP-47 language codes. At least one must be specified.",
             ).optional(),
-          }).describe("Optional. Specifies one or more languages in the audio.")
-            .optional(),
+          }).describe(
+            "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
+          ).optional(),
           wordTimestamp: z.boolean().describe(
             "Optional. Configures word-level timestamp generation.",
           ).optional(),
@@ -2210,6 +2247,13 @@ const InputsSchema = z.object({
         agentEngine: z.string().describe(
           "Optional. The resource name of the Agent Engine. Format: projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine} For example: projects/123/locations/us-central1/reasoningEngines/456",
         ).optional(),
+        geminiAgentConfig: z.object({
+          geminiAgent: z.string().describe(
+            "Required. The resource name of the Gemini Agent. Format: `projects/{project}/locations/{location}/agents/{agent}`. For example: `projects/123/locations/us-central1/agents/my-agent`.",
+          ).optional(),
+        }).describe(
+          "Optional. Config for scraping a Gemini Agent via the Interactions API. The scraping service creates interactions against the agent and returns the resulting interaction traces for evaluation.",
+        ).optional(),
         sessionInput: z.object({
           parameters: z.record(z.string(), z.unknown()).describe(
             'Optional. Additional parameters for the session, like app_name, etc. For example, {"app_name": "my-app"}.',
@@ -2347,14 +2391,18 @@ const InputsSchema = z.object({
             "Optional. Configures speaker diarization.",
           ).optional(),
           languageAuto: z.object({}).describe(
-            "Optional. The model will detect the language automatically.",
+            "Optional. Deprecated: Use top-level `language_codes` instead. The model will detect the language automatically.",
+          ).optional(),
+          languageCodes: z.array(z.unknown()).describe(
+            "Optional. BCP-47 language codes providing hints about the languages present in the audio. If omitted or empty, defaults to automatic language detection.",
           ).optional(),
           languageHints: z.object({
             languageCodes: z.unknown().describe(
-              "Required. BCP-47 language codes. At least one must be specified.",
+              "Required. Deprecated: Use top-level `language_codes` instead. BCP-47 language codes. At least one must be specified.",
             ).optional(),
-          }).describe("Optional. Specifies one or more languages in the audio.")
-            .optional(),
+          }).describe(
+            "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
+          ).optional(),
           wordTimestamp: z.boolean().describe(
             "Optional. Configures word-level timestamp generation.",
           ).optional(),
@@ -2657,7 +2705,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationRuns. Registered at `@swamp/gcp/aiplatform/evaluationruns`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationruns",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2861,6 +2909,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Added: encryptionSpec. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2893,6 +2949,9 @@ export const model = {
         if (g["dataSource"] !== undefined) body["dataSource"] = g["dataSource"];
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
+        }
+        if (g["encryptionSpec"] !== undefined) {
+          body["encryptionSpec"] = g["encryptionSpec"];
         }
         if (g["evaluationConfig"] !== undefined) {
           body["evaluationConfig"] = g["evaluationConfig"];

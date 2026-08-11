@@ -506,7 +506,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationSets. Registered at `@swamp/gcp/aiplatform/evaluationsets`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationsets",
-  version: "2026.07.30.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -691,6 +691,14 @@ export const model = {
     },
     {
       toVersion: "2026.07.30.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "Removed: quotaProject",
       upgradeAttributes: (old: Record<string, unknown>) => {
         const { quotaProject: _quotaProject, ...rest } = old;
@@ -1049,6 +1057,7 @@ export const model = {
         gcsDestination: z.any().optional(),
         gcsSource: z.any().optional(),
         inlineSource: z.any().optional(),
+        interactionsSource: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
@@ -1079,6 +1088,9 @@ export const model = {
         }
         if (args["inlineSource"] !== undefined) {
           body["inlineSource"] = args["inlineSource"];
+        }
+        if (args["interactionsSource"] !== undefined) {
+          body["interactionsSource"] = args["interactionsSource"];
         }
         const result = await createResource(
           BASE_URL,

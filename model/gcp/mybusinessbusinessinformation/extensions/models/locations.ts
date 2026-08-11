@@ -284,7 +284,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (00:00) are omitted, producing `{}` for close_time.",
+        "Required. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `close_time`.",
       ).optional(),
       openDay: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -312,7 +312,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (00:00) are omitted, producing `{}` for open_time.",
+        "Required. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `open_time`.",
       ).optional(),
     })).describe(
       "Required. A collection of times that this location is open. Each period represents a range of hours when the location is open during the week.",
@@ -396,7 +396,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (00:00) are omitted, producing `{}` for close_time.",
+        "Required. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `close_time`.",
       ).optional(),
       openDay: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -424,7 +424,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (00:00) are omitted, producing `{}` for open_time.",
+        "Required. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `open_time`.",
       ).optional(),
     })).describe(
       "Required. A collection of times that this location is open for business. Each period represents a range of hours when the location is open during the week.",
@@ -549,10 +549,10 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Optional. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Must be specified if `closed` is false.",
+        "Optional. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. It must be specified if `closed` is `false`. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `close_time`.",
       ).optional(),
       closed: z.boolean().describe(
-        "Optional. If true, `end_date`, `open_time`, and `close_time` are ignored, and the date specified in `start_date` is treated as the location being closed for the entire day.",
+        "Optional. If `true`, `end_date`, `open_time`, and `close_time` are ignored, and the date specified in `start_date` is treated as the location being closed for the entire day.",
       ).optional(),
       endDate: z.object({
         day: z.number().int().describe(
@@ -581,7 +581,7 @@ const GlobalArgsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Optional. Valid values are 00:00-24:00 where 24:00 represents midnight at the end of the specified day field. Must be specified if `closed` is false.",
+        "Optional. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. It must be specified if `closed` is `false`. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `open_time`.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -1020,7 +1020,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (00:00) are omitted, producing `{}` for close_time.",
+        "Required. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `close_time`.",
       ).optional(),
       openDay: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -1048,7 +1048,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (00:00) are omitted, producing `{}` for open_time.",
+        "Required. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `open_time`.",
       ).optional(),
     })).describe(
       "Required. A collection of times that this location is open. Each period represents a range of hours when the location is open during the week.",
@@ -1132,7 +1132,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (00:00) are omitted, producing `{}` for close_time.",
+        "Required. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `close_time`.",
       ).optional(),
       openDay: z.enum([
         "DAY_OF_WEEK_UNSPECIFIED",
@@ -1160,7 +1160,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Required. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (00:00) are omitted, producing `{}` for open_time.",
+        "Required. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `open_time`.",
       ).optional(),
     })).describe(
       "Required. A collection of times that this location is open for business. Each period represents a range of hours when the location is open during the week.",
@@ -1285,10 +1285,10 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Optional. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Must be specified if `closed` is false.",
+        "Optional. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. It must be specified if `closed` is `false`. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `close_time`.",
       ).optional(),
       closed: z.boolean().describe(
-        "Optional. If true, `end_date`, `open_time`, and `close_time` are ignored, and the date specified in `start_date` is treated as the location being closed for the entire day.",
+        "Optional. If `true`, `end_date`, `open_time`, and `close_time` are ignored, and the date specified in `start_date` is treated as the location being closed for the entire day.",
       ).optional(),
       endDate: z.object({
         day: z.number().int().describe(
@@ -1317,7 +1317,7 @@ const InputsSchema = z.object({
           "Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.",
         ).optional(),
       }).describe(
-        "Optional. Valid values are 00:00-24:00 where 24:00 represents midnight at the end of the specified day field. Must be specified if `closed` is false.",
+        "Optional. Valid values are `00:00-24:00`, where `24:00` represents midnight at the end of the specified day field. It must be specified if `closed` is `false`. Note: In Proto3 JSON mapping, default zero values (`00:00`) are omitted, producing `{}` for `open_time`.",
       ).optional(),
       startDate: z.object({
         day: z.number().int().describe(
@@ -1411,7 +1411,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud My Business Business Information Locations. Registered at `@swamp/gcp/mybusinessbusinessinformation/locations`. */
 export const model = {
   type: "@swamp/gcp/mybusinessbusinessinformation/locations",
-  version: "2026.08.06.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1570,6 +1570,14 @@ export const model = {
     },
     {
       toVersion: "2026.08.06.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "Removed: quotaProject",
       upgradeAttributes: (old: Record<string, unknown>) => {
         const { quotaProject: _quotaProject, ...rest } = old;

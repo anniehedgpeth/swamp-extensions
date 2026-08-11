@@ -170,6 +170,7 @@ const GlobalArgsSchema = z.object({
       "QA_SCORECARD_SOURCE_UNSPECIFIED",
       "QA_SCORECARD_SOURCE_CUSTOMER_DEFINED",
       "QA_SCORECARD_SOURCE_DISCOVERY_ENGINE",
+      "QA_SCORECARD_SOURCE_INTENT_TAXONOMY",
     ]).describe("Output only. The source of the scorecard.").optional(),
     updateTime: z.string().describe(
       "Output only. The most recent time at which the scorecard was updated.",
@@ -235,6 +236,7 @@ const InputsSchema = z.object({
       "QA_SCORECARD_SOURCE_UNSPECIFIED",
       "QA_SCORECARD_SOURCE_CUSTOMER_DEFINED",
       "QA_SCORECARD_SOURCE_DISCOVERY_ENGINE",
+      "QA_SCORECARD_SOURCE_INTENT_TAXONOMY",
     ]).describe("Output only. The source of the scorecard.").optional(),
     updateTime: z.string().describe(
       "Output only. The most recent time at which the scorecard was updated.",
@@ -278,7 +280,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights QaScorecards.Revisions. Registered at `@swamp/gcp/contactcenterinsights/qascorecards-revisions`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/qascorecards-revisions",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -404,6 +406,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,

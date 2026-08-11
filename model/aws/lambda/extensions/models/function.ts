@@ -133,6 +133,8 @@ const GlobalArgsSchema = z.object({
   DurableConfig: z.object({
     KMSKeyArn: z.string().regex(
       new RegExp("^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"),
+    ).describe(
+      "The ARN of the KMSlong (KMS) customer managed key that is used to encrypt your durable execution's payload data, including input, output, and error payloads.",
     ).optional(),
     ExecutionTimeout: z.number().int().min(1).max(31622400).describe(
       "The maximum time (in seconds) that a durable execution can run before timing out. This timeout applies to the entire durable execution, not individual function invocations.",
@@ -141,7 +143,7 @@ const GlobalArgsSchema = z.object({
       "The number of days to retain execution history after a durable execution completes. After this period, execution history is no longer available through the GetDurableExecutionHistory API.",
     ).optional(),
   }).describe(
-    "Configuration settings for [durable functions](https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html), including execution timeout and retention period for execution history.",
+    "Configuration settings for [durable functions](https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html), including execution timeout, retention period for execution history, and an optional ARN of the KMSlong (KMS) customer managed key that is used to encrypt your durable execution's payload data, including input, output, and error payloads.",
   ).optional(),
   ReservedConcurrentExecutions: z.number().int().min(0).describe(
     "The number of simultaneous executions to reserve for the function.",
@@ -243,7 +245,9 @@ const GlobalArgsSchema = z.object({
     S3Key: z.string().min(1).max(1024).describe(
       "The Amazon S3 key of the deployment package.",
     ).optional(),
-    S3ObjectStorageMode: z.enum(["COPY", "REFERENCE"]).optional(),
+    S3ObjectStorageMode: z.enum(["COPY", "REFERENCE"]).describe(
+      "Specifies the storage mode for the deployment package. Use COPY to store the package in LAMlong-managed storage. Use REFERENCE to read the package directly from the Amazon S3 bucket. If omitted, the default is COPY.",
+    ).optional(),
     ImageUri: z.string().describe(
       "URI of a [container image](https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html) in the Amazon ECR registry.",
     ).optional(),
@@ -438,6 +442,8 @@ const InputsSchema = z.object({
   DurableConfig: z.object({
     KMSKeyArn: z.string().regex(
       new RegExp("^(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()$"),
+    ).describe(
+      "The ARN of the KMSlong (KMS) customer managed key that is used to encrypt your durable execution's payload data, including input, output, and error payloads.",
     ).optional(),
     ExecutionTimeout: z.number().int().min(1).max(31622400).describe(
       "The maximum time (in seconds) that a durable execution can run before timing out. This timeout applies to the entire durable execution, not individual function invocations.",
@@ -446,7 +452,7 @@ const InputsSchema = z.object({
       "The number of days to retain execution history after a durable execution completes. After this period, execution history is no longer available through the GetDurableExecutionHistory API.",
     ).optional(),
   }).describe(
-    "Configuration settings for [durable functions](https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html), including execution timeout and retention period for execution history.",
+    "Configuration settings for [durable functions](https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html), including execution timeout, retention period for execution history, and an optional ARN of the KMSlong (KMS) customer managed key that is used to encrypt your durable execution's payload data, including input, output, and error payloads.",
   ).optional(),
   ReservedConcurrentExecutions: z.number().int().min(0).describe(
     "The number of simultaneous executions to reserve for the function.",
@@ -548,7 +554,9 @@ const InputsSchema = z.object({
     S3Key: z.string().min(1).max(1024).describe(
       "The Amazon S3 key of the deployment package.",
     ).optional(),
-    S3ObjectStorageMode: z.enum(["COPY", "REFERENCE"]).optional(),
+    S3ObjectStorageMode: z.enum(["COPY", "REFERENCE"]).describe(
+      "Specifies the storage mode for the deployment package. Use COPY to store the package in LAMlong-managed storage. Use REFERENCE to read the package directly from the Amazon S3 bucket. If omitted, the default is COPY.",
+    ).optional(),
     ImageUri: z.string().describe(
       "URI of a [container image](https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html) in the Amazon ECR registry.",
     ).optional(),
@@ -626,7 +634,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Lambda Function. Registered at `@swamp/aws/lambda/function`. */
 export const model = {
   type: "@swamp/aws/lambda/function",
-  version: "2026.07.02.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -690,6 +698,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.02.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

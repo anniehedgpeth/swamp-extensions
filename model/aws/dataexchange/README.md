@@ -14,9 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/dataexchange/entitled_data_sets` to
-see the full list of configurable properties and available methods for this
-model.
+Use `swamp model type describe @swamp/aws/dataexchange/data_set` to see the full
+list of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -48,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new entitled_data_sets model
-swamp model create @swamp/aws/dataexchange/entitled_data_sets my-entitled_data_sets
+# Create a new data_set model
+swamp model create @swamp/aws/dataexchange/data_set my-data_set
 
 # Edit the model to configure its properties
-swamp model edit my-entitled_data_sets
+swamp model edit my-data_set
 
 # Create the resource in AWS
-swamp model method run my-entitled_data_sets create
+swamp model method run my-data_set create
 
 # Sync current state from AWS
-swamp model method run my-entitled_data_sets sync
+swamp model method run my-data_set sync
 ```
 
 ## License

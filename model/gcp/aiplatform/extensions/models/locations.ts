@@ -154,7 +154,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Locations. Registered at `@swamp/gcp/aiplatform/locations`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/locations",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -310,6 +310,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1136,6 +1144,7 @@ export const model = {
       arguments: z.object({
         agents: z.any().optional(),
         allowCrossRegionModel: z.any().optional(),
+        geminiAgentConfig: z.any().optional(),
         rootAgentId: z.any().optional(),
         userScenarioGenerationConfig: z.any().optional(),
       }),
@@ -1162,6 +1171,9 @@ export const model = {
         if (args["agents"] !== undefined) body["agents"] = args["agents"];
         if (args["allowCrossRegionModel"] !== undefined) {
           body["allowCrossRegionModel"] = args["allowCrossRegionModel"];
+        }
+        if (args["geminiAgentConfig"] !== undefined) {
+          body["geminiAgentConfig"] = args["geminiAgentConfig"];
         }
         if (args["rootAgentId"] !== undefined) {
           body["rootAgentId"] = args["rootAgentId"];

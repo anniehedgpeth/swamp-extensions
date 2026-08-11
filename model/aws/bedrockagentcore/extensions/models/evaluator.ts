@@ -91,10 +91,38 @@ const BedrockEvaluatorModelConfigSchema = z.object({
   ).optional(),
 });
 
+const ReasoningConfigurationSchema = z.object({
+  Effort: z.string().min(1).max(64).describe(
+    "The level of reasoning effort the model applies.",
+  ).optional(),
+});
+
+const OpenResponsesEvaluatorModelConfigSchema = z.object({
+  ModelId: z.string().describe(
+    "The identifier of the model to use for evaluation.",
+  ),
+  MaxOutputTokens: z.number().int().min(1).describe(
+    "The maximum number of output tokens to generate, including visible output and reasoning tokens.",
+  ).optional(),
+  Temperature: z.number().min(0).max(2).describe(
+    "The sampling temperature between 0 and 2.",
+  ).optional(),
+  TopP: z.number().min(0).max(1).describe(
+    "The nucleus sampling probability mass between 0 and 1.",
+  ).optional(),
+  Reasoning: ReasoningConfigurationSchema.describe(
+    "The reasoning configuration for reasoning models.",
+  ).optional(),
+});
+
 const EvaluatorModelConfigSchema = z.object({
   BedrockEvaluatorModelConfig: BedrockEvaluatorModelConfigSchema.describe(
     "The configuration for using Amazon Bedrock models in evaluator assessments.",
-  ),
+  ).optional(),
+  ResponsesEvaluatorModelConfig: OpenResponsesEvaluatorModelConfigSchema
+    .describe(
+      "The configuration for using OpenResponses-compatible models in evaluator assessments.",
+    ).optional(),
 });
 
 const LlmAsAJudgeEvaluatorConfigSchema = z.object({
@@ -246,7 +274,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore Evaluator. Registered at `@swamp/aws/bedrockagentcore/evaluator`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/evaluator",
-  version: "2026.06.15.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -300,6 +328,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

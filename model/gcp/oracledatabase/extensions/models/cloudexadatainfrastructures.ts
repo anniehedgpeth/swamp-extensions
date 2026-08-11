@@ -206,8 +206,14 @@ const GlobalArgsSchema = z.object({
       availableStorageSizeGb: z.number().int().describe(
         "Output only. Available storage size for Exascale in GBs.",
       ).optional(),
+      availableVmStorageSizeGb: z.number().int().describe(
+        "Output only. Available storage size for VM storage on Exascale in GBs.",
+      ).optional(),
       totalStorageSizeGb: z.number().int().describe(
         "Output only. Total storage size needed for Exascale in GBs.",
+      ).optional(),
+      totalVmStorageSizeGb: z.number().int().describe(
+        "Output only. Storage size needed for VM storage on Exascale in GBs.",
       ).optional(),
     }).describe(
       "Output only. The Exascale configuration for the Exadata Infrastructure.",
@@ -373,7 +379,9 @@ const StateSchema = z.object({
     dbServerVersion: z.string(),
     exascaleConfig: z.object({
       availableStorageSizeGb: z.number(),
+      availableVmStorageSizeGb: z.number(),
       totalStorageSizeGb: z.number(),
+      totalVmStorageSizeGb: z.number(),
     }),
     maintenanceWindow: z.object({
       customActionTimeoutMins: z.number(),
@@ -470,8 +478,14 @@ const InputsSchema = z.object({
       availableStorageSizeGb: z.number().int().describe(
         "Output only. Available storage size for Exascale in GBs.",
       ).optional(),
+      availableVmStorageSizeGb: z.number().int().describe(
+        "Output only. Available storage size for VM storage on Exascale in GBs.",
+      ).optional(),
       totalStorageSizeGb: z.number().int().describe(
         "Output only. Total storage size needed for Exascale in GBs.",
+      ).optional(),
+      totalVmStorageSizeGb: z.number().int().describe(
+        "Output only. Storage size needed for VM storage on Exascale in GBs.",
       ).optional(),
     }).describe(
       "Output only. The Exascale configuration for the Exadata Infrastructure.",
@@ -639,7 +653,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Oracle Database@Google Cloud CloudExadataInfrastructures. Registered at `@swamp/gcp/oracledatabase/cloudexadatainfrastructures`. */
 export const model = {
   type: "@swamp/gcp/oracledatabase/cloudexadatainfrastructures",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -780,6 +794,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1055,6 +1077,7 @@ export const model = {
       arguments: z.object({
         requestId: z.any().optional(),
         totalStorageSizeGb: z.any().optional(),
+        totalVmStorageSizeGb: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
@@ -1073,6 +1096,9 @@ export const model = {
         }
         if (args["totalStorageSizeGb"] !== undefined) {
           body["totalStorageSizeGb"] = args["totalStorageSizeGb"];
+        }
+        if (args["totalVmStorageSizeGb"] !== undefined) {
+          body["totalVmStorageSizeGb"] = args["totalVmStorageSizeGb"];
         }
         const result = await createResource(
           BASE_URL,

@@ -75,34 +75,21 @@ const GlobalArgsSchema = z.object({
     "The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR. For more information, see [What is IPAM?](https://docs.aws.amazon.com//vpc/latest/ipam/what-is-it-ipam.html) in the *Amazon VPC IPAM User Guide*. You must specify either CidrBlock or Ipv4IpamPoolId.",
   ).optional(),
   VpcEncryptionControl: z.object({
-    ElasticFileSystemExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Elastic File System.",
-    ).optional(),
-    VirtualPrivateGatewayExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Virtual Private Gateways.",
-    ).optional(),
+    ElasticFileSystemExclusion: z.enum(["enable", "disable"]).optional(),
+    VirtualPrivateGatewayExclusion: z.enum(["enable", "disable"]).optional(),
     Mode: z.enum(["monitor", "enforce"]).describe(
-      "The mode of the VPC encryption control.",
+      "The encryption mode for the VPC Encryption Control configuration.",
     ).optional(),
-    VpcLatticeExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for VPC Lattice.",
-    ).optional(),
-    NatGatewayExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for NAT Gateways.",
-    ).optional(),
-    EgressOnlyInternetGatewayExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Egress-Only Internet Gateways.",
-    ).optional(),
-    LambdaExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Lambda.",
-    ).optional(),
-    InternetGatewayExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Internet Gateways.",
-    ).optional(),
-    VpcPeeringExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for VPC Peering.",
-    ).optional(),
-  }).optional(),
+    VpcLatticeExclusion: z.enum(["enable", "disable"]).optional(),
+    NatGatewayExclusion: z.enum(["enable", "disable"]).optional(),
+    EgressOnlyInternetGatewayExclusion: z.enum(["enable", "disable"])
+      .optional(),
+    LambdaExclusion: z.enum(["enable", "disable"]).optional(),
+    InternetGatewayExclusion: z.enum(["enable", "disable"]).optional(),
+    VpcPeeringExclusion: z.enum(["enable", "disable"]).optional(),
+  }).describe(
+    "Describes the configuration and state of VPC encryption controls. For more information, see [Enforce VPC encryption in transit](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-encryption-controls.html) in the *Amazon VPC User Guide*.",
+  ).optional(),
   EnableDnsSupport: z.boolean().describe(
     'Indicates whether the DNS resolution is supported for the VPC. If enabled, queries to the Amazon provided DNS server at the 169.254.169.253 IP address, or the reserved IP address at the base of the VPC network range "plus two" succeed. If disabled, the Amazon provided DNS service in the VPC that resolves public DNS hostnames to IP addresses is not enabled. Enabled by default. For more information, see [DNS attributes in your VPC](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support).',
   ).optional(),
@@ -197,34 +184,21 @@ const InputsSchema = z.object({
     "The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR. For more information, see [What is IPAM?](https://docs.aws.amazon.com//vpc/latest/ipam/what-is-it-ipam.html) in the *Amazon VPC IPAM User Guide*. You must specify either CidrBlock or Ipv4IpamPoolId.",
   ).optional(),
   VpcEncryptionControl: z.object({
-    ElasticFileSystemExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Elastic File System.",
-    ).optional(),
-    VirtualPrivateGatewayExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Virtual Private Gateways.",
-    ).optional(),
+    ElasticFileSystemExclusion: z.enum(["enable", "disable"]).optional(),
+    VirtualPrivateGatewayExclusion: z.enum(["enable", "disable"]).optional(),
     Mode: z.enum(["monitor", "enforce"]).describe(
-      "The mode of the VPC encryption control.",
+      "The encryption mode for the VPC Encryption Control configuration.",
     ).optional(),
-    VpcLatticeExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for VPC Lattice.",
-    ).optional(),
-    NatGatewayExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for NAT Gateways.",
-    ).optional(),
-    EgressOnlyInternetGatewayExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Egress-Only Internet Gateways.",
-    ).optional(),
-    LambdaExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Lambda.",
-    ).optional(),
-    InternetGatewayExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for Internet Gateways.",
-    ).optional(),
-    VpcPeeringExclusion: z.enum(["enable", "disable"]).describe(
-      "The desired exclusion mode for VPC Peering.",
-    ).optional(),
-  }).optional(),
+    VpcLatticeExclusion: z.enum(["enable", "disable"]).optional(),
+    NatGatewayExclusion: z.enum(["enable", "disable"]).optional(),
+    EgressOnlyInternetGatewayExclusion: z.enum(["enable", "disable"])
+      .optional(),
+    LambdaExclusion: z.enum(["enable", "disable"]).optional(),
+    InternetGatewayExclusion: z.enum(["enable", "disable"]).optional(),
+    VpcPeeringExclusion: z.enum(["enable", "disable"]).optional(),
+  }).describe(
+    "Describes the configuration and state of VPC encryption controls. For more information, see [Enforce VPC encryption in transit](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-encryption-controls.html) in the *Amazon VPC User Guide*.",
+  ).optional(),
   EnableDnsSupport: z.boolean().describe(
     'Indicates whether the DNS resolution is supported for the VPC. If enabled, queries to the Amazon provided DNS server at the 169.254.169.253 IP address, or the reserved IP address at the base of the VPC network range "plus two" succeed. If disabled, the Amazon provided DNS service in the VPC that resolves public DNS hostnames to IP addresses is not enabled. Enabled by default. For more information, see [DNS attributes in your VPC](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support).',
   ).optional(),
@@ -253,7 +227,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EC2 VPC. Registered at `@swamp/aws/ec2/vpc`. */
 export const model = {
   type: "@swamp/aws/ec2/vpc",
-  version: "2026.07.17.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -298,6 +272,11 @@ export const model = {
     {
       toVersion: "2026.07.17.1",
       description: "Added: VpcEncryptionControl",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

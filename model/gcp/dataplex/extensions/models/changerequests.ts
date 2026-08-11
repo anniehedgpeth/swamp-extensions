@@ -518,6 +518,9 @@ const GlobalArgsSchema = z.object({
   resource: z.string().describe(
     "Output only. The full resource name of the target resource to be modified. Example: //dataplex.googleapis.com/projects/my-project/locations/us-central1/entryGroups/my-group/entries/my-entry",
   ).optional(),
+  reviewerComment: z.string().describe(
+    "Output only. The comment provided by the reviewer when approving or rejecting the ChangeRequest. Maximum length is 1024 characters.",
+  ).optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
     "NEW",
@@ -875,6 +878,7 @@ const StateSchema = z.object({
   name: z.string(),
   rejectionComment: z.string().optional(),
   resource: z.string().optional(),
+  reviewerComment: z.string().optional(),
   state: z.string().optional(),
   uid: z.string().optional(),
   updateEntry: z.object({
@@ -1332,6 +1336,9 @@ const InputsSchema = z.object({
   resource: z.string().describe(
     "Output only. The full resource name of the target resource to be modified. Example: //dataplex.googleapis.com/projects/my-project/locations/us-central1/entryGroups/my-group/entries/my-entry",
   ).optional(),
+  reviewerComment: z.string().describe(
+    "Output only. The comment provided by the reviewer when approving or rejecting the ChangeRequest. Maximum length is 1024 characters.",
+  ).optional(),
   state: z.enum([
     "STATE_UNSPECIFIED",
     "NEW",
@@ -1592,12 +1599,20 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex ChangeRequests. Registered at `@swamp/gcp/dataplex/changerequests`. */
 export const model = {
   type: "@swamp/gcp/dataplex/changerequests",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Added: reviewerComment. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1728,6 +1743,9 @@ export const model = {
           body["rejectionComment"] = g["rejectionComment"];
         }
         if (g["resource"] !== undefined) body["resource"] = g["resource"];
+        if (g["reviewerComment"] !== undefined) {
+          body["reviewerComment"] = g["reviewerComment"];
+        }
         if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["uid"] !== undefined) body["uid"] = g["uid"];
         if (g["updateEntry"] !== undefined) {
@@ -1930,6 +1948,7 @@ export const model = {
     approve: {
       description: "approve",
       arguments: z.object({
+        comment: z.any().optional(),
         etag: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
@@ -1944,6 +1963,7 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (args["comment"] !== undefined) body["comment"] = args["comment"];
         if (args["etag"] !== undefined) body["etag"] = args["etag"];
         const result = await createResource(
           BASE_URL,

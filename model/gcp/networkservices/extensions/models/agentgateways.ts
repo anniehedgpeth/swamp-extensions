@@ -161,6 +161,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  agentConnectivityTemplate: z.string().describe(
+    "Optional. The resource name of the AgentConnectivityTemplate. Format: projects/{project}/locations/{location}/agentConnectivityTemplates/{template}",
+  ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
   ).optional(),
@@ -224,6 +227,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  agentConnectivityTemplate: z.string().optional(),
   agentGatewayCard: z.object({
     mtlsEndpoint: z.string(),
     rootCertificates: z.array(z.string()),
@@ -264,6 +268,9 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  agentConnectivityTemplate: z.string().describe(
+    "Optional. The resource name of the AgentConnectivityTemplate. Format: projects/{project}/locations/{location}/agentConnectivityTemplates/{template}",
+  ).optional(),
   description: z.string().describe(
     "Optional. A free-text description of the resource. Max length 1024 characters.",
   ).optional(),
@@ -351,12 +358,20 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services AgentGateways. Registered at `@swamp/gcp/networkservices/agentgateways`. */
 export const model = {
   type: "@swamp/gcp/networkservices/agentgateways",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Added: agentConnectivityTemplate. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -382,6 +397,9 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
+        if (g["agentConnectivityTemplate"] !== undefined) {
+          body["agentConnectivityTemplate"] = g["agentConnectivityTemplate"];
+        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -506,6 +524,9 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (g["agentConnectivityTemplate"] !== undefined) {
+          body["agentConnectivityTemplate"] = g["agentConnectivityTemplate"];
+        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

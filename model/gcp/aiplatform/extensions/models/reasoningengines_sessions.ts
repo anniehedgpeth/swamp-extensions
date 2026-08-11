@@ -268,7 +268,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.Sessions. Registered at `@swamp/gcp/aiplatform/reasoningengines-sessions`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sessions",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -419,6 +419,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -804,6 +812,46 @@ export const model = {
             "id":
               "aiplatform.projects.locations.reasoningEngines.sessions.appendEvent",
             "path": "v1/{+name}:appendEvent",
+            "httpMethod": "POST",
+            "parameterOrder": ["name"],
+            "parameters": { "name": { "location": "path", "required": true } },
+          },
+          params,
+          body,
+          undefined,
+          undefined,
+          undefined,
+          credentials,
+        );
+        return { result };
+      },
+    },
+    compact: {
+      description: "compact",
+      arguments: z.object({
+        compaction: z.any().optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        if (g["parent"] !== undefined && g["name"] !== undefined) {
+          params["name"] = buildResourceName(
+            String(g["parent"]),
+            String(g["name"]),
+          );
+        }
+        const body: Record<string, unknown> = {};
+        if (args["compaction"] !== undefined) {
+          body["compaction"] = args["compaction"];
+        }
+        const result = await createResource(
+          BASE_URL,
+          {
+            "id":
+              "aiplatform.projects.locations.reasoningEngines.sessions.compact",
+            "path": "v1/{+name}:compact",
             "httpMethod": "POST",
             "parameterOrder": ["name"],
             "parameters": { "name": { "location": "path", "required": true } },

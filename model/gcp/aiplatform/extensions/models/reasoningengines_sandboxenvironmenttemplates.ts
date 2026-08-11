@@ -196,10 +196,10 @@ const GlobalArgsSchema = z.object({
         'Required. The DNS name suffix of the zone being peered to, e.g., "my-internal-domain.corp.". Must end with a dot.',
       ).optional(),
       targetNetwork: z.string().describe(
-        "Required. The VPC network name in the target_project where the DNS zone specified by 'domain' is visible.",
+        "Required. The VPC network name in the target_project where the DNS zone specified by `domain` is visible.",
       ).optional(),
       targetProject: z.string().describe(
-        "Required. The project ID hosting the Cloud DNS managed zone that contains the 'domain'. The Vertex AI Service Agent requires the dns.peer role on this project.",
+        "Required. The project ID hosting the Cloud DNS managed zone that contains the `domain`. The Vertex AI Service Agent requires the dns.peer role on this project.",
       ).optional(),
     })).describe(
       "Optional. DNS peering configurations that allow sandbox egress to resolve customer-internal domains via the customer VPC.",
@@ -208,10 +208,48 @@ const GlobalArgsSchema = z.object({
       "Optional. Whether to allow internet access.",
     ).optional(),
     networkAttachment: z.string().describe(
-      "Optional. The name of the customer VPC NetworkAttachment used to draw a PSC interface IP into the customer VPC for sandbox egress.",
+      "Optional. The name of the customer VPC `NetworkAttachment` used to draw a PSC interface IP into the customer VPC for sandbox egress.",
     ).optional(),
   }).describe(
     "Optional. The configuration for egress control of this template.",
+  ).optional(),
+  ingressControlConfig: z.object({
+    enablePrivateServiceConnect: z.boolean().describe(
+      "Required. If true, expose the IndexEndpoint via private service connect.",
+    ).optional(),
+    projectAllowlist: z.array(z.string()).describe(
+      "A list of Projects from which the forwarding rule will target the service attachment.",
+    ).optional(),
+    pscAutomationConfigs: z.array(z.object({
+      errorMessage: z.string().describe(
+        "Output only. Error message if the PSC service automation failed.",
+      ).optional(),
+      forwardingRule: z.string().describe(
+        "Output only. Forwarding rule created by the PSC service automation.",
+      ).optional(),
+      ipAddress: z.string().describe(
+        "Output only. IP address rule created by the PSC service automation.",
+      ).optional(),
+      network: z.string().describe(
+        "Required. The full name of the Google Compute Engine [network](https://cloud.google.com/compute/docs/networks-and-firewalls#networks). [Format](https://cloud.google.com/compute/docs/reference/rest/v1/networks/get): `projects/{project}/global/networks/{network}`.",
+      ).optional(),
+      projectId: z.string().describe(
+        "Required. Project id used to create forwarding rule.",
+      ).optional(),
+      state: z.enum([
+        "PSC_AUTOMATION_STATE_UNSPECIFIED",
+        "PSC_AUTOMATION_STATE_SUCCESSFUL",
+        "PSC_AUTOMATION_STATE_FAILED",
+      ]).describe("Output only. The state of the PSC service automation.")
+        .optional(),
+    })).describe(
+      "Optional. List of projects and networks where the PSC endpoints will be created. This field is used by Online Inference(Prediction) only.",
+    ).optional(),
+    serviceAttachment: z.string().describe(
+      "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
+    ).optional(),
+  }).describe(
+    "Optional. The configuration for private ingress (PSC-E) of this template. When set, the sandbox router is exposed privately via a PSC service attachment so VPC-SC customers can connect from their VPC over a private endpoint instead of the public internet. The resulting service attachment is surfaced on `SandboxEnvironment.connection_info.service_attachment`. Only the PSC-E (service-attachment/ingress) portion of `PrivateServiceConnectConfig` applies here: `enable_private_service_connect` and `project_allowlist` (the consumer projects allowed to connect). The nested `psc_interface_config` (PSC-I / egress) is not used for sandbox ingress; sandbox egress is configured via `egress_control_config` instead.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the SandboxEnvironmentTemplate. Format: `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sandboxEnvironmentTemplates/{sandbox_environment_template}`",
@@ -256,6 +294,19 @@ const StateSchema = z.object({
     })),
     internetAccess: z.boolean(),
     networkAttachment: z.string(),
+  }).optional(),
+  ingressControlConfig: z.object({
+    enablePrivateServiceConnect: z.boolean(),
+    projectAllowlist: z.array(z.string()),
+    pscAutomationConfigs: z.array(z.object({
+      errorMessage: z.string(),
+      forwardingRule: z.string(),
+      ipAddress: z.string(),
+      network: z.string(),
+      projectId: z.string(),
+      state: z.string(),
+    })),
+    serviceAttachment: z.string(),
   }).optional(),
   name: z.string(),
   state: z.string().optional(),
@@ -326,10 +377,10 @@ const InputsSchema = z.object({
         'Required. The DNS name suffix of the zone being peered to, e.g., "my-internal-domain.corp.". Must end with a dot.',
       ).optional(),
       targetNetwork: z.string().describe(
-        "Required. The VPC network name in the target_project where the DNS zone specified by 'domain' is visible.",
+        "Required. The VPC network name in the target_project where the DNS zone specified by `domain` is visible.",
       ).optional(),
       targetProject: z.string().describe(
-        "Required. The project ID hosting the Cloud DNS managed zone that contains the 'domain'. The Vertex AI Service Agent requires the dns.peer role on this project.",
+        "Required. The project ID hosting the Cloud DNS managed zone that contains the `domain`. The Vertex AI Service Agent requires the dns.peer role on this project.",
       ).optional(),
     })).describe(
       "Optional. DNS peering configurations that allow sandbox egress to resolve customer-internal domains via the customer VPC.",
@@ -338,10 +389,48 @@ const InputsSchema = z.object({
       "Optional. Whether to allow internet access.",
     ).optional(),
     networkAttachment: z.string().describe(
-      "Optional. The name of the customer VPC NetworkAttachment used to draw a PSC interface IP into the customer VPC for sandbox egress.",
+      "Optional. The name of the customer VPC `NetworkAttachment` used to draw a PSC interface IP into the customer VPC for sandbox egress.",
     ).optional(),
   }).describe(
     "Optional. The configuration for egress control of this template.",
+  ).optional(),
+  ingressControlConfig: z.object({
+    enablePrivateServiceConnect: z.boolean().describe(
+      "Required. If true, expose the IndexEndpoint via private service connect.",
+    ).optional(),
+    projectAllowlist: z.array(z.string()).describe(
+      "A list of Projects from which the forwarding rule will target the service attachment.",
+    ).optional(),
+    pscAutomationConfigs: z.array(z.object({
+      errorMessage: z.string().describe(
+        "Output only. Error message if the PSC service automation failed.",
+      ).optional(),
+      forwardingRule: z.string().describe(
+        "Output only. Forwarding rule created by the PSC service automation.",
+      ).optional(),
+      ipAddress: z.string().describe(
+        "Output only. IP address rule created by the PSC service automation.",
+      ).optional(),
+      network: z.string().describe(
+        "Required. The full name of the Google Compute Engine [network](https://cloud.google.com/compute/docs/networks-and-firewalls#networks). [Format](https://cloud.google.com/compute/docs/reference/rest/v1/networks/get): `projects/{project}/global/networks/{network}`.",
+      ).optional(),
+      projectId: z.string().describe(
+        "Required. Project id used to create forwarding rule.",
+      ).optional(),
+      state: z.enum([
+        "PSC_AUTOMATION_STATE_UNSPECIFIED",
+        "PSC_AUTOMATION_STATE_SUCCESSFUL",
+        "PSC_AUTOMATION_STATE_FAILED",
+      ]).describe("Output only. The state of the PSC service automation.")
+        .optional(),
+    })).describe(
+      "Optional. List of projects and networks where the PSC endpoints will be created. This field is used by Online Inference(Prediction) only.",
+    ).optional(),
+    serviceAttachment: z.string().describe(
+      "Output only. The name of the generated service attachment resource. This is only populated if the endpoint is deployed with PrivateServiceConnect.",
+    ).optional(),
+  }).describe(
+    "Optional. The configuration for private ingress (PSC-E) of this template. When set, the sandbox router is exposed privately via a PSC service attachment so VPC-SC customers can connect from their VPC over a private endpoint instead of the public internet. The resulting service attachment is surfaced on `SandboxEnvironment.connection_info.service_attachment`. Only the PSC-E (service-attachment/ingress) portion of `PrivateServiceConnectConfig` applies here: `enable_private_service_connect` and `project_allowlist` (the consumer projects allowed to connect). The nested `psc_interface_config` (PSC-I / egress) is not used for sandbox ingress; sandbox egress is configured via `egress_control_config` instead.",
   ).optional(),
   name: z.string().describe(
     "Identifier. The resource name of the SandboxEnvironmentTemplate. Format: `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/sandboxEnvironmentTemplates/{sandbox_environment_template}`",
@@ -379,7 +468,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.SandboxEnvironmentTemplates. Registered at `@swamp/gcp/aiplatform/reasoningengines-sandboxenvironmenttemplates`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sandboxenvironmenttemplates",
-  version: "2026.07.29.1",
+  version: "2026.08.11.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -395,6 +484,14 @@ export const model = {
       toVersion: "2026.07.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.11.1",
+      description: "Added: ingressControlConfig. Removed: quotaProject",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { quotaProject: _quotaProject, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -435,6 +532,9 @@ export const model = {
         }
         if (g["egressControlConfig"] !== undefined) {
           body["egressControlConfig"] = g["egressControlConfig"];
+        }
+        if (g["ingressControlConfig"] !== undefined) {
+          body["ingressControlConfig"] = g["ingressControlConfig"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["parent"] !== undefined && g["name"] !== undefined) {
