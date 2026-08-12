@@ -116,6 +116,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   deployment: z.object({
     labels: z.record(z.string(), z.string()).describe(
       'Labels identify the deployment within the user universe and same target. Validation regex for label names: `^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`. Value for an individual label must be <= 512 bytes, the total size of all label names and values must be <= 1024 bytes. Label named "language" can be used to record the programming language of the profiled deployment. The standard choices for the value include "java", "go", "python", "ruby", "nodejs", "php", "dotnet". For deployments running on Google Cloud Platform, "zone" or "region" label should be present describing the deployment location. An example of a zone is "us-central1-a", an example of a region is "us-central1" or "us-central".',
@@ -181,6 +184,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   deployment: z.object({
     labels: z.record(z.string(), z.string()).describe(
       'Labels identify the deployment within the user universe and same target. Validation regex for label names: `^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`. Value for an individual label must be <= 512 bytes, the total size of all label names and values must be <= 1024 bytes. Label named "language" can be used to record the programming language of the profiled deployment. The standard choices for the value include "java", "go", "python", "ruby", "nodejs", "php", "dotnet". For deployments running on Google Cloud Platform, "zone" or "region" label should be present describing the deployment location. An example of a zone is "us-central1-a", an example of a region is "us-central1" or "us-central".',
@@ -230,6 +234,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -249,7 +254,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Profiler Profiles. Registered at `@swamp/gcp/cloudprofiler/profiles`. */
 export const model = {
   type: "@swamp/gcp/cloudprofiler/profiles",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -371,6 +376,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -388,6 +398,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -400,7 +412,7 @@ export const model = {
           body["profileType"] = g["profileType"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -435,12 +447,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const result = await readViaList(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "name",
@@ -469,6 +483,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -513,7 +529,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           PATCH_CONFIG,
           params,
           body,
@@ -538,6 +554,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -569,7 +587,7 @@ export const model = {
             );
           }
           const result = await readViaList(
-            BASE_URL,
+            baseUrl,
             LIST_CONFIG,
             params,
             "name",
@@ -606,6 +624,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -616,7 +636,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "profiles",
@@ -653,6 +673,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -676,7 +698,7 @@ export const model = {
           body["startTime"] = args["startTime"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "cloudprofiler.projects.profiles.createOffline",
             "path": "v2/{+parent}/profiles:createOffline",

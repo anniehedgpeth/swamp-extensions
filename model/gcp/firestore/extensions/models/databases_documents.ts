@@ -179,6 +179,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   createTime: z.string().describe(
     "Output only. The time at which the document was created. This value increases monotonically when a document is deleted then recreated. It can also be compared to values from other documents and the `read_time` of a query.",
   ).optional(),
@@ -296,6 +299,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   createTime: z.string().describe(
     "Output only. The time at which the document was created. This value increases monotonically when a document is deleted then recreated. It can also be compared to values from other documents and the `read_time` of a query.",
   ).optional(),
@@ -404,6 +408,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -423,7 +428,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.Documents. Registered at `@swamp/gcp/firestore/databases-documents`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-documents",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -600,6 +605,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -619,12 +629,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = args.identifier;
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -651,6 +663,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -684,7 +698,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           PATCH_CONFIG,
           params,
           body,
@@ -707,12 +721,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = args.identifier;
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -739,6 +755,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -767,7 +785,7 @@ export const model = {
           }
           params["name"] = identifier;
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -820,6 +838,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -849,7 +869,7 @@ export const model = {
           params["transaction"] = String(args["transaction"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "documents",
@@ -884,6 +904,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -914,7 +936,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.batchGet",
             "path": "v1/{+database}/documents:batchGet",
@@ -942,6 +964,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -963,7 +987,7 @@ export const model = {
         if (args["labels"] !== undefined) body["labels"] = args["labels"];
         if (args["writes"] !== undefined) body["writes"] = args["writes"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.batchWrite",
             "path": "v1/{+database}/documents:batchWrite",
@@ -990,6 +1014,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1010,7 +1036,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["options"] !== undefined) body["options"] = args["options"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.beginTransaction",
             "path": "v1/{+database}/documents:beginTransaction",
@@ -1038,6 +1064,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1061,7 +1089,7 @@ export const model = {
         }
         if (args["writes"] !== undefined) body["writes"] = args["writes"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.commit",
             "path": "v1/{+database}/documents:commit",
@@ -1091,6 +1119,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1108,7 +1138,7 @@ export const model = {
           body["updateTime"] = args["updateTime"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.createDocument",
             "path": "v1/{+parent}/{collectionId}",
@@ -1142,6 +1172,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1174,7 +1206,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.executePipeline",
             "path": "v1/{+database}/documents:executePipeline",
@@ -1203,6 +1235,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1214,7 +1248,7 @@ export const model = {
         }
         if (args["readTime"] !== undefined) body["readTime"] = args["readTime"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.listCollectionIds",
             "path": "v1/{+parent}:listCollectionIds",
@@ -1239,6 +1273,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1247,7 +1283,7 @@ export const model = {
           params["collectionId"] = String(g["collectionId"]);
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.listDocuments",
             "path": "v1/{+parent}/{collectionId}",
@@ -1285,6 +1321,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1311,7 +1349,7 @@ export const model = {
           body["removeTarget"] = args["removeTarget"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.listen",
             "path": "v1/{+database}/documents:listen",
@@ -1342,6 +1380,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1359,7 +1399,7 @@ export const model = {
           body["structuredQuery"] = args["structuredQuery"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.partitionQuery",
             "path": "v1/{+parent}:partitionQuery",
@@ -1386,6 +1426,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1408,7 +1450,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.rollback",
             "path": "v1/{+database}/documents:rollback",
@@ -1439,6 +1481,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1459,7 +1503,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.runAggregationQuery",
             "path": "v1/{+parent}:runAggregationQuery",
@@ -1490,6 +1534,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1509,7 +1555,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.runQuery",
             "path": "v1/{+parent}:runQuery",
@@ -1539,6 +1585,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1564,7 +1612,7 @@ export const model = {
         }
         if (args["writes"] !== undefined) body["writes"] = args["writes"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "firestore.projects.databases.documents.write",
             "path": "v1/{+database}/documents:write",

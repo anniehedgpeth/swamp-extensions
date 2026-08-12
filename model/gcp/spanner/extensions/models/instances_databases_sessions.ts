@@ -134,6 +134,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   session: z.object({
     approximateLastUseTime: z.string().describe(
       "Output only. The approximate timestamp when the session is last used. It's typically earlier than the actual last use time.",
@@ -177,6 +180,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   session: z.object({
     approximateLastUseTime: z.string().describe(
       "Output only. The approximate timestamp when the session is last used. It's typically earlier than the actual last use time.",
@@ -208,6 +212,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -227,7 +232,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Spanner Instances.Databases.Sessions. Registered at `@swamp/gcp/spanner/instances-databases-sessions`. */
 export const model = {
   type: "@swamp/gcp/spanner/instances-databases-sessions",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -344,6 +349,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -361,6 +371,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -371,7 +383,7 @@ export const model = {
         if (g["session"] !== undefined) body["session"] = g["session"];
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -399,12 +411,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = args.identifier;
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -428,12 +442,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = args.identifier;
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -460,6 +476,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -488,7 +506,7 @@ export const model = {
           }
           params["name"] = identifier;
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -526,6 +544,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -539,7 +559,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "sessions",
@@ -570,6 +590,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -579,7 +601,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["name"] !== undefined) body["name"] = args["name"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.adapter",
             "path": "v1/{+parent}/sessions:adapter",
@@ -608,6 +630,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -619,7 +643,7 @@ export const model = {
         if (args["payload"] !== undefined) body["payload"] = args["payload"];
         if (args["protocol"] !== undefined) body["protocol"] = args["protocol"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.adaptMessage",
             "path": "v1/{+name}:adaptMessage",
@@ -645,6 +669,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -659,7 +685,7 @@ export const model = {
           body["sessionTemplate"] = args["sessionTemplate"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.batchCreate",
             "path": "v1/{+database}/sessions:batchCreate",
@@ -688,6 +714,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -706,7 +734,7 @@ export const model = {
           body["requestOptions"] = args["requestOptions"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.batchWrite",
             "path": "v1/{+session}:batchWrite",
@@ -735,6 +763,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -750,7 +780,7 @@ export const model = {
           body["requestOptions"] = args["requestOptions"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "spanner.projects.instances.databases.sessions.beginTransaction",
@@ -784,6 +814,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -813,7 +845,7 @@ export const model = {
           body["transactionId"] = args["transactionId"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.commit",
             "path": "v1/{+session}:commit",
@@ -844,6 +876,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -865,7 +899,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "spanner.projects.instances.databases.sessions.executeBatchDml",
@@ -905,6 +939,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -946,7 +982,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.executeSql",
             "path": "v1/{+session}:executeSql",
@@ -985,6 +1021,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1026,7 +1064,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "spanner.projects.instances.databases.sessions.executeStreamingSql",
@@ -1058,6 +1096,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1077,7 +1117,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "spanner.projects.instances.databases.sessions.partitionQuery",
@@ -1110,6 +1150,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1128,7 +1170,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.partitionRead",
             "path": "v1/{+session}:partitionRead",
@@ -1167,6 +1209,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1200,7 +1244,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.read",
             "path": "v1/{+session}:read",
@@ -1227,6 +1271,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1238,7 +1284,7 @@ export const model = {
           body["transactionId"] = args["transactionId"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.rollback",
             "path": "v1/{+session}:rollback",
@@ -1277,6 +1323,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1310,7 +1358,7 @@ export const model = {
           body["transaction"] = args["transaction"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "spanner.projects.instances.databases.sessions.streamingRead",
             "path": "v1/{+session}:streamingRead",

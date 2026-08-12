@@ -170,6 +170,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   action: z.enum(["AUTHZ_ACTION_UNSPECIFIED", "ALLOW", "DENY", "CUSTOM"])
     .describe(
       "Required. Can be one of `ALLOW`, `DENY`, `CUSTOM`. When the action is `CUSTOM`, `customProvider` must be specified. When the action is `ALLOW`, only requests matching the policy will be allowed. When the action is `DENY`, only requests matching the policy will be denied. When a request arrives, the policies are evaluated in the following order: 1. If there is a `CUSTOM` policy that matches the request, the `CUSTOM` policy is evaluated using the custom authorization providers and the request is denied if the provider rejects the request. 2. If there are any `DENY` policies that match the request, the request is denied. 3. If there are no `ALLOW` policies for the resource or if any of the `ALLOW` policies match the request, the request is allowed. 4. Else the request is denied by default if none of the configured AuthzPolicies with `ALLOW` action match the request.",
@@ -490,6 +493,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   action: z.enum(["AUTHZ_ACTION_UNSPECIFIED", "ALLOW", "DENY", "CUSTOM"])
     .describe(
       "Required. Can be one of `ALLOW`, `DENY`, `CUSTOM`. When the action is `CUSTOM`, `customProvider` must be specified. When the action is `ALLOW`, only requests matching the policy will be allowed. When the action is `DENY`, only requests matching the policy will be denied. When a request arrives, the policies are evaluated in the following order: 1. If there is a `CUSTOM` policy that matches the request, the `CUSTOM` policy is evaluated using the custom authorization providers and the request is denied if the provider rejects the request. 2. If there are any `DENY` policies that match the request, the request is denied. 3. If there are no `ALLOW` policies for the resource or if any of the `ALLOW` policies match the request, the request is allowed. 4. Else the request is denied by default if none of the configured AuthzPolicies with `ALLOW` action match the request.",
@@ -722,6 +726,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -741,7 +746,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security AuthzPolicies. Registered at `@swamp/gcp/networksecurity/authzpolicies`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/authzpolicies",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -834,14 +839,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.05.25.1",
-      description: "Removed: networkRules",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { networkRules: _networkRules, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.05.26.1",
       description: "Added: networkRules",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -887,14 +884,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.07.20.1",
-      description: "Removed: networkRules",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { networkRules: _networkRules, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.07.20.2",
       description: "Added: networkRules",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -903,14 +892,6 @@ export const model = {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.21.2",
-      description: "Removed: networkRules",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { networkRules: _networkRules, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.07.21.3",
@@ -924,6 +905,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -945,6 +931,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -982,7 +970,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -1017,6 +1005,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1025,7 +1015,7 @@ export const model = {
           args.identifier,
         );
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -1052,6 +1042,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -1107,7 +1099,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           PATCH_CONFIG,
           params,
           body,
@@ -1130,6 +1122,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1138,7 +1132,7 @@ export const model = {
           args.identifier,
         );
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -1165,6 +1159,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -1197,7 +1193,7 @@ export const model = {
             );
           }
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -1236,6 +1232,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1252,7 +1250,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "authzPolicies",
@@ -1281,6 +1279,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1299,7 +1299,7 @@ export const model = {
         params["resource"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "networksecurity.projects.locations.authzPolicies.getIamPolicy",
@@ -1329,6 +1329,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1352,7 +1354,7 @@ export const model = {
           body["updateMask"] = args["updateMask"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "networksecurity.projects.locations.authzPolicies.setIamPolicy",
@@ -1380,6 +1382,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1402,7 +1406,7 @@ export const model = {
           body["permissions"] = args["permissions"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "networksecurity.projects.locations.authzPolicies.testIamPermissions",

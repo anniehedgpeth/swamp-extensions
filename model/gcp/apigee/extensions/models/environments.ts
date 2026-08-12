@@ -130,6 +130,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   apiProxyType: z.enum([
     "API_PROXY_TYPE_UNSPECIFIED",
     "PROGRAMMABLE",
@@ -235,6 +238,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   apiProxyType: z.enum([
     "API_PROXY_TYPE_UNSPECIFIED",
     "PROGRAMMABLE",
@@ -307,6 +311,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -326,7 +331,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Apigee Environments. Registered at `@swamp/gcp/apigee/environments`. */
 export const model = {
   type: "@swamp/gcp/apigee/environments",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -478,6 +483,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -499,6 +509,8 @@ export const model = {
       }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -536,7 +548,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -568,6 +580,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -576,7 +590,7 @@ export const model = {
           args.identifier,
         );
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -609,6 +623,8 @@ export const model = {
         context: any,
       ) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -665,7 +681,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           UPDATE_CONFIG,
           params,
           body,
@@ -694,6 +710,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -702,7 +720,7 @@ export const model = {
           args.identifier,
         );
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -729,6 +747,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -761,7 +781,7 @@ export const model = {
             );
           }
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -789,6 +809,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -799,7 +821,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.getAddonsConfig",
             "path": "v1/{+name}",
@@ -822,6 +844,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -832,7 +856,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "apigee.organizations.environments.getApiSecurityRuntimeConfig",
@@ -856,6 +880,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -866,7 +892,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.getDebugmask",
             "path": "v1/{+name}",
@@ -889,6 +915,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -899,7 +927,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.getDeployedConfig",
             "path": "v1/{+name}",
@@ -922,6 +950,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -940,7 +970,7 @@ export const model = {
         params["resource"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.getIamPolicy",
             "path": "v1/{+resource}:getIamPolicy",
@@ -966,6 +996,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -976,7 +1008,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.getSecurityActionsConfig",
             "path": "v1/{+name}",
@@ -999,6 +1031,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1009,7 +1043,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.getTraceConfig",
             "path": "v1/{+name}",
@@ -1047,6 +1081,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1094,7 +1130,7 @@ export const model = {
         if (args["state"] !== undefined) body["state"] = args["state"];
         if (args["type"] !== undefined) body["type"] = args["type"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.modifyEnvironment",
             "path": "v1/{+name}",
@@ -1123,6 +1159,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1146,7 +1184,7 @@ export const model = {
           body["updateMask"] = args["updateMask"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.setIamPolicy",
             "path": "v1/{+resource}:setIamPolicy",
@@ -1171,12 +1209,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.subscribe",
             "path": "v1/{+parent}:subscribe",
@@ -1203,6 +1243,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1225,7 +1267,7 @@ export const model = {
           body["permissions"] = args["permissions"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.testIamPermissions",
             "path": "v1/{+resource}:testIamPermissions",
@@ -1252,6 +1294,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1259,7 +1303,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["name"] !== undefined) body["name"] = args["name"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.unsubscribe",
             "path": "v1/{+parent}:unsubscribe",
@@ -1294,6 +1338,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1330,7 +1376,7 @@ export const model = {
           body["variables"] = args["variables"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.updateDebugmask",
             "path": "v1/{+name}",
@@ -1372,6 +1418,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1419,7 +1467,7 @@ export const model = {
         if (args["state"] !== undefined) body["state"] = args["state"];
         if (args["type"] !== undefined) body["type"] = args["type"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.updateEnvironment",
             "path": "v1/{+name}",
@@ -1446,6 +1494,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1462,7 +1512,7 @@ export const model = {
           body["updateTime"] = args["updateTime"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "apigee.organizations.environments.updateSecurityActionsConfig",
@@ -1495,6 +1545,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1517,7 +1569,7 @@ export const model = {
           body["traceProtocol"] = args["traceProtocol"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "apigee.organizations.environments.updateTraceConfig",
             "path": "v1/{+name}",

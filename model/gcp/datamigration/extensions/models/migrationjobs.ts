@@ -173,6 +173,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   cmekKeyName: z.string().describe(
     "The CMEK (customer-managed encryption key) fully qualified key name used for the migration job. This field supports all migration jobs types except for: * Mysql to Mysql (use the cmek field in the cloudsql connection profile instead). * PostrgeSQL to PostgreSQL (use the cmek field in the cloudsql connection profile instead). * PostgreSQL to AlloyDB (use the kms_key_name field in the alloydb connection profile instead). Each Cloud CMEK key has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
   ).optional(),
@@ -631,6 +634,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   cmekKeyName: z.string().describe(
     "The CMEK (customer-managed encryption key) fully qualified key name used for the migration job. This field supports all migration jobs types except for: * Mysql to Mysql (use the cmek field in the cloudsql connection profile instead). * PostrgeSQL to PostgreSQL (use the cmek field in the cloudsql connection profile instead). * PostgreSQL to AlloyDB (use the kms_key_name field in the alloydb connection profile instead). Each Cloud CMEK key has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]",
   ).optional(),
@@ -950,6 +954,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -969,7 +974,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration MigrationJobs. Registered at `@swamp/gcp/datamigration/migrationjobs`. */
 export const model = {
   type: "@swamp/gcp/datamigration/migrationjobs",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1012,17 +1017,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.05.18.1",
-      description: "Removed: postgresHomogeneousConfig",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          postgresHomogeneousConfig: _postgresHomogeneousConfig,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.05.18.2",
       description: "Added: postgresHomogeneousConfig",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -1031,17 +1025,6 @@ export const model = {
       toVersion: "2026.05.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.19.2",
-      description: "Removed: postgresHomogeneousConfig",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          postgresHomogeneousConfig: _postgresHomogeneousConfig,
-          ...rest
-        } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.05.20.1",
@@ -1062,17 +1045,6 @@ export const model = {
       toVersion: "2026.05.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.25.1",
-      description: "Removed: postgresHomogeneousConfig",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          postgresHomogeneousConfig: _postgresHomogeneousConfig,
-          ...rest
-        } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.05.26.1",
@@ -1120,18 +1092,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.07.20.1",
-      description: "Removed: mysqlHomogeneousConfig, postgresHomogeneousConfig",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          mysqlHomogeneousConfig: _mysqlHomogeneousConfig,
-          postgresHomogeneousConfig: _postgresHomogeneousConfig,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.07.20.2",
       description: "Added: mysqlHomogeneousConfig, postgresHomogeneousConfig",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -1141,18 +1101,6 @@ export const model = {
       description: "Removed: error",
       upgradeAttributes: (old: Record<string, unknown>) => {
         const { error: _error, ...rest } = old;
-        return rest;
-      },
-    },
-    {
-      toVersion: "2026.07.21.2",
-      description: "Removed: mysqlHomogeneousConfig, postgresHomogeneousConfig",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          mysqlHomogeneousConfig: _mysqlHomogeneousConfig,
-          postgresHomogeneousConfig: _postgresHomogeneousConfig,
-          ...rest
-        } = old;
         return rest;
       },
     },
@@ -1168,6 +1116,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1193,6 +1146,8 @@ export const model = {
       }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1277,7 +1232,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -1318,6 +1273,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1326,7 +1283,7 @@ export const model = {
           args.identifier,
         );
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -1359,6 +1316,8 @@ export const model = {
         context: any,
       ) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -1464,7 +1423,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           PATCH_CONFIG,
           params,
           body,
@@ -1493,6 +1452,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1501,7 +1462,7 @@ export const model = {
           args.identifier,
         );
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -1528,6 +1489,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -1560,7 +1523,7 @@ export const model = {
             );
           }
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -1601,6 +1564,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1617,7 +1582,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "migrationJobs",
@@ -1646,6 +1611,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1656,7 +1623,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "datamigration.projects.locations.migrationJobs.demoteDestination",
@@ -1680,6 +1647,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1690,7 +1659,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "datamigration.projects.locations.migrationJobs.fetchSourceObjects",
@@ -1719,6 +1688,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1746,7 +1717,7 @@ export const model = {
           body["vmSelectionConfig"] = args["vmSelectionConfig"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "datamigration.projects.locations.migrationJobs.generateSshScript",
@@ -1777,6 +1748,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1802,7 +1775,7 @@ export const model = {
         if (args["vmSubnet"] !== undefined) body["vmSubnet"] = args["vmSubnet"];
         if (args["vmZone"] !== undefined) body["vmZone"] = args["vmZone"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "datamigration.projects.locations.migrationJobs.generateTcpProxyScript",
@@ -1828,6 +1801,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1846,7 +1821,7 @@ export const model = {
         params["resource"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "datamigration.projects.locations.migrationJobs.getIamPolicy",
             "path": "v1/{+resource}:getIamPolicy",
@@ -1874,6 +1849,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1888,7 +1865,7 @@ export const model = {
           body["objectsFilter"] = args["objectsFilter"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "datamigration.projects.locations.migrationJobs.promote",
             "path": "v1/{+name}:promote",
@@ -1915,6 +1892,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1935,7 +1914,7 @@ export const model = {
           body["skipValidation"] = args["skipValidation"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "datamigration.projects.locations.migrationJobs.restart",
             "path": "v1/{+name}:restart",
@@ -1960,6 +1939,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1974,7 +1955,7 @@ export const model = {
           body["skipValidation"] = args["skipValidation"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "datamigration.projects.locations.migrationJobs.resume",
             "path": "v1/{+name}:resume",
@@ -2000,6 +1981,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -2023,7 +2006,7 @@ export const model = {
           body["updateMask"] = args["updateMask"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "datamigration.projects.locations.migrationJobs.setIamPolicy",
             "path": "v1/{+resource}:setIamPolicy",
@@ -2050,6 +2033,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -2064,7 +2049,7 @@ export const model = {
           body["skipValidation"] = args["skipValidation"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "datamigration.projects.locations.migrationJobs.start",
             "path": "v1/{+name}:start",
@@ -2087,6 +2072,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -2097,7 +2084,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "datamigration.projects.locations.migrationJobs.stop",
             "path": "v1/{+name}:stop",
@@ -2122,6 +2109,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -2144,7 +2133,7 @@ export const model = {
           body["permissions"] = args["permissions"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "datamigration.projects.locations.migrationJobs.testIamPermissions",
@@ -2173,6 +2162,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -2190,7 +2181,7 @@ export const model = {
           body["updateMask"] = args["updateMask"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "datamigration.projects.locations.migrationJobs.verify",
             "path": "v1/{+name}:verify",

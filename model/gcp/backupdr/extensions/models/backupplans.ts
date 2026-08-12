@@ -173,6 +173,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   backupRules: z.array(z.object({
     backupRetentionDays: z.number().int().describe(
       "Required. Configures the duration for which backup data will be kept. It is defined in “days”. The value should be greater than or equal to minimum enforced retention of the backup vault. Minimum value is 1 and maximum value is 36159 for custom retention on-demand backup. Minimum and maximum values are workload specific for all other rules. Note: Longer retention can lead to higher storage costs post introductory trial. We recommend starting with a short duration of 3 days or less.",
@@ -272,6 +275,23 @@ const GlobalArgsSchema = z.object({
     "Required. Resource name of backup vault which will be used as storage location for backups. Format: projects/{project}/locations/{location}/backupVaults/{backupvault}",
   ).optional(),
   computeInstanceBackupPlanProperties: z.object({
+    bootDiskOnly: z.boolean().describe(
+      "Optional. If true, only the boot disk will be backed up.",
+    ).optional(),
+    diskExclusionLabels: z.object({
+      labels: z.array(z.object({
+        key: z.string().describe(
+          "Key of the label. The key must follow the format: `\\\\p{Ll}\\\\p{Lo}{0,62}`. This means the key must start with a lowercase letter or a lowercase international character, followed by zero or more lowercase letters, lowercase international characters, numbers, underscores, or dashes. The key must be at most 63 characters long. International characters are allowed.",
+        ).optional(),
+        value: z.string().describe(
+          "Value of the label. The value must follow the format: `[\\\\p{Ll}\\\\p{Lo}\\\\p{N}_-]{1,63}`. This means the value must be one or more lowercase letters, lowercase international characters, numbers, underscores, or dashes. The value must be at most 63 characters long. International characters are allowed.",
+        ).optional(),
+      })).describe(
+        "Optional. Labels used to identify disks for exclusion from the backup. If a disk carries any of these labels, it will be excluded (OR logic).",
+      ).optional(),
+    }).describe(
+      "Optional. Labels used to identify disks for exclusion from the backup. If a disk carries any of these labels, it will be excluded (OR logic).",
+    ).optional(),
     guestFlush: z.boolean().describe(
       "Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.",
     ).optional(),
@@ -335,6 +355,13 @@ const StateSchema = z.object({
   backupVault: z.string().optional(),
   backupVaultServiceAccount: z.string().optional(),
   computeInstanceBackupPlanProperties: z.object({
+    bootDiskOnly: z.boolean(),
+    diskExclusionLabels: z.object({
+      labels: z.array(z.object({
+        key: z.string(),
+        value: z.string(),
+      })),
+    }),
     guestFlush: z.boolean(),
   }).optional(),
   createTime: z.string().optional(),
@@ -364,6 +391,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   backupRules: z.array(z.object({
     backupRetentionDays: z.number().int().describe(
       "Required. Configures the duration for which backup data will be kept. It is defined in “days”. The value should be greater than or equal to minimum enforced retention of the backup vault. Minimum value is 1 and maximum value is 36159 for custom retention on-demand backup. Minimum and maximum values are workload specific for all other rules. Note: Longer retention can lead to higher storage costs post introductory trial. We recommend starting with a short duration of 3 days or less.",
@@ -463,6 +491,23 @@ const InputsSchema = z.object({
     "Required. Resource name of backup vault which will be used as storage location for backups. Format: projects/{project}/locations/{location}/backupVaults/{backupvault}",
   ).optional(),
   computeInstanceBackupPlanProperties: z.object({
+    bootDiskOnly: z.boolean().describe(
+      "Optional. If true, only the boot disk will be backed up.",
+    ).optional(),
+    diskExclusionLabels: z.object({
+      labels: z.array(z.object({
+        key: z.string().describe(
+          "Key of the label. The key must follow the format: `\\\\p{Ll}\\\\p{Lo}{0,62}`. This means the key must start with a lowercase letter or a lowercase international character, followed by zero or more lowercase letters, lowercase international characters, numbers, underscores, or dashes. The key must be at most 63 characters long. International characters are allowed.",
+        ).optional(),
+        value: z.string().describe(
+          "Value of the label. The value must follow the format: `[\\\\p{Ll}\\\\p{Lo}\\\\p{N}_-]{1,63}`. This means the value must be one or more lowercase letters, lowercase international characters, numbers, underscores, or dashes. The value must be at most 63 characters long. International characters are allowed.",
+        ).optional(),
+      })).describe(
+        "Optional. Labels used to identify disks for exclusion from the backup. If a disk carries any of these labels, it will be excluded (OR logic).",
+      ).optional(),
+    }).describe(
+      "Optional. Labels used to identify disks for exclusion from the backup. If a disk carries any of these labels, it will be excluded (OR logic).",
+    ).optional(),
     guestFlush: z.boolean().describe(
       "Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.",
     ).optional(),
@@ -508,6 +553,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -527,7 +573,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Backup and DR Service BackupPlans. Registered at `@swamp/gcp/backupdr/backupplans`. */
 export const model = {
   type: "@swamp/gcp/backupdr/backupplans",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -699,6 +745,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -721,6 +772,8 @@ export const model = {
       }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -768,7 +821,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -802,6 +855,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -810,7 +865,7 @@ export const model = {
           args.identifier,
         );
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -842,6 +897,8 @@ export const model = {
         context: any,
       ) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -911,7 +968,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           PATCH_CONFIG,
           params,
           body,
@@ -940,6 +997,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -948,7 +1007,7 @@ export const model = {
           args.identifier,
         );
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -975,6 +1034,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -1007,7 +1068,7 @@ export const model = {
             );
           }
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -1048,6 +1109,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1064,7 +1127,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "backupPlans",

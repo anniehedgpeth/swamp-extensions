@@ -220,6 +220,73 @@ export function buildUpgradesBlock(
 }
 
 /**
+ * Drop or fix trailing upgrade entries that incorrectly claim fields were
+ * removed when those fields are actually present in the current schema. This
+ * fixes stale entries from prior runs where the pipeline's newFieldNames list
+ * was incomplete (e.g., missing quotaProject or apiEndpoint).
+ *
+ * Walks backward from the last entry:
+ * - Entries where ALL removed fields are bogus → dropped entirely
+ * - Entries where SOME removed fields are bogus (mixed) → rebuilt with only
+ *   the legitimate removals
+ * Stops at the first entry with no bogus removals.
+ */
+function dropStaleRemovals(
+  entries: string[],
+  currentFields: Set<string>,
+): string[] {
+  const result: string[] = [];
+  for (const entry of entries) {
+    const descMatch = entry.match(
+      /description:\s*"([^"]+)"|description:\s*\n\s*"([^"]+)"/,
+    );
+    if (!descMatch) {
+      result.push(entry);
+      continue;
+    }
+
+    const desc = descMatch[1] ?? descMatch[2];
+    const removedMatch = desc.match(/Removed:\s*([^."]+)/);
+    if (!removedMatch) {
+      result.push(entry);
+      continue;
+    }
+
+    const removedFields = removedMatch[1].split(",").map((s) => s.trim());
+    const bogusFields = removedFields.filter((f) => currentFields.has(f));
+    if (bogusFields.length === 0) {
+      result.push(entry);
+      continue;
+    }
+
+    if (bogusFields.length === removedFields.length) {
+      const addedMatch = desc.match(/Added:\s*([^."]+)/);
+      if (addedMatch) {
+        const versionMatch = entry.match(/toVersion:\s*"([^"]+)"/);
+        const toVersion = versionMatch ? versionMatch[1] : "";
+        const addedFields = addedMatch[1].split(",").map((s) => s.trim());
+        result.push(generateUpgradeEntry(toVersion, addedFields, []));
+      }
+      // else: fully bogus with no adds — drop entirely
+    } else {
+      const versionMatch = entry.match(/toVersion:\s*"([^"]+)"/);
+      const toVersion = versionMatch ? versionMatch[1] : "";
+      const legitimateRemovals = removedFields.filter(
+        (f) => !currentFields.has(f),
+      );
+      const addedMatch = desc.match(/Added:\s*([^."]+)/);
+      const addedFields = addedMatch
+        ? addedMatch[1].split(",").map((s) => s.trim())
+        : [];
+      result.push(
+        generateUpgradeEntry(toVersion, addedFields, legitimateRemovals),
+      );
+    }
+  }
+  return result;
+}
+
+/**
  * High-level helper for pipelines: compute the upgrades block for a model.
  *
  * @param status - "new", "changed", or "unchanged" from computeModelVersion
@@ -244,15 +311,24 @@ export function computeUpgradesBlock(
     const existingEntries = extractExistingUpgrades(existingContent);
     if (existingEntries.length === 0) return undefined;
 
+    // Validate trailing entries: drop any that claim a field was "Removed"
+    // when it's actually present in newFieldNames (stale from a prior pipeline
+    // bug where newFieldNames was incomplete).
+    const newSet = new Set(newFieldNames);
+    const validatedEntries = dropStaleRemovals(existingEntries, newSet);
+
     // Detect version/upgrade mismatch (e.g. manual version bump without pipeline)
-    const lastEntry = existingEntries[existingEntries.length - 1];
-    const toVersionMatch = lastEntry.match(/toVersion:\s*"([^"]+)"/);
-    if (toVersionMatch && toVersionMatch[1] !== version) {
-      const newEntry = generateUpgradeEntry(version, [], []);
-      return buildUpgradesBlock(existingEntries, newEntry);
+    const lastEntry = validatedEntries[validatedEntries.length - 1];
+    if (lastEntry) {
+      const toVersionMatch = lastEntry.match(/toVersion:\s*"([^"]+)"/);
+      if (toVersionMatch && toVersionMatch[1] !== version) {
+        const newEntry = generateUpgradeEntry(version, [], []);
+        return buildUpgradesBlock(validatedEntries, newEntry);
+      }
     }
 
-    return buildUpgradesBlock(existingEntries, null);
+    if (validatedEntries.length === 0) return undefined;
+    return buildUpgradesBlock(validatedEntries, null);
   }
 
   // status === "changed" — need to generate a new upgrade entry

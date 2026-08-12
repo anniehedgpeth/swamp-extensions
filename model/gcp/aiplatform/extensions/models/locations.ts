@@ -103,6 +103,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   name: z.string().describe(
     "The resource that owns the locations collection, if applicable.",
   ),
@@ -124,6 +127,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   name: z.string().describe(
     "The resource that owns the locations collection, if applicable.",
   ).optional(),
@@ -135,6 +139,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -154,7 +159,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Locations. Registered at `@swamp/gcp/aiplatform/locations`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/locations",
-  version: "2026.08.11.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -312,12 +317,9 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.11.1",
-      description: "Removed: quotaProject",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { quotaProject: _quotaProject, ...rest } = old;
-        return rest;
-      },
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -338,12 +340,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = args.identifier;
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -370,6 +374,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -398,7 +404,7 @@ export const model = {
           }
           params["name"] = identifier;
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -439,6 +445,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -453,7 +461,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "locations",
@@ -485,6 +493,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -495,7 +505,7 @@ export const model = {
         if (args["query"] !== undefined) body["query"] = args["query"];
         if (args["tools"] !== undefined) body["tools"] = args["tools"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.askContexts",
             "path": "v1/{+parent}:askContexts",
@@ -523,6 +533,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -533,7 +545,7 @@ export const model = {
         if (args["query"] !== undefined) body["query"] = args["query"];
         if (args["tools"] !== undefined) body["tools"] = args["tools"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.asyncRetrieveContexts",
             "path": "v1/{+parent}:asyncRetrieveContexts",
@@ -562,6 +574,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -575,7 +589,7 @@ export const model = {
           body["vertexRagStore"] = args["vertexRagStore"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.augmentPrompt",
             "path": "v1/{+parent}:augmentPrompt",
@@ -604,6 +618,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -617,7 +633,7 @@ export const model = {
           body["parameters"] = args["parameters"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.corroborateContent",
             "path": "v1/{+parent}:corroborateContent",
@@ -648,6 +664,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -682,7 +700,7 @@ export const model = {
           body["publisherModelName"] = args["publisherModelName"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.deploy",
             "path": "v1/{+destination}:deploy",
@@ -713,6 +731,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -741,7 +761,7 @@ export const model = {
           body["outputConfig"] = args["outputConfig"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.evaluateDataset",
             "path": "v1/{+location}:evaluateDataset",
@@ -804,6 +824,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -941,7 +963,7 @@ export const model = {
             args["trajectorySingleToolUseInput"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.evaluateInstances",
             "path": "v1/{+location}:evaluateInstances",
@@ -973,6 +995,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1007,7 +1031,7 @@ export const model = {
           body["rubricGenerationSpec"] = args["rubricGenerationSpec"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.generateInstanceRubrics",
             "path": "v1/{+location}:generateInstanceRubrics",
@@ -1036,6 +1060,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1062,7 +1088,7 @@ export const model = {
           body["inlineResults"] = args["inlineResults"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.generateLossClusters",
             "path": "v1/{+location}:generateLossClusters",
@@ -1092,6 +1118,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1119,7 +1147,7 @@ export const model = {
           body["taskDescription"] = args["taskDescription"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.generateSyntheticData",
             "path": "v1/{+location}:generateSyntheticData",
@@ -1150,6 +1178,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1183,7 +1213,7 @@ export const model = {
             args["userScenarioGenerationConfig"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.generateUserScenarios",
             "path": "v1/{+location}:generateUserScenarios",
@@ -1208,12 +1238,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.getRagEngineConfig",
             "path": "v1/{+name}",
@@ -1236,12 +1268,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "aiplatform.projects.locations.getSemanticGovernancePolicyEngine",
@@ -1268,6 +1302,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1280,7 +1316,7 @@ export const model = {
           body["vertexRagStore"] = args["vertexRagStore"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.retrieveContexts",
             "path": "v1/{+parent}:retrieveContexts",
@@ -1308,6 +1344,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1318,7 +1356,7 @@ export const model = {
           body["ragManagedDbConfig"] = args["ragManagedDbConfig"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "aiplatform.projects.locations.updateRagEngineConfig",
             "path": "v1/{+name}",
@@ -1350,6 +1388,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1376,7 +1416,7 @@ export const model = {
           body["updateTime"] = args["updateTime"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "aiplatform.projects.locations.updateSemanticGovernancePolicyEngine",

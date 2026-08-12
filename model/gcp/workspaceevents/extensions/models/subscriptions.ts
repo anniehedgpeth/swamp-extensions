@@ -185,6 +185,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   driveOptions: z.object({
     includeDescendants: z.boolean().describe(
       "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
@@ -259,6 +262,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   driveOptions: z.object({
     includeDescendants: z.boolean().describe(
       "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
@@ -303,6 +307,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -322,7 +327,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Workspace Events Subscriptions. Registered at `@swamp/gcp/workspaceevents/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/workspaceevents/subscriptions",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -370,14 +375,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.05.18.1",
-      description: "Removed: driveOptions",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { driveOptions: _driveOptions, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.05.18.2",
       description: "Added: driveOptions",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -386,14 +383,6 @@ export const model = {
       toVersion: "2026.05.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.19.2",
-      description: "Removed: driveOptions",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { driveOptions: _driveOptions, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.05.20.1",
@@ -414,14 +403,6 @@ export const model = {
       toVersion: "2026.05.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.25.1",
-      description: "Removed: driveOptions",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { driveOptions: _driveOptions, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.05.25.2",
@@ -459,14 +440,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.07.20.1",
-      description: "Removed: driveOptions",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { driveOptions: _driveOptions, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.07.20.2",
       description: "Added: driveOptions",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -475,14 +448,6 @@ export const model = {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.21.2",
-      description: "Removed: driveOptions",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { driveOptions: _driveOptions, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.07.21.3",
@@ -501,6 +466,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -526,6 +496,8 @@ export const model = {
       }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -547,7 +519,7 @@ export const model = {
         if (g["ttl"] !== undefined) body["ttl"] = g["ttl"];
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -584,12 +556,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = args.identifier;
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -622,6 +596,8 @@ export const model = {
         context: any,
       ) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -664,7 +640,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           PATCH_CONFIG,
           params,
           body,
@@ -693,12 +669,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = args.identifier;
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -725,6 +703,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -753,7 +733,7 @@ export const model = {
           }
           params["name"] = identifier;
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -791,6 +771,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -801,7 +783,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "subscriptions",
@@ -830,12 +812,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "workspaceevents.subscriptions.reactivate",
             "path": "v1/{+name}:reactivate",

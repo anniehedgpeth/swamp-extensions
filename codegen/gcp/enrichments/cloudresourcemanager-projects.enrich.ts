@@ -24,13 +24,15 @@ export const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
+      const baseUrl = g["apiEndpoint"]?.toString() ??
+        Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
       const credentials = _buildGcpCredentials(g);
       const projectId = await getProjectId(credentials);
       const resource = g["name"]?.toString() ?? `projects/${projectId}`;
 
       const getResp = await request(
         "POST",
-        `${BASE_URL}v3/${resource}:getIamPolicy`,
+        `${baseUrl}v3/${resource}:getIamPolicy`,
         { options: { requestedPolicyVersion: 3 } },
         credentials,
       );
@@ -88,7 +90,7 @@ export const iamBindingMethods = {
 
       const setResp = await request(
         "POST",
-        `${BASE_URL}v3/${resource}:setIamPolicy`,
+        `${baseUrl}v3/${resource}:setIamPolicy`,
         {
           policy: {
             bindings,
@@ -129,13 +131,15 @@ export const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
+      const baseUrl = g["apiEndpoint"]?.toString() ??
+        Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
       const credentials = _buildGcpCredentials(g);
       const projectId = await getProjectId(credentials);
       const resource = g["name"]?.toString() ?? `projects/${projectId}`;
 
       const getResp = await request(
         "POST",
-        `${BASE_URL}v3/${resource}:getIamPolicy`,
+        `${baseUrl}v3/${resource}:getIamPolicy`,
         { options: { requestedPolicyVersion: 3 } },
         credentials,
       );
@@ -191,7 +195,7 @@ export const iamBindingMethods = {
 
       const setResp = await request(
         "POST",
-        `${BASE_URL}v3/${resource}:setIamPolicy`,
+        `${baseUrl}v3/${resource}:setIamPolicy`,
         {
           policy: {
             bindings,

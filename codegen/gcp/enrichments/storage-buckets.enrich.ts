@@ -24,6 +24,8 @@ export const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
+      const baseUrl = g["apiEndpoint"]?.toString() ??
+        Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
       const credentials = _buildGcpCredentials(g);
       const projectId = await getProjectId(credentials);
       const bucketName = g["name"]?.toString() ?? "";
@@ -31,7 +33,7 @@ export const iamBindingMethods = {
 
       const getResp = await request(
         "GET",
-        `${BASE_URL}b/${
+        `${baseUrl}b/${
           encodeURIComponent(bucketName)
         }/iam?optionsRequestedPolicyVersion=3&userProject=${
           encodeURIComponent(userProject)
@@ -93,7 +95,7 @@ export const iamBindingMethods = {
 
       const setResp = await request(
         "PUT",
-        `${BASE_URL}b/${encodeURIComponent(bucketName)}/iam?userProject=${
+        `${baseUrl}b/${encodeURIComponent(bucketName)}/iam?userProject=${
           encodeURIComponent(userProject)
         }`,
         {
@@ -134,6 +136,8 @@ export const iamBindingMethods = {
       context: { globalArgs: Record<string, unknown> },
     ) => {
       const g = context.globalArgs;
+      const baseUrl = g["apiEndpoint"]?.toString() ??
+        Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
       const credentials = _buildGcpCredentials(g);
       const projectId = await getProjectId(credentials);
       const bucketName = g["name"]?.toString() ?? "";
@@ -141,7 +145,7 @@ export const iamBindingMethods = {
 
       const getResp = await request(
         "GET",
-        `${BASE_URL}b/${
+        `${baseUrl}b/${
           encodeURIComponent(bucketName)
         }/iam?optionsRequestedPolicyVersion=3&userProject=${
           encodeURIComponent(userProject)
@@ -201,7 +205,7 @@ export const iamBindingMethods = {
 
       const setResp = await request(
         "PUT",
-        `${BASE_URL}b/${encodeURIComponent(bucketName)}/iam?userProject=${
+        `${baseUrl}b/${encodeURIComponent(bucketName)}/iam?userProject=${
           encodeURIComponent(userProject)
         }`,
         {

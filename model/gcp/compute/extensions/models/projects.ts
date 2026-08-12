@@ -78,6 +78,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -122,6 +125,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
 });
 
 const _credentialKeys = new Set([
@@ -130,6 +134,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -149,7 +154,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Projects. Registered at `@swamp/gcp/compute/projects`. */
 export const model = {
   type: "@swamp/gcp/compute/projects",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -256,6 +261,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -276,11 +286,13 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -306,6 +318,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -316,7 +330,7 @@ export const model = {
         try {
           const params: Record<string, string> = { project: projectId };
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -344,11 +358,13 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.disableXpnHost",
             "path": "projects/{project}/disableXpnHost",
@@ -376,6 +392,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -384,7 +402,7 @@ export const model = {
           body["xpnResource"] = args["xpnResource"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.disableXpnResource",
             "path": "projects/{project}/disableXpnResource",
@@ -410,11 +428,13 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.enableXpnHost",
             "path": "projects/{project}/enableXpnHost",
@@ -442,6 +462,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -450,7 +472,7 @@ export const model = {
           body["xpnResource"] = args["xpnResource"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.enableXpnResource",
             "path": "projects/{project}/enableXpnResource",
@@ -476,11 +498,13 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.getXpnHost",
             "path": "projects/{project}/getXpnHost",
@@ -505,11 +529,13 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.getXpnResources",
             "path": "projects/{project}/getXpnResources",
@@ -541,6 +567,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -549,7 +577,7 @@ export const model = {
           body["organization"] = args["organization"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.listXpnHosts",
             "path": "projects/{project}/listXpnHosts",
@@ -582,6 +610,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -593,7 +623,7 @@ export const model = {
           body["targetDisk"] = args["targetDisk"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.moveDisk",
             "path": "projects/{project}/moveDisk",
@@ -622,6 +652,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -633,7 +665,7 @@ export const model = {
           body["targetInstance"] = args["targetInstance"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.moveInstance",
             "path": "projects/{project}/moveInstance",
@@ -661,6 +693,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -669,7 +703,7 @@ export const model = {
           body["cloudArmorTier"] = args["cloudArmorTier"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.setCloudArmorTier",
             "path": "projects/{project}/setCloudArmorTier",
@@ -699,6 +733,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -709,7 +745,7 @@ export const model = {
         if (args["items"] !== undefined) body["items"] = args["items"];
         if (args["kind"] !== undefined) body["kind"] = args["kind"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.setCommonInstanceMetadata",
             "path": "projects/{project}/setCommonInstanceMetadata",
@@ -737,6 +773,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -745,7 +783,7 @@ export const model = {
           body["networkTier"] = args["networkTier"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.setDefaultNetworkTier",
             "path": "projects/{project}/setDefaultNetworkTier",
@@ -774,6 +812,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -785,7 +825,7 @@ export const model = {
           body["reportNamePrefix"] = args["reportNamePrefix"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "compute.projects.setUsageExportBucket",
             "path": "projects/{project}/setUsageExportBucket",

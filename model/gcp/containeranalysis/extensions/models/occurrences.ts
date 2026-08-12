@@ -161,6 +161,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   advisoryPublishTime: z.string().describe(
     "The time this advisory was published by the source.",
   ).optional(),
@@ -192,8 +195,48 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Findings produced by the analysis.").optional(),
     maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"]).describe(
-      "Maximum severity found among findings.",
+      "Maximum severity found among findings. Per scanner verdict details.",
     ).optional(),
+    perScannerVerdict: z.object({
+      maliciousContentLlmResult: z.object({
+        maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"])
+          .describe("Tracks max severity found.").optional(),
+        scanStatus: z.enum([
+          "SCAN_STATUS_UNSPECIFIED",
+          "PERFORMED",
+          "NOT_PERFORMED",
+        ]).describe("Status of the scan.").optional(),
+      }).describe("Malicious Content LLM scan result.").optional(),
+      maliciousContentStaticResult: z.object({
+        maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"])
+          .describe("Tracks max severity found.").optional(),
+        scanStatus: z.enum([
+          "SCAN_STATUS_UNSPECIFIED",
+          "PERFORMED",
+          "NOT_PERFORMED",
+        ]).describe("Status of the scan.").optional(),
+      }).describe("Malicious Content Static scan result.").optional(),
+      malwareScan: z.object({
+        scanStatus: z.enum([
+          "SCAN_STATUS_UNSPECIFIED",
+          "PERFORMED",
+          "NOT_PERFORMED",
+        ]).describe("Status of the scan.").optional(),
+        verdict: z.enum(["VERDICT_UNSPECIFIED", "PASSED", "FAILED"]).describe(
+          "Verdict of the scan.",
+        ).optional(),
+      }).describe("Malware scan result.").optional(),
+      workspacePolicy: z.object({
+        scanStatus: z.enum([
+          "SCAN_STATUS_UNSPECIFIED",
+          "PERFORMED",
+          "NOT_PERFORMED",
+        ]).describe("Status of the scan.").optional(),
+        verdict: z.enum(["VERDICT_UNSPECIFIED", "PASSED", "FAILED"]).describe(
+          "Verdict of the scan.",
+        ).optional(),
+      }).describe("Workspace Policy scan result.").optional(),
+    }).describe("Per scanner verdict.").optional(),
     skillName: z.string().describe(
       "Name of the skill that produced this analysis.",
     ).optional(),
@@ -1897,6 +1940,24 @@ const StateSchema = z.object({
       severity: z.string(),
     })),
     maxSeverity: z.string(),
+    perScannerVerdict: z.object({
+      maliciousContentLlmResult: z.object({
+        maxSeverity: z.string(),
+        scanStatus: z.string(),
+      }),
+      maliciousContentStaticResult: z.object({
+        maxSeverity: z.string(),
+        scanStatus: z.string(),
+      }),
+      malwareScan: z.object({
+        scanStatus: z.string(),
+        verdict: z.string(),
+      }),
+      workspacePolicy: z.object({
+        scanStatus: z.string(),
+        verdict: z.string(),
+      }),
+    }),
     skillName: z.string(),
   }).optional(),
   attestation: z.object({
@@ -2545,6 +2606,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   advisoryPublishTime: z.string().describe(
     "The time this advisory was published by the source.",
   ).optional(),
@@ -2576,8 +2638,48 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Findings produced by the analysis.").optional(),
     maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"]).describe(
-      "Maximum severity found among findings.",
+      "Maximum severity found among findings. Per scanner verdict details.",
     ).optional(),
+    perScannerVerdict: z.object({
+      maliciousContentLlmResult: z.object({
+        maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"])
+          .describe("Tracks max severity found.").optional(),
+        scanStatus: z.enum([
+          "SCAN_STATUS_UNSPECIFIED",
+          "PERFORMED",
+          "NOT_PERFORMED",
+        ]).describe("Status of the scan.").optional(),
+      }).describe("Malicious Content LLM scan result.").optional(),
+      maliciousContentStaticResult: z.object({
+        maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"])
+          .describe("Tracks max severity found.").optional(),
+        scanStatus: z.enum([
+          "SCAN_STATUS_UNSPECIFIED",
+          "PERFORMED",
+          "NOT_PERFORMED",
+        ]).describe("Status of the scan.").optional(),
+      }).describe("Malicious Content Static scan result.").optional(),
+      malwareScan: z.object({
+        scanStatus: z.enum([
+          "SCAN_STATUS_UNSPECIFIED",
+          "PERFORMED",
+          "NOT_PERFORMED",
+        ]).describe("Status of the scan.").optional(),
+        verdict: z.enum(["VERDICT_UNSPECIFIED", "PASSED", "FAILED"]).describe(
+          "Verdict of the scan.",
+        ).optional(),
+      }).describe("Malware scan result.").optional(),
+      workspacePolicy: z.object({
+        scanStatus: z.enum([
+          "SCAN_STATUS_UNSPECIFIED",
+          "PERFORMED",
+          "NOT_PERFORMED",
+        ]).describe("Status of the scan.").optional(),
+        verdict: z.enum(["VERDICT_UNSPECIFIED", "PASSED", "FAILED"]).describe(
+          "Verdict of the scan.",
+        ).optional(),
+      }).describe("Workspace Policy scan result.").optional(),
+    }).describe("Per scanner verdict.").optional(),
     skillName: z.string().describe(
       "Name of the skill that produced this analysis.",
     ).optional(),
@@ -4273,6 +4375,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -4292,7 +4395,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Container Analysis Occurrences. Registered at `@swamp/gcp/containeranalysis/occurrences`. */
 export const model = {
   type: "@swamp/gcp/containeranalysis/occurrences",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4340,14 +4443,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.05.18.1",
-      description: "Removed: aiSkillAnalysis",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { aiSkillAnalysis: _aiSkillAnalysis, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.05.18.2",
       description: "Added: aiSkillAnalysis",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -4356,14 +4451,6 @@ export const model = {
       toVersion: "2026.05.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.19.2",
-      description: "Removed: aiSkillAnalysis",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { aiSkillAnalysis: _aiSkillAnalysis, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.05.20.1",
@@ -4384,14 +4471,6 @@ export const model = {
       toVersion: "2026.05.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.25.1",
-      description: "Removed: aiSkillAnalysis",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { aiSkillAnalysis: _aiSkillAnalysis, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.05.26.1",
@@ -4479,14 +4558,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.07.20.1",
-      description: "Removed: aiSkillAnalysis",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { aiSkillAnalysis: _aiSkillAnalysis, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.07.20.2",
       description: "Added: aiSkillAnalysis",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -4495,14 +4566,6 @@ export const model = {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.21.2",
-      description: "Removed: aiSkillAnalysis",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { aiSkillAnalysis: _aiSkillAnalysis, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.07.21.3",
@@ -4516,6 +4579,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -4537,6 +4605,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -4585,7 +4655,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -4613,6 +4683,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -4621,7 +4693,7 @@ export const model = {
           args.identifier,
         );
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -4647,6 +4719,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -4719,7 +4793,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           PATCH_CONFIG,
           params,
           body,
@@ -4742,6 +4816,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -4750,7 +4826,7 @@ export const model = {
           args.identifier,
         );
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -4777,6 +4853,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -4809,7 +4887,7 @@ export const model = {
             );
           }
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -4848,6 +4926,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -4864,7 +4944,7 @@ export const model = {
           params["returnPartialSuccess"] = String(args["returnPartialSuccess"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "occurrences",
@@ -4895,6 +4975,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -4906,7 +4988,7 @@ export const model = {
           body["occurrences"] = args["occurrences"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "containeranalysis.projects.locations.occurrences.batchCreate",
@@ -4934,6 +5016,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -4954,7 +5038,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["options"] !== undefined) body["options"] = args["options"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "containeranalysis.projects.locations.occurrences.getIamPolicy",
@@ -4980,6 +5064,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -4990,7 +5076,7 @@ export const model = {
           );
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "containeranalysis.projects.locations.occurrences.getNotes",
             "path": "v1/{+name}/notes",
@@ -5013,6 +5099,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -5020,7 +5108,7 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "containeranalysis.projects.locations.occurrences.getVulnerabilitySummary",
@@ -5050,6 +5138,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -5070,7 +5160,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["policy"] !== undefined) body["policy"] = args["policy"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "containeranalysis.projects.locations.occurrences.setIamPolicy",
@@ -5098,6 +5188,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -5120,7 +5212,7 @@ export const model = {
           body["permissions"] = args["permissions"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "containeranalysis.projects.locations.occurrences.testIamPermissions",

@@ -706,10 +706,12 @@ export async function generateGcpModels(options: {
           "credentialsJson",
           "project",
           "scopes",
+          "quotaProject",
         ].filter((f) => !domainPropNames.has(f));
         const newFieldNames = [
           ...(isSyntheticName ? ["name"] : []),
           ...credFieldNames,
+          "apiEndpoint",
           ...Object.keys(resource.domainProperties),
         ];
 

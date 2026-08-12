@@ -176,6 +176,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   classificationLabelValues: z.array(z.object({
     fields: z.array(z.object({
       fieldId: z.string().describe(
@@ -299,6 +302,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   classificationLabelValues: z.array(z.object({
     fields: z.array(z.object({
       fieldId: z.string().describe(
@@ -387,6 +391,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -406,7 +411,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Users.Messages. Registered at `@swamp/gcp/gmail/users-messages`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-messages",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -563,6 +568,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -580,6 +590,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -609,7 +621,7 @@ export const model = {
         }
         if (g["id"] !== undefined) params["id"] = String(g["id"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -640,13 +652,15 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["userId"] !== undefined) params["userId"] = String(g["userId"]);
         params["id"] = args.identifier;
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -671,13 +685,15 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["userId"] !== undefined) params["userId"] = String(g["userId"]);
         params["id"] = args.identifier;
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -704,6 +720,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.id?.toString() ?? args.identifier ?? "current")
@@ -733,7 +751,7 @@ export const model = {
           }
           params["id"] = identifier;
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -777,6 +795,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -792,7 +812,7 @@ export const model = {
         }
         if (args["q"] !== undefined) params["q"] = String(args["q"]);
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "messages",
@@ -823,6 +843,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -830,7 +852,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["ids"] !== undefined) body["ids"] = args["ids"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "gmail.users.messages.batchDelete",
             "path": "gmail/v1/users/{userId}/messages/batchDelete",
@@ -861,6 +883,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -881,7 +905,7 @@ export const model = {
           body["removeLabelIds"] = args["removeLabelIds"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "gmail.users.messages.batchModify",
             "path": "gmail/v1/users/{userId}/messages/batchModify",
@@ -917,6 +941,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -941,7 +967,7 @@ export const model = {
         if (args["snippet"] !== undefined) body["snippet"] = args["snippet"];
         if (args["threadId"] !== undefined) body["threadId"] = args["threadId"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "gmail.users.messages.import",
             "path": "gmail/v1/users/{userId}/messages/import",
@@ -975,6 +1001,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -995,7 +1023,7 @@ export const model = {
           body["removeLabelIds"] = args["removeLabelIds"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "gmail.users.messages.modify",
             "path": "gmail/v1/users/{userId}/messages/{id}/modify",
@@ -1032,6 +1060,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1056,7 +1086,7 @@ export const model = {
         if (args["snippet"] !== undefined) body["snippet"] = args["snippet"];
         if (args["threadId"] !== undefined) body["threadId"] = args["threadId"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "gmail.users.messages.send",
             "path": "gmail/v1/users/{userId}/messages/send",
@@ -1081,13 +1111,15 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["userId"] !== undefined) params["userId"] = String(g["userId"]);
         if (g["id"] !== undefined) params["id"] = String(g["id"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "gmail.users.messages.trash",
             "path": "gmail/v1/users/{userId}/messages/{id}/trash",
@@ -1113,13 +1145,15 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["userId"] !== undefined) params["userId"] = String(g["userId"]);
         if (g["id"] !== undefined) params["id"] = String(g["id"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "gmail.users.messages.untrash",
             "path": "gmail/v1/users/{userId}/messages/{id}/untrash",

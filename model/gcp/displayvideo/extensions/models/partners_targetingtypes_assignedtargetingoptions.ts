@@ -178,6 +178,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   ageRangeDetails: z.object({
     ageRange: z.enum([
       "AGE_RANGE_UNSPECIFIED",
@@ -802,6 +805,27 @@ const GlobalArgsSchema = z.object({
       "GEO_REGION_TYPE_COLLOQUIAL_AREA",
       "GEO_REGION_TYPE_POST_TOWN",
       "GEO_REGION_TYPE_WARD",
+      "GEO_REGION_TYPE_TOWN",
+      "GEO_REGION_TYPE_VILLAGE",
+      "GEO_REGION_TYPE_CITY_DISTRICT",
+      "GEO_REGION_TYPE_SUBURB",
+      "GEO_REGION_TYPE_HAMLET",
+      "GEO_REGION_TYPE_MUNICIPAL_DISTRICT",
+      "GEO_REGION_TYPE_COMMUNITY",
+      "GEO_REGION_TYPE_TOWNSHIP",
+      "GEO_REGION_TYPE_URBAN_DISTRICT",
+      "GEO_REGION_TYPE_RESIDENTIAL_AREA",
+      "GEO_REGION_TYPE_INDEPENDENT_CITY",
+      "GEO_REGION_TYPE_SECTOR",
+      "GEO_REGION_TYPE_AREA",
+      "GEO_REGION_TYPE_ESTATE",
+      "GEO_REGION_TYPE_PARISH",
+      "GEO_REGION_TYPE_SETTLEMENT",
+      "GEO_REGION_TYPE_ZONE",
+      "GEO_REGION_TYPE_COLONY",
+      "GEO_REGION_TYPE_INDUSTRIAL_AREA",
+      "GEO_REGION_TYPE_PROVINCIAL_CITY",
+      "GEO_REGION_TYPE_RURAL_DISTRICT",
     ]).describe("Output only. The type of geographic region targeting.")
       .optional(),
     negative: z.boolean().describe(
@@ -1869,6 +1893,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   ageRangeDetails: z.object({
     ageRange: z.enum([
       "AGE_RANGE_UNSPECIFIED",
@@ -2493,6 +2518,27 @@ const InputsSchema = z.object({
       "GEO_REGION_TYPE_COLLOQUIAL_AREA",
       "GEO_REGION_TYPE_POST_TOWN",
       "GEO_REGION_TYPE_WARD",
+      "GEO_REGION_TYPE_TOWN",
+      "GEO_REGION_TYPE_VILLAGE",
+      "GEO_REGION_TYPE_CITY_DISTRICT",
+      "GEO_REGION_TYPE_SUBURB",
+      "GEO_REGION_TYPE_HAMLET",
+      "GEO_REGION_TYPE_MUNICIPAL_DISTRICT",
+      "GEO_REGION_TYPE_COMMUNITY",
+      "GEO_REGION_TYPE_TOWNSHIP",
+      "GEO_REGION_TYPE_URBAN_DISTRICT",
+      "GEO_REGION_TYPE_RESIDENTIAL_AREA",
+      "GEO_REGION_TYPE_INDEPENDENT_CITY",
+      "GEO_REGION_TYPE_SECTOR",
+      "GEO_REGION_TYPE_AREA",
+      "GEO_REGION_TYPE_ESTATE",
+      "GEO_REGION_TYPE_PARISH",
+      "GEO_REGION_TYPE_SETTLEMENT",
+      "GEO_REGION_TYPE_ZONE",
+      "GEO_REGION_TYPE_COLONY",
+      "GEO_REGION_TYPE_INDUSTRIAL_AREA",
+      "GEO_REGION_TYPE_PROVINCIAL_CITY",
+      "GEO_REGION_TYPE_RURAL_DISTRICT",
     ]).describe("Output only. The type of geographic region targeting.")
       .optional(),
     negative: z.boolean().describe(
@@ -3253,6 +3299,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -3273,7 +3320,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/displayvideo/partners-targetingtypes-assignedtargetingoptions",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3401,17 +3448,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.07.20.1",
-      description: "Removed: youtubeChannelPackDetails",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          youtubeChannelPackDetails: _youtubeChannelPackDetails,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.07.20.2",
       description: "Added: youtubeChannelPackDetails",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -3420,17 +3456,6 @@ export const model = {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.21.2",
-      description: "Removed: youtubeChannelPackDetails",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          youtubeChannelPackDetails: _youtubeChannelPackDetails,
-          ...rest
-        } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.07.21.3",
@@ -3444,6 +3469,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -3465,6 +3495,8 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3633,7 +3665,7 @@ export const model = {
           params["assignedTargetingOptionId"] = String(g["name"]);
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -3663,6 +3695,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3674,7 +3708,7 @@ export const model = {
         }
         params["assignedTargetingOptionId"] = args.identifier;
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -3700,6 +3734,8 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3711,7 +3747,7 @@ export const model = {
         }
         params["assignedTargetingOptionId"] = args.identifier;
         const { existed } = await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           params,
           credentials,
@@ -3738,6 +3774,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -3776,7 +3814,7 @@ export const model = {
           }
           params["assignedTargetingOptionId"] = identifier;
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -3817,6 +3855,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3836,7 +3876,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "assignedTargetingOptions",

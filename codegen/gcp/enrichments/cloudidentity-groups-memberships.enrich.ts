@@ -34,6 +34,8 @@ export const membershipReconcileMethods = {
       context: any,
     ) => {
       const g = context.globalArgs;
+      const baseUrl = g["apiEndpoint"]?.toString() ??
+        Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
       const credentials = _buildGcpCredentials(g);
       const parent = String(g["parent"] ?? "");
 
@@ -44,7 +46,7 @@ export const membershipReconcileMethods = {
       const maxPages = (args["maxPages"] as number | undefined) ?? 100;
 
       const { items: currentMembers, nextPageToken } = await listResources(
-        BASE_URL,
+        baseUrl,
         LIST_CONFIG,
         { parent },
         "memberships",
@@ -80,7 +82,7 @@ export const membershipReconcileMethods = {
         };
         try {
           const result = await createResource(
-            BASE_URL,
+            baseUrl,
             INSERT_CONFIG,
             { parent },
             body,
@@ -93,7 +95,7 @@ export const membershipReconcileMethods = {
         } catch (createErr) {
           if (!isAlreadyExistsError(createErr)) throw createErr;
           const { items } = await listResources(
-            BASE_URL,
+            baseUrl,
             LIST_CONFIG,
             { parent },
             "memberships",
@@ -112,7 +114,7 @@ export const membershipReconcileMethods = {
       for (const member of toDelete) {
         const memberName = member.name as string;
         await deleteResource(
-          BASE_URL,
+          baseUrl,
           DELETE_CONFIG,
           { name: memberName },
           credentials,
@@ -121,7 +123,7 @@ export const membershipReconcileMethods = {
       }
 
       const { items: reconciledMembers } = await listResources(
-        BASE_URL,
+        baseUrl,
         LIST_CONFIG,
         { parent },
         "memberships",

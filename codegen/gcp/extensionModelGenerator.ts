@@ -323,6 +323,9 @@ export function generateGcpExtensionModel(
       `  ${f.name}: z.string()${meta}.describe("${f.desc}").optional(),`,
     );
   }
+  lines.push(
+    `  apiEndpoint: z.string().describe("Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.").optional(),`,
+  );
   if (zodResult.inputSchemaBody) {
     lines.push(zodResult.inputSchemaBody);
   }
@@ -354,6 +357,7 @@ export function generateGcpExtensionModel(
     const meta = f.sensitive ? `.meta({ sensitive: true })` : "";
     lines.push(`  ${f.name}: z.string()${meta}.optional(),`);
   }
+  lines.push(`  apiEndpoint: z.string().optional(),`);
   if (zodResult.inputSchemaBody) {
     const inputLines = zodResult.inputSchemaBody.split("\n");
     for (const line of inputLines) {
@@ -372,7 +376,10 @@ export function generateGcpExtensionModel(
   lines.push("");
 
   // Credential key set for filtering globalArgs when building request bodies
-  const credKeyNames = injectedCredFields.map((f) => f.name);
+  const credKeyNames = [
+    ...injectedCredFields.map((f) => f.name),
+    "apiEndpoint",
+  ];
   lines.push(
     `const _credentialKeys = new Set(${JSON.stringify(credKeyNames)});`,
   );
@@ -453,6 +460,9 @@ export function generateGcpExtensionModel(
       );
     }
     lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const baseUrl = g["apiEndpoint"]?.toString() ?? Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;`,
+    );
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
@@ -574,7 +584,7 @@ export function generateGcpExtensionModel(
     }
 
     // Build createResource args including optional readiness config
-    const createArgs = ["BASE_URL", "INSERT_CONFIG", "params", "body"];
+    const createArgs = ["baseUrl", "INSERT_CONFIG", "params", "body"];
     // Always push readConfig, readiness, and idempotency (even as undefined)
     // so credentials can be the last positional arg
     createArgs.push(readConfigRef || "undefined");
@@ -730,7 +740,7 @@ export function generateGcpExtensionModel(
       );
       lines.push(`          const matchValue = ${matchValueExpr};`);
       lines.push(
-        `          const { items } = await listResources(BASE_URL, LIST_CONFIG, { ${
+        `          const { items } = await listResources(baseUrl, LIST_CONFIG, { ${
           listParamParts.join(", ")
         } }, ${
           JSON.stringify(resource.listResponseArrayField)
@@ -787,6 +797,9 @@ export function generateGcpExtensionModel(
       `      execute: async (args: { identifier: string }, context: any) => {`,
     );
     lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const baseUrl = g["apiEndpoint"]?.toString() ?? Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;`,
+    );
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
@@ -807,7 +820,7 @@ export function generateGcpExtensionModel(
         );
       }
       lines.push(
-        `        const result = await readViaList(BASE_URL, LIST_CONFIG, params, "${primaryId}", args.identifier, credentials) as StateData;`,
+        `        const result = await readViaList(baseUrl, LIST_CONFIG, params, "${primaryId}", args.identifier, credentials) as StateData;`,
       );
     } else if (resource.methodConfigs.get) {
       // Normal GET
@@ -843,7 +856,7 @@ export function generateGcpExtensionModel(
         }
       }
       lines.push(
-        `        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;`,
+        `        const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;`,
       );
     }
 
@@ -897,6 +910,9 @@ export function generateGcpExtensionModel(
       );
     }
     lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const baseUrl = g["apiEndpoint"]?.toString() ?? Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;`,
+    );
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
 
@@ -1048,7 +1064,7 @@ export function generateGcpExtensionModel(
     }
 
     const updateArgs = [
-      "BASE_URL",
+      "baseUrl",
       `${updateMethodName}_CONFIG`,
       "params",
       "body",
@@ -1090,6 +1106,9 @@ export function generateGcpExtensionModel(
       `      execute: async (args: { identifier: string }, context: any) => {`,
     );
     lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const baseUrl = g["apiEndpoint"]?.toString() ?? Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;`,
+    );
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
@@ -1127,7 +1146,7 @@ export function generateGcpExtensionModel(
     }
 
     lines.push(
-      `        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);`,
+      `        const { existed } = await deleteResource(baseUrl, DELETE_CONFIG, params, credentials);`,
     );
 
     if (isSyntheticName) {
@@ -1173,6 +1192,9 @@ export function generateGcpExtensionModel(
       `      execute: async (args: { identifier?: string }, context: any) => {`,
     );
     lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const baseUrl = g["apiEndpoint"]?.toString() ?? Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;`,
+    );
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
 
@@ -1254,7 +1276,7 @@ export function generateGcpExtensionModel(
         `          if (!identifier) throw new Error("No identifier found in existing state or globalArgs");`,
       );
       lines.push(
-        `          const result = await readViaList(BASE_URL, LIST_CONFIG, params, "${primaryId}", identifier, credentials) as StateData;`,
+        `          const result = await readViaList(baseUrl, LIST_CONFIG, params, "${primaryId}", identifier, credentials) as StateData;`,
       );
     } else if (resource.methodConfigs.get) {
       lines.push(
@@ -1342,7 +1364,7 @@ export function generateGcpExtensionModel(
         }
       }
       lines.push(
-        `          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;`,
+        `          const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;`,
       );
     }
 
@@ -1411,6 +1433,9 @@ export function generateGcpExtensionModel(
       `      execute: async (args: Record<string, unknown>, context: any) => {`,
     );
     lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const baseUrl = g["apiEndpoint"]?.toString() ?? Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;`,
+    );
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
@@ -1457,7 +1482,7 @@ export function generateGcpExtensionModel(
     }
 
     lines.push(
-      `        const { items, nextPageToken } = await listResources(BASE_URL, LIST_CONFIG, params, ${
+      `        const { items, nextPageToken } = await listResources(baseUrl, LIST_CONFIG, params, ${
         JSON.stringify(arrayField)
       }, (args.maxPages as number | undefined) ?? 10, credentials);`,
     );
@@ -1552,6 +1577,9 @@ export function generateGcpExtensionModel(
       `      execute: async (${argsPrefix}: Record<string, unknown>, context: any) => {`,
     );
     lines.push(`        const g = context.globalArgs;`);
+    lines.push(
+      `        const baseUrl = g["apiEndpoint"]?.toString() ?? Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;`,
+    );
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
@@ -1666,7 +1694,7 @@ export function generateGcpExtensionModel(
       ? "body"
       : (isGetOrHead ? "undefined" : "{}");
     lines.push(
-      `        const result = await createResource(BASE_URL, ${actionConfigStr}, params, ${bodyArg}, undefined, undefined, undefined, credentials);`,
+      `        const result = await createResource(baseUrl, ${actionConfigStr}, params, ${bodyArg}, undefined, undefined, undefined, credentials);`,
     );
 
     lines.push(`        return { result };`);

@@ -578,6 +578,51 @@ On first credential request (for options 3–5), the helper verifies
 `gcloud --version` succeeds. If not installed, a clear error with the install
 link is thrown.
 
+### Emulator / custom endpoint support
+
+Every generated GCP model includes an optional `apiEndpoint` global argument
+(and `InputsSchema` entry) that overrides the service's hardcoded `BASE_URL`.
+This lets users point models at local emulators (e.g., floci-gcp) or custom API
+endpoints for testing.
+
+At the start of each method execution, the generated code resolves the base URL
+with a three-level cascade: explicit global arg → environment variable →
+hardcoded default:
+
+```typescript
+const baseUrl = g["apiEndpoint"]?.toString() ??
+  Deno.env.get("GCP_API_ENDPOINT")?.trim() ??
+  BASE_URL;
+```
+
+The `GCP_API_ENDPOINT` environment variable follows the `GCP_` prefix convention
+used by `GCP_ACCESS_TOKEN` and `GCP_PROJECT`. It applies to all GCP models
+uniformly, unlike the per-service `*_EMULATOR_HOST` variables used by
+`gcloud beta emulators`.
+
+The resolved `baseUrl` is passed to all `_lib/gcp.ts` helper calls
+(`createResource`, `readResource`, `updateResource`, `deleteResource`,
+`listResources`, `readViaList`). The original `const BASE_URL = "..."` remains
+as the default.
+
+`apiEndpoint` is included in the `_credentialKeys` set so it is excluded from
+request bodies (alongside `accessToken`, `credentialsJson`, `project`, `scopes`,
+and `quotaProject`). It is a configuration-only field — it is never sent to the
+GCP API.
+
+Example usage with a local emulator:
+
+```yaml
+globalArguments:
+  apiEndpoint: "http://localhost:4588/"
+  project: "floci-local"
+```
+
+See `vault/gcp-sm/extensions/vaults/gcp_sm.ts` for the hand-written reference
+implementation (`api_endpoint` config field) and
+`vault/gcp-sm/extensions/vaults/gcp_sm_test.ts` for the floci integration test
+pattern (gated by `FLOCI_ENABLED=1`).
+
 ---
 
 ## 9. Long Running Operations (LRO)

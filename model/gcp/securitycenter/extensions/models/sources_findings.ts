@@ -116,6 +116,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   access: z.object({
     callerIp: z.string().optional(),
     callerIpGeo: z.object({
@@ -1967,6 +1970,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   access: z.object({
     callerIp: z.string().optional(),
     callerIpGeo: z.object({
@@ -3117,6 +3121,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -3136,7 +3141,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Command Center Sources.Findings. Registered at `@swamp/gcp/securitycenter/sources-findings`. */
 export const model = {
   type: "@swamp/gcp/securitycenter/sources-findings",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -3162,14 +3167,6 @@ export const model = {
       toVersion: "2026.04.02.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "Removed: discoveredWorkload",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { discoveredWorkload: _discoveredWorkload, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.04.03.2",
@@ -3297,37 +3294,9 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.07.20.1",
-      description: "Removed: agent, agentAnomaly, agentSessions, iamDetails",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          agent: _agent,
-          agentAnomaly: _agentAnomaly,
-          agentSessions: _agentSessions,
-          iamDetails: _iamDetails,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.07.20.2",
       description: "Added: agent, agentAnomaly, agentSessions, iamDetails",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.21.1",
-      description: "Removed: agent, agentAnomaly, agentSessions, iamDetails",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          agent: _agent,
-          agentAnomaly: _agentAnomaly,
-          agentSessions: _agentSessions,
-          iamDetails: _iamDetails,
-          ...rest
-        } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.07.21.2",
@@ -3341,6 +3310,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -3363,12 +3337,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const result = await readViaList(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "name",
@@ -3397,6 +3373,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -3582,7 +3560,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           PATCH_CONFIG,
           params,
           body,
@@ -3607,6 +3585,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -3638,7 +3618,7 @@ export const model = {
             );
           }
           const result = await readViaList(
-            BASE_URL,
+            baseUrl,
             LIST_CONFIG,
             params,
             "name",
@@ -3676,6 +3656,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3693,7 +3675,7 @@ export const model = {
           params["pageSize"] = String(args["pageSize"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "listFindingsResults",
@@ -3729,6 +3711,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3745,7 +3729,7 @@ export const model = {
         }
         if (args["readTime"] !== undefined) body["readTime"] = args["readTime"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "securitycenter.folders.sources.findings.group",
             "path": "v1/{+parent}/findings:group",
@@ -3772,6 +3756,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3779,7 +3765,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["mute"] !== undefined) body["mute"] = args["mute"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "securitycenter.folders.sources.findings.setMute",
             "path": "v1/{+name}:setMute",
@@ -3805,6 +3791,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3815,7 +3803,7 @@ export const model = {
         }
         if (args["state"] !== undefined) body["state"] = args["state"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "securitycenter.folders.sources.findings.setState",
             "path": "v1/{+name}:setState",
@@ -3842,6 +3830,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -3853,7 +3843,7 @@ export const model = {
         if (args["marks"] !== undefined) body["marks"] = args["marks"];
         if (args["name"] !== undefined) body["name"] = args["name"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "securitycenter.folders.sources.findings.updateSecurityMarks",
             "path": "v1/{+name}",

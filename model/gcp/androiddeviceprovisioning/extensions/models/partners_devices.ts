@@ -78,6 +78,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -118,6 +121,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
 });
 
 const _credentialKeys = new Set([
@@ -126,6 +130,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -145,7 +150,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Device Provisioning Partner Partners.Devices. Registered at `@swamp/gcp/androiddeviceprovisioning/partners-devices`. */
 export const model = {
   type: "@swamp/gcp/androiddeviceprovisioning/partners-devices",
-  version: "2026.07.29.1",
+  version: "2026.08.12.2",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -252,6 +257,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -272,12 +282,14 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = args.identifier;
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -303,6 +315,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -331,7 +345,7 @@ export const model = {
           }
           params["name"] = identifier;
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -368,6 +382,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -411,7 +427,7 @@ export const model = {
           body["simlockProfileId"] = args["simlockProfileId"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "androiddeviceprovisioning.partners.devices.claim",
             "path": "v1/partners/{+partnerId}/devices:claim",
@@ -438,6 +454,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -458,7 +476,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["claims"] !== undefined) body["claims"] = args["claims"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "androiddeviceprovisioning.partners.devices.claimAsync",
             "path": "v1/partners/{+partnerId}/devices:claimAsync",
@@ -487,6 +505,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -513,7 +533,7 @@ export const model = {
           body["pageToken"] = args["pageToken"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "androiddeviceprovisioning.partners.devices.findByIdentifier",
             "path": "v1/partners/{+partnerId}/devices:findByIdentifier",
@@ -544,6 +564,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -576,7 +598,7 @@ export const model = {
           body["sectionType"] = args["sectionType"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "androiddeviceprovisioning.partners.devices.findByOwner",
             "path": "v1/partners/{+partnerId}/devices:findByOwner",
@@ -603,6 +625,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -625,7 +649,7 @@ export const model = {
           body["deviceIdentifier"] = args["deviceIdentifier"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "androiddeviceprovisioning.partners.devices.getSimLockState",
             "path": "v1/partners/{+partnerId}/devices:getSimLockState",
@@ -652,6 +676,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -676,7 +702,7 @@ export const model = {
           body["deviceMetadata"] = args["deviceMetadata"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "androiddeviceprovisioning.partners.devices.metadata",
             "path":
@@ -709,6 +735,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -741,7 +769,7 @@ export const model = {
           body["vacationModeExpireTime"] = args["vacationModeExpireTime"];
         }
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "androiddeviceprovisioning.partners.devices.unclaim",
             "path": "v1/partners/{+partnerId}/devices:unclaim",
@@ -768,6 +796,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -788,7 +818,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["unclaims"] !== undefined) body["unclaims"] = args["unclaims"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id": "androiddeviceprovisioning.partners.devices.unclaimAsync",
             "path": "v1/partners/{+partnerId}/devices:unclaimAsync",
@@ -815,6 +845,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -835,7 +867,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["updates"] !== undefined) body["updates"] = args["updates"];
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           {
             "id":
               "androiddeviceprovisioning.partners.devices.updateMetadataAsync",

@@ -179,6 +179,9 @@ const GlobalArgsSchema = z.object({
   quotaProject: z.string().describe(
     "GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.",
   ).optional(),
+  apiEndpoint: z.string().describe(
+    "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
+  ).optional(),
   autoRenew: z.boolean().describe(
     "Specifies whether to automatically renew the commitment at the end of its current term. The default value is false. If you set the field to true, each time your commitment reaches the end of its term, Compute Engine automatically renews it for another term. You can update this field anytime before the commitment expires. For example, if the commitment is set to expire at 12 AM UTC-8 on January 3, 2027, you can update this field until 11:59 PM UTC-8 on January 2, 2027.",
   ).optional(),
@@ -713,6 +716,7 @@ const InputsSchema = z.object({
   project: z.string().optional(),
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   autoRenew: z.boolean().describe(
     "Specifies whether to automatically renew the commitment at the end of its current term. The default value is false. If you set the field to true, each time your commitment reaches the end of its term, Compute Engine automatically renews it for another term. You can update this field anytime before the commitment expires. For example, if the commitment is set to expire at 12 AM UTC-8 on January 3, 2027, you can update this field until 11:59 PM UTC-8 on January 2, 2027.",
   ).optional(),
@@ -1110,6 +1114,7 @@ const _credentialKeys = new Set([
   "project",
   "scopes",
   "quotaProject",
+  "apiEndpoint",
 ]);
 
 function _buildGcpCredentials(
@@ -1129,16 +1134,8 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionCommitments. Registered at `@swamp/gcp/compute/regioncommitments`. */
 export const model = {
   type: "@swamp/gcp/compute/regioncommitments",
-  version: "2026.08.07.1",
+  version: "2026.08.12.2",
   upgrades: [
-    {
-      toVersion: "2026.03.31.1",
-      description: "Removed: params",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { params: _params, ...rest } = old;
-        return rest;
-      },
-    },
     {
       toVersion: "2026.04.01.1",
       description: "No schema changes",
@@ -1175,14 +1172,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.04.04.2",
-      description: "Removed: params",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { params: _params, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.04.07.1",
       description: "Added: params",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -1208,14 +1197,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.05.18.1",
-      description: "Removed: params",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { params: _params, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.05.18.2",
       description: "Added: params",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -1224,14 +1205,6 @@ export const model = {
       toVersion: "2026.05.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.19.2",
-      description: "Removed: params",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { params: _params, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.05.20.1",
@@ -1252,14 +1225,6 @@ export const model = {
       toVersion: "2026.05.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.05.25.1",
-      description: "Removed: params",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { params: _params, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.05.26.1",
@@ -1302,14 +1267,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.07.20.1",
-      description: "Removed: params",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { params: _params, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.07.20.2",
       description: "Added: params",
       upgradeAttributes: (old: Record<string, unknown>) => old,
@@ -1318,14 +1275,6 @@ export const model = {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.07.21.2",
-      description: "Removed: params",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { params: _params, ...rest } = old;
-        return rest;
-      },
     },
     {
       toVersion: "2026.07.21.3",
@@ -1358,12 +1307,9 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.07.1",
-      description: "Removed: quotaProject",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { quotaProject: _quotaProject, ...rest } = old;
-        return rest;
-      },
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1387,6 +1333,8 @@ export const model = {
       }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1425,7 +1373,7 @@ export const model = {
         }
         if (g["name"] !== undefined) params["commitment"] = String(g["name"]);
         const result = await createResource(
-          BASE_URL,
+          baseUrl,
           INSERT_CONFIG,
           params,
           body,
@@ -1465,13 +1413,15 @@ export const model = {
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         params["commitment"] = args.identifier;
         const result = await readResource(
-          BASE_URL,
+          baseUrl,
           GET_CONFIG,
           params,
           credentials,
@@ -1504,6 +1454,8 @@ export const model = {
         context: any,
       ) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -1570,7 +1522,7 @@ export const model = {
           }
         }
         const result = await updateResource(
-          BASE_URL,
+          baseUrl,
           UPDATE_CONFIG,
           params,
           body,
@@ -1601,6 +1553,8 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName =
@@ -1633,7 +1587,7 @@ export const model = {
           }
           params["commitment"] = identifier;
           const result = await readResource(
-            BASE_URL,
+            baseUrl,
             GET_CONFIG,
             params,
             credentials,
@@ -1677,6 +1631,8 @@ export const model = {
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1694,7 +1650,7 @@ export const model = {
           params["returnPartialSuccess"] = String(args["returnPartialSuccess"]);
         }
         const { items, nextPageToken } = await listResources(
-          BASE_URL,
+          baseUrl,
           LIST_CONFIG,
           params,
           "items",
