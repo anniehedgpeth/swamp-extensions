@@ -404,7 +404,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Users. Registered at `@swamp/gcp/sqladmin/users`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/users",
-  version: "2026.08.12.2",
+  version: "2026.08.12.3",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -551,6 +551,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.12.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -692,23 +697,30 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["instance"] = existing["name"]?.toString() ?? "";
+        params["instance"] = existing["instance"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["databaseRoles"] !== undefined) {
-          body["databaseRoles"] = g["databaseRoles"];
+          params["databaseRoles"] = String(g["databaseRoles"]);
+        } else if (existing["databaseRoles"] !== undefined) {
+          params["databaseRoles"] = String(existing["databaseRoles"]);
         }
         if (g["dualPasswordType"] !== undefined) {
           body["dualPasswordType"] = g["dualPasswordType"];
         }
         if (g["iamEmail"] !== undefined) body["iamEmail"] = g["iamEmail"];
         if (g["iamStatus"] !== undefined) body["iamStatus"] = g["iamStatus"];
-        if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["name"] !== undefined) params["name"] = String(g["name"]);
+        else if (existing["name"] !== undefined) {
+          params["name"] = String(existing["name"]);
+        }
         if (g["password"] !== undefined) body["password"] = g["password"];
         if (g["passwordPolicy"] !== undefined) {
           body["passwordPolicy"] = g["passwordPolicy"];
         }
         if (g["serverRoles"] !== undefined) {
-          body["serverRoles"] = g["serverRoles"];
+          params["serverRoles"] = String(g["serverRoles"]);
+        } else if (existing["serverRoles"] !== undefined) {
+          params["serverRoles"] = String(existing["serverRoles"]);
         }
         if (g["sqlserverUserDetails"] !== undefined) {
           body["sqlserverUserDetails"] = g["sqlserverUserDetails"];

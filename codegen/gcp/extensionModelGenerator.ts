@@ -996,9 +996,12 @@ export function generateGcpExtensionModel(
             );
           }
         } else {
+          const existingField = resource.domainProperties[paramName]
+            ? paramName
+            : idField;
           lines.push(
             `        params[${JSON.stringify(paramName)}] = existing[${
-              JSON.stringify(idField)
+              JSON.stringify(existingField)
             }]?.toString() ?? "";`,
           );
         }
@@ -1021,6 +1024,7 @@ export function generateGcpExtensionModel(
     }
 
     const updatePathParams = new Set(updateConfig.parameterOrder);
+    const updateParameters = updateConfig.parameters;
     lines.push(`        const body: Record<string, unknown> = {};`);
     for (const propName of Object.keys(resource.domainProperties)) {
       if (updatePathParams.has(propName)) continue;
@@ -1029,15 +1033,31 @@ export function generateGcpExtensionModel(
       if (!resource.updateProperties.has(propName)) continue;
       // Skip createOnly properties in updates
       if (resource.createOnlyProperties.includes(propName)) continue;
-      lines.push(
-        `        if (g[${JSON.stringify(propName)}] !== undefined) body[${
-          JSON.stringify(propName)
-        }] = g[${JSON.stringify(propName)}];`,
-      );
+      if (updateParameters[propName]?.location === "query") {
+        lines.push(
+          `        if (g[${JSON.stringify(propName)}] !== undefined) params[${
+            JSON.stringify(propName)
+          }] = String(g[${JSON.stringify(propName)}]);`,
+        );
+        if (updateNeedsExisting) {
+          lines.push(
+            `        else if (existing[${
+              JSON.stringify(propName)
+            }] !== undefined) params[${
+              JSON.stringify(propName)
+            }] = String(existing[${JSON.stringify(propName)}]);`,
+          );
+        }
+      } else {
+        lines.push(
+          `        if (g[${JSON.stringify(propName)}] !== undefined) body[${
+            JSON.stringify(propName)
+          }] = g[${JSON.stringify(propName)}];`,
+        );
+      }
     }
 
     // Auto-compute updateMask from body keys before fingerprint carry-forward.
-    const updateParameters = updateConfig.parameters;
     if (updateParameters?.["updateMask"]?.location === "query") {
       lines.push(
         `        const updateMaskKeys = Object.keys(body);`,

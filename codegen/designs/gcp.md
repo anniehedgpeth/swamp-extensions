@@ -387,11 +387,18 @@ checks `insertConfig.parameters[propName].location === "query"` and routes
 matching properties to the `params` map (where `buildUrl` appends them as query
 strings) instead of the `body` object.
 
-For update/patch methods, `updateMask` is auto-computed when the method config
-declares it as a query parameter (`location: "query"`). The mask is set to the
-comma-joined keys of the request body _before_ fingerprint/etag carry-forward,
-so it contains only user-supplied field names. This follows the protobuf
-FieldMask JSON encoding convention (camelCase field paths).
+For update/patch methods, the same routing applies: properties declared with
+`location: "query"` in `updateConfig.parameters` are sent as URL query
+parameters, not in the request body. When the property also exists in the stored
+state, the generator emits a fallback from `existing[propName]` so that query
+params like `name` (used by `sqladmin/users` to identify the target user) are
+always present on the URL even when the caller doesn't re-supply them.
+
+Additionally, `updateMask` is auto-computed when the method config declares it
+as a query parameter (`location: "query"`). The mask is set to the comma-joined
+keys of the request body _before_ fingerprint/etag carry-forward, so it contains
+only user-supplied field names. This follows the protobuf FieldMask JSON
+encoding convention (camelCase field paths).
 
 ---
 
