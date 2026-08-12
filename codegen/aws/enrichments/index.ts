@@ -2,10 +2,15 @@ import type { AwsEnrichment } from "./types.ts";
 export { parseEnrichmentSource } from "./parser.ts";
 import { enrichment as rdsDbcluster } from "./rds-dbcluster/config.ts";
 import { enrichment as cfnStackset } from "./cfn-stackset/config.ts";
+import { enrichment as bedrockKnowledgebase } from "./bedrock-knowledgebase/config.ts";
 
 export type { AwsEnrichment };
 
-const ENRICHMENTS: AwsEnrichment[] = [rdsDbcluster, cfnStackset];
+const ENRICHMENTS: AwsEnrichment[] = [
+  rdsDbcluster,
+  cfnStackset,
+  bedrockKnowledgebase,
+];
 
 export function getEnrichment(
   cfTypeName: string,

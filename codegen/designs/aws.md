@@ -656,9 +656,10 @@ globalArgs) and method-specific arguments (e.g. `operationId`).
 
 ### Current custom methods
 
-| Resource                        | Methods                                                               | SDK                              |
-| ------------------------------- | --------------------------------------------------------------------- | -------------------------------- |
-| `AWS::CloudFormation::StackSet` | `listInstances`, `listOperations`, `describeOperation`, `detectDrift` | `@aws-sdk/client-cloudformation` |
+| Resource                        | Methods                                                               | SDK                                     |
+| ------------------------------- | --------------------------------------------------------------------- | --------------------------------------- |
+| `AWS::CloudFormation::StackSet` | `listInstances`, `listOperations`, `describeOperation`, `detectDrift` | `@aws-sdk/client-cloudformation`        |
+| `AWS::Bedrock::KnowledgeBase`   | `retrieve`                                                            | `@aws-sdk/client-bedrock-agent-runtime` |
 
 ---
 

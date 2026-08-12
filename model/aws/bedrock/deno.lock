@@ -1,11 +1,26 @@
 {
   "version": "5",
   "specifiers": {
+    "npm:@aws-sdk/client-bedrock-agent-runtime@3.1090.0": "3.1090.0",
     "npm:@aws-sdk/client-cloudcontrol@3.1090.0": "3.1090.0",
+    "npm:@smithy/node-http-handler@4.9.7": "4.9.7",
     "npm:fast-json-patch@3.1.1": "3.1.1",
     "npm:zod@4.3.6": "4.3.6"
   },
   "npm": {
+    "@aws-sdk/client-bedrock-agent-runtime@3.1090.0": {
+      "integrity": "sha512-Rr1+ezVE/Oifm4ecgo2rUeyA33lDNAA5PJkVnUJSP/hZYYbhoq/VM7A2BudRGMzBV6zo2xiKFKkr0MLXHpsOkA==",
+      "dependencies": [
+        "@aws-sdk/core",
+        "@aws-sdk/credential-provider-node",
+        "@aws-sdk/types",
+        "@smithy/core",
+        "@smithy/fetch-http-handler",
+        "@smithy/node-http-handler",
+        "@smithy/types",
+        "tslib"
+      ]
+    },
     "@aws-sdk/client-cloudcontrol@3.1090.0": {
       "integrity": "sha512-rJQPZmCmgtZsT03fN4kpmwXEIOSxh++G6E7sRiAxIQP2AYSE7ck+Y3XQ53x77lCUZr/Ma6L88GJbLZz49PsRjw==",
       "dependencies": [
@@ -242,7 +257,9 @@
   },
   "workspace": {
     "dependencies": [
+      "npm:@aws-sdk/client-bedrock-agent-runtime@3.1090.0",
       "npm:@aws-sdk/client-cloudcontrol@3.1090.0",
+      "npm:@smithy/node-http-handler@4.9.7",
       "npm:fast-json-patch@3.1.1",
       "npm:zod@4.3.6"
     ]

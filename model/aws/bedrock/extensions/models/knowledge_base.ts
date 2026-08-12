@@ -40,6 +40,13 @@ import {
   updateResource,
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
+import {
+  BedrockAgentRuntimeClient,
+  type KnowledgeBaseRetrievalResult,
+  type RetrievalFilter,
+  RetrieveCommand,
+} from "npm:@aws-sdk/client-bedrock-agent-runtime@3.1090.0";
+import { NodeHttpHandler } from "npm:@smithy/node-http-handler@4.9.7";
 
 const AudioSegmentationConfigurationSchema = z.object({
   FixedLengthDuration: z.number().int().min(1).max(30).describe(
@@ -604,6 +611,155 @@ const GlobalArgsSchema = z.object({
   ).describe("A map of tag keys and values").optional(),
 });
 
+// Deno's node:http2 compat layer is incomplete — force HTTP/1.1
+function createClient(
+  credentials: AwsCredentials,
+): BedrockAgentRuntimeClient {
+  const region = credentials.region ??
+    Deno.env.get("AWS_REGION") ??
+    Deno.env.get("AWS_DEFAULT_REGION") ??
+    "us-east-1";
+
+  const config: Record<string, unknown> = {
+    region,
+    requestHandler: new NodeHttpHandler(),
+  };
+
+  if (credentials.accessKeyId && credentials.secretAccessKey) {
+    config.credentials = {
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      ...(credentials.sessionToken
+        ? { sessionToken: credentials.sessionToken }
+        : {}),
+    };
+  }
+
+  return new BedrockAgentRuntimeClient(config);
+}
+
+function formatResult(
+  r: KnowledgeBaseRetrievalResult,
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  if (r.content) {
+    result.contentText = r.content.text;
+    result.contentType = r.content.type;
+  }
+
+  if (r.score !== undefined) {
+    result.score = r.score;
+  }
+
+  if (r.location) {
+    result.locationType = r.location.type;
+    switch (r.location.type) {
+      case "S3":
+        result.locationUri = r.location.s3Location?.uri;
+        break;
+      case "WEB":
+        result.locationUrl = r.location.webLocation?.url;
+        break;
+      case "CONFLUENCE":
+        result.locationUrl = r.location.confluenceLocation?.url;
+        break;
+      case "SALESFORCE":
+        result.locationUrl = r.location.salesforceLocation?.url;
+        break;
+      case "SHAREPOINT":
+        result.locationUrl = r.location.sharePointLocation?.url;
+        break;
+      case "ONEDRIVE":
+        result.locationUrl = r.location.oneDriveLocation?.url;
+        break;
+      case "GOOGLEDRIVE":
+        result.locationUrl = r.location.googleDriveLocation?.url;
+        break;
+      case "SQL":
+        result.locationQuery = r.location.sqlLocation?.query;
+        break;
+      case "CUSTOM":
+        result.locationId = r.location.customDocumentLocation?.id;
+        break;
+    }
+  }
+
+  if (r.metadata) {
+    result.metadata = r.metadata;
+  }
+
+  return result;
+}
+
+async function retrieve(
+  args: Record<string, unknown>,
+  credentials: AwsCredentials,
+): Promise<Record<string, unknown>> {
+  const client = createClient(credentials);
+  const knowledgeBaseId = args.knowledgeBaseId as string;
+  const query = args.query as string;
+  const numberOfResults = args.numberOfResults as number | undefined;
+  const searchType = args.searchType as "SEMANTIC" | "HYBRID" | undefined;
+  const filter = args.filter as Record<string, unknown> | undefined;
+  const nextToken = args.nextToken as string | undefined;
+
+  const command = new RetrieveCommand({
+    knowledgeBaseId,
+    retrievalQuery: { text: query },
+    ...(numberOfResults || searchType || filter
+      ? {
+        retrievalConfiguration: {
+          vectorSearchConfiguration: {
+            ...(numberOfResults ? { numberOfResults } : {}),
+            ...(searchType ? { overrideSearchType: searchType } : {}),
+            ...(filter ? { filter: filter as unknown as RetrievalFilter } : {}),
+          },
+        },
+      }
+      : {}),
+    ...(nextToken ? { nextToken } : {}),
+  });
+
+  try {
+    const response = await client.send(command);
+    const results: Record<string, unknown>[] = [];
+
+    for (const r of response.retrievalResults ?? []) {
+      results.push(formatResult(r));
+    }
+
+    const output: Record<string, unknown> = {
+      results,
+      resultCount: results.length,
+    };
+
+    if (response.nextToken) {
+      output.nextToken = response.nextToken;
+    }
+
+    return output;
+  } catch (err: unknown) {
+    const error = err as Error & { name: string };
+    switch (error.name) {
+      case "AccessDeniedException":
+        throw new Error(
+          `Access denied: ensure the caller has bedrock:Retrieve permission on knowledge base ${knowledgeBaseId}. ${error.message}`,
+        );
+      case "ResourceNotFoundException":
+        throw new Error(
+          `Knowledge base not found: ${knowledgeBaseId}. Verify the ID and region are correct. ${error.message}`,
+        );
+      case "ValidationException":
+        throw new Error(
+          `Invalid request: ${error.message}`,
+        );
+      default:
+        throw error;
+    }
+  }
+}
+
 const StateSchema = z.object({
   Description: z.string().optional(),
   KnowledgeBaseConfiguration: z.object({
@@ -734,7 +890,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Bedrock KnowledgeBase. Registered at `@swamp/aws/bedrock/knowledge-base`. */
 export const model = {
   type: "@swamp/aws/bedrock/knowledge-base",
-  version: "2026.07.03.1",
+  version: "2026.08.12.6",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -783,6 +939,36 @@ export const model = {
     },
     {
       toVersion: "2026.07.03.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.3",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.5",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.12.6",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -987,6 +1173,47 @@ export const model = {
           }
           throw error;
         }
+      },
+    },
+    retrieve: {
+      description:
+        "Retrieve relevant chunks from a Bedrock Knowledge Base using semantic or hybrid search",
+      arguments: z.object({
+        knowledgeBaseId: z.string().describe(
+          "The unique identifier of the Knowledge Base to query",
+        ),
+        query: z.string().describe(
+          "The natural-language query to retrieve relevant chunks for",
+        ),
+        numberOfResults: z.number().int().min(1).max(100).describe(
+          "Maximum number of retrieval results to return (default: 5)",
+        ).optional(),
+        searchType: z.enum(["SEMANTIC", "HYBRID"]).describe(
+          "Search type — SEMANTIC (vector similarity) or HYBRID (vector + keyword)",
+        ).optional(),
+        filter: z.record(z.string(), z.unknown()).describe(
+          "Retrieval filter configuration to narrow results by metadata attributes",
+        ).optional(),
+        nextToken: z.string().describe(
+          "Pagination token from a previous retrieve call",
+        ).optional(),
+      }),
+      execute: async (args: Record<string, unknown>, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const mergedArgs = { ...context.globalArgs, ...args };
+        const result = await retrieve(mergedArgs, credentials);
+        const argKeys = Object.keys(args).filter((k) => args[k] !== undefined);
+        const suffix = argKeys.length > 0
+          ? "-" + argKeys.map((k) => String(args[k])).join("-")
+          : "";
+        const instanceName = ("retrieve" + suffix).replace(/[\/\\]/g, "_")
+          .replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
       },
     },
   },
