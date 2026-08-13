@@ -82,7 +82,7 @@ const GlobalArgsSchema = z.object({
   }).optional(),
   IamIdentityProviderArn: z.string().min(20).max(2048).regex(
     new RegExp(
-      "^arn:aws:iam::\\d{12}:(oidc-provider|saml-provider)/[a-zA-Z0-9_\\.\\/@\\-]+$",
+      "^arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):iam::\\d{12}:(oidc-provider|saml-provider)/[a-zA-Z0-9_\\.\\/@\\-]+$",
     ),
   ).optional(),
   IdentityCenterInstanceArn: z.string().min(10).max(1224).regex(
@@ -180,7 +180,7 @@ const InputsSchema = z.object({
   }).optional(),
   IamIdentityProviderArn: z.string().min(20).max(2048).regex(
     new RegExp(
-      "^arn:aws:iam::\\d{12}:(oidc-provider|saml-provider)/[a-zA-Z0-9_\\.\\/@\\-]+$",
+      "^arn:(aws|aws-us-gov|aws-cn|aws-iso|aws-iso-b):iam::\\d{12}:(oidc-provider|saml-provider)/[a-zA-Z0-9_\\.\\/@\\-]+$",
     ),
   ).optional(),
   IdentityCenterInstanceArn: z.string().min(10).max(1224).regex(
@@ -233,7 +233,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for QBusiness Application. Registered at `@swamp/aws/qbusiness/application`. */
 export const model = {
   type: "@swamp/aws/qbusiness/application",
-  version: "2026.06.15.1",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -272,6 +272,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

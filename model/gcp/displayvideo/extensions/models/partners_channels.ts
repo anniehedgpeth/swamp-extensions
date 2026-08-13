@@ -238,7 +238,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Partners.Channels. Registered at `@swamp/gcp/displayvideo/partners-channels`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/partners-channels",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -352,6 +352,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -488,7 +493,9 @@ export const model = {
         params["channelId"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["advertiserId"] !== undefined) {
-          body["advertiserId"] = g["advertiserId"];
+          params["advertiserId"] = String(g["advertiserId"]);
+        } else if (existing["advertiserId"] !== undefined) {
+          params["advertiserId"] = String(existing["advertiserId"]);
         }
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];

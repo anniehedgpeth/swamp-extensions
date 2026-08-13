@@ -907,7 +907,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Content for Shopping Shippingsettings. Registered at `@swamp/gcp/content/shippingsettings`. */
 export const model = {
   type: "@swamp/gcp/content/shippingsettings",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1029,6 +1029,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1111,7 +1116,7 @@ export const model = {
         } else if (existing["merchantId"]) {
           params["merchantId"] = String(existing["merchantId"]);
         }
-        params["accountId"] = existing["name"]?.toString() ?? "";
+        params["accountId"] = existing["accountId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["postalCodeGroups"] !== undefined) {
           body["postalCodeGroups"] = g["postalCodeGroups"];

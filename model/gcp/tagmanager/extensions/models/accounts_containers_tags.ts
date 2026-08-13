@@ -470,7 +470,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Tags. Registered at `@swamp/gcp/tagmanager/accounts-containers-tags`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-tags",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -479,6 +479,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -651,13 +656,15 @@ export const model = {
         } else if (existing["containerId"]) {
           params["containerId"] = String(existing["containerId"]);
         }
-        params["tagId"] = existing["name"]?.toString() ?? "";
+        params["tagId"] = existing["tagId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["blockingTriggerId"] !== undefined) {
           body["blockingTriggerId"] = g["blockingTriggerId"];
         }
         if (g["fingerprint"] !== undefined) {
-          body["fingerprint"] = g["fingerprint"];
+          params["fingerprint"] = String(g["fingerprint"]);
+        } else if (existing["fingerprint"] !== undefined) {
+          params["fingerprint"] = String(existing["fingerprint"]);
         }
         if (g["firingTriggerId"] !== undefined) {
           body["firingTriggerId"] = g["firingTriggerId"];

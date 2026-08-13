@@ -237,6 +237,7 @@ const StateSchema = z.object({
       ownerIdentity: z.array(z.object({
         customerIdentity: z.unknown(),
         groupIdentity: z.unknown(),
+        sharedDriveIdentity: z.unknown(),
         userIdentity: z.unknown(),
       })),
       ownerType: z.string(),
@@ -296,7 +297,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Activities. Registered at `@swamp/gcp/admin/activities`. */
 export const model = {
   type: "@swamp/gcp/admin/activities",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -425,6 +426,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

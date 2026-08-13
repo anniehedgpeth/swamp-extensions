@@ -102,34 +102,6 @@ export const model = {
   version: "2026.06.08.1",
   upgrades: [
     {
-      toVersion: "2026.05.22.2",
-      description: "Removed: domain_name",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { domain_name: _domain_name, ...rest } = old;
-        return rest;
-      },
-    },
-    {
-      toVersion: "2026.05.22.3",
-      description: "Removed: domain_name",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { domain_name: _domain_name, ...rest } = old;
-        return rest;
-      },
-    },
-    {
-      toVersion: "2026.05.22.4",
-      description: "Removed: domain_name, instance_name",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          domain_name: _domain_name,
-          instance_name: _instance_name,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.05.29.1",
       description: "Added: token",
       upgradeAttributes: (old: Record<string, unknown>) => old,

@@ -646,7 +646,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Inappproducts. Registered at `@swamp/gcp/androidpublisher/inappproducts`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/inappproducts",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -760,6 +760,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -916,7 +921,7 @@ export const model = {
         } else if (existing["packageName"]) {
           params["packageName"] = String(existing["packageName"]);
         }
-        params["sku"] = existing["name"]?.toString() ?? "";
+        params["sku"] = existing["sku"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["defaultLanguage"] !== undefined) {
           body["defaultLanguage"] = g["defaultLanguage"];

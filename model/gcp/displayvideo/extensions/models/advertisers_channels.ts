@@ -238,7 +238,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.Channels. Registered at `@swamp/gcp/displayvideo/advertisers-channels`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-channels",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -352,6 +352,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -490,7 +495,11 @@ export const model = {
         if (g["displayName"] !== undefined) {
           body["displayName"] = g["displayName"];
         }
-        if (g["partnerId"] !== undefined) body["partnerId"] = g["partnerId"];
+        if (g["partnerId"] !== undefined) {
+          params["partnerId"] = String(g["partnerId"]);
+        } else if (existing["partnerId"] !== undefined) {
+          params["partnerId"] = String(existing["partnerId"]);
+        }
         const updateMaskKeys = Object.keys(body);
         if (updateMaskKeys.length > 0) {
           params["updateMask"] = updateMaskKeys.join(",");

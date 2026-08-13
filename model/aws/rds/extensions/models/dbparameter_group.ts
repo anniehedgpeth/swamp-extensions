@@ -87,6 +87,7 @@ const StateSchema = z.object({
   Family: z.string().optional(),
   Parameters: z.record(z.string(), z.unknown()).optional(),
   Tags: z.array(TagSchema).optional(),
+  DBParameterGroupArn: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -133,7 +134,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for RDS DBParameterGroup. Registered at `@swamp/aws/rds/dbparameter-group`. */
 export const model = {
   type: "@swamp/aws/rds/dbparameter-group",
-  version: "2026.07.24.1",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -182,6 +183,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -296,7 +296,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON HmacKeys. Registered at `@swamp/gcp/storage/hmackeys`. */
 export const model = {
   type: "@swamp/gcp/storage/hmackeys",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -423,6 +423,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -537,7 +542,7 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["accessId"] = existing["name"]?.toString() ?? "";
+        params["accessId"] = existing["accessId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["etag"] !== undefined) body["etag"] = g["etag"];
         if (g["id"] !== undefined) body["id"] = g["id"];

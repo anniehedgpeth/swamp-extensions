@@ -336,7 +336,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Edits.Tracks. Registered at `@swamp/gcp/androidpublisher/edits-tracks`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/edits-tracks",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -450,6 +450,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -580,7 +585,7 @@ export const model = {
         else if (existing["editId"]) {
           params["editId"] = String(existing["editId"]);
         }
-        params["track"] = existing["name"]?.toString() ?? "";
+        params["track"] = existing["track"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["releases"] !== undefined) body["releases"] = g["releases"];
         for (const key of Object.keys(existing)) {

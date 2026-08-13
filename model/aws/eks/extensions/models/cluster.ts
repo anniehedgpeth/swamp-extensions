@@ -103,6 +103,19 @@ const BlockStorageSchema = z.object({
   Enabled: z.boolean().describe("Todo: add description").optional(),
 });
 
+const ServiceNodePortRangeSchema = z.object({
+  MinPort: z.number().int().describe("The minimum port number in the range.")
+    .optional(),
+  MaxPort: z.number().int().describe("The maximum port number in the range.")
+    .optional(),
+});
+
+const HorizontalPodAutoscalerControllerConfigSchema = z.object({
+  HorizontalPodAutoscalerSyncPeriod: z.string().describe(
+    "The interval between each sync of the horizontal pod autoscaler (e.g., 15s, 1m).",
+  ).optional(),
+});
+
 const RemoteNodeNetworkSchema = z.object({
   Cidrs: z.array(z.string()).describe(
     "Specifies the list of remote node CIDRs.",
@@ -113,6 +126,30 @@ const RemotePodNetworkSchema = z.object({
   Cidrs: z.array(z.string()).describe(
     "Specifies the list of remote pod CIDRs.",
   ),
+});
+
+const ResourceWeightSchema = z.object({
+  Weight: z.number().int().describe(
+    "The weight assigned to the resource for scoring. Must be between 1 and 100.",
+  ).optional(),
+  Name: z.string().describe(
+    "The name of the resource (for example, cpu or memory).",
+  ).optional(),
+});
+
+const ScoringStrategySchema = z.object({
+  Type: z.string().describe(
+    "The scoring strategy type (LeastAllocated or MostAllocated).",
+  ).optional(),
+  Resources: z.array(ResourceWeightSchema).describe(
+    "The resource weights used for scoring nodes.",
+  ).optional(),
+});
+
+const NodeResourcesFitConfigSchema = z.object({
+  ScoringStrategy: ScoringStrategySchema.describe(
+    "The scoring strategy configuration for the NodeResourcesFit scheduler plugin.",
+  ).optional(),
 });
 
 const GlobalArgsSchema = z.object({
@@ -219,6 +256,16 @@ const GlobalArgsSchema = z.object({
   BootstrapSelfManagedAddons: z.boolean().describe(
     "Set this value to false to avoid creating the default networking add-ons when the cluster is created.",
   ).optional(),
+  KubeApiServerConfig: z.object({
+    ServiceNodePortRange: ServiceNodePortRangeSchema.describe(
+      "The port range for Kubernetes NodePort services.",
+    ).optional(),
+    EventTtl: z.string().describe(
+      "The duration that Kubernetes events are retained (e.g., 30m, 1h).",
+    ).optional(),
+  }).describe(
+    "The configuration for the Kubernetes API server on an Amazon EKS cluster.",
+  ).optional(),
   DeletionProtection: z.boolean().describe(
     "Set this value to true to enable deletion protection for the cluster.",
   ).optional(),
@@ -231,6 +278,14 @@ const GlobalArgsSchema = z.object({
   RoleArn: z.string().describe(
     "The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.",
   ),
+  KubeControllerManagerConfig: z.object({
+    HorizontalPodAutoscalerControllerConfig:
+      HorizontalPodAutoscalerControllerConfigSchema.describe(
+        "The horizontal pod autoscaler controller configuration.",
+      ).optional(),
+  }).describe(
+    "The configuration for the Kubernetes controller manager on an Amazon EKS cluster.",
+  ).optional(),
   UpgradePolicy: z.object({
     SupportType: z.enum(["STANDARD", "EXTENDED"]).describe(
       "Specify the support type for your cluster.",
@@ -247,6 +302,13 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe(
     "Configuration fields for specifying on-premises node and pod CIDRs that are external to the VPC passed during cluster creation.",
+  ).optional(),
+  KubeSchedulerConfig: z.object({
+    NodeResourcesFit: NodeResourcesFitConfigSchema.describe(
+      "The NodeResourcesFit plugin configuration for the Kubernetes scheduler.",
+    ).optional(),
+  }).describe(
+    "The configuration for the Kubernetes scheduler on an Amazon EKS cluster.",
   ).optional(),
   ResourcesVpcConfig: z.object({
     EndpointPublicAccess: z.boolean().describe(
@@ -317,18 +379,29 @@ const StateSchema = z.object({
     BlockStorage: BlockStorageSchema,
   }).optional(),
   BootstrapSelfManagedAddons: z.boolean().optional(),
+  KubeApiServerConfig: z.object({
+    ServiceNodePortRange: ServiceNodePortRangeSchema,
+    EventTtl: z.string(),
+  }).optional(),
   EncryptionConfigKeyArn: z.string().optional(),
   DeletionProtection: z.boolean().optional(),
   ZonalShiftConfig: z.object({
     Enabled: z.boolean(),
   }).optional(),
   RoleArn: z.string().optional(),
+  KubeControllerManagerConfig: z.object({
+    HorizontalPodAutoscalerControllerConfig:
+      HorizontalPodAutoscalerControllerConfigSchema,
+  }).optional(),
   UpgradePolicy: z.object({
     SupportType: z.string(),
   }).optional(),
   RemoteNetworkConfig: z.object({
     RemoteNodeNetworks: z.array(RemoteNodeNetworkSchema),
     RemotePodNetworks: z.array(RemotePodNetworkSchema),
+  }).optional(),
+  KubeSchedulerConfig: z.object({
+    NodeResourcesFit: NodeResourcesFitConfigSchema,
   }).optional(),
   Id: z.string().optional(),
   Arn: z.string().optional(),
@@ -440,6 +513,16 @@ const InputsSchema = z.object({
   BootstrapSelfManagedAddons: z.boolean().describe(
     "Set this value to false to avoid creating the default networking add-ons when the cluster is created.",
   ).optional(),
+  KubeApiServerConfig: z.object({
+    ServiceNodePortRange: ServiceNodePortRangeSchema.describe(
+      "The port range for Kubernetes NodePort services.",
+    ).optional(),
+    EventTtl: z.string().describe(
+      "The duration that Kubernetes events are retained (e.g., 30m, 1h).",
+    ).optional(),
+  }).describe(
+    "The configuration for the Kubernetes API server on an Amazon EKS cluster.",
+  ).optional(),
   DeletionProtection: z.boolean().describe(
     "Set this value to true to enable deletion protection for the cluster.",
   ).optional(),
@@ -451,6 +534,14 @@ const InputsSchema = z.object({
     .optional(),
   RoleArn: z.string().describe(
     "The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.",
+  ).optional(),
+  KubeControllerManagerConfig: z.object({
+    HorizontalPodAutoscalerControllerConfig:
+      HorizontalPodAutoscalerControllerConfigSchema.describe(
+        "The horizontal pod autoscaler controller configuration.",
+      ).optional(),
+  }).describe(
+    "The configuration for the Kubernetes controller manager on an Amazon EKS cluster.",
   ).optional(),
   UpgradePolicy: z.object({
     SupportType: z.enum(["STANDARD", "EXTENDED"]).describe(
@@ -468,6 +559,13 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe(
     "Configuration fields for specifying on-premises node and pod CIDRs that are external to the VPC passed during cluster creation.",
+  ).optional(),
+  KubeSchedulerConfig: z.object({
+    NodeResourcesFit: NodeResourcesFitConfigSchema.describe(
+      "The NodeResourcesFit plugin configuration for the Kubernetes scheduler.",
+    ).optional(),
+  }).describe(
+    "The configuration for the Kubernetes scheduler on an Amazon EKS cluster.",
   ).optional(),
   ResourcesVpcConfig: z.object({
     EndpointPublicAccess: z.boolean().describe(
@@ -512,7 +610,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EKS Cluster. Registered at `@swamp/aws/eks/cluster`. */
 export const model = {
   type: "@swamp/aws/eks/cluster",
-  version: "2026.07.25.1",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -572,6 +670,12 @@ export const model = {
     {
       toVersion: "2026.07.25.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
+      description:
+        "Added: KubeApiServerConfig, KubeControllerManagerConfig, KubeSchedulerConfig",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

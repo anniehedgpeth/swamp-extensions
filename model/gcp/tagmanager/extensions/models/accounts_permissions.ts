@@ -258,7 +258,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Permissions. Registered at `@swamp/gcp/tagmanager/accounts-permissions`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-permissions",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -267,6 +267,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -401,7 +406,7 @@ export const model = {
         } else if (existing["accountId"]) {
           params["accountId"] = String(existing["accountId"]);
         }
-        params["permissionId"] = existing["name"]?.toString() ?? "";
+        params["permissionId"] = existing["permissionId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["accountAccess"] !== undefined) {
           body["accountAccess"] = g["accountAccess"];

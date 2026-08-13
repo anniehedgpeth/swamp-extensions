@@ -1031,6 +1031,13 @@ const GlobalArgsSchema = z.object({
       name: z.string().describe(
         "Name of the quota limit. The name must be provided, and it must be unique within the service. The name can only include alphanumeric characters as well as '-'. The maximum length of the limit name is 64 characters.",
       ).optional(),
+      trafficSource: z.enum([
+        "TRAFFIC_SOURCE_UNSPECIFIED",
+        "TRAFFIC_SOURCE_NONAGENTIC",
+        "TRAFFIC_SOURCE_AGENTIC",
+      ]).describe(
+        "Optional. This is only informational, the logic to allocate the quota to the correct metric (such as in `metric_rules`) should identify which quota metrics to allocate to.",
+      ).optional(),
       unit: z.string().describe(
         'Specify the unit of the quota limit. It uses the same syntax as MetricDescriptor.unit. The supported unit kinds are determined by the quota backend system. Here are some examples: * "1/min/{project}" for quota per minute per project. Note: the order of unit components is insignificant. The "1" at the beginning is required to follow the metric unit syntax.',
       ).optional(),
@@ -1039,8 +1046,14 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("List of QuotaLimit definitions for the service.").optional(),
     metricRules: z.array(z.object({
+      agenticMetricCosts: z.record(z.string(), z.string()).describe(
+        "Optional. Metrics to update when the selected methods are called, and the associated cost applied to each metric, iff the source of the call is an agent. The key of the map is the metric name, and the values are the amount increased for the metric against which the quota limits are defined. The value must not be negative.",
+      ).optional(),
       metricCosts: z.record(z.string(), z.string()).describe(
         "Metrics to update when the selected methods are called, and the associated cost applied to each metric. The key of the map is the metric name, and the values are the amount increased for the metric against which the quota limits are defined. The value must not be negative.",
+      ).optional(),
+      nonagenticMetricCosts: z.record(z.string(), z.string()).describe(
+        "Optional. Metrics to update when the selected methods are called, and the associated cost applied to each metric, iff the source of the call is not an agent. The key of the map is the metric name, and the values are the amount increased for the metric against which the quota limits are defined. The value must not be negative.",
       ).optional(),
       selector: z.string().describe(
         "Selects the methods to which this rule applies. Refer to selector for syntax details.",
@@ -1609,11 +1622,14 @@ const StateSchema = z.object({
       maxLimit: z.string(),
       metric: z.string(),
       name: z.string(),
+      trafficSource: z.string(),
       unit: z.string(),
       values: z.record(z.string(), z.unknown()),
     })),
     metricRules: z.array(z.object({
+      agenticMetricCosts: z.record(z.string(), z.unknown()),
       metricCosts: z.record(z.string(), z.unknown()),
+      nonagenticMetricCosts: z.record(z.string(), z.unknown()),
       selector: z.string(),
     })),
   }).optional(),
@@ -2609,6 +2625,13 @@ const InputsSchema = z.object({
       name: z.string().describe(
         "Name of the quota limit. The name must be provided, and it must be unique within the service. The name can only include alphanumeric characters as well as '-'. The maximum length of the limit name is 64 characters.",
       ).optional(),
+      trafficSource: z.enum([
+        "TRAFFIC_SOURCE_UNSPECIFIED",
+        "TRAFFIC_SOURCE_NONAGENTIC",
+        "TRAFFIC_SOURCE_AGENTIC",
+      ]).describe(
+        "Optional. This is only informational, the logic to allocate the quota to the correct metric (such as in `metric_rules`) should identify which quota metrics to allocate to.",
+      ).optional(),
       unit: z.string().describe(
         'Specify the unit of the quota limit. It uses the same syntax as MetricDescriptor.unit. The supported unit kinds are determined by the quota backend system. Here are some examples: * "1/min/{project}" for quota per minute per project. Note: the order of unit components is insignificant. The "1" at the beginning is required to follow the metric unit syntax.',
       ).optional(),
@@ -2617,8 +2640,14 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("List of QuotaLimit definitions for the service.").optional(),
     metricRules: z.array(z.object({
+      agenticMetricCosts: z.record(z.string(), z.string()).describe(
+        "Optional. Metrics to update when the selected methods are called, and the associated cost applied to each metric, iff the source of the call is an agent. The key of the map is the metric name, and the values are the amount increased for the metric against which the quota limits are defined. The value must not be negative.",
+      ).optional(),
       metricCosts: z.record(z.string(), z.string()).describe(
         "Metrics to update when the selected methods are called, and the associated cost applied to each metric. The key of the map is the metric name, and the values are the amount increased for the metric against which the quota limits are defined. The value must not be negative.",
+      ).optional(),
+      nonagenticMetricCosts: z.record(z.string(), z.string()).describe(
+        "Optional. Metrics to update when the selected methods are called, and the associated cost applied to each metric, iff the source of the call is not an agent. The key of the map is the metric name, and the values are the amount increased for the metric against which the quota limits are defined. The value must not be negative.",
       ).optional(),
       selector: z.string().describe(
         "Selects the methods to which this rule applies. Refer to selector for syntax details.",
@@ -2848,7 +2877,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Service Management Services.Configs. Registered at `@swamp/gcp/servicemanagement/services-configs`. */
 export const model = {
   type: "@swamp/gcp/servicemanagement/services-configs",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3020,6 +3049,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

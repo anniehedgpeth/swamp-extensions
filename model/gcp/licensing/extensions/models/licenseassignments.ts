@@ -252,7 +252,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Enterprise License Manager LicenseAssignments. Registered at `@swamp/gcp/licensing/licenseassignments`. */
 export const model = {
   type: "@swamp/gcp/licensing/licenseassignments",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -356,6 +356,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -482,7 +487,7 @@ export const model = {
         }
         if (g["skuId"] !== undefined) params["skuId"] = String(g["skuId"]);
         else if (existing["skuId"]) params["skuId"] = String(existing["skuId"]);
-        params["userId"] = existing["name"]?.toString() ?? "";
+        params["userId"] = existing["userId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["etags"] !== undefined) body["etags"] = g["etags"];
         if (g["kind"] !== undefined) body["kind"] = g["kind"];

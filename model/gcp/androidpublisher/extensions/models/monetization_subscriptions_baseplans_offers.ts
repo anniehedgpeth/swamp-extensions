@@ -762,7 +762,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/androidpublisher/monetization-subscriptions-baseplans-offers",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -886,6 +886,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1060,7 +1065,7 @@ export const model = {
         } else if (existing["basePlanId"]) {
           params["basePlanId"] = String(existing["basePlanId"]);
         }
-        params["offerId"] = existing["name"]?.toString() ?? "";
+        params["offerId"] = existing["offerId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["offerTags"] !== undefined) body["offerTags"] = g["offerTags"];
         if (g["otherRegionsConfig"] !== undefined) {

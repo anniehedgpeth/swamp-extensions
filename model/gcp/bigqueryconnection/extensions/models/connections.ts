@@ -269,7 +269,7 @@ const GlobalArgsSchema = z.object({
             .optional(),
         }),
       ).describe(
-        "Optional. A map of name-value pairs for authentication-specific parameters. Extra configuration parameters, that are not standardized in authentication. To update a single parameter value call ConnectionService.UpdateConnection with `update_mask` set to `configuration.authentication.parameters.parameter_id`. If parameter id does not fit `[a-zA-Z0-9_]+` pattern, it should be escaped with backticks - for example ``configuration.authentication.parameters.`parameter id` ``.",
+        "Optional. A map of name-value pairs for connector-specific parameters. These extra configuration parameters aren't standardized in the configuration sections. To update a single parameter value, call ConnectionService.UpdateConnection with `update_mask` set to `configuration.parameters.parameter_id`. If parameter_id doesn't fit the `[a-zA-Z0-9_]+` pattern, parameter_id should be escaped with backticks—for example, ``configuration.parameters.`parameter id` ``.",
       ).optional(),
       serviceAccount: z.string().describe(
         "Output only. Google-managed service account associated with this connection, e.g., `service-{project_number}@gcp-sa-bigqueryconnection.iam.gserviceaccount.com`. BigQuery jobs using this connection will act as `service_account` identity while connecting to the datasource.",
@@ -325,8 +325,23 @@ const GlobalArgsSchema = z.object({
           .optional(),
       }),
     ).describe(
-      "Optional. A map of name-value pairs for connector-specific parameters. Extra configuration parameters, that are not standardized in configuration sections. To update a single parameter value call ConnectionService.UpdateConnection with `update_mask` set to `configuration.parameters.parameter_id`. If parameter id does not fit `[a-zA-Z0-9_]+` pattern, it should be escaped with backticks - for example ``configuration.parameters.`parameter id` ``.",
+      "Optional. A map of name-value pairs for connector-specific parameters. These extra configuration parameters aren't standardized in the configuration sections. To update a single parameter value, call ConnectionService.UpdateConnection with `update_mask` set to `configuration.parameters.parameter_id`. If parameter_id doesn't fit the `[a-zA-Z0-9_]+` pattern, parameter_id should be escaped with backticks—for example, ``configuration.parameters.`parameter id` ``.",
     ).optional(),
+    tls: z.object({
+      mode: z.enum([
+        "MODE_UNSPECIFIED",
+        "DISABLE",
+        "ENCRYPT_VERIFY_NONE",
+        "ENCRYPT_VERIFY_CA",
+        "ENCRYPT_VERIFY_CA_AND_HOST",
+      ]).describe("Optional. The mode of TLS configuration.").optional(),
+      privatePki: z.object({
+        trustedCertificatesPem: z.string().describe(
+          "Optional. a PEM-encoded list of certificates to trust",
+        ).optional(),
+      }).describe("Optional. Private PKI.").optional(),
+      webPki: z.object({}).describe("Optional. Web PKI.").optional(),
+    }).describe("Optional. TLS configuration options.").optional(),
   }).describe("Optional. Connector configuration.").optional(),
   description: z.string().describe("User provided description.").optional(),
   friendlyName: z.string().describe(
@@ -437,6 +452,13 @@ const StateSchema = z.object({
       }),
     }),
     parameters: z.record(z.string(), z.unknown()),
+    tls: z.object({
+      mode: z.string(),
+      privatePki: z.object({
+        trustedCertificatesPem: z.string(),
+      }),
+      webPki: z.object({}),
+    }),
   }).optional(),
   creationTime: z.string().optional(),
   description: z.string().optional(),
@@ -579,7 +601,7 @@ const InputsSchema = z.object({
             .optional(),
         }),
       ).describe(
-        "Optional. A map of name-value pairs for authentication-specific parameters. Extra configuration parameters, that are not standardized in authentication. To update a single parameter value call ConnectionService.UpdateConnection with `update_mask` set to `configuration.authentication.parameters.parameter_id`. If parameter id does not fit `[a-zA-Z0-9_]+` pattern, it should be escaped with backticks - for example ``configuration.authentication.parameters.`parameter id` ``.",
+        "Optional. A map of name-value pairs for connector-specific parameters. These extra configuration parameters aren't standardized in the configuration sections. To update a single parameter value, call ConnectionService.UpdateConnection with `update_mask` set to `configuration.parameters.parameter_id`. If parameter_id doesn't fit the `[a-zA-Z0-9_]+` pattern, parameter_id should be escaped with backticks—for example, ``configuration.parameters.`parameter id` ``.",
       ).optional(),
       serviceAccount: z.string().describe(
         "Output only. Google-managed service account associated with this connection, e.g., `service-{project_number}@gcp-sa-bigqueryconnection.iam.gserviceaccount.com`. BigQuery jobs using this connection will act as `service_account` identity while connecting to the datasource.",
@@ -635,8 +657,23 @@ const InputsSchema = z.object({
           .optional(),
       }),
     ).describe(
-      "Optional. A map of name-value pairs for connector-specific parameters. Extra configuration parameters, that are not standardized in configuration sections. To update a single parameter value call ConnectionService.UpdateConnection with `update_mask` set to `configuration.parameters.parameter_id`. If parameter id does not fit `[a-zA-Z0-9_]+` pattern, it should be escaped with backticks - for example ``configuration.parameters.`parameter id` ``.",
+      "Optional. A map of name-value pairs for connector-specific parameters. These extra configuration parameters aren't standardized in the configuration sections. To update a single parameter value, call ConnectionService.UpdateConnection with `update_mask` set to `configuration.parameters.parameter_id`. If parameter_id doesn't fit the `[a-zA-Z0-9_]+` pattern, parameter_id should be escaped with backticks—for example, ``configuration.parameters.`parameter id` ``.",
     ).optional(),
+    tls: z.object({
+      mode: z.enum([
+        "MODE_UNSPECIFIED",
+        "DISABLE",
+        "ENCRYPT_VERIFY_NONE",
+        "ENCRYPT_VERIFY_CA",
+        "ENCRYPT_VERIFY_CA_AND_HOST",
+      ]).describe("Optional. The mode of TLS configuration.").optional(),
+      privatePki: z.object({
+        trustedCertificatesPem: z.string().describe(
+          "Optional. a PEM-encoded list of certificates to trust",
+        ).optional(),
+      }).describe("Optional. Private PKI.").optional(),
+      webPki: z.object({}).describe("Optional. Web PKI.").optional(),
+    }).describe("Optional. TLS configuration options.").optional(),
   }).describe("Optional. Connector configuration.").optional(),
   description: z.string().describe("User provided description.").optional(),
   friendlyName: z.string().describe(
@@ -710,7 +747,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Connection Connections. Registered at `@swamp/gcp/bigqueryconnection/connections`. */
 export const model = {
   type: "@swamp/gcp/bigqueryconnection/connections",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -854,6 +891,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

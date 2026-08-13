@@ -138,6 +138,7 @@ const GlobalArgsSchema = z.object({
       "ja-JP",
       "ko-KR",
       "zh-CN",
+      "ms-MY",
     ]).describe("The language for the evaluation form.").optional(),
   }).describe("Configuration for language settings of this evaluation form.")
     .optional(),
@@ -243,6 +244,7 @@ const InputsSchema = z.object({
       "ja-JP",
       "ko-KR",
       "zh-CN",
+      "ms-MY",
     ]).describe("The language for the evaluation form.").optional(),
   }).describe("Configuration for language settings of this evaluation form.")
     .optional(),
@@ -282,7 +284,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect EvaluationForm. Registered at `@swamp/aws/connect/evaluation-form`. */
 export const model = {
   type: "@swamp/aws/connect/evaluation-form",
-  version: "2026.07.11.1",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -336,6 +338,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.11.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

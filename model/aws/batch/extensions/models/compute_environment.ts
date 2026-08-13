@@ -68,6 +68,53 @@ const ComputeScalingPolicySchema = z.object({
   MinScaleDownDelayMinutes: z.number().int().optional(),
 });
 
+const ManagedInstancesNetworkConfigurationSchema = z.object({
+  Subnets: z.array(z.string()),
+  SecurityGroups: z.array(z.string()),
+});
+
+const InstanceRequirementsSchema = z.object({
+  AllowedInstanceTypes: z.array(z.string()).optional(),
+});
+
+const ManagedInstancesStorageConfigurationSchema = z.object({
+  StorageSizeGiB: z.number().int().optional(),
+});
+
+const CapacityReservationsSchema = z.object({
+  ReservationGroupArn: z.string().optional(),
+  ReservationPreference: z.string().optional(),
+});
+
+const ManagedInstancesLocalStorageConfigurationSchema = z.object({
+  UseLocalStorage: z.boolean().optional(),
+});
+
+const InstanceLaunchTemplateSchema = z.object({
+  Ec2InstanceProfileArn: z.string(),
+  NetworkConfiguration: ManagedInstancesNetworkConfigurationSchema,
+  InstanceRequirements: InstanceRequirementsSchema.optional(),
+  CapacityOptionType: z.enum(["ON_DEMAND", "SPOT", "RESERVED"]).optional(),
+  StorageConfiguration: ManagedInstancesStorageConfigurationSchema.optional(),
+  Monitoring: z.string().optional(),
+  FipsEnabled: z.boolean().optional(),
+  CapacityReservations: CapacityReservationsSchema.optional(),
+  InstanceMetadataTagsPropagation: z.boolean().optional(),
+  LocalStorageConfiguration: ManagedInstancesLocalStorageConfigurationSchema
+    .optional(),
+});
+
+const InfrastructureOptimizationSchema = z.object({
+  ScaleInAfter: z.number().int().optional(),
+});
+
+const ManagedInstancesProviderSchema = z.object({
+  PropagateTags: z.enum(["CAPACITY_PROVIDER", "NONE"]).optional(),
+  InfrastructureRoleArn: z.string(),
+  InstanceLaunchTemplate: InstanceLaunchTemplateSchema,
+  InfrastructureOptimization: InfrastructureOptimizationSchema.optional(),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -101,12 +148,16 @@ const GlobalArgsSchema = z.object({
     ScalingPolicy: ComputeScalingPolicySchema.optional(),
     SecurityGroupIds: z.array(z.string()).optional(),
     SpotIamFleetRole: z.string().optional(),
-    Subnets: z.array(z.string()),
+    Subnets: z.array(z.string()).optional(),
     Tags: z.record(z.string(), z.string()).describe(
       "A key-value pair to associate with a resource.",
     ).optional(),
     Type: z.string(),
     UpdateToLatestImageVersion: z.boolean().optional(),
+    ManagedInstancesProvider: ManagedInstancesProviderSchema.optional(),
+    CapacityTags: z.record(z.string(), z.string()).describe(
+      "Capacity-level tags for compute environments.",
+    ).optional(),
   }).optional(),
   ReplaceComputeEnvironment: z.boolean().optional(),
   ServiceRole: z.string().optional(),
@@ -150,6 +201,8 @@ const StateSchema = z.object({
     Tags: z.record(z.string(), z.unknown()),
     Type: z.string(),
     UpdateToLatestImageVersion: z.boolean(),
+    ManagedInstancesProvider: ManagedInstancesProviderSchema,
+    CapacityTags: z.record(z.string(), z.unknown()),
   }).optional(),
   ReplaceComputeEnvironment: z.boolean().optional(),
   ServiceRole: z.string().optional(),
@@ -199,6 +252,10 @@ const InputsSchema = z.object({
     ).optional(),
     Type: z.string().optional(),
     UpdateToLatestImageVersion: z.boolean().optional(),
+    ManagedInstancesProvider: ManagedInstancesProviderSchema.optional(),
+    CapacityTags: z.record(z.string(), z.string()).describe(
+      "Capacity-level tags for compute environments.",
+    ).optional(),
   }).optional(),
   ReplaceComputeEnvironment: z.boolean().optional(),
   ServiceRole: z.string().optional(),
@@ -238,7 +295,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Batch ComputeEnvironment. Registered at `@swamp/aws/batch/compute-environment`. */
 export const model = {
   type: "@swamp/aws/batch/compute-environment",
-  version: "2026.06.15.1",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -277,6 +334,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -393,6 +455,8 @@ export const model = {
             "Tags",
             "Type",
             "EksConfiguration",
+            "CapacityOptionType",
+            "FipsEnabled",
           ],
           credentials,
         );

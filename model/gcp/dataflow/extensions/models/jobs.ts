@@ -1880,7 +1880,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataflow Jobs. Registered at `@swamp/gcp/dataflow/jobs`. */
 export const model = {
   type: "@swamp/gcp/dataflow/jobs",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2062,6 +2062,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -2261,7 +2266,11 @@ export const model = {
           body["jobMetadata"] = g["jobMetadata"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        if (g["location"] !== undefined) body["location"] = g["location"];
+        if (g["location"] !== undefined) {
+          params["location"] = String(g["location"]);
+        } else if (existing["location"] !== undefined) {
+          params["location"] = String(existing["location"]);
+        }
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["pipelineDescription"] !== undefined) {
           body["pipelineDescription"] = g["pipelineDescription"];

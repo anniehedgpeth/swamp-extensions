@@ -257,7 +257,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Admin SDK Roles. Registered at `@swamp/gcp/admin/roles`. */
 export const model = {
   type: "@swamp/gcp/admin/roles",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -266,6 +266,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -401,7 +406,7 @@ export const model = {
         } else if (existing["customer"]) {
           params["customer"] = String(existing["customer"]);
         }
-        params["roleId"] = existing["name"]?.toString() ?? "";
+        params["roleId"] = existing["roleId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["isSuperAdminRole"] !== undefined) {
           body["isSuperAdminRole"] = g["isSuperAdminRole"];

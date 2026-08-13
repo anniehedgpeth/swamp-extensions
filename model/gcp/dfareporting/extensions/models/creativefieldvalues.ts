@@ -274,7 +274,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 CreativeFieldValues. Registered at `@swamp/gcp/dfareporting/creativefieldvalues`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/creativefieldvalues",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -383,6 +383,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -516,7 +521,8 @@ export const model = {
         } else if (existing["profileId"]) {
           params["profileId"] = String(existing["profileId"]);
         }
-        params["creativeFieldId"] = existing["id"]?.toString() ?? "";
+        params["creativeFieldId"] = existing["creativeFieldId"]?.toString() ??
+          "";
         const body: Record<string, unknown> = {};
         if (g["id"] !== undefined) body["id"] = g["id"];
         if (g["value"] !== undefined) body["value"] = g["value"];

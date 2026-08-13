@@ -242,7 +242,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Drive Properties. Registered at `@swamp/gcp/drive/properties`. */
 export const model = {
   type: "@swamp/gcp/drive/properties",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -251,6 +251,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -375,7 +380,11 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["key"] !== undefined) body["key"] = g["key"];
         if (g["value"] !== undefined) body["value"] = g["value"];
-        if (g["visibility"] !== undefined) body["visibility"] = g["visibility"];
+        if (g["visibility"] !== undefined) {
+          params["visibility"] = String(g["visibility"]);
+        } else if (existing["visibility"] !== undefined) {
+          params["visibility"] = String(existing["visibility"]);
+        }
         for (const key of Object.keys(existing)) {
           if (
             key === "fingerprint" || key === "labelFingerprint" ||

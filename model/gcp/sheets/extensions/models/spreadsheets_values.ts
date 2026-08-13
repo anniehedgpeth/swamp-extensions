@@ -206,7 +206,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Sheets Spreadsheets.Values. Registered at `@swamp/gcp/sheets/spreadsheets-values`. */
 export const model = {
   type: "@swamp/gcp/sheets/spreadsheets-values",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -318,6 +318,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -399,7 +404,7 @@ export const model = {
         } else if (existing["spreadsheetId"]) {
           params["spreadsheetId"] = String(existing["spreadsheetId"]);
         }
-        params["range"] = existing["name"]?.toString() ?? "";
+        params["range"] = existing["range"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["majorDimension"] !== undefined) {
           body["majorDimension"] = g["majorDimension"];

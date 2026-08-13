@@ -760,7 +760,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON Objects. Registered at `@swamp/gcp/storage/objects`. */
 export const model = {
   type: "@swamp/gcp/storage/objects",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -894,6 +894,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1141,7 +1146,11 @@ export const model = {
         if (g["eventBasedHold"] !== undefined) {
           body["eventBasedHold"] = g["eventBasedHold"];
         }
-        if (g["generation"] !== undefined) body["generation"] = g["generation"];
+        if (g["generation"] !== undefined) {
+          params["generation"] = String(g["generation"]);
+        } else if (existing["generation"] !== undefined) {
+          params["generation"] = String(existing["generation"]);
+        }
         if (g["hardDeleteTime"] !== undefined) {
           body["hardDeleteTime"] = g["hardDeleteTime"];
         }

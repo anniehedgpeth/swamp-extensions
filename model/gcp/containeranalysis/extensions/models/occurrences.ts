@@ -195,48 +195,8 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     })).describe("Findings produced by the analysis.").optional(),
     maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"]).describe(
-      "Maximum severity found among findings. Per scanner verdict details.",
+      "Maximum severity found among findings.",
     ).optional(),
-    perScannerVerdict: z.object({
-      maliciousContentLlmResult: z.object({
-        maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"])
-          .describe("Tracks max severity found.").optional(),
-        scanStatus: z.enum([
-          "SCAN_STATUS_UNSPECIFIED",
-          "PERFORMED",
-          "NOT_PERFORMED",
-        ]).describe("Status of the scan.").optional(),
-      }).describe("Malicious Content LLM scan result.").optional(),
-      maliciousContentStaticResult: z.object({
-        maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"])
-          .describe("Tracks max severity found.").optional(),
-        scanStatus: z.enum([
-          "SCAN_STATUS_UNSPECIFIED",
-          "PERFORMED",
-          "NOT_PERFORMED",
-        ]).describe("Status of the scan.").optional(),
-      }).describe("Malicious Content Static scan result.").optional(),
-      malwareScan: z.object({
-        scanStatus: z.enum([
-          "SCAN_STATUS_UNSPECIFIED",
-          "PERFORMED",
-          "NOT_PERFORMED",
-        ]).describe("Status of the scan.").optional(),
-        verdict: z.enum(["VERDICT_UNSPECIFIED", "PASSED", "FAILED"]).describe(
-          "Verdict of the scan.",
-        ).optional(),
-      }).describe("Malware scan result.").optional(),
-      workspacePolicy: z.object({
-        scanStatus: z.enum([
-          "SCAN_STATUS_UNSPECIFIED",
-          "PERFORMED",
-          "NOT_PERFORMED",
-        ]).describe("Status of the scan.").optional(),
-        verdict: z.enum(["VERDICT_UNSPECIFIED", "PASSED", "FAILED"]).describe(
-          "Verdict of the scan.",
-        ).optional(),
-      }).describe("Workspace Policy scan result.").optional(),
-    }).describe("Per scanner verdict.").optional(),
     skillName: z.string().describe(
       "Name of the skill that produced this analysis.",
     ).optional(),
@@ -1940,24 +1900,6 @@ const StateSchema = z.object({
       severity: z.string(),
     })),
     maxSeverity: z.string(),
-    perScannerVerdict: z.object({
-      maliciousContentLlmResult: z.object({
-        maxSeverity: z.string(),
-        scanStatus: z.string(),
-      }),
-      maliciousContentStaticResult: z.object({
-        maxSeverity: z.string(),
-        scanStatus: z.string(),
-      }),
-      malwareScan: z.object({
-        scanStatus: z.string(),
-        verdict: z.string(),
-      }),
-      workspacePolicy: z.object({
-        scanStatus: z.string(),
-        verdict: z.string(),
-      }),
-    }),
     skillName: z.string(),
   }).optional(),
   attestation: z.object({
@@ -2638,48 +2580,8 @@ const InputsSchema = z.object({
       ).optional(),
     })).describe("Findings produced by the analysis.").optional(),
     maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"]).describe(
-      "Maximum severity found among findings. Per scanner verdict details.",
+      "Maximum severity found among findings.",
     ).optional(),
-    perScannerVerdict: z.object({
-      maliciousContentLlmResult: z.object({
-        maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"])
-          .describe("Tracks max severity found.").optional(),
-        scanStatus: z.enum([
-          "SCAN_STATUS_UNSPECIFIED",
-          "PERFORMED",
-          "NOT_PERFORMED",
-        ]).describe("Status of the scan.").optional(),
-      }).describe("Malicious Content LLM scan result.").optional(),
-      maliciousContentStaticResult: z.object({
-        maxSeverity: z.enum(["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH"])
-          .describe("Tracks max severity found.").optional(),
-        scanStatus: z.enum([
-          "SCAN_STATUS_UNSPECIFIED",
-          "PERFORMED",
-          "NOT_PERFORMED",
-        ]).describe("Status of the scan.").optional(),
-      }).describe("Malicious Content Static scan result.").optional(),
-      malwareScan: z.object({
-        scanStatus: z.enum([
-          "SCAN_STATUS_UNSPECIFIED",
-          "PERFORMED",
-          "NOT_PERFORMED",
-        ]).describe("Status of the scan.").optional(),
-        verdict: z.enum(["VERDICT_UNSPECIFIED", "PASSED", "FAILED"]).describe(
-          "Verdict of the scan.",
-        ).optional(),
-      }).describe("Malware scan result.").optional(),
-      workspacePolicy: z.object({
-        scanStatus: z.enum([
-          "SCAN_STATUS_UNSPECIFIED",
-          "PERFORMED",
-          "NOT_PERFORMED",
-        ]).describe("Status of the scan.").optional(),
-        verdict: z.enum(["VERDICT_UNSPECIFIED", "PASSED", "FAILED"]).describe(
-          "Verdict of the scan.",
-        ).optional(),
-      }).describe("Workspace Policy scan result.").optional(),
-    }).describe("Per scanner verdict.").optional(),
     skillName: z.string().describe(
       "Name of the skill that produced this analysis.",
     ).optional(),
@@ -4395,7 +4297,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Container Analysis Occurrences. Registered at `@swamp/gcp/containeranalysis/occurrences`. */
 export const model = {
   type: "@swamp/gcp/containeranalysis/occurrences",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -4584,6 +4486,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -341,7 +341,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Display & Video 360 Advertisers.AdAssets. Registered at `@swamp/gcp/displayvideo/advertisers-adassets`. */
 export const model = {
   type: "@swamp/gcp/displayvideo/advertisers-adassets",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -456,6 +456,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -582,7 +587,7 @@ export const model = {
         } else if (existing["advertiserId"]) {
           params["advertiserId"] = String(existing["advertiserId"]);
         }
-        params["adAssetId"] = existing["name"]?.toString() ?? "";
+        params["adAssetId"] = existing["adAssetId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["adAssetType"] !== undefined) {
           body["adAssetType"] = g["adAssetType"];

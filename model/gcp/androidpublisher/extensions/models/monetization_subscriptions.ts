@@ -805,7 +805,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Play Android Developer Monetization.Subscriptions. Registered at `@swamp/gcp/androidpublisher/monetization-subscriptions`. */
 export const model = {
   type: "@swamp/gcp/androidpublisher/monetization-subscriptions",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -967,6 +967,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1099,7 +1104,7 @@ export const model = {
         } else if (existing["packageName"]) {
           params["packageName"] = String(existing["packageName"]);
         }
-        params["productId"] = existing["name"]?.toString() ?? "";
+        params["productId"] = existing["productId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["basePlans"] !== undefined) body["basePlans"] = g["basePlans"];
         if (g["listings"] !== undefined) body["listings"] = g["listings"];

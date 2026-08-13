@@ -214,7 +214,7 @@ const GlobalArgsSchema = z.object({
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
   userId: z.string().describe(
-    "Required. Id of the requesting object If auto-generating Id server-side, remove this field and server_id from the method_signature of Create RPC",
+    "Required. A unique user ID for the SFTP user. The user ID must start with a lowercase letter and can include lowercase letters, numbers, or hyphens.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -292,7 +292,7 @@ const InputsSchema = z.object({
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
   ).optional(),
   userId: z.string().describe(
-    "Required. Id of the requesting object If auto-generating Id server-side, remove this field and server_id from the method_signature of Create RPC",
+    "Required. A unique user ID for the SFTP user. The user ID must start with a lowercase letter and can include lowercase letters, numbers, or hyphens.",
   ).optional(),
   parent: z.string().describe(
     "The parent resource name (e.g., projects/my-project/locations/us-central1, organizations/123, folders/456)",
@@ -328,7 +328,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud FTP Servers.Users. Registered at `@swamp/gcp/ftp/servers-users`. */
 export const model = {
   type: "@swamp/gcp/ftp/servers-users",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

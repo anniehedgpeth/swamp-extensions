@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/sagemaker/experiment-trial-component
+// Auto-generated extension model for @swamp/aws/glue/table-optimizer
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for SageMaker ExperimentTrialComponent (AWS::SageMaker::ExperimentTrialComponent).
+ * Swamp extension model for Glue TableOptimizer (AWS::Glue::TableOptimizer).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, and sync can be driven through `swamp model`.
@@ -41,6 +41,57 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
+const IcebergRetentionConfigurationSchema = z.object({
+  SnapshotRetentionPeriodInDays: z.number().int().optional(),
+  NumberOfSnapshotsToRetain: z.number().int().optional(),
+  CleanExpiredFiles: z.boolean().optional(),
+});
+
+const RetentionConfigurationSchema = z.object({
+  IcebergConfiguration: IcebergRetentionConfigurationSchema.describe(
+    "The configuration for an Iceberg snapshot retention optimizer.",
+  ).optional(),
+});
+
+const VpcConfigurationSchema = z.object({
+  GlueConnectionName: z.string().describe(
+    "The name of the AWS Glue connection used for the VPC for the table optimizer.",
+  ).optional(),
+});
+
+const IcebergConfigurationSchema = z.object({
+  OrphanFileRetentionPeriodInDays: z.number().int().describe(
+    "The specific number of days you want to keep the orphan files.",
+  ).optional(),
+  Location: z.string().describe(
+    "Specifies a directory in which to look for orphan files (defaults to the table's location). You may choose a sub-directory rather than the top-level table location.",
+  ).optional(),
+});
+
+const OrphanFileDeletionConfigurationSchema = z.object({
+  IcebergConfiguration: IcebergConfigurationSchema.describe(
+    "The IcebergConfiguration property helps optimize your Iceberg tables in AWS Glue by allowing you to specify format-specific settings that control how data is stored, compressed, and managed.",
+  ).optional(),
+});
+
+const IcebergCompactionConfigurationSchema = z.object({
+  Strategy: z.string().describe(
+    "The compaction strategy to use. Valid values are binpack, sort, and z-order.",
+  ).optional(),
+  MinInputFiles: z.number().int().describe(
+    "The minimum number of input files before compaction is triggered.",
+  ).optional(),
+  DeleteFileThreshold: z.number().int().describe(
+    "The minimum number of deletes in a data file to make it eligible for compaction.",
+  ).optional(),
+});
+
+const CompactionConfigurationSchema = z.object({
+  IcebergConfiguration: IcebergCompactionConfigurationSchema.describe(
+    "The configuration for an Iceberg compaction optimizer.",
+  ).optional(),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -57,79 +108,48 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  TrialComponentName: z.string().min(1).max(120).regex(
-    new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,119}$"),
-  ).describe(
-    "The name of the trial component. The name must be unique in your AWS account and is not case-sensitive.",
+  DatabaseName: z.string().describe(
+    "The name of the database. For Hive compatibility, this is folded to lowercase when it is stored.",
   ),
-  DisplayName: z.string().min(1).max(120).regex(
-    new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,119}$"),
-  ).describe(
-    "The name of the component as displayed. The name doesn't need to be unique. If DisplayName isn't specified, TrialComponentName is displayed.",
-  ).optional(),
-  Status: z.object({
-    PrimaryStatus: z.enum([
-      "InProgress",
-      "Completed",
-      "Failed",
-      "Stopping",
-      "Stopped",
-    ]).describe("The status of the trial component.").optional(),
-    Message: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "If the component failed, a message describing why.",
+  TableName: z.string().describe(
+    "The table name. For Hive compatibility, this must be entirely lowercase.",
+  ),
+  Type: z.string().describe("The type of table optimizer."),
+  TableOptimizerConfiguration: z.object({
+    Enabled: z.boolean().describe("Whether the table optimization is enabled."),
+    RetentionConfiguration: RetentionConfigurationSchema.describe(
+      "The configuration for a snapshot retention optimizer for Apache Iceberg tables.",
     ).optional(),
-  }).describe("The status of the trial component.").optional(),
-  StartTime: z.string().describe("When the component started.").optional(),
-  EndTime: z.string().describe("When the component ended.").optional(),
-  MetadataProperties: z.object({
-    CommitId: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "The commit ID.",
+    VpcConfiguration: VpcConfigurationSchema.describe(
+      "An object that describes the VPC configuration for a table optimizer. This configuration is necessary to perform optimization on tables that are in a customer VPC.",
     ).optional(),
-    Repository: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "The repository.",
+    RoleArn: z.string().describe(
+      "A role passed by the caller which gives the service permission to update the resources associated with the optimizer on the caller's behalf.",
+    ),
+    OrphanFileDeletionConfiguration: OrphanFileDeletionConfigurationSchema
+      .describe(
+        "OrphanFileDeletionConfiguration is a property that can be included within the TableOptimizer resource. It controls the automatic deletion of orphaned files - files that are not tracked by the table metadata, and older than the configured age limit.",
+      ).optional(),
+    CompactionConfiguration: CompactionConfigurationSchema.describe(
+      "The configuration for a compaction optimizer. This configuration defines how data files in your table will be compacted to improve query performance and reduce storage costs.",
     ).optional(),
-    GeneratedBy: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "The entity this entity was generated by.",
-    ).optional(),
-    ProjectId: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "The project ID.",
-    ).optional(),
-  }).describe(
-    "Metadata properties of the tracking entity, trial, or trial component.",
-  ).optional(),
-  Tags: z.array(z.object({
-    Key: z.string().min(1).max(128).regex(
-      new RegExp("^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$", "u"),
-    ).describe("The tag key."),
-    Value: z.string().max(256).regex(
-      new RegExp("^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$", "u"),
-    ).describe("The tag value."),
-  })).describe("A list of tags to associate with the component.").optional(),
+  }).describe("Specifies configuration details of a table optimizer."),
+  CatalogId: z.string().describe("The catalog ID of the table"),
 });
 
 const StateSchema = z.object({
-  TrialComponentName: z.string().optional(),
-  Arn: z.string(),
-  DisplayName: z.string().optional(),
-  Status: z.object({
-    PrimaryStatus: z.string(),
-    Message: z.string(),
+  DatabaseName: z.string(),
+  TableName: z.string(),
+  Type: z.string(),
+  TableOptimizerConfiguration: z.object({
+    Enabled: z.boolean(),
+    RetentionConfiguration: RetentionConfigurationSchema,
+    VpcConfiguration: VpcConfigurationSchema,
+    RoleArn: z.string(),
+    OrphanFileDeletionConfiguration: OrphanFileDeletionConfigurationSchema,
+    CompactionConfiguration: CompactionConfigurationSchema,
   }).optional(),
-  StartTime: z.string().optional(),
-  EndTime: z.string().optional(),
-  MetadataProperties: z.object({
-    CommitId: z.string(),
-    Repository: z.string(),
-    GeneratedBy: z.string(),
-    ProjectId: z.string(),
-  }).optional(),
-  Tags: z.array(z.object({
-    Key: z.string(),
-    Value: z.string(),
-  })).optional(),
-  CreationTime: z.string().optional(),
-  LastModifiedTime: z.string().optional(),
-  LineageGroupArn: z.string().optional(),
+  CatalogId: z.string(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -140,54 +160,35 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  TrialComponentName: z.string().min(1).max(120).regex(
-    new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,119}$"),
-  ).describe(
-    "The name of the trial component. The name must be unique in your AWS account and is not case-sensitive.",
+  DatabaseName: z.string().describe(
+    "The name of the database. For Hive compatibility, this is folded to lowercase when it is stored.",
   ).optional(),
-  DisplayName: z.string().min(1).max(120).regex(
-    new RegExp("^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,119}$"),
-  ).describe(
-    "The name of the component as displayed. The name doesn't need to be unique. If DisplayName isn't specified, TrialComponentName is displayed.",
+  TableName: z.string().describe(
+    "The table name. For Hive compatibility, this must be entirely lowercase.",
   ).optional(),
-  Status: z.object({
-    PrimaryStatus: z.enum([
-      "InProgress",
-      "Completed",
-      "Failed",
-      "Stopping",
-      "Stopped",
-    ]).describe("The status of the trial component.").optional(),
-    Message: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "If the component failed, a message describing why.",
+  Type: z.string().describe("The type of table optimizer.").optional(),
+  TableOptimizerConfiguration: z.object({
+    Enabled: z.boolean().describe("Whether the table optimization is enabled.")
+      .optional(),
+    RetentionConfiguration: RetentionConfigurationSchema.describe(
+      "The configuration for a snapshot retention optimizer for Apache Iceberg tables.",
     ).optional(),
-  }).describe("The status of the trial component.").optional(),
-  StartTime: z.string().describe("When the component started.").optional(),
-  EndTime: z.string().describe("When the component ended.").optional(),
-  MetadataProperties: z.object({
-    CommitId: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "The commit ID.",
+    VpcConfiguration: VpcConfigurationSchema.describe(
+      "An object that describes the VPC configuration for a table optimizer. This configuration is necessary to perform optimization on tables that are in a customer VPC.",
     ).optional(),
-    Repository: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "The repository.",
+    RoleArn: z.string().describe(
+      "A role passed by the caller which gives the service permission to update the resources associated with the optimizer on the caller's behalf.",
     ).optional(),
-    GeneratedBy: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "The entity this entity was generated by.",
+    OrphanFileDeletionConfiguration: OrphanFileDeletionConfigurationSchema
+      .describe(
+        "OrphanFileDeletionConfiguration is a property that can be included within the TableOptimizer resource. It controls the automatic deletion of orphaned files - files that are not tracked by the table metadata, and older than the configured age limit.",
+      ).optional(),
+    CompactionConfiguration: CompactionConfigurationSchema.describe(
+      "The configuration for a compaction optimizer. This configuration defines how data files in your table will be compacted to improve query performance and reduce storage costs.",
     ).optional(),
-    ProjectId: z.string().max(1024).regex(new RegExp(".*")).describe(
-      "The project ID.",
-    ).optional(),
-  }).describe(
-    "Metadata properties of the tracking entity, trial, or trial component.",
-  ).optional(),
-  Tags: z.array(z.object({
-    Key: z.string().min(1).max(128).regex(
-      new RegExp("^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$", "u"),
-    ).describe("The tag key.").optional(),
-    Value: z.string().max(256).regex(
-      new RegExp("^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$", "u"),
-    ).describe("The tag value.").optional(),
-  })).describe("A list of tags to associate with the component.").optional(),
+  }).describe("Specifies configuration details of a table optimizer.")
+    .optional(),
+  CatalogId: z.string().describe("The catalog ID of the table").optional(),
 });
 
 const _credentialKeys = new Set([
@@ -206,15 +207,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for SageMaker ExperimentTrialComponent. Registered at `@swamp/aws/sagemaker/experiment-trial-component`. */
+/** Swamp extension model for Glue TableOptimizer. Registered at `@swamp/aws/glue/table-optimizer`. */
 export const model = {
-  type: "@swamp/aws/sagemaker/experiment-trial-component",
-  version: "2026.07.17.1",
+  type: "@swamp/aws/glue/table-optimizer",
+  version: "2026.08.13.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "SageMaker ExperimentTrialComponent resource state",
+      description: "Glue TableOptimizer resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -222,7 +223,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a SageMaker ExperimentTrialComponent",
+      description: "Create a Glue TableOptimizer",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -234,7 +235,7 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::SageMaker::ExperimentTrialComponent",
+          "AWS::Glue::TableOptimizer",
           desiredState,
           credentials,
         ) as StateData;
@@ -251,16 +252,16 @@ export const model = {
       },
     },
     get: {
-      description: "Get a SageMaker ExperimentTrialComponent",
+      description: "Get a Glue TableOptimizer",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the SageMaker ExperimentTrialComponent",
+          "The primary identifier of the Glue TableOptimizer",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::SageMaker::ExperimentTrialComponent",
+          "AWS::Glue::TableOptimizer",
           args.identifier,
           credentials,
         ) as StateData;
@@ -278,7 +279,7 @@ export const model = {
       },
     },
     update: {
-      description: "Update a SageMaker ExperimentTrialComponent",
+      description: "Update a Glue TableOptimizer",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -296,12 +297,20 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.Arn?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.TableName?.toString(),
+          existing.DatabaseName?.toString(),
+          existing.Type?.toString(),
+          existing.CatalogId?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         const currentState = await readResource(
-          "AWS::SageMaker::ExperimentTrialComponent",
+          "AWS::Glue::TableOptimizer",
           identifier,
           credentials,
         ) as StateData;
@@ -312,11 +321,11 @@ export const model = {
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await updateResource(
-          "AWS::SageMaker::ExperimentTrialComponent",
+          "AWS::Glue::TableOptimizer",
           identifier,
           currentState,
           desiredState,
-          ["TrialComponentName", "MetadataProperties"],
+          ["TableName", "DatabaseName", "Type", "CatalogId"],
           credentials,
         );
         const handle = await context.writeResource(
@@ -328,16 +337,16 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a SageMaker ExperimentTrialComponent",
+      description: "Delete a Glue TableOptimizer",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the SageMaker ExperimentTrialComponent",
+          "The primary identifier of the Glue TableOptimizer",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::SageMaker::ExperimentTrialComponent",
+          "AWS::Glue::TableOptimizer",
           args.identifier,
           credentials,
         );
@@ -356,7 +365,7 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync SageMaker ExperimentTrialComponent state from AWS",
+      description: "Sync Glue TableOptimizer state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -374,13 +383,21 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.Arn?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.TableName?.toString(),
+          existing.DatabaseName?.toString(),
+          existing.Type?.toString(),
+          existing.CatalogId?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         try {
           const result = await readResource(
-            "AWS::SageMaker::ExperimentTrialComponent",
+            "AWS::Glue::TableOptimizer",
             identifier,
             credentials,
           ) as StateData;

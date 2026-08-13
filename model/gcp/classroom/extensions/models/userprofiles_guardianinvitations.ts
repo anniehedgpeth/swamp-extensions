@@ -260,7 +260,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Classroom UserProfiles.GuardianInvitations. Registered at `@swamp/gcp/classroom/userprofiles-guardianinvitations`. */
 export const model = {
   type: "@swamp/gcp/classroom/userprofiles-guardianinvitations",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -374,6 +374,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -506,7 +511,7 @@ export const model = {
         } else if (existing["studentId"]) {
           params["studentId"] = String(existing["studentId"]);
         }
-        params["invitationId"] = existing["name"]?.toString() ?? "";
+        params["invitationId"] = existing["invitationId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["creationTime"] !== undefined) {
           body["creationTime"] = g["creationTime"];

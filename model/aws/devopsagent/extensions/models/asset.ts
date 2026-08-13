@@ -1,0 +1,357 @@
+// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/aws/devopsagent/asset
+// Do not edit manually. Re-generate with: deno task generate:aws
+
+// deno-lint-ignore-file no-explicit-any
+
+/**
+ * Swamp extension model for DevOpsAgent Asset (AWS::DevOpsAgent::Asset).
+ *
+ * Wraps the CloudFormation resource type as a swamp model so create,
+ * get, update, delete, and sync can be driven through `swamp model`.
+ *
+ * @module
+ */
+
+import { z } from "npm:zod@4.3.6";
+import {
+  createResource,
+  deleteResource,
+  isResourceNotFoundError,
+  readResource,
+  updateResource,
+} from "./_lib/aws.ts";
+import type { AwsCredentials } from "./_lib/aws.ts";
+
+const AssetFileSchema = z.object({
+  Path: z.string().min(1).max(512).regex(new RegExp("^[a-zA-Z0-9_./-]+$"))
+    .describe("Path of this file within the asset bundle."),
+  ContentText: z.string().max(1572864).describe(
+    "UTF-8 text contents of the file. Mutually exclusive with ContentBytes (max 1.5 MiB).",
+  ).optional(),
+  ContentBytes: z.string().max(8388608).describe(
+    "Base64-encoded binary contents of the file. Mutually exclusive with ContentText (max 6 MiB).",
+  ).optional(),
+  Metadata: z.record(z.string(), z.unknown()).describe(
+    "Per-file metadata document. Values may be strings, numbers, booleans, or lists of any of those (validated server-side).",
+  ).optional(),
+});
+
+const GlobalArgsSchema = z.object({
+  name: z.string().describe(
+    "Instance name for this resource (used as the unique identifier in the factory pattern)",
+  ),
+  accessKeyId: z.string().meta({ sensitive: true }).describe(
+    "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  secretAccessKey: z.string().meta({ sensitive: true }).describe(
+    "AWS secret access key; overrides AWS_SECRET_ACCESS_KEY environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  sessionToken: z.string().meta({ sensitive: true }).describe(
+    "AWS session token for temporary credentials; overrides AWS_SESSION_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  region: z.string().describe(
+    "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
+  ).optional(),
+  AgentSpaceId: z.string().min(1).max(255).describe(
+    "The unique identifier of the parent Agent Space. The asset is created as a child of this agent space.",
+  ),
+  AssetType: z.string().min(1).max(64).regex(new RegExp("^[a-z][a-z0-9_]*$"))
+    .describe(
+      "The type of asset. The Asset API treats this as an open string; call ListAssetTypes for the current authoritative set of supported types. As of launch, customer-creatable types include skill, agents_md, and attachment.",
+    ),
+  Metadata: z.record(z.string(), z.unknown()).describe(
+    "Asset metadata document. Required and optional keys depend on AssetType. Values may be strings, numbers, booleans, or lists of any of those - validated server-side; see the public Asset API docs for the per-type metadata schema.",
+  ).optional(),
+  Files: z.array(AssetFileSchema).describe(
+    "Inline file list. Mutually exclusive with Zip; enforced by the handler at Create/Update time. Write-only: not repopulated by Read.",
+  ).optional(),
+  Zip: z.string().max(8388608).describe(
+    "Base64-encoded zip bundle containing all files for the asset. Mutually exclusive with Files; enforced by the handler at Create/Update time. Write-only: not repopulated by Read. Server treats a zip as 'replace all files' (max 6 MiB).",
+  ).optional(),
+});
+
+const StateSchema = z.object({
+  AgentSpaceId: z.string(),
+  AssetType: z.string().optional(),
+  AssetId: z.string(),
+  Metadata: z.record(z.string(), z.unknown()).optional(),
+  Files: z.array(AssetFileSchema).optional(),
+  Zip: z.string().optional(),
+  Version: z.number().optional(),
+  CreatedAt: z.string().optional(),
+  UpdatedAt: z.string().optional(),
+  Arn: z.string().optional(),
+}).passthrough();
+
+type StateData = z.infer<typeof StateSchema>;
+
+const InputsSchema = z.object({
+  name: z.string().optional(),
+  accessKeyId: z.string().meta({ sensitive: true }).optional(),
+  secretAccessKey: z.string().meta({ sensitive: true }).optional(),
+  sessionToken: z.string().meta({ sensitive: true }).optional(),
+  region: z.string().optional(),
+  AgentSpaceId: z.string().min(1).max(255).describe(
+    "The unique identifier of the parent Agent Space. The asset is created as a child of this agent space.",
+  ).optional(),
+  AssetType: z.string().min(1).max(64).regex(new RegExp("^[a-z][a-z0-9_]*$"))
+    .describe(
+      "The type of asset. The Asset API treats this as an open string; call ListAssetTypes for the current authoritative set of supported types. As of launch, customer-creatable types include skill, agents_md, and attachment.",
+    ).optional(),
+  Metadata: z.record(z.string(), z.unknown()).describe(
+    "Asset metadata document. Required and optional keys depend on AssetType. Values may be strings, numbers, booleans, or lists of any of those - validated server-side; see the public Asset API docs for the per-type metadata schema.",
+  ).optional(),
+  Files: z.array(AssetFileSchema).describe(
+    "Inline file list. Mutually exclusive with Zip; enforced by the handler at Create/Update time. Write-only: not repopulated by Read.",
+  ).optional(),
+  Zip: z.string().max(8388608).describe(
+    "Base64-encoded zip bundle containing all files for the asset. Mutually exclusive with Files; enforced by the handler at Create/Update time. Write-only: not repopulated by Read. Server treats a zip as 'replace all files' (max 6 MiB).",
+  ).optional(),
+});
+
+const _credentialKeys = new Set([
+  "accessKeyId",
+  "secretAccessKey",
+  "sessionToken",
+  "region",
+]);
+
+function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
+  return {
+    accessKeyId: g.accessKeyId as string | undefined,
+    secretAccessKey: g.secretAccessKey as string | undefined,
+    sessionToken: g.sessionToken as string | undefined,
+    region: g.region as string | undefined,
+  };
+}
+
+/** Swamp extension model for DevOpsAgent Asset. Registered at `@swamp/aws/devopsagent/asset`. */
+export const model = {
+  type: "@swamp/aws/devopsagent/asset",
+  version: "2026.08.13.1",
+  globalArguments: GlobalArgsSchema,
+  inputsSchema: InputsSchema,
+  resources: {
+    state: {
+      description: "DevOpsAgent Asset resource state",
+      schema: StateSchema,
+      lifetime: "infinite",
+      garbageCollection: 10,
+    },
+  },
+  methods: {
+    create: {
+      description: "Create a DevOpsAgent Asset",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const desiredState: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await createResource(
+          "AWS::DevOpsAgent::Asset",
+          desiredState,
+          credentials,
+        ) as StateData;
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    get: {
+      description: "Get a DevOpsAgent Asset",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the DevOpsAgent Asset",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const result = await readResource(
+          "AWS::DevOpsAgent::Asset",
+          args.identifier,
+          credentials,
+        ) as StateData;
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update a DevOpsAgent Asset",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const idParts = [
+          existing.AgentSpaceId?.toString(),
+          existing.AssetId?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
+        }
+        const identifier = idParts.join("|");
+        const currentState = await readResource(
+          "AWS::DevOpsAgent::Asset",
+          identifier,
+          credentials,
+        ) as StateData;
+        const desiredState: Record<string, unknown> = { ...currentState };
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await updateResource(
+          "AWS::DevOpsAgent::Asset",
+          identifier,
+          currentState,
+          desiredState,
+          ["AgentSpaceId", "AssetType"],
+          credentials,
+        );
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete a DevOpsAgent Asset",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the DevOpsAgent Asset",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { existed } = await deleteResource(
+          "AWS::DevOpsAgent::Asset",
+          args.identifier,
+          credentials,
+        );
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          identifier: args.identifier,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
+        return { dataHandles: [handle] };
+      },
+    },
+    sync: {
+      description: "Sync DevOpsAgent Asset state from AWS",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const idParts = [
+          existing.AgentSpaceId?.toString(),
+          existing.AssetId?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
+        }
+        const identifier = idParts.join("|");
+        try {
+          const result = await readResource(
+            "AWS::DevOpsAgent::Asset",
+            identifier,
+            credentials,
+          ) as StateData;
+          const handle = await context.writeResource(
+            "state",
+            instanceName,
+            result,
+          );
+          return { dataHandles: [handle] };
+        } catch (error: unknown) {
+          if (isResourceNotFoundError(error)) {
+            const handle = await context.writeResource("state", instanceName, {
+              identifier,
+              status: "not_found",
+              syncedAt: new Date().toISOString(),
+            });
+            return { dataHandles: [handle] };
+          }
+          throw error;
+        }
+      },
+    },
+  },
+};

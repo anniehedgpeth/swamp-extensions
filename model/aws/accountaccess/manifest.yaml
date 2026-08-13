@@ -1,0 +1,20 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/aws/accountaccess"
+version: "2026.08.13.1"
+description: "AWS ACCOUNTACCESS infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - aws
+  - accountaccess
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added: application, entitlement
+models:
+  - application.ts
+  - entitlement.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

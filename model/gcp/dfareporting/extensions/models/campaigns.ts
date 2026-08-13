@@ -858,7 +858,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Campaign Manager 360 Campaigns. Registered at `@swamp/gcp/dfareporting/campaigns`. */
 export const model = {
   type: "@swamp/gcp/dfareporting/campaigns",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -977,6 +977,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1161,7 +1166,7 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const params: Record<string, string> = { project: projectId };
-        params["profileId"] = existing["id"]?.toString() ?? "";
+        params["profileId"] = existing["profileId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["accountId"] !== undefined) body["accountId"] = g["accountId"];
         if (g["adBlockingConfiguration"] !== undefined) {

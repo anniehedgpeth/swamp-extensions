@@ -269,7 +269,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gmail Users.Settings.Cse.Identities. Registered at `@swamp/gcp/gmail/users-settings-cse-identities`. */
 export const model = {
   type: "@swamp/gcp/gmail/users-settings-cse-identities",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -378,6 +378,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -506,7 +511,7 @@ export const model = {
         else if (existing["userId"]) {
           params["userId"] = String(existing["userId"]);
         }
-        params["emailAddress"] = existing["name"]?.toString() ?? "";
+        params["emailAddress"] = existing["emailAddress"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["primaryKeyPairId"] !== undefined) {
           body["primaryKeyPairId"] = g["primaryKeyPairId"];

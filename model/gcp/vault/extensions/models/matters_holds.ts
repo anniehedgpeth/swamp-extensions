@@ -480,7 +480,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Vault Matters.Holds. Registered at `@swamp/gcp/vault/matters-holds`. */
 export const model = {
   type: "@swamp/gcp/vault/matters-holds",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -609,6 +609,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -742,7 +747,7 @@ export const model = {
         } else if (existing["matterId"]) {
           params["matterId"] = String(existing["matterId"]);
         }
-        params["holdId"] = existing["name"]?.toString() ?? "";
+        params["holdId"] = existing["holdId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["accounts"] !== undefined) body["accounts"] = g["accounts"];
         if (g["corpus"] !== undefined) body["corpus"] = g["corpus"];

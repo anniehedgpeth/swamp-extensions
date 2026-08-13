@@ -271,7 +271,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON BucketAccessControls. Registered at `@swamp/gcp/storage/bucketaccesscontrols`. */
 export const model = {
   type: "@swamp/gcp/storage/bucketaccesscontrols",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -390,6 +390,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -518,7 +523,7 @@ export const model = {
         else if (existing["bucket"]) {
           params["bucket"] = String(existing["bucket"]);
         }
-        params["entity"] = existing["name"]?.toString() ?? "";
+        params["entity"] = existing["entity"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["domain"] !== undefined) body["domain"] = g["domain"];
         if (g["email"] !== undefined) body["email"] = g["email"];

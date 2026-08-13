@@ -14,8 +14,10 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/apigatewayv2/api_mapping` to see the
-full list of configurable properties and available methods for this model.
+Use
+`swamp model type describe @swamp/aws/apigatewayv2/api_gateway_managed_overrides`
+to see the full list of configurable properties and available methods for this
+model.
 
 ## Authentication
 
@@ -47,17 +49,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new api_mapping model
-swamp model create @swamp/aws/apigatewayv2/api_mapping my-api_mapping
+# Create a new api_gateway_managed_overrides model
+swamp model create @swamp/aws/apigatewayv2/api_gateway_managed_overrides my-api_gateway_managed_overrides
 
 # Edit the model to configure its properties
-swamp model edit my-api_mapping
+swamp model edit my-api_gateway_managed_overrides
 
 # Create the resource in AWS
-swamp model method run my-api_mapping create
+swamp model method run my-api_gateway_managed_overrides create
 
 # Sync current state from AWS
-swamp model method run my-api_mapping sync
+swamp model method run my-api_gateway_managed_overrides sync
 ```
 
 ## License

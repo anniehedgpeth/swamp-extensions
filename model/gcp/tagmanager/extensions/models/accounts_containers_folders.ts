@@ -262,7 +262,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Tag Manager Accounts.Containers.Folders. Registered at `@swamp/gcp/tagmanager/accounts-containers-folders`. */
 export const model = {
   type: "@swamp/gcp/tagmanager/accounts-containers-folders",
-  version: "2026.08.12.2",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -271,6 +271,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -415,10 +420,12 @@ export const model = {
         } else if (existing["containerId"]) {
           params["containerId"] = String(existing["containerId"]);
         }
-        params["folderId"] = existing["name"]?.toString() ?? "";
+        params["folderId"] = existing["folderId"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["fingerprint"] !== undefined) {
-          body["fingerprint"] = g["fingerprint"];
+          params["fingerprint"] = String(g["fingerprint"]);
+        } else if (existing["fingerprint"] !== undefined) {
+          params["fingerprint"] = String(existing["fingerprint"]);
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
         for (const key of Object.keys(existing)) {

@@ -14,8 +14,9 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/servicediscovery/service` to see the
-full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/aws/servicediscovery/public_dns_namespace`
+to see the full list of configurable properties and available methods for this
+model.
 
 ## Authentication
 
@@ -47,17 +48,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new service model
-swamp model create @swamp/aws/servicediscovery/service my-service
+# Create a new public_dns_namespace model
+swamp model create @swamp/aws/servicediscovery/public_dns_namespace my-public_dns_namespace
 
 # Edit the model to configure its properties
-swamp model edit my-service
+swamp model edit my-public_dns_namespace
 
 # Create the resource in AWS
-swamp model method run my-service create
+swamp model method run my-public_dns_namespace create
 
 # Sync current state from AWS
-swamp model method run my-service sync
+swamp model method run my-public_dns_namespace sync
 ```
 
 ## License

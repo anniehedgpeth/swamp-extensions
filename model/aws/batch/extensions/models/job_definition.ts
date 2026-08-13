@@ -185,6 +185,7 @@ const EcsTaskPropertiesSchema = z.object({
   PlatformVersion: z.string().optional(),
   TaskRoleArn: z.string().optional(),
   EnableExecuteCommand: z.boolean().optional(),
+  NetworkMode: z.string().optional(),
 });
 
 const MultiNodeContainerPropertiesSchema = z.object({
@@ -570,7 +571,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Batch JobDefinition. Registered at `@swamp/aws/batch/job-definition`. */
 export const model = {
   type: "@swamp/aws/batch/job-definition",
-  version: "2026.06.15.1",
+  version: "2026.08.13.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -614,6 +615,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
