@@ -88,6 +88,10 @@ swamp data get cve-watcher report-swamp-cve-researcher-report
 ### Run the full workflow (scan + Discord notification)
 
 ```bash
+# With vault (recommended — secrets stay out of shell history and logs):
+swamp workflow run @swamp/cve/researcher
+
+# Or with env vars:
 export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
 export NVD_API_KEY="your-key"  # optional, for higher rate limits
 swamp workflow run @swamp/cve/researcher
@@ -136,13 +140,40 @@ jobs:
 | `severityThreshold` | `HIGH` | Minimum severity (`HIGH` or `CRITICAL`) |
 | `keywords` | (none) | Optional keyword filter for CVEs |
 | `maxResultsPerSource` | `40` | Max CVE records to fetch per source |
+| `nvdApiKey` | (none) | NVD API key for higher rate limits (sensitive, vault-resolvable) |
 
-## Environment Variables
+## Secrets
 
-| Variable | Required | Description |
-|---|---|---|
-| `NVD_API_KEY` | No | NVD API key for higher rate limits ([request one here](https://nvd.nist.gov/developers/request-an-api-key)) |
-| `DISCORD_WEBHOOK_URL` | For workflow | Discord webhook URL for the notification step |
+Both secrets support vault-backed resolution via global arguments
+(preferred for remote workers) with a fallback to environment variables.
+
+| Global Arg | Env Var Fallback | Required | Description |
+|---|---|---|---|
+| `nvdApiKey` | `NVD_API_KEY` | No | NVD API key for higher rate limits ([request one here](https://nvd.nist.gov/developers/request-an-api-key)) |
+| `webhookUrl` | `DISCORD_WEBHOOK_URL` | For workflow | Discord webhook URL for the notification step |
+
+### Vault setup (recommended)
+
+The vault name and secret keys are yours to choose — use whatever naming
+fits your project. For example, with a vault called `creds` and keys
+`nvd-key` and `discord-hook`:
+
+```bash
+swamp vault set creds nvd-key "your-key"
+swamp vault set creds discord-hook "https://discord.com/api/webhooks/..."
+```
+
+Then wire them in your model definitions using the same vault/key names:
+
+```bash
+swamp model edit cve-watcher
+# set globalArguments.nvdApiKey to: ${{ vault.get(creds, nvd-key) }}
+
+swamp model edit discord-cve-alerts
+# set globalArguments.webhookUrl to: ${{ vault.get(creds, discord-hook) }}
+```
+
+Fields marked `sensitive` are automatically redacted from logs and reports.
 
 ## Dependencies
 

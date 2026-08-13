@@ -62,6 +62,15 @@ type PersistentState = {
 // ---------------------------------------------------------------------------
 
 const GlobalArgsSchema = z.object({
+  nvdApiKey: z
+    .string()
+    .min(1)
+    .meta({ sensitive: true })
+    .describe(
+      "NVD API key for higher rate limits. Supply via ${{ vault.get(your-vault, your-key) }} " +
+        "or falls back to the NVD_API_KEY environment variable.",
+    )
+    .optional(),
   severityThreshold: z
     .enum(["CRITICAL", "HIGH"])
     .default("HIGH")
@@ -266,10 +275,11 @@ async function queryNvd(
   maxResults: number,
   severityThreshold: string,
   logger: Logger,
+  nvdApiKey?: string,
 ): Promise<SourceResult> {
   const findings: RawCve[] = [];
   const headers: Record<string, string> = {};
-  const apiKey: string | undefined = Deno.env.get("NVD_API_KEY");
+  const apiKey: string | undefined = nvdApiKey ?? Deno.env.get("NVD_API_KEY");
   if (apiKey) headers["apiKey"] = apiKey;
 
   const severities: string[] = severityThreshold === "CRITICAL"
@@ -704,9 +714,17 @@ function formatDiscordSummary(
 
 export const model = {
   type: "@swamp/cve/researcher",
-  version: "2026.06.25.1",
+  version: "2026.08.13.1",
   globalArguments: GlobalArgsSchema,
   reports: ["@swamp/cve/researcher-report"],
+  upgrades: [
+    {
+      toVersion: "2026.08.13.1",
+      description:
+        "Add optional nvdApiKey global arg (vault-resolvable, sensitive). No schema migration needed — new field is optional.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   resources: {
     results: {
       description: "CVE research results with all CVEs in the lookback window",
@@ -765,7 +783,7 @@ export const model = {
           SourceResult,
           SourceResult,
         ] = await Promise.all([
-          queryNvd(maxResults, severity, logger),
+          queryNvd(maxResults, severity, logger, context.globalArgs.nvdApiKey),
           queryGithubAdvisories(maxResults, severity, logger),
           queryCisaKev(maxResults, logger),
         ]);

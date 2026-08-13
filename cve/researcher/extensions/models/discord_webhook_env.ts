@@ -1,7 +1,7 @@
 import { z } from "npm:zod@4.3.6";
 
 type ExtensionContext = {
-  globalArgs: { webhookUrl?: string };
+  globalArgs: z.infer<typeof WebhookGlobalArgs>;
   writeResource: (
     specName: string,
     instanceName: string,
@@ -9,8 +9,21 @@ type ExtensionContext = {
   ) => Promise<unknown>;
 };
 
+const WebhookGlobalArgs = z.object({
+  webhookUrl: z
+    .string()
+    .min(1)
+    .meta({ sensitive: true })
+    .describe(
+      "Discord webhook URL. Supply via ${{ vault.get(your-vault, your-key) }} " +
+        "or falls back to the DISCORD_WEBHOOK_URL environment variable.",
+    )
+    .optional(),
+});
+
 export const extension = {
   type: "@keeb/discord/webhook",
+  globalArguments: WebhookGlobalArgs,
   methods: [{
     sendFromEnv: {
       description:
@@ -27,11 +40,11 @@ export const extension = {
         args: { content: string; username?: string },
         context: ExtensionContext,
       ) => {
-        const webhookUrl = context.globalArgs.webhookUrl ||
+        const webhookUrl = context.globalArgs.webhookUrl ??
           Deno.env.get("DISCORD_WEBHOOK_URL");
         if (!webhookUrl) {
           throw new Error(
-            "No webhook URL: set DISCORD_WEBHOOK_URL env var or webhookUrl global arg",
+            "No webhook URL: supply webhookUrl via vault.get() global arg or set DISCORD_WEBHOOK_URL env var",
           );
         }
 
@@ -48,6 +61,7 @@ export const extension = {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
+          signal: AbortSignal.timeout(30_000),
         });
 
         if (!response.ok) {

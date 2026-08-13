@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/cve/researcher"
-version: "2026.06.25.1"
+version: "2026.08.13.1"
 description: |
   Daily CVE research pipeline — queries NVD, GitHub Advisory DB, and CISA
   KEV for HIGH/CRITICAL vulnerabilities, classifies them by real-world
@@ -28,10 +28,12 @@ description: |
   rich Discord embed summary via `@keeb/discord`. Designed to run daily
   in a GitHub Action on a cron schedule.
 
-  ## Environment Variables
+  ## Secrets
 
-  - `NVD_API_KEY` — NVD API key for higher rate limits (optional)
-  - `DISCORD_WEBHOOK_URL` — Discord webhook URL for notifications (required by workflow)
+  Both `NVD_API_KEY` and `DISCORD_WEBHOOK_URL` can be supplied as
+  vault-backed global arguments (`nvdApiKey`, `webhookUrl`) via
+  `${{ vault.get('<vault>', '<key>') }}` expressions, or as plain
+  environment variables as a fallback.
 
 repository: "https://github.com/swamp-club/swamp-extensions"
 
