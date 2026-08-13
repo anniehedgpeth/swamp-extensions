@@ -15,6 +15,7 @@ import type {
   PullArgs,
   PushArgs,
   StatusArgs,
+  UpstreamStateArgs,
 } from "./schemas.ts";
 import type { DataHandle, GitContext } from "./types.ts";
 
@@ -941,4 +942,126 @@ export async function runCherryPick(
       span.end();
     }
   });
+}
+
+// ---------------------------------------------------------------------------
+// upstream-state
+// ---------------------------------------------------------------------------
+
+export async function runUpstreamState(
+  args: UpstreamStateArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan(
+    "git.upstream-state",
+    async (span) => {
+      try {
+        const globals = resolveGlobalArgs(ctx.globalArgs);
+        const cwd = globals.repoPath;
+
+        let branch: string;
+        if (args.branch) {
+          branch = args.branch;
+        } else {
+          const headResult = await execGit(
+            ["rev-parse", "--abbrev-ref", "HEAD"],
+            { cwd },
+          );
+          if (headResult.exitCode !== 0) {
+            throw new Error(
+              `git rev-parse --abbrev-ref HEAD failed (exit ${headResult.exitCode}): ${headResult.stderr}`,
+            );
+          }
+          branch = headResult.stdout.trim();
+        }
+
+        const upstreamRef = args.branch ? `${args.branch}@{u}` : "@{u}";
+        const upstreamResult = await execGit(
+          ["rev-parse", "--abbrev-ref", "--symbolic-full-name", upstreamRef],
+          { cwd },
+        );
+
+        const hasUpstream = upstreamResult.exitCode === 0;
+        let upstream = "";
+        let ahead = 0;
+        let behind = 0;
+
+        if (hasUpstream) {
+          upstream = upstreamResult.stdout.trim();
+
+          const countResult = await execGit(
+            ["rev-list", "--left-right", "--count", `${upstream}...${branch}`],
+            { cwd },
+          );
+          if (countResult.exitCode !== 0) {
+            throw new Error(
+              `git rev-list --left-right --count failed (exit ${countResult.exitCode}): ${countResult.stderr}`,
+            );
+          }
+
+          const parts = countResult.stdout.trim().split(/\s+/);
+          if (
+            parts.length !== 2 ||
+            !Number.isFinite(Number(parts[0])) ||
+            !Number.isFinite(Number(parts[1]))
+          ) {
+            throw new Error(
+              `unexpected rev-list output (expected "behind\\tahead"): ${countResult.stdout.trim()}`,
+            );
+          }
+          behind = parseInt(parts[0], 10);
+          ahead = parseInt(parts[1], 10);
+        }
+
+        const pushed = hasUpstream && ahead === 0;
+        const synced = hasUpstream && ahead === 0 && behind === 0;
+
+        span.setAttribute(Attr.METHOD, "upstream-state");
+        span.setAttribute(Attr.BRANCH, branch);
+        span.setAttribute(Attr.EXIT_CODE, 0);
+        if (hasUpstream) {
+          span.setAttribute(Attr.UPSTREAM_REF, upstream);
+        }
+
+        ctx.logger.info(
+          hasUpstream
+            ? `${branch} tracking ${upstream}: ahead=${ahead} behind=${behind}`
+            : `${branch} has no upstream`,
+        );
+
+        const safeBranch = branch.replace(/\//g, "-");
+        const handle = await ctx.writeResource(
+          "upstreamStateResult",
+          `upstream-state-${safeBranch}`,
+          {
+            branch,
+            hasUpstream,
+            upstream,
+            ahead,
+            behind,
+            pushed,
+            synced,
+          },
+          {
+            tags: {
+              method: "upstream-state",
+              branch,
+              pushed: String(pushed),
+              synced: String(synced),
+            },
+          },
+        );
+
+        return { dataHandles: [handle] };
+      } catch (error) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      } finally {
+        span.end();
+      }
+    },
+  );
 }

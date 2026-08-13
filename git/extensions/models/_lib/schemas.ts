@@ -268,3 +268,27 @@ export const ConfigResultSchema = z.object({
   key: z.string(),
   value: z.string(),
 });
+
+// ---------------------------------------------------------------------------
+// upstream_state
+// ---------------------------------------------------------------------------
+
+export const UpstreamStateArgsSchema = z.object({
+  branch: safeRefOptional
+    .describe("Branch to check (defaults to current HEAD branch)"),
+});
+
+export type UpstreamStateArgs = z.infer<typeof UpstreamStateArgsSchema>;
+
+export const UpstreamStateResultSchema = z.object({
+  branch: z.string(),
+  hasUpstream: z.boolean(),
+  upstream: z.string()
+    .describe(
+      "Upstream tracking ref, or empty string when hasUpstream is false",
+    ),
+  ahead: z.number().int(),
+  behind: z.number().int(),
+  pushed: z.boolean(),
+  synced: z.boolean(),
+});

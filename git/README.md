@@ -74,6 +74,21 @@ swamp model method run repo status \
   --json
 ```
 
+### Check Upstream / Push State
+
+```bash
+# Is the current branch pushed and synced with its upstream?
+swamp model method run repo upstream_state --json
+
+# Check a specific branch
+swamp model method run repo upstream_state \
+  --input branch=main \
+  --json
+
+# Query for unpushed branches across models
+swamp data query repo 'tags.pushed == "false"'
+```
+
 ### Query Commit History
 
 ```bash
@@ -277,9 +292,13 @@ swamp data query repo 'tags.clean == "false"'
 | `clone`  | Clone a repository with configurable depth, branch, and auth token |
 | `diff`   | Show changes between refs — name-only file lists, stat summaries, or full diffs |
 | `status` | Working tree status with structured entries and clean/dirty flag |
+| `upstream_state` | Tracking-branch state: ahead/behind counts, pushed/synced flags |
 | `log`    | Commit history with structured entries (SHA, author, date, message) |
 | `commit` | Stage files and create a commit |
 | `push`   | Push commits to a remote |
+| `pull`   | Pull changes from a remote |
+| `fetch`  | Fetch refs from a remote with optional tag and prune support |
+| `cherry_pick` | Cherry-pick commits or abort an in-progress cherry-pick |
 | `branch` | Create, switch, or list branches |
 | `config` | Get or set git configuration values |
 
@@ -290,9 +309,13 @@ swamp data query repo 'tags.clean == "false"'
 | `cloneResult`  | Clone path, URL, depth, branch |
 | `diffResult`   | Changed files array, raw diff, count, base/head refs |
 | `statusResult` | Status entries with path and status code, clean flag, count |
+| `upstreamStateResult` | Branch, upstream, ahead/behind counts, pushed/synced flags |
 | `logResult`    | Structured commit entries (SHA, author, date, message) |
 | `commitResult` | Commit SHA and message |
 | `pushResult`   | Remote, branch, forced flag |
+| `pullResult`   | Remote, branch, already-up-to-date flag |
+| `fetchResult`  | Remote, tags, pruned flag |
+| `cherryPickResult` | Applied commits, conflict status, conflicting files |
 | `branchResult` | Current branch, branch list, creation status |
 | `configResult` | Config key and value |
 
@@ -300,7 +323,7 @@ swamp data query repo 'tags.clean == "false"'
 
 | Check              | Applies To | Description |
 | ------------------ | ---------- | ----------- |
-| `git-available`    | all methods | Verifies `git` binary is on PATH |
+| `git-available`    | all 12 methods | Verifies `git` binary is on PATH |
 | `repo-initialized` | all except `clone` | Verifies `repoPath` is inside a git work tree |
 
 ## License

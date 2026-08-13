@@ -23,6 +23,8 @@ import {
   PushResultSchema,
   StatusArgsSchema,
   StatusResultSchema,
+  UpstreamStateArgsSchema,
+  UpstreamStateResultSchema,
 } from "./_lib/schemas.ts";
 import {
   runBranch,
@@ -36,6 +38,7 @@ import {
   runPull,
   runPush,
   runStatus,
+  runUpstreamState,
 } from "./_lib/operations.ts";
 import { checkGitAvailable, checkRepoInitialized } from "./_lib/checks.ts";
 import type { GitContext } from "./_lib/types.ts";
@@ -46,10 +49,10 @@ import type { GitContext } from "./_lib/types.ts";
  * @module
  */
 
-/** Git model — clone, diff, status, log, commit, push, pull, fetch, cherry_pick, branch, config. */
+/** Git model — clone, diff, status, log, commit, push, pull, fetch, cherry_pick, branch, config, upstream_state. */
 export const model = {
   type: "@swamp/git",
-  version: "2026.08.07.1",
+  version: "2026.08.13.1",
 
   globalArguments: GlobalArgsSchema,
 
@@ -58,6 +61,14 @@ export const model = {
       toVersion: "2026.08.07.1",
       description:
         "Add pull, fetch, and cherry_pick methods. No globalArguments changes.",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ): Record<string, unknown> => old,
+    },
+    {
+      toVersion: "2026.08.13.1",
+      description:
+        "Add upstream_state method for tracking-branch state. No globalArguments changes.",
       upgradeAttributes: (
         old: Record<string, unknown>,
       ): Record<string, unknown> => old,
@@ -135,6 +146,15 @@ export const model = {
       lifetime: "ephemeral" as const,
       garbageCollection: 5,
     },
+    upstreamStateResult: {
+      description:
+        "Tracking-branch state: branch, upstream, ahead/behind counts, pushed/synced flags",
+      schema: UpstreamStateResultSchema,
+      lifetime: "ephemeral" as const,
+      // Higher than peers (5–10) per issue #1634: "how long has this been
+      // unpushed" needs history that ephemeral/10 destroys.
+      garbageCollection: 50,
+    },
   },
 
   checks: {
@@ -153,6 +173,7 @@ export const model = {
         "cherry_pick",
         "branch",
         "config",
+        "upstream_state",
       ],
       execute: checkGitAvailable,
     },
@@ -170,6 +191,7 @@ export const model = {
         "cherry_pick",
         "branch",
         "config",
+        "upstream_state",
       ],
       execute: checkRepoInitialized,
     },
@@ -246,6 +268,15 @@ export const model = {
       arguments: ConfigArgsSchema,
       execute: (args: z.input<typeof ConfigArgsSchema>, ctx: GitContext) =>
         runConfig(ConfigArgsSchema.parse(args), ctx),
+    },
+    upstream_state: {
+      description:
+        "Report tracking-branch state: ahead/behind counts, pushed/synced flags",
+      arguments: UpstreamStateArgsSchema,
+      execute: (
+        args: z.input<typeof UpstreamStateArgsSchema>,
+        ctx: GitContext,
+      ) => runUpstreamState(UpstreamStateArgsSchema.parse(args), ctx),
     },
   },
 };

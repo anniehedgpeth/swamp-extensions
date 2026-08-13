@@ -98,9 +98,9 @@ Deno.test("globalArguments accepts full config", () => {
 // Resource declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 11 resource specs exist", () => {
+Deno.test("all 12 resource specs exist", () => {
   const names = Object.keys(model.resources);
-  assertEquals(names.length, 11);
+  assertEquals(names.length, 12);
   for (
     const name of [
       "cloneResult",
@@ -114,6 +114,7 @@ Deno.test("all 11 resource specs exist", () => {
       "pullResult",
       "fetchResult",
       "cherryPickResult",
+      "upstreamStateResult",
     ]
   ) {
     assertEquals(
@@ -139,9 +140,9 @@ Deno.test("resources have description and schema", () => {
 // Method declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 11 methods exist", () => {
+Deno.test("all 12 methods exist", () => {
   const names = Object.keys(model.methods);
-  assertEquals(names.length, 11);
+  assertEquals(names.length, 12);
   for (
     const name of [
       "clone",
@@ -155,6 +156,7 @@ Deno.test("all 11 methods exist", () => {
       "cherry_pick",
       "branch",
       "config",
+      "upstream_state",
     ]
   ) {
     assertEquals(name in model.methods, true, `missing method: ${name}`);
@@ -180,7 +182,7 @@ Deno.test("methods have description and execute function", () => {
 // Check declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("git-available check exists and covers new methods", () => {
+Deno.test("git-available check exists and covers all methods", () => {
   assertEquals(typeof model.checks["git-available"].execute, "function");
   assertEquals(
     model.checks["git-available"].appliesTo.includes("clone"),
@@ -196,6 +198,10 @@ Deno.test("git-available check exists and covers new methods", () => {
   );
   assertEquals(
     model.checks["git-available"].appliesTo.includes("cherry_pick"),
+    true,
+  );
+  assertEquals(
+    model.checks["git-available"].appliesTo.includes("upstream_state"),
     true,
   );
 });
@@ -220,6 +226,10 @@ Deno.test("repo-initialized check exists and excludes clone", () => {
   );
   assertEquals(
     model.checks["repo-initialized"].appliesTo.includes("cherry_pick"),
+    true,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("upstream_state"),
     true,
   );
 });
@@ -1772,6 +1782,247 @@ Deno.test("cherry_pick: requires commits when not aborting", async () => {
       () => model.methods.cherry_pick.execute({}, ctx),
       Error,
       "commits are required",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// upstream_state schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("UpstreamStateArgs parses empty input", () => {
+  const result = model.methods.upstream_state.arguments.parse({});
+  assertEquals(result.branch, undefined);
+});
+
+Deno.test("UpstreamStateArgs accepts optional branch", () => {
+  const result = model.methods.upstream_state.arguments.parse({
+    branch: "main",
+  });
+  assertEquals(result.branch, "main");
+});
+
+Deno.test("UpstreamStateArgs rejects branch starting with dash", () => {
+  const result = model.methods.upstream_state.arguments.safeParse({
+    branch: "--evil",
+  });
+  assertEquals(result.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// upstream_state operation
+// ---------------------------------------------------------------------------
+
+Deno.test("upstream_state: synced with upstream", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("main\n");
+    if (callIdx === 2) return ok("origin/main\n");
+    return ok("0\t0\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    assertEquals(writes.length, 1);
+    assertEquals(writes[0].specName, "upstreamStateResult");
+    const data = writes[0].data;
+    assertEquals(data.branch, "main");
+    assertEquals(data.hasUpstream, true);
+    assertEquals(data.upstream, "origin/main");
+    assertEquals(data.ahead, 0);
+    assertEquals(data.behind, 0);
+    assertEquals(data.pushed, true);
+    assertEquals(data.synced, true);
+    assertEquals(writes[0].tags?.pushed, "true");
+    assertEquals(writes[0].tags?.synced, "true");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: ahead only (unpushed commits)", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("feature\n");
+    if (callIdx === 2) return ok("origin/feature\n");
+    return ok("0\t3\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    const data = writes[0].data;
+    assertEquals(data.branch, "feature");
+    assertEquals(data.hasUpstream, true);
+    assertEquals(data.ahead, 3);
+    assertEquals(data.behind, 0);
+    assertEquals(data.pushed, false);
+    assertEquals(data.synced, false);
+    assertEquals(writes[0].tags?.pushed, "false");
+    assertEquals(writes[0].tags?.synced, "false");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: behind only", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("main\n");
+    if (callIdx === 2) return ok("origin/main\n");
+    return ok("5\t0\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    const data = writes[0].data;
+    assertEquals(data.ahead, 0);
+    assertEquals(data.behind, 5);
+    assertEquals(data.pushed, true);
+    assertEquals(data.synced, false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: both ahead and behind", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("feature\n");
+    if (callIdx === 2) return ok("origin/feature\n");
+    return ok("2\t4\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    const data = writes[0].data;
+    assertEquals(data.ahead, 4);
+    assertEquals(data.behind, 2);
+    assertEquals(data.pushed, false);
+    assertEquals(data.synced, false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: no upstream configured", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("feature\n");
+    return fail("fatal: no upstream configured for branch 'feature'");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    const data = writes[0].data;
+    assertEquals(data.branch, "feature");
+    assertEquals(data.hasUpstream, false);
+    assertEquals(data.upstream, "");
+    assertEquals(data.ahead, 0);
+    assertEquals(data.behind, 0);
+    assertEquals(data.pushed, false);
+    assertEquals(data.synced, false);
+    assertEquals(writes[0].tags?.pushed, "false");
+    assertEquals(writes[0].tags?.synced, "false");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: detached HEAD", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("HEAD\n");
+    return fail("fatal: no upstream configured for branch 'HEAD'");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    const data = writes[0].data;
+    assertEquals(data.branch, "HEAD");
+    assertEquals(data.hasUpstream, false);
+    assertEquals(data.pushed, false);
+    assertEquals(data.synced, false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: explicit branch arg", async () => {
+  let callIdx = 0;
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    callIdx++;
+    if (callIdx === 1) return ok("origin/develop\n");
+    return ok("1\t2\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({ branch: "develop" }, ctx);
+
+    assertEquals(calls.length, 2);
+    assertEquals(calls[0].includes("develop@{u}"), true);
+
+    const data = writes[0].data;
+    assertEquals(data.branch, "develop");
+    assertEquals(data.hasUpstream, true);
+    assertEquals(data.upstream, "origin/develop");
+    assertEquals(data.ahead, 2);
+    assertEquals(data.behind, 1);
+    assertEquals(data.pushed, false);
+    assertEquals(data.synced, false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: branch with slash sanitizes resource name", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("feature/foo\n");
+    if (callIdx === 2) return ok("origin/feature/foo\n");
+    return ok("0\t1\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    assertEquals(writes[0].name, "upstream-state-feature-foo");
+    assertEquals(writes[0].data.branch, "feature/foo");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: malformed rev-list output throws", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("main\n");
+    if (callIdx === 2) return ok("origin/main\n");
+    return ok("garbage output\n");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.upstream_state.execute({}, ctx),
+      Error,
+      "unexpected rev-list output",
     );
   } finally {
     resetCommandExecutor();
