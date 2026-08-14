@@ -818,6 +818,41 @@ const GlobalArgsSchema = z.object({
     minNumWorkers: z.number().int().describe(
       "The minimum number of workers to scale down to. This field is currently only supported for Streaming Engine jobs.",
     ).optional(),
+    schedules: z.array(z.object({
+      crontab: z.string().describe(
+        "Optional. A crontab specification of when this schedule should trigger applying overrides. The overrides will be applied from the trigger time until the specified duration elapses.",
+      ).optional(),
+      duration: z.string().describe(
+        "Optional. The duration for which the parameter overrides for this schedule will be applied when triggered by the crontab.",
+      ).optional(),
+      name: z.string().describe("Optional. The name of the schedule.")
+        .optional(),
+      parameters: z.object({
+        cpuUtilizationTarget: z.number().describe(
+          "Optional. The target CPU utilization for this schedule.",
+        ).optional(),
+        latencyTarget: z.string().describe(
+          "Optional. The target latency for this schedule.",
+        ).optional(),
+        maxWorkerCount: z.number().int().describe(
+          "Optional. The maximum number of workers for this schedule.",
+        ).optional(),
+        minWorkerCount: z.number().int().describe(
+          "Optional. The minimum number of workers for this schedule.",
+        ).optional(),
+      }).describe(
+        "Optional. The parameters to use for autoscaling when this schedule is active.",
+      ).optional(),
+      priority: z.string().describe(
+        "Optional. Specifies the priority of the schedule. If two schedules overlap, the one with the higher priority will be used. The higher the value, the higher the priority of the schedule.",
+      ).optional(),
+      timeZone: z.string().describe(
+        "Optional. The time zone for the schedule. The value of this field must be a time zone name from the [tz database](http://en.wikipedia.org/wiki/Tz_database). The default value is UTC.",
+      ).optional(),
+      updateTime: z.string().describe(
+        "Output only. When the customer last updated the schedule.",
+      ).optional(),
+    })).describe("Optional. The schedule for autoscaling.").optional(),
     workerUtilizationHint: z.number().describe(
       "Target worker utilization, compared against the aggregate utilization of the worker pool by autoscaler, to determine upscaling and downscaling when absent other constraints such as backlog. For more information, see [Update an existing pipeline](https://cloud.google.com/dataflow/docs/guides/updating-a-pipeline).",
     ).optional(),
@@ -1110,6 +1145,20 @@ const StateSchema = z.object({
     latencyTier: z.string(),
     maxNumWorkers: z.number(),
     minNumWorkers: z.number(),
+    schedules: z.array(z.object({
+      crontab: z.string(),
+      duration: z.string(),
+      name: z.string(),
+      parameters: z.object({
+        cpuUtilizationTarget: z.number(),
+        latencyTarget: z.string(),
+        maxWorkerCount: z.number(),
+        minWorkerCount: z.number(),
+      }),
+      priority: z.string(),
+      timeZone: z.string(),
+      updateTime: z.string(),
+    })),
     workerUtilizationHint: z.number(),
   }).optional(),
   satisfiesPzi: z.boolean().optional(),
@@ -1787,6 +1836,41 @@ const InputsSchema = z.object({
     minNumWorkers: z.number().int().describe(
       "The minimum number of workers to scale down to. This field is currently only supported for Streaming Engine jobs.",
     ).optional(),
+    schedules: z.array(z.object({
+      crontab: z.string().describe(
+        "Optional. A crontab specification of when this schedule should trigger applying overrides. The overrides will be applied from the trigger time until the specified duration elapses.",
+      ).optional(),
+      duration: z.string().describe(
+        "Optional. The duration for which the parameter overrides for this schedule will be applied when triggered by the crontab.",
+      ).optional(),
+      name: z.string().describe("Optional. The name of the schedule.")
+        .optional(),
+      parameters: z.object({
+        cpuUtilizationTarget: z.number().describe(
+          "Optional. The target CPU utilization for this schedule.",
+        ).optional(),
+        latencyTarget: z.string().describe(
+          "Optional. The target latency for this schedule.",
+        ).optional(),
+        maxWorkerCount: z.number().int().describe(
+          "Optional. The maximum number of workers for this schedule.",
+        ).optional(),
+        minWorkerCount: z.number().int().describe(
+          "Optional. The minimum number of workers for this schedule.",
+        ).optional(),
+      }).describe(
+        "Optional. The parameters to use for autoscaling when this schedule is active.",
+      ).optional(),
+      priority: z.string().describe(
+        "Optional. Specifies the priority of the schedule. If two schedules overlap, the one with the higher priority will be used. The higher the value, the higher the priority of the schedule.",
+      ).optional(),
+      timeZone: z.string().describe(
+        "Optional. The time zone for the schedule. The value of this field must be a time zone name from the [tz database](http://en.wikipedia.org/wiki/Tz_database). The default value is UTC.",
+      ).optional(),
+      updateTime: z.string().describe(
+        "Output only. When the customer last updated the schedule.",
+      ).optional(),
+    })).describe("Optional. The schedule for autoscaling.").optional(),
     workerUtilizationHint: z.number().describe(
       "Target worker utilization, compared against the aggregate utilization of the worker pool by autoscaler, to determine upscaling and downscaling when absent other constraints such as backlog. For more information, see [Update an existing pipeline](https://cloud.google.com/dataflow/docs/guides/updating-a-pipeline).",
     ).optional(),
@@ -1880,7 +1964,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataflow Jobs. Registered at `@swamp/gcp/dataflow/jobs`. */
 export const model = {
   type: "@swamp/gcp/dataflow/jobs",
-  version: "2026.08.13.1",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2067,6 +2151,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

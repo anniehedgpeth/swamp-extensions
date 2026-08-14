@@ -65,6 +65,9 @@ const GET_CONFIG = {
     "readTime": {
       "location": "query",
     },
+    "requestOptions.requestTags": {
+      "location": "query",
+    },
     "transaction": {
       "location": "query",
     },
@@ -92,6 +95,9 @@ const PATCH_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "requestOptions.requestTags": {
+      "location": "query",
+    },
     "updateMask.fieldPaths": {
       "location": "query",
     },
@@ -115,6 +121,9 @@ const DELETE_CONFIG = {
     "name": {
       "location": "path",
       "required": true,
+    },
+    "requestOptions.requestTags": {
+      "location": "query",
     },
   },
 } as const;
@@ -152,6 +161,9 @@ const LIST_CONFIG = {
       "location": "query",
     },
     "recursive": {
+      "location": "query",
+    },
+    "requestOptions.requestTags": {
       "location": "query",
     },
     "showMissing": {
@@ -193,11 +205,11 @@ const GlobalArgsSchema = z.object({
           "Values in the array.",
         ).optional(),
       }).describe(
-        "An array value. Cannot directly contain another array value, though can contain a map which contains another array.",
+        "An array value. In Standard edition databases, an array value cannot directly contain another array value, though it can contain a map which contains another array. In Enterprise edition databases, an array value can contain another array value.",
       ).optional(),
       booleanValue: z.boolean().describe("A boolean value.").optional(),
       bytesValue: z.string().describe(
-        "A bytes value. Must not exceed 1 MiB - 89 bytes. Only the first 1,500 bytes are considered by queries.",
+        "A bytes value. In Standard edition databases: * The value must not exceed 1 MiB - 89 bytes. * Only the first 1,500 bytes are considered by queries. In Enterprise edition databases, there is no limit on the size of the value. However, it is still subject to document and index entry size limits.",
       ).optional(),
       doubleValue: z.number().describe("A double value.").optional(),
       fieldReferenceValue: z.string().describe(
@@ -255,7 +267,7 @@ const GlobalArgsSchema = z.object({
         "A reference to a document. For example: `projects/{project_id}/databases/{database_id}/documents/{document_path}`.",
       ).optional(),
       stringValue: z.string().describe(
-        "A string value. The string, represented as UTF-8, must not exceed 1 MiB - 89 bytes. Only the first 1,500 bytes of the UTF-8 representation are considered by queries.",
+        "A string value. In Standard edition databases: * The string, represented as UTF-8, must not exceed 1 MiB - 89 bytes. * Only the first 1,500 bytes of the UTF-8 representation are considered by queries. In Enterprise edition databases, there is no limit on the size of the value. However, it is still subject to document and index entry size limits.",
       ).optional(),
       timestampValue: z.string().describe(
         "A timestamp value. Precise only to microseconds. When stored, any additional precision is rounded down.",
@@ -311,11 +323,11 @@ const InputsSchema = z.object({
           "Values in the array.",
         ).optional(),
       }).describe(
-        "An array value. Cannot directly contain another array value, though can contain a map which contains another array.",
+        "An array value. In Standard edition databases, an array value cannot directly contain another array value, though it can contain a map which contains another array. In Enterprise edition databases, an array value can contain another array value.",
       ).optional(),
       booleanValue: z.boolean().describe("A boolean value.").optional(),
       bytesValue: z.string().describe(
-        "A bytes value. Must not exceed 1 MiB - 89 bytes. Only the first 1,500 bytes are considered by queries.",
+        "A bytes value. In Standard edition databases: * The value must not exceed 1 MiB - 89 bytes. * Only the first 1,500 bytes are considered by queries. In Enterprise edition databases, there is no limit on the size of the value. However, it is still subject to document and index entry size limits.",
       ).optional(),
       doubleValue: z.number().describe("A double value.").optional(),
       fieldReferenceValue: z.string().describe(
@@ -373,7 +385,7 @@ const InputsSchema = z.object({
         "A reference to a document. For example: `projects/{project_id}/databases/{database_id}/documents/{document_path}`.",
       ).optional(),
       stringValue: z.string().describe(
-        "A string value. The string, represented as UTF-8, must not exceed 1 MiB - 89 bytes. Only the first 1,500 bytes of the UTF-8 representation are considered by queries.",
+        "A string value. In Standard edition databases: * The string, represented as UTF-8, must not exceed 1 MiB - 89 bytes. * Only the first 1,500 bytes of the UTF-8 representation are considered by queries. In Enterprise edition databases, there is no limit on the size of the value. However, it is still subject to document and index entry size limits.",
       ).optional(),
       timestampValue: z.string().describe(
         "A timestamp value. Precise only to microseconds. When stored, any additional precision is rounded down.",
@@ -428,7 +440,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.Documents. Registered at `@swamp/gcp/firestore/databases-documents`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-documents",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -607,6 +619,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -826,6 +843,9 @@ export const model = {
         recursive: z.boolean().describe(
           "Optional. If the list should recursively include all documents nested under the parent at any level. If the request specifies a `collection_id`, then the list will include all nested documents in the collection under the parent. This is optional, and when not provided, Firestore will only list documents nested immediately under the parent. Requests with `recursive` may not specify `show_missing`.",
         ).optional(),
+        requestOptions_requestTags: z.string().describe(
+          "Optional. The request tags for the request.",
+        ).optional(),
         showMissing: z.boolean().describe(
           "If the list should show missing documents. A document is missing if it does not exist, but there are sub-documents nested underneath it. When true, such missing documents will be returned with a key but will not have fields, `create_time`, or `update_time` set. Requests with `show_missing` may not specify `where` or `order_by`.",
         ).optional(),
@@ -861,6 +881,11 @@ export const model = {
         }
         if (args["recursive"] !== undefined) {
           params["recursive"] = String(args["recursive"]);
+        }
+        if (args["requestOptions_requestTags"] !== undefined) {
+          params["requestOptions.requestTags"] = String(
+            args["requestOptions_requestTags"],
+          );
         }
         if (args["showMissing"] !== undefined) {
           params["showMissing"] = String(args["showMissing"]);
@@ -900,6 +925,7 @@ export const model = {
         mask: z.any().optional(),
         newTransaction: z.any().optional(),
         readTime: z.any().optional(),
+        requestOptions: z.any().optional(),
         transaction: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
@@ -932,6 +958,9 @@ export const model = {
           body["newTransaction"] = args["newTransaction"];
         }
         if (args["readTime"] !== undefined) body["readTime"] = args["readTime"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["transaction"] !== undefined) {
           body["transaction"] = args["transaction"];
         }
@@ -960,6 +989,7 @@ export const model = {
       description: "batch write",
       arguments: z.object({
         labels: z.any().optional(),
+        requestOptions: z.any().optional(),
         writes: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
@@ -985,6 +1015,9 @@ export const model = {
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["labels"] !== undefined) body["labels"] = args["labels"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["writes"] !== undefined) body["writes"] = args["writes"];
         const result = await createResource(
           baseUrl,
@@ -1011,6 +1044,7 @@ export const model = {
       description: "begin transaction",
       arguments: z.object({
         options: z.any().optional(),
+        requestOptions: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
@@ -1035,6 +1069,9 @@ export const model = {
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["options"] !== undefined) body["options"] = args["options"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         const result = await createResource(
           baseUrl,
           {
@@ -1059,6 +1096,7 @@ export const model = {
     commit: {
       description: "commit",
       arguments: z.object({
+        requestOptions: z.any().optional(),
         transaction: z.any().optional(),
         writes: z.any().optional(),
       }),
@@ -1084,6 +1122,9 @@ export const model = {
         params["database"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["transaction"] !== undefined) {
           body["transaction"] = args["transaction"];
         }
@@ -1149,6 +1190,7 @@ export const model = {
               "documentId": { "location": "query" },
               "mask.fieldPaths": { "location": "query" },
               "parent": { "location": "path", "required": true },
+              "requestOptions.requestTags": { "location": "query" },
             },
           },
           params,
@@ -1167,6 +1209,7 @@ export const model = {
         autoCommitTransaction: z.any().optional(),
         newTransaction: z.any().optional(),
         readTime: z.any().optional(),
+        requestOptions: z.any().optional(),
         structuredPipeline: z.any().optional(),
         transaction: z.any().optional(),
       }),
@@ -1199,6 +1242,9 @@ export const model = {
           body["newTransaction"] = args["newTransaction"];
         }
         if (args["readTime"] !== undefined) body["readTime"] = args["readTime"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["structuredPipeline"] !== undefined) {
           body["structuredPipeline"] = args["structuredPipeline"];
         }
@@ -1232,6 +1278,7 @@ export const model = {
         pageSize: z.any().optional(),
         pageToken: z.any().optional(),
         readTime: z.any().optional(),
+        requestOptions: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
@@ -1247,6 +1294,9 @@ export const model = {
           body["pageToken"] = args["pageToken"];
         }
         if (args["readTime"] !== undefined) body["readTime"] = args["readTime"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         const result = await createResource(
           baseUrl,
           {
@@ -1298,6 +1348,7 @@ export const model = {
               "parent": { "location": "path", "required": true },
               "readTime": { "location": "query" },
               "recursive": { "location": "query" },
+              "requestOptions.requestTags": { "location": "query" },
               "showMissing": { "location": "query" },
               "transaction": { "location": "query" },
             },
@@ -1318,6 +1369,7 @@ export const model = {
         addTarget: z.any().optional(),
         labels: z.any().optional(),
         removeTarget: z.any().optional(),
+        requestOptions: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
@@ -1348,6 +1400,9 @@ export const model = {
         if (args["removeTarget"] !== undefined) {
           body["removeTarget"] = args["removeTarget"];
         }
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         const result = await createResource(
           baseUrl,
           {
@@ -1376,6 +1431,7 @@ export const model = {
         pageToken: z.any().optional(),
         partitionCount: z.any().optional(),
         readTime: z.any().optional(),
+        requestOptions: z.any().optional(),
         structuredQuery: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
@@ -1395,6 +1451,9 @@ export const model = {
           body["partitionCount"] = args["partitionCount"];
         }
         if (args["readTime"] !== undefined) body["readTime"] = args["readTime"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["structuredQuery"] !== undefined) {
           body["structuredQuery"] = args["structuredQuery"];
         }
@@ -1422,6 +1481,7 @@ export const model = {
     rollback: {
       description: "rollback",
       arguments: z.object({
+        requestOptions: z.any().optional(),
         transaction: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
@@ -1446,6 +1506,9 @@ export const model = {
         params["database"] = existing["name"]?.toString() ??
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["transaction"] !== undefined) {
           body["transaction"] = args["transaction"];
         }
@@ -1476,6 +1539,7 @@ export const model = {
         explainOptions: z.any().optional(),
         newTransaction: z.any().optional(),
         readTime: z.any().optional(),
+        requestOptions: z.any().optional(),
         structuredAggregationQuery: z.any().optional(),
         transaction: z.any().optional(),
       }),
@@ -1495,6 +1559,9 @@ export const model = {
           body["newTransaction"] = args["newTransaction"];
         }
         if (args["readTime"] !== undefined) body["readTime"] = args["readTime"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["structuredAggregationQuery"] !== undefined) {
           body["structuredAggregationQuery"] =
             args["structuredAggregationQuery"];
@@ -1529,6 +1596,7 @@ export const model = {
         explainOptions: z.any().optional(),
         newTransaction: z.any().optional(),
         readTime: z.any().optional(),
+        requestOptions: z.any().optional(),
         structuredQuery: z.any().optional(),
         transaction: z.any().optional(),
       }),
@@ -1548,6 +1616,9 @@ export const model = {
           body["newTransaction"] = args["newTransaction"];
         }
         if (args["readTime"] !== undefined) body["readTime"] = args["readTime"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["structuredQuery"] !== undefined) {
           body["structuredQuery"] = args["structuredQuery"];
         }
@@ -1579,6 +1650,7 @@ export const model = {
       description: "write",
       arguments: z.object({
         labels: z.any().optional(),
+        requestOptions: z.any().optional(),
         streamId: z.any().optional(),
         streamToken: z.any().optional(),
         writes: z.any().optional(),
@@ -1606,6 +1678,9 @@ export const model = {
           g["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (args["labels"] !== undefined) body["labels"] = args["labels"];
+        if (args["requestOptions"] !== undefined) {
+          body["requestOptions"] = args["requestOptions"];
+        }
         if (args["streamId"] !== undefined) body["streamId"] = args["streamId"];
         if (args["streamToken"] !== undefined) {
           body["streamToken"] = args["streamToken"];

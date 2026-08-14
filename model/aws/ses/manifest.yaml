@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/ses"
-version: "2026.08.13.1"
+version: "2026.08.14.1"
 description: "AWS SES infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,6 +9,8 @@ labels:
   - ses
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: receipt_rule, receipt_rule_set
 models:
   - configuration_set.ts
   - configuration_set_event_destination.ts
@@ -25,6 +27,8 @@ models:
   - mail_manager_rule_set.ts
   - mail_manager_traffic_policy.ts
   - multi_region_endpoint.ts
+  - receipt_rule.ts
+  - receipt_rule_set.ts
   - template.ts
   - tenant.ts
   - vdm_attributes.ts

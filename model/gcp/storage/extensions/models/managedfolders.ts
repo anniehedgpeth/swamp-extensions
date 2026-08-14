@@ -42,6 +42,7 @@ import {
   isResourceNotFoundError,
   listResources,
   readResource,
+  updateResource,
 } from "./_lib/gcp.ts";
 
 const BASE_URL = "https://storage.googleapis.com/storage/v1/";
@@ -81,6 +82,32 @@ const INSERT_CONFIG = {
   ],
   "parameters": {
     "bucket": {
+      "location": "path",
+      "required": true,
+    },
+  },
+} as const;
+
+const UPDATE_CONFIG = {
+  "id": "storage.managedFolders.update",
+  "path": "b/{bucket}/managedFolders/{managedFolder}",
+  "httpMethod": "PATCH",
+  "parameterOrder": [
+    "bucket",
+    "managedFolder",
+  ],
+  "parameters": {
+    "bucket": {
+      "location": "path",
+      "required": true,
+    },
+    "ifMetagenerationMatch": {
+      "location": "query",
+    },
+    "ifMetagenerationNotMatch": {
+      "location": "query",
+    },
+    "managedFolder": {
       "location": "path",
       "required": true,
     },
@@ -174,6 +201,22 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "The name of the managed folder. Required if not specified by URL parameter.",
   ).optional(),
+  rapidCacheConfig: z.object({
+    policies: z.record(
+      z.string(),
+      z.object({
+        ingestOnWrite: z.enum(["enabled", "unspecified"]).describe(
+          "The ingest-on-write policy for objects in the managed folder. When set to `enabled`, objects are automatically ingested into the cache when they are written to the managed folder.",
+        ).optional(),
+        rapidCacheId: z.string().describe(
+          "The unique identifier of the rapid cache.",
+        ).optional(),
+      }),
+    ).describe(
+      "A map of rapid cache IDs to the corresponding `RapidCachePolicy` configurations for a managed folder.",
+    ).optional(),
+  }).describe("The rapid cache configuration for the managed folder.")
+    .optional(),
   updateTime: z.string().describe(
     "The last update time of the managed folder metadata in RFC 3339 format.",
   ).optional(),
@@ -186,6 +229,9 @@ const StateSchema = z.object({
   kind: z.string().optional(),
   metageneration: z.string().optional(),
   name: z.string(),
+  rapidCacheConfig: z.object({
+    policies: z.record(z.string(), z.unknown()),
+  }).optional(),
   selfLink: z.string().optional(),
   updateTime: z.string().optional(),
 }).passthrough();
@@ -214,6 +260,22 @@ const InputsSchema = z.object({
   name: z.string().describe(
     "The name of the managed folder. Required if not specified by URL parameter.",
   ).optional(),
+  rapidCacheConfig: z.object({
+    policies: z.record(
+      z.string(),
+      z.object({
+        ingestOnWrite: z.enum(["enabled", "unspecified"]).describe(
+          "The ingest-on-write policy for objects in the managed folder. When set to `enabled`, objects are automatically ingested into the cache when they are written to the managed folder.",
+        ).optional(),
+        rapidCacheId: z.string().describe(
+          "The unique identifier of the rapid cache.",
+        ).optional(),
+      }),
+    ).describe(
+      "A map of rapid cache IDs to the corresponding `RapidCachePolicy` configurations for a managed folder.",
+    ).optional(),
+  }).describe("The rapid cache configuration for the managed folder.")
+    .optional(),
   updateTime: z.string().describe(
     "The last update time of the managed folder metadata in RFC 3339 format.",
   ).optional(),
@@ -245,7 +307,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON ManagedFolders. Registered at `@swamp/gcp/storage/managedfolders`. */
 export const model = {
   type: "@swamp/gcp/storage/managedfolders",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -362,6 +424,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.14.1",
+      description: "Added: rapidCacheConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -392,6 +459,9 @@ export const model = {
           body["metageneration"] = g["metageneration"];
         }
         if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["rapidCacheConfig"] !== undefined) {
+          body["rapidCacheConfig"] = g["rapidCacheConfig"];
+        }
         if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
         if (g["name"] !== undefined) {
           params["managedFolder"] = String(g["name"]);
@@ -446,6 +516,77 @@ export const model = {
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update managedFolders attributes",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "Target a specific managedFolders by name (e.g. one discovered by list)",
+        ).optional(),
+      }),
+      execute: async (args: { identifier?: string }, context: any) => {
+        const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const instanceName =
+          (g.name?.toString() ?? args.identifier ?? "current").replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error(
+            "No existing state found - run create, get, or list first",
+          );
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const params: Record<string, string> = { project: projectId };
+        if (g["bucket"] !== undefined) params["bucket"] = String(g["bucket"]);
+        else if (existing["bucket"]) {
+          params["bucket"] = String(existing["bucket"]);
+        }
+        params["managedFolder"] = existing["name"]?.toString() ?? "";
+        const body: Record<string, unknown> = {};
+        if (g["createTime"] !== undefined) body["createTime"] = g["createTime"];
+        if (g["id"] !== undefined) body["id"] = g["id"];
+        if (g["metageneration"] !== undefined) {
+          body["metageneration"] = g["metageneration"];
+        }
+        if (g["name"] !== undefined) body["name"] = g["name"];
+        if (g["rapidCacheConfig"] !== undefined) {
+          body["rapidCacheConfig"] = g["rapidCacheConfig"];
+        }
+        if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
+        for (const key of Object.keys(existing)) {
+          if (
+            key === "fingerprint" || key === "labelFingerprint" ||
+            key === "etag" || key.endsWith("Fingerprint")
+          ) {
+            body[key] = existing[key];
+          }
+        }
+        const result = await updateResource(
+          baseUrl,
+          UPDATE_CONFIG,
+          params,
+          body,
+          GET_CONFIG,
+          undefined,
+          credentials,
+        ) as StateData;
         const handle = await context.writeResource(
           "state",
           instanceName,

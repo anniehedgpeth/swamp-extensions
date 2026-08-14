@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Firestore Databases.CollectionGroups.Indexes.
  *
- * Cloud Firestore indexes enable simple and complex queries against documents in a database.
+ * Cloud Firestore indexes enable simple and complex queries against documents in a database. In Standard edition databases, single-field indexes are managed using the google.firestore.admin.v1.Field resource, and composite indexes are managed using the google.firestore.admin.v1.Index resource. In Enterprise edition databases, both single-field and composite indexes are managed using the google.firestore.admin.v1.Index resource.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -183,7 +183,7 @@ const GlobalArgsSchema = z.object({
       "Indicates that this field supports nearest neighbor and distance operations on vector.",
     ).optional(),
   })).describe(
-    "The fields supported by this index. For composite indexes, this requires a minimum of 2 and a maximum of 100 fields. The last field entry is always for the field path `__name__`. If, on creation, `__name__` was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in a composite index is not directional, the `__name__` will be ordered ASCENDING (unless explicitly specified). For single field indexes, this will always be exactly one entry with a field path equal to the field path of the associated field.",
+    "The fields supported by this index. At most 100 fields may be specified. In Standard edition databases only: - At least 2 fields must be specified. - The last field entry is always for the field path `__name__`. If, on creation, `__name__` was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in the index is not directional, the `__name__` will be ordered ASCENDING (unless explicitly specified).",
   ).optional(),
   multikey: z.boolean().describe(
     "Optional. Whether the index is multikey. By default, the index is not multikey. For non-multikey indexes, none of the paths in the index definition reach or traverse an array, except via an explicit array index. For multikey indexes, at most one of the paths in the index definition reach or traverse an array, except via an explicit array index. Violations will result in errors. Note this field only applies to index with MONGODB_COMPATIBLE_API ApiScope.",
@@ -303,7 +303,7 @@ const InputsSchema = z.object({
       "Indicates that this field supports nearest neighbor and distance operations on vector.",
     ).optional(),
   })).describe(
-    "The fields supported by this index. For composite indexes, this requires a minimum of 2 and a maximum of 100 fields. The last field entry is always for the field path `__name__`. If, on creation, `__name__` was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in a composite index is not directional, the `__name__` will be ordered ASCENDING (unless explicitly specified). For single field indexes, this will always be exactly one entry with a field path equal to the field path of the associated field.",
+    "The fields supported by this index. At most 100 fields may be specified. In Standard edition databases only: - At least 2 fields must be specified. - The last field entry is always for the field path `__name__`. If, on creation, `__name__` was not specified as the last field, it will be added automatically with the same direction as that of the last field defined. If the final field in the index is not directional, the `__name__` will be ordered ASCENDING (unless explicitly specified).",
   ).optional(),
   multikey: z.boolean().describe(
     "Optional. Whether the index is multikey. By default, the index is not multikey. For non-multikey indexes, none of the paths in the index definition reach or traverse an array, except via an explicit array index. For multikey indexes, at most one of the paths in the index definition reach or traverse an array, except via an explicit array index. Violations will result in errors. Note this field only applies to index with MONGODB_COMPATIBLE_API ApiScope.",
@@ -366,7 +366,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases.CollectionGroups.Indexes. Registered at `@swamp/gcp/firestore/databases-collectiongroups-indexes`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases-collectiongroups-indexes",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -510,6 +510,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

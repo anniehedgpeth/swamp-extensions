@@ -357,10 +357,13 @@ const GlobalArgsSchema = z.object({
     deletionProtection: z.boolean().describe(
       "Set to true to make the table protected against data loss. i.e. deleting the following resources through Admin APIs are prohibited: * The table. * The column families in the table. * The instance containing the table. Note one can still delete the data stored in the table through Data APIs.",
     ).optional(),
-    granularity: z.enum(["TIMESTAMP_GRANULARITY_UNSPECIFIED", "MILLIS"])
-      .describe(
-        "Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`, `FULL`.",
-      ).optional(),
+    granularity: z.enum([
+      "TIMESTAMP_GRANULARITY_UNSPECIFIED",
+      "MILLIS",
+      "MICROS",
+    ]).describe(
+      "Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`, `FULL`.",
+    ).optional(),
     name: z.string().describe(
       "The unique name of the table. Values are of the form `projects/{project}/instances/{instance}/tables/_a-zA-Z0-9*`. Views: `NAME_ONLY`, `SCHEMA_VIEW`, `REPLICATION_VIEW`, `STATS_VIEW`, `FULL`",
     ).optional(),
@@ -701,9 +704,10 @@ const GlobalArgsSchema = z.object({
   deletionProtection: z.boolean().describe(
     "Set to true to make the table protected against data loss. i.e. deleting the following resources through Admin APIs are prohibited: * The table. * The column families in the table. * The instance containing the table. Note one can still delete the data stored in the table through Data APIs.",
   ).optional(),
-  granularity: z.enum(["TIMESTAMP_GRANULARITY_UNSPECIFIED", "MILLIS"]).describe(
-    "Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`, `FULL`.",
-  ).optional(),
+  granularity: z.enum(["TIMESTAMP_GRANULARITY_UNSPECIFIED", "MILLIS", "MICROS"])
+    .describe(
+      "Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`, `FULL`.",
+    ).optional(),
   name: z.string().describe(
     "The unique name of the table. Values are of the form `projects/{project}/instances/{instance}/tables/_a-zA-Z0-9*`. Views: `NAME_ONLY`, `SCHEMA_VIEW`, `REPLICATION_VIEW`, `STATS_VIEW`, `FULL`",
   ).optional(),
@@ -1164,10 +1168,13 @@ const InputsSchema = z.object({
     deletionProtection: z.boolean().describe(
       "Set to true to make the table protected against data loss. i.e. deleting the following resources through Admin APIs are prohibited: * The table. * The column families in the table. * The instance containing the table. Note one can still delete the data stored in the table through Data APIs.",
     ).optional(),
-    granularity: z.enum(["TIMESTAMP_GRANULARITY_UNSPECIFIED", "MILLIS"])
-      .describe(
-        "Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`, `FULL`.",
-      ).optional(),
+    granularity: z.enum([
+      "TIMESTAMP_GRANULARITY_UNSPECIFIED",
+      "MILLIS",
+      "MICROS",
+    ]).describe(
+      "Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`, `FULL`.",
+    ).optional(),
     name: z.string().describe(
       "The unique name of the table. Values are of the form `projects/{project}/instances/{instance}/tables/_a-zA-Z0-9*`. Views: `NAME_ONLY`, `SCHEMA_VIEW`, `REPLICATION_VIEW`, `STATS_VIEW`, `FULL`",
     ).optional(),
@@ -1508,9 +1515,10 @@ const InputsSchema = z.object({
   deletionProtection: z.boolean().describe(
     "Set to true to make the table protected against data loss. i.e. deleting the following resources through Admin APIs are prohibited: * The table. * The column families in the table. * The instance containing the table. Note one can still delete the data stored in the table through Data APIs.",
   ).optional(),
-  granularity: z.enum(["TIMESTAMP_GRANULARITY_UNSPECIFIED", "MILLIS"]).describe(
-    "Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`, `FULL`.",
-  ).optional(),
+  granularity: z.enum(["TIMESTAMP_GRANULARITY_UNSPECIFIED", "MILLIS", "MICROS"])
+    .describe(
+      "Immutable. The granularity at which timestamps are stored in this table. Timestamps not matching the granularity will be rejected. If unspecified at creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`, `FULL`.",
+    ).optional(),
   name: z.string().describe(
     "The unique name of the table. Values are of the form `projects/{project}/instances/{instance}/tables/_a-zA-Z0-9*`. Views: `NAME_ONLY`, `SCHEMA_VIEW`, `REPLICATION_VIEW`, `STATS_VIEW`, `FULL`",
   ).optional(),
@@ -1698,7 +1706,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Bigtable Admin Instances.Tables. Registered at `@swamp/gcp/bigtableadmin/instances-tables`. */
 export const model = {
   type: "@swamp/gcp/bigtableadmin/instances-tables",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1867,6 +1875,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

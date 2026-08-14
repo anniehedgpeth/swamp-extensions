@@ -601,6 +601,9 @@ const GlobalArgsSchema = z.object({
         isPreview: z.boolean().describe(
           'Output only. Whether the model is currently in preview. Clients should surface this via a "Preview" badge in the selector UI.',
         ).optional(),
+        label: z.string().describe(
+          "Output only. Short label shown in the compact selector bar chip (e.g. `3.x Flash`) as opposed to the full `display_name` (`Gemini 3.x Flash`). Falls back to `display_name` when the backend registry does not specify a distinct short label.",
+        ).optional(),
         modelId: z.string().describe(
           'Output only. Unique identifier of the model (e.g. `gemini-2.5-flash`, `gemini-3.1-pro-preview`). This is the same identifier that clients pass back to the assistant service to select this model. Virtual / "pseudo" models (e.g. `gemini-fast`) are also valid values here; they are resolved to the underlying concrete model on the backend.',
         ).optional(),
@@ -834,6 +837,7 @@ const StateSchema = z.object({
         displayName: z.string(),
         icon: z.string(),
         isPreview: z.boolean(),
+        label: z.string(),
         modelId: z.string(),
       })),
     }),
@@ -1345,6 +1349,9 @@ const InputsSchema = z.object({
         isPreview: z.boolean().describe(
           'Output only. Whether the model is currently in preview. Clients should surface this via a "Preview" badge in the selector UI.',
         ).optional(),
+        label: z.string().describe(
+          "Output only. Short label shown in the compact selector bar chip (e.g. `3.x Flash`) as opposed to the full `display_name` (`Gemini 3.x Flash`). Falls back to `display_name` when the backend registry does not specify a distinct short label.",
+        ).optional(),
         modelId: z.string().describe(
           'Output only. Unique identifier of the model (e.g. `gemini-2.5-flash`, `gemini-3.1-pro-preview`). This is the same identifier that clients pass back to the assistant service to select this model. Virtual / "pseudo" models (e.g. `gemini-fast`) are also valid values here; they are resolved to the underlying concrete model on the backend.',
         ).optional(),
@@ -1407,7 +1414,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.DataStores.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/collections-datastores-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-datastores-widgetconfigs",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1626,6 +1633,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

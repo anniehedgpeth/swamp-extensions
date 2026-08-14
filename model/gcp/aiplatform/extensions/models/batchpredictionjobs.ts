@@ -164,7 +164,7 @@ const GlobalArgsSchema = z.object({
         ]).describe("Required. Specifies the reservation affinity type.")
           .optional(),
         values: z.array(z.string()).describe(
-          "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
+          "Optional. Corresponds to the label values of a reservation resource. This must be the resource name of the reservation, reservation block, or reservation sub- block.",
         ).optional(),
       }).describe(
         "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
@@ -1098,7 +1098,7 @@ const InputsSchema = z.object({
         ]).describe("Required. Specifies the reservation affinity type.")
           .optional(),
         values: z.array(z.string()).describe(
-          "Optional. Corresponds to the label values of a reservation resource. This must be the full resource name of the reservation or reservation block.",
+          "Optional. Corresponds to the label values of a reservation resource. This must be the resource name of the reservation, reservation block, or reservation sub- block.",
         ).optional(),
       }).describe(
         "Optional. Immutable. Configuration controlling how this resource pool consumes reservation.",
@@ -1745,7 +1745,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform BatchPredictionJobs. Registered at `@swamp/gcp/aiplatform/batchpredictionjobs`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/batchpredictionjobs",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1924,6 +1924,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

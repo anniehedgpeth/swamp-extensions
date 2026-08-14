@@ -54,11 +54,9 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  ResourceArn: z.string().min(1).max(2048).regex(
-    new RegExp(
-      "^arn:aws(-[a-z]+)*:bedrock:[a-z0-9-]+:[0-9]{12}:(guardrail|guardrail-profile)/[a-z0-9]+$",
-    ),
-  ).describe("The ARN of the Bedrock Guardrail or Guardrail Profile resource"),
+  ResourceArn: z.string().min(1).max(2048).describe(
+    "The ARN of the Bedrock Guardrail or Guardrail Profile resource",
+  ),
   PolicyDocument: z.record(z.string(), z.unknown()).describe(
     "The IAM policy document defining access permissions for the guardrail and guardrail profile resources",
   ),
@@ -76,12 +74,9 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  ResourceArn: z.string().min(1).max(2048).regex(
-    new RegExp(
-      "^arn:aws(-[a-z]+)*:bedrock:[a-z0-9-]+:[0-9]{12}:(guardrail|guardrail-profile)/[a-z0-9]+$",
-    ),
-  ).describe("The ARN of the Bedrock Guardrail or Guardrail Profile resource")
-    .optional(),
+  ResourceArn: z.string().min(1).max(2048).describe(
+    "The ARN of the Bedrock Guardrail or Guardrail Profile resource",
+  ).optional(),
   PolicyDocument: z.record(z.string(), z.unknown()).describe(
     "The IAM policy document defining access permissions for the guardrail and guardrail profile resources",
   ).optional(),
@@ -106,7 +101,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Bedrock ResourcePolicy. Registered at `@swamp/aws/bedrock/resource-policy`. */
 export const model = {
   type: "@swamp/aws/bedrock/resource-policy",
-  version: "2026.06.15.1",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.23.1",
@@ -135,6 +130,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -683,7 +683,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine DataStores.ServingConfigs. Registered at `@swamp/gcp/discoveryengine/datastores-servingconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/datastores-servingconfigs",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -842,6 +842,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1440,6 +1445,7 @@ export const model = {
         queryExpansionSpec: z.any().optional(),
         rankingExpression: z.any().optional(),
         rankingExpressionBackend: z.any().optional(),
+        relevanceFilterSpec: z.any().optional(),
         relevanceScoreSpec: z.any().optional(),
         relevanceThreshold: z.any().optional(),
         safeSearch: z.any().optional(),
@@ -1535,6 +1541,9 @@ export const model = {
         }
         if (args["rankingExpressionBackend"] !== undefined) {
           body["rankingExpressionBackend"] = args["rankingExpressionBackend"];
+        }
+        if (args["relevanceFilterSpec"] !== undefined) {
+          body["relevanceFilterSpec"] = args["relevanceFilterSpec"];
         }
         if (args["relevanceScoreSpec"] !== undefined) {
           body["relevanceScoreSpec"] = args["relevanceScoreSpec"];
@@ -1613,6 +1622,7 @@ export const model = {
         queryExpansionSpec: z.any().optional(),
         rankingExpression: z.any().optional(),
         rankingExpressionBackend: z.any().optional(),
+        relevanceFilterSpec: z.any().optional(),
         relevanceScoreSpec: z.any().optional(),
         relevanceThreshold: z.any().optional(),
         safeSearch: z.any().optional(),
@@ -1708,6 +1718,9 @@ export const model = {
         }
         if (args["rankingExpressionBackend"] !== undefined) {
           body["rankingExpressionBackend"] = args["rankingExpressionBackend"];
+        }
+        if (args["relevanceFilterSpec"] !== undefined) {
+          body["relevanceFilterSpec"] = args["relevanceFilterSpec"];
         }
         if (args["relevanceScoreSpec"] !== undefined) {
           body["relevanceScoreSpec"] = args["relevanceScoreSpec"];

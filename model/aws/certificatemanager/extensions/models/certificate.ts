@@ -168,7 +168,14 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CertificateManager Certificate. Registered at `@swamp/aws/certificatemanager/certificate`. */
 export const model = {
   type: "@swamp/aws/certificatemanager/certificate",
-  version: "2026.07.28.1",
+  version: "2026.08.14.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.14.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -278,7 +285,6 @@ export const model = {
           [
             "SubjectAlternativeNames",
             "DomainValidationOptions",
-            "ValidationMethod",
             "KeyAlgorithm",
             "DomainName",
             "CertificateAuthorityArn",

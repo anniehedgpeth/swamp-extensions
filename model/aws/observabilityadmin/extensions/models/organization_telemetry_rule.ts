@@ -182,6 +182,13 @@ const TelemetryDestinationConfigurationSchema = z.object({
   RetentionInDays: z.number().int().describe(
     "Number of days to retain the telemetry data in the specified destination",
   ).optional(),
+  KmsKeyArn: z.string().min(1).max(2048).regex(
+    new RegExp(
+      "^arn:aws[a-zA-Z-]*:kms:[a-z0-9-]+:\\d{12}:key/(mrk-)?[a-f0-9-]+$",
+    ),
+  ).describe(
+    "The Amazon Resource Name (ARN) of the customer-managed AWS KMS key used to encrypt the destination log groups specified in the Telemetry Rule.",
+  ).optional(),
   VPCFlowLogParameters: VPCFlowLogParametersSchema.describe(
     "Telemetry parameters for VPC Flow logs",
   ).optional(),
@@ -377,7 +384,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ObservabilityAdmin OrganizationTelemetryRule. Registered at `@swamp/aws/observabilityadmin/organization-telemetry-rule`. */
 export const model = {
   type: "@swamp/aws/observabilityadmin/organization-telemetry-rule",
-  version: "2026.06.15.1",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -431,6 +438,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

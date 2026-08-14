@@ -14,8 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/docdb/event_subscription` to see the
-full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/aws/docdb/dbsubnet_group` to see the full
+list of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -47,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new event_subscription model
-swamp model create @swamp/aws/docdb/event_subscription my-event_subscription
+# Create a new dbsubnet_group model
+swamp model create @swamp/aws/docdb/dbsubnet_group my-dbsubnet_group
 
 # Edit the model to configure its properties
-swamp model edit my-event_subscription
+swamp model edit my-dbsubnet_group
 
 # Create the resource in AWS
-swamp model method run my-event_subscription create
+swamp model method run my-dbsubnet_group create
 
 # Sync current state from AWS
-swamp model method run my-event_subscription sync
+swamp model method run my-dbsubnet_group sync
 ```
 
 ## License

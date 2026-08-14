@@ -196,7 +196,7 @@ const GlobalArgsSchema = z.object({
     "DATA_ACCESS_MODE_ENABLED",
     "DATA_ACCESS_MODE_DISABLED",
   ]).describe(
-    "Optional. The Firestore API data access mode to use for this database. If not set on write: - the default value is DATA_ACCESS_MODE_DISABLED for Enterprise Edition. - the default value is DATA_ACCESS_MODE_ENABLED for Standard Edition.",
+    "Optional. The Firestore API data access mode to use for this database. If not set on write: - the default value is DATA_ACCESS_MODE_DISABLED for Enterprise edition. - the default value is DATA_ACCESS_MODE_ENABLED for Standard edition.",
   ).optional(),
   locationId: z.string().describe(
     "Required. The location of the database. Available locations are listed at https://cloud.google.com/firestore/docs/locations.",
@@ -206,7 +206,7 @@ const GlobalArgsSchema = z.object({
     "DATA_ACCESS_MODE_ENABLED",
     "DATA_ACCESS_MODE_DISABLED",
   ]).describe(
-    "Optional. The MongoDB compatible API data access mode to use for this database. If not set on write, the default value is DATA_ACCESS_MODE_ENABLED for Enterprise Edition. The value is always DATA_ACCESS_MODE_DISABLED for Standard Edition.",
+    "Optional. The MongoDB compatible API data access mode to use for this database. If not set on write, the default value is DATA_ACCESS_MODE_ENABLED for Enterprise edition. The value is always DATA_ACCESS_MODE_DISABLED for Standard edition.",
   ).optional(),
   name: z.string().describe(
     "The resource name of the Database. Format: `projects/{project}/databases/{database}`",
@@ -324,7 +324,7 @@ const InputsSchema = z.object({
     "DATA_ACCESS_MODE_ENABLED",
     "DATA_ACCESS_MODE_DISABLED",
   ]).describe(
-    "Optional. The Firestore API data access mode to use for this database. If not set on write: - the default value is DATA_ACCESS_MODE_DISABLED for Enterprise Edition. - the default value is DATA_ACCESS_MODE_ENABLED for Standard Edition.",
+    "Optional. The Firestore API data access mode to use for this database. If not set on write: - the default value is DATA_ACCESS_MODE_DISABLED for Enterprise edition. - the default value is DATA_ACCESS_MODE_ENABLED for Standard edition.",
   ).optional(),
   locationId: z.string().describe(
     "Required. The location of the database. Available locations are listed at https://cloud.google.com/firestore/docs/locations.",
@@ -334,7 +334,7 @@ const InputsSchema = z.object({
     "DATA_ACCESS_MODE_ENABLED",
     "DATA_ACCESS_MODE_DISABLED",
   ]).describe(
-    "Optional. The MongoDB compatible API data access mode to use for this database. If not set on write, the default value is DATA_ACCESS_MODE_ENABLED for Enterprise Edition. The value is always DATA_ACCESS_MODE_DISABLED for Standard Edition.",
+    "Optional. The MongoDB compatible API data access mode to use for this database. If not set on write, the default value is DATA_ACCESS_MODE_ENABLED for Enterprise edition. The value is always DATA_ACCESS_MODE_DISABLED for Standard edition.",
   ).optional(),
   name: z.string().describe(
     "The resource name of the Database. Format: `projects/{project}/databases/{database}`",
@@ -396,7 +396,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Firestore Databases. Registered at `@swamp/gcp/firestore/databases`. */
 export const model = {
   type: "@swamp/gcp/firestore/databases",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -578,6 +578,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

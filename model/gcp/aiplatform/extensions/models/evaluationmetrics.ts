@@ -221,7 +221,7 @@ const GlobalArgsSchema = z.object({
           ).optional(),
           audioTranscriptionConfig: z.object({
             adaptationPhrases: z.unknown().describe(
-              "Optional. A list of phrases to bias the ASR model towards.",
+              "Optional. Deprecated: Use `custom_vocabulary` instead. A list of phrases to bias the speech recognition model towards.",
             ).optional(),
             customVocabulary: z.unknown().describe(
               "Optional. A list of custom vocabulary phrases to bias the speech recognition model toward recognizing specific terms.",
@@ -242,7 +242,7 @@ const GlobalArgsSchema = z.object({
               "Optional. Configures word-level timestamp generation.",
             ).optional(),
           }).describe(
-            "Optional. Config for audio transcription (speech recognition).",
+            "Optional. Configuration for audio transcription (speech recognition).",
           ).optional(),
           candidateCount: z.number().int().describe(
             "Optional. The number of candidate responses to generate. A higher `candidate_count` can provide more options to choose from, but it also consumes more resources. This can be useful for generating a variety of responses and selecting the best one.",
@@ -472,7 +472,7 @@ const GlobalArgsSchema = z.object({
               "Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.",
             ).optional(),
             audioTranscriptionConfig: z.unknown().describe(
-              "Optional. Config for audio transcription (speech recognition).",
+              "Optional. Configuration for audio transcription (speech recognition).",
             ).optional(),
             candidateCount: z.unknown().describe(
               "Optional. The number of candidate responses to generate. A higher `candidate_count` can provide more options to choose from, but it also consumes more resources. This can be useful for generating a variety of responses and selecting the best one.",
@@ -945,7 +945,7 @@ const InputsSchema = z.object({
           ).optional(),
           audioTranscriptionConfig: z.object({
             adaptationPhrases: z.unknown().describe(
-              "Optional. A list of phrases to bias the ASR model towards.",
+              "Optional. Deprecated: Use `custom_vocabulary` instead. A list of phrases to bias the speech recognition model towards.",
             ).optional(),
             customVocabulary: z.unknown().describe(
               "Optional. A list of custom vocabulary phrases to bias the speech recognition model toward recognizing specific terms.",
@@ -966,7 +966,7 @@ const InputsSchema = z.object({
               "Optional. Configures word-level timestamp generation.",
             ).optional(),
           }).describe(
-            "Optional. Config for audio transcription (speech recognition).",
+            "Optional. Configuration for audio transcription (speech recognition).",
           ).optional(),
           candidateCount: z.number().int().describe(
             "Optional. The number of candidate responses to generate. A higher `candidate_count` can provide more options to choose from, but it also consumes more resources. This can be useful for generating a variety of responses and selecting the best one.",
@@ -1196,7 +1196,7 @@ const InputsSchema = z.object({
               "Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.",
             ).optional(),
             audioTranscriptionConfig: z.unknown().describe(
-              "Optional. Config for audio transcription (speech recognition).",
+              "Optional. Configuration for audio transcription (speech recognition).",
             ).optional(),
             candidateCount: z.unknown().describe(
               "Optional. The number of candidate responses to generate. A higher `candidate_count` can provide more options to choose from, but it also consumes more resources. This can be useful for generating a variety of responses and selecting the best one.",
@@ -1415,7 +1415,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationMetrics. Registered at `@swamp/gcp/aiplatform/evaluationmetrics`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationmetrics",
-  version: "2026.08.12.2",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -1434,6 +1434,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

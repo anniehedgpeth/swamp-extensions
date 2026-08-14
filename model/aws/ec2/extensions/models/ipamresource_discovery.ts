@@ -41,10 +41,6 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const IpamOperatingRegionSchema = z.object({
-  RegionName: z.string().describe("The name of the region."),
-});
-
 const IpamResourceDiscoveryOrganizationalUnitExclusionSchema = z.object({
   OrganizationsEntityPath: z.string().min(1).describe(
     "An AWS Organizations entity path. Build the path for the OU(s) using AWS Organizations IDs separated by a '/'. Include all child OUs by ending the path with '/*'.",
@@ -52,12 +48,16 @@ const IpamResourceDiscoveryOrganizationalUnitExclusionSchema = z.object({
 });
 
 const TagSchema = z.object({
-  Key: z.string().min(1).max(128).describe(
-    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
-  ),
   Value: z.string().min(0).max(256).describe(
     "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
   ),
+  Key: z.string().min(1).max(128).describe(
+    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
+});
+
+const IpamOperatingRegionSchema = z.object({
+  RegionName: z.string().describe("The name of the region."),
 });
 
 const GlobalArgsSchema = z.object({
@@ -76,32 +76,32 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  OperatingRegions: z.array(IpamOperatingRegionSchema).describe(
-    "The regions Resource Discovery is enabled for. Allows resource discoveries to be created in these regions, as well as enabling monitoring",
-  ).optional(),
-  Description: z.string().optional(),
   OrganizationalUnitExclusions: z.array(
     IpamResourceDiscoveryOrganizationalUnitExclusionSchema,
   ).describe("A set of organizational unit (OU) exclusions for this resource.")
     .optional(),
+  Description: z.string().optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
+  ).optional(),
+  OperatingRegions: z.array(IpamOperatingRegionSchema).describe(
+    "The regions Resource Discovery is enabled for. Allows resource discoveries to be created in these regions, as well as enabling monitoring",
   ).optional(),
 });
 
 const StateSchema = z.object({
-  IpamResourceDiscoveryId: z.string(),
-  OwnerId: z.string().optional(),
-  OperatingRegions: z.array(IpamOperatingRegionSchema).optional(),
-  IpamResourceDiscoveryRegion: z.string().optional(),
-  Description: z.string().optional(),
   OrganizationalUnitExclusions: z.array(
     IpamResourceDiscoveryOrganizationalUnitExclusionSchema,
   ).optional(),
   IsDefault: z.boolean().optional(),
-  IpamResourceDiscoveryArn: z.string().optional(),
+  Description: z.string().optional(),
+  OwnerId: z.string().optional(),
   State: z.string().optional(),
+  IpamResourceDiscoveryRegion: z.string().optional(),
+  IpamResourceDiscoveryArn: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
+  IpamResourceDiscoveryId: z.string(),
+  OperatingRegions: z.array(IpamOperatingRegionSchema).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -112,16 +112,16 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  OperatingRegions: z.array(IpamOperatingRegionSchema).describe(
-    "The regions Resource Discovery is enabled for. Allows resource discoveries to be created in these regions, as well as enabling monitoring",
-  ).optional(),
-  Description: z.string().optional(),
   OrganizationalUnitExclusions: z.array(
     IpamResourceDiscoveryOrganizationalUnitExclusionSchema,
   ).describe("A set of organizational unit (OU) exclusions for this resource.")
     .optional(),
+  Description: z.string().optional(),
   Tags: z.array(TagSchema).describe(
     "An array of key-value pairs to apply to this resource.",
+  ).optional(),
+  OperatingRegions: z.array(IpamOperatingRegionSchema).describe(
+    "The regions Resource Discovery is enabled for. Allows resource discoveries to be created in these regions, as well as enabling monitoring",
   ).optional(),
 });
 
@@ -144,7 +144,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EC2 IPAMResourceDiscovery. Registered at `@swamp/aws/ec2/ipamresource-discovery`. */
 export const model = {
   type: "@swamp/aws/ec2/ipamresource-discovery",
-  version: "2026.06.15.1",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -183,6 +183,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

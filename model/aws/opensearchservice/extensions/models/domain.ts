@@ -223,6 +223,7 @@ const GlobalArgsSchema = z.object({
   }).optional(),
   SoftwareUpdateOptions: z.object({
     AutoSoftwareUpdateEnabled: z.boolean().optional(),
+    UseLatestServiceSoftwareForBlueGreen: z.boolean().optional(),
   }).optional(),
   SkipShardMigrationWait: z.boolean().optional(),
   IdentityCenterOptions: z.object({
@@ -349,6 +350,7 @@ const StateSchema = z.object({
   }).optional(),
   SoftwareUpdateOptions: z.object({
     AutoSoftwareUpdateEnabled: z.boolean(),
+    UseLatestServiceSoftwareForBlueGreen: z.boolean(),
   }).optional(),
   SkipShardMigrationWait: z.boolean().optional(),
   IdentityCenterOptions: z.object({
@@ -469,6 +471,7 @@ const InputsSchema = z.object({
   }).optional(),
   SoftwareUpdateOptions: z.object({
     AutoSoftwareUpdateEnabled: z.boolean().optional(),
+    UseLatestServiceSoftwareForBlueGreen: z.boolean().optional(),
   }).optional(),
   SkipShardMigrationWait: z.boolean().optional(),
   IdentityCenterOptions: z.object({
@@ -524,7 +527,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for OpenSearchService Domain. Registered at `@swamp/aws/opensearchservice/domain`. */
 export const model = {
   type: "@swamp/aws/opensearchservice/domain",
-  version: "2026.07.31.1",
+  version: "2026.08.14.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -574,6 +577,11 @@ export const model = {
     {
       toVersion: "2026.07.31.1",
       description: "Added: EngineMode, UseCase",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.14.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
