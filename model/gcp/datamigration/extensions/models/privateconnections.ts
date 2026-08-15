@@ -168,6 +168,14 @@ const GlobalArgsSchema = z.object({
       "Required. Fully qualified name of the Network Attachment that DMS will connect to. Format: `projects/{{project}}/regions/{{region}}/networkAttachments/{{name}}`",
     ).optional(),
   }).describe("PSC Interface configuration.").optional(),
+  reservedPublicIpConfig: z.object({
+    egressPublicIps: z.array(z.string()).describe(
+      "Output only. The reserved public IPs.",
+    ).optional(),
+    natIpsCount: z.number().int().describe(
+      "Optional. Number of static public IP addresses to reserve.",
+    ).optional(),
+  }).describe("Reserved Public IP configuration.").optional(),
   vpcPeeringConfig: z.object({
     subnet: z.string().describe(
       "Required. A free subnet for peering. (CIDR of /29)",
@@ -203,6 +211,10 @@ const StateSchema = z.object({
   pscInterfaceConfig: z.object({
     networkAttachment: z.string(),
   }).optional(),
+  reservedPublicIpConfig: z.object({
+    egressPublicIps: z.array(z.string()),
+    natIpsCount: z.number(),
+  }).optional(),
   satisfiesPzi: z.boolean().optional(),
   satisfiesPzs: z.boolean().optional(),
   state: z.string().optional(),
@@ -233,6 +245,14 @@ const InputsSchema = z.object({
       "Required. Fully qualified name of the Network Attachment that DMS will connect to. Format: `projects/{{project}}/regions/{{region}}/networkAttachments/{{name}}`",
     ).optional(),
   }).describe("PSC Interface configuration.").optional(),
+  reservedPublicIpConfig: z.object({
+    egressPublicIps: z.array(z.string()).describe(
+      "Output only. The reserved public IPs.",
+    ).optional(),
+    natIpsCount: z.number().int().describe(
+      "Optional. Number of static public IP addresses to reserve.",
+    ).optional(),
+  }).describe("Reserved Public IP configuration.").optional(),
   vpcPeeringConfig: z.object({
     subnet: z.string().describe(
       "Required. A free subnet for peering. (CIDR of /29)",
@@ -281,7 +301,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration PrivateConnections. Registered at `@swamp/gcp/datamigration/privateconnections`. */
 export const model = {
   type: "@swamp/gcp/datamigration/privateconnections",
-  version: "2026.08.14.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -425,6 +445,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.15.1",
+      description: "Added: reservedPublicIpConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -459,6 +484,9 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["pscInterfaceConfig"] !== undefined) {
           body["pscInterfaceConfig"] = g["pscInterfaceConfig"];
+        }
+        if (g["reservedPublicIpConfig"] !== undefined) {
+          body["reservedPublicIpConfig"] = g["reservedPublicIpConfig"];
         }
         if (g["vpcPeeringConfig"] !== undefined) {
           body["vpcPeeringConfig"] = g["vpcPeeringConfig"];

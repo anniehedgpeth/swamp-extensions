@@ -57,10 +57,10 @@ const GlobalArgsSchema = z.object({
     'Adds a `<link rel="stylesheet">` tag into the page with the desired URL or a `<style type="text/css">` tag with the content.',
   ).optional(),
   allowRequestPattern: z.array(z.string()).describe(
-    "Only allow requests that match the provided regex patterns, eg. '/^.*\\.(css)'.",
+    "Only allow requests that match the provided regex patterns, eg. '/^.*\\.(css)'. Reject rules are applied first.",
   ).optional(),
   allowResourceTypes: z.array(z.enum(["document"])).describe(
-    "Only allow requests that match the provided resource types, eg. 'image' or 'script'.",
+    "Only allow requests that match the provided resource types, eg. 'image' or 'script'. Reject rules are applied first.",
   ).optional(),
   authenticate: z.object({
     password: z.string().min(1),
@@ -296,7 +296,14 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Crawl. Registered at `@swamp/cloudflare/browser-rendering/crawl`. */
 export const model = {
   type: "@swamp/cloudflare/browser-rendering/crawl",
-  version: "2026.07.24.1",
+  version: "2026.08.15.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

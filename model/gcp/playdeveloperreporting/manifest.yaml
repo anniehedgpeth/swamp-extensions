@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/playdeveloperreporting"
-version: "2026.08.12.2"
+version: "2026.08.15.1"
 description: "Google Cloud playdeveloperreporting infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,10 +11,13 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: anomalies, vitals_anrrate, vitals_crashrate, vitals_errors_counts, vitals_excessivewakeuprate, vitals_lmkrate, vitals_slowrenderingrate, vitals_slowstartrate, vitals_stuckbackgroundwakelockrate
+  - Added: vitals_anonrssandswapmemoryusage, vitals_bitmapmemoryusage
+  - Updated: vitals_anrrate, vitals_crashrate, vitals_errors_counts, vitals_excessivewakeuprate, vitals_lmkrate, vitals_slowstartrate, vitals_stuckbackgroundwakelockrate
 models:
   - anomalies.ts
+  - vitals_anonrssandswapmemoryusage.ts
   - vitals_anrrate.ts
+  - vitals_bitmapmemoryusage.ts
   - vitals_crashrate.ts
   - vitals_errors_counts.ts
   - vitals_excessivewakeuprate.ts

@@ -248,6 +248,7 @@ const GlobalArgsSchema = z.object({
         displayName: z.string().optional(),
         entryFulfillment: z.object({
           advancedSettings: z.unknown().optional(),
+          codeBlockFunction: z.unknown().optional(),
           conditionalCases: z.unknown().optional(),
           enableGenerativeFallback: z.unknown().optional(),
           generators: z.unknown().optional(),
@@ -419,6 +420,7 @@ const StateSchema = z.object({
         displayName: z.string(),
         entryFulfillment: z.object({
           advancedSettings: z.unknown(),
+          codeBlockFunction: z.unknown(),
           conditionalCases: z.unknown(),
           enableGenerativeFallback: z.unknown(),
           generators: z.unknown(),
@@ -593,6 +595,7 @@ const InputsSchema = z.object({
         displayName: z.string().optional(),
         entryFulfillment: z.object({
           advancedSettings: z.unknown().optional(),
+          codeBlockFunction: z.unknown().optional(),
           conditionalCases: z.unknown().optional(),
           enableGenerativeFallback: z.unknown().optional(),
           generators: z.unknown().optional(),
@@ -684,7 +687,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Agents.TestCases. Registered at `@swamp/gcp/dialogflow/agents-testcases`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/agents-testcases",
-  version: "2026.08.12.2",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -813,6 +816,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -512,6 +512,17 @@ const GlobalArgsSchema = z.object({
 const StateSchema = z.object({
   aclPolicy: z.string().optional(),
   aclPolicyInSync: z.boolean().optional(),
+  aclPolicyInfo: z.object({
+    aclPolicyRevisionStatuses: z.array(z.object({
+      aclPolicyRevision: z.string(),
+      aclPolicyRevisionNumber: z.string(),
+      errorMessage: z.string(),
+      state: z.string(),
+    })),
+    appliedAclPolicy: z.string(),
+    appliedAclPolicyRevision: z.string(),
+    appliedAclPolicyRevisionNumber: z.string(),
+  }).optional(),
   allowFewerZonesDeployment: z.boolean().optional(),
   asyncClusterEndpointsDeletionEnabled: z.boolean().optional(),
   authorizationMode: z.string().optional(),
@@ -1054,7 +1065,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Memorystore for Redis Clusters. Registered at `@swamp/gcp/redis/clusters`. */
 export const model = {
   type: "@swamp/gcp/redis/clusters",
-  version: "2026.08.12.2",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1236,6 +1247,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

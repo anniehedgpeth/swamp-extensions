@@ -96,6 +96,7 @@ const GlobalArgsSchema = z.object({
       S9: z.enum(["FLAG", "BLOCK"]).optional(),
     }),
   }).optional(),
+  log_classification: z.boolean().optional(),
   log_management: z.number().int().min(10000).max(10000000).optional(),
   log_management_strategy: z.enum(["STOP_INSERTING", "DELETE_OLDEST"])
     .optional(),
@@ -218,6 +219,7 @@ const ResourceSchema = z.object({
   }).optional(),
   id: z.string(),
   is_default: z.boolean().optional(),
+  log_classification: z.boolean().optional(),
   log_management: z.number().optional(),
   log_management_strategy: z.string().optional(),
   logpush: z.boolean().optional(),
@@ -321,6 +323,7 @@ const InputsSchema = z.object({
       S9: z.enum(["FLAG", "BLOCK"]).optional(),
     }),
   }).optional(),
+  log_classification: z.boolean().optional(),
   log_management: z.number().int().min(10000).max(10000000).optional(),
   log_management_strategy: z.enum(["STOP_INSERTING", "DELETE_OLDEST"])
     .optional(),
@@ -378,7 +381,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Gateways. Registered at `@swamp/cloudflare/ai-gateway/gateways`. */
 export const model = {
   type: "@swamp/cloudflare/ai-gateway/gateways",
-  version: "2026.08.11.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -413,6 +416,11 @@ export const model = {
     {
       toVersion: "2026.08.11.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
+      description: "Added: log_classification",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -536,6 +544,9 @@ export const model = {
         }
         if (g.collect_logs !== undefined) {
           filters.push(["collect_logs", String(g.collect_logs)]);
+        }
+        if (g.log_classification !== undefined) {
+          filters.push(["log_classification", String(g.log_classification)]);
         }
         if (g.log_management !== undefined) {
           filters.push(["log_management", String(g.log_management)]);
@@ -695,6 +706,9 @@ export const model = {
         if (g.collect_logs !== undefined) body.collect_logs = g.collect_logs;
         if (g.dlp !== undefined) body.dlp = g.dlp;
         if (g.guardrails !== undefined) body.guardrails = g.guardrails;
+        if (g.log_classification !== undefined) {
+          body.log_classification = g.log_classification;
+        }
         if (g.log_management !== undefined) {
           body.log_management = g.log_management;
         }

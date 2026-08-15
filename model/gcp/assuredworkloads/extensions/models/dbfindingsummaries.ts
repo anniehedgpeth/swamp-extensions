@@ -100,7 +100,9 @@ const StateSchema = z.object({
   findingClass: z.string().optional(),
   findingCount: z.string().optional(),
   name: z.string(),
+  organizationPolicyFindingCount: z.string().optional(),
   relatedFrameworks: z.array(z.string()).optional(),
+  resourceFindingCount: z.string().optional(),
   severity: z.string().optional(),
   updateTime: z.string().optional(),
 }).passthrough();
@@ -146,7 +148,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Assured Workloads DbFindingSummaries. Registered at `@swamp/gcp/assuredworkloads/dbfindingsummaries`. */
 export const model = {
   type: "@swamp/gcp/assuredworkloads/dbfindingsummaries",
-  version: "2026.08.12.2",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -155,6 +157,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

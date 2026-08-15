@@ -72,6 +72,12 @@ const GlobalArgsSchema = z.object({
   size: z.string().describe(
     "The slug identifier for the type of Droplet used as workers in the node pool.",
   ),
+  gpu_partition_mode: z.enum([
+    "AMD_PARTITION_MODE_SPX_NPS1",
+    "AMD_PARTITION_MODE_DPX_NPS2",
+  ]).describe(
+    "The AMD GPU partition mode for this node pool. Only applicable to AMD GPU sizes that support partitioning. Immutable after the node pool is created. When omitted, the GPUs in the pool are left unpartitioned.",
+  ).optional(),
   token: z.string().meta({ sensitive: true }).describe(
     "DigitalOcean API token; overrides the DO_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -102,6 +108,7 @@ const ResourceSchema = z.object({
     created_at: z.string().optional(),
     updated_at: z.string().optional(),
   })).optional(),
+  gpu_partition_mode: z.string().optional(),
 }).passthrough();
 
 type ResourceData = z.infer<typeof ResourceSchema>;
@@ -121,13 +128,17 @@ const InputsSchema = z.object({
   min_nodes: z.number().int().optional(),
   max_nodes: z.number().int().optional(),
   size: z.string().optional(),
+  gpu_partition_mode: z.enum([
+    "AMD_PARTITION_MODE_SPX_NPS1",
+    "AMD_PARTITION_MODE_DPX_NPS2",
+  ]).optional(),
   token: z.string().meta({ sensitive: true }).optional(),
 });
 
 /** Swamp extension model for DigitalOcean kubernetes cluster node pool. Registered at `@swamp/digitalocean/kubernetes-cluster-node-pool`. */
 export const model = {
   type: "@swamp/digitalocean/kubernetes-cluster-node-pool",
-  version: "2026.06.08.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -137,6 +148,11 @@ export const model = {
     {
       toVersion: "2026.06.08.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
+      description: "Added: gpu_partition_mode",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -186,6 +202,9 @@ export const model = {
         if (g.auto_scale !== undefined) body.auto_scale = g.auto_scale;
         if (g.min_nodes !== undefined) body.min_nodes = g.min_nodes;
         if (g.max_nodes !== undefined) body.max_nodes = g.max_nodes;
+        if (g.gpu_partition_mode !== undefined) {
+          body.gpu_partition_mode = g.gpu_partition_mode;
+        }
         const result = await create(
           endpoint,
           body,

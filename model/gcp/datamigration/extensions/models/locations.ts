@@ -159,7 +159,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Database Migration Locations. Registered at `@swamp/gcp/datamigration/locations`. */
 export const model = {
   type: "@swamp/gcp/datamigration/locations",
-  version: "2026.08.14.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -293,6 +293,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.14.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -479,6 +484,7 @@ export const model = {
             "httpMethod": "GET",
             "parameterOrder": ["name"],
             "parameters": {
+              "fetchReservedPublicIps": { "location": "query" },
               "name": { "location": "path", "required": true },
               "pageSize": { "location": "query" },
               "pageToken": { "location": "query" },

@@ -93,18 +93,18 @@ const GlobalArgsSchema = z.object({
     vcpu: z.number().optional(),
     wrangler_ssh: z.object({
       enabled: z.boolean().optional(),
-      port: z.number().optional(),
+      port: z.number().int().min(1).max(65535).optional(),
     }).optional(),
-  }).describe("Container configuration specified by the user"),
+  }).describe("User-specified container configuration."),
   constraints: z.object({
     jurisdiction: z.string().optional(),
     regions: z.array(z.string()).optional(),
   }).optional(),
   instances: z.number().int().min(0).describe(
-    "Number of deployments to create",
+    "Number of deployments to create.",
   ),
   max_instances: z.number().int().min(0).describe(
-    "Maximum number of instances that the application will allow. This is relevant for applications that auto-scale.",
+    "Maximum number of instances the application allows. This is relevant for applications that auto-scale.",
   ).optional(),
   observability: z.object({
     logs: z.object({
@@ -117,14 +117,12 @@ const GlobalArgsSchema = z.object({
   rollout_active_grace_period: z.number().int().min(0).max(604800).describe(
     "Grace period for active instances to stay alive before becoming eligible for shutdown signal due to a rollout, in seconds.\nDefaults to 0.\n",
   ).optional(),
-  durable_objects: z.object({
-    namespace_id: z.string().optional(),
-    class_name: z.string().optional(),
-    script_name: z.string().optional(),
-  }).optional(),
-  name: z.string().describe("The name for this application"),
+  durable_objects: z.string().describe(
+    "Set of properties to configure a Durable Object-backed application.",
+  ).optional(),
+  name: z.string().describe("The name for this application."),
   scheduling_policy: z.enum(["default"]).describe(
-    "The scheduling policy to use for an application",
+    "The scheduling policy to use for an application.",
   ),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -284,7 +282,7 @@ const InputsSchema = z.object({
     vcpu: z.number().optional(),
     wrangler_ssh: z.object({
       enabled: z.boolean().optional(),
-      port: z.number().optional(),
+      port: z.number().int().min(1).max(65535).optional(),
     }).optional(),
   }).optional(),
   constraints: z.object({
@@ -301,11 +299,7 @@ const InputsSchema = z.object({
     target_instance_percentage: z.number().int().min(1).max(99).optional(),
   }).optional(),
   rollout_active_grace_period: z.number().int().min(0).max(604800).optional(),
-  durable_objects: z.object({
-    namespace_id: z.string().optional(),
-    class_name: z.string().optional(),
-    script_name: z.string().optional(),
-  }).optional(),
+  durable_objects: z.string().optional(),
   name: z.string().optional(),
   scheduling_policy: z.enum(["default"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -316,7 +310,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Applications. Registered at `@swamp/cloudflare/containers/applications`. */
 export const model = {
   type: "@swamp/cloudflare/containers/applications",
-  version: "2026.08.11.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.06.08.1",
@@ -358,6 +352,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.11.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -459,6 +458,9 @@ export const model = {
             "rollout_active_grace_period",
             String(g.rollout_active_grace_period),
           ]);
+        }
+        if (g.durable_objects !== undefined) {
+          filters.push(["durable_objects", String(g.durable_objects)]);
         }
         if (g.name !== undefined) filters.push(["name", String(g.name)]);
         if (g.scheduling_policy !== undefined) {

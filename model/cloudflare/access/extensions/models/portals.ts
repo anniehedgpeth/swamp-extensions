@@ -49,15 +49,17 @@ const GlobalArgsSchema = z.object({
   code_mode: z.enum(["off", "opt_in", "default_on", "enforced"]).describe(
     "Code Mode policy for this portal. `off`: Code Mode is unavailable; query parameters are ignored. `opt_in`: Code Mode is off by default; clients turn it on with `?codemode=search_and_execute`. `default_on`: Code Mode is on by default; clients can opt out with `?codemode=off`. `enforced`: Code Mode is always on; query parameters are ignored. Defaults to `opt_in` when omitted on create. If both `code_mode` and `allow_code_mode` are sent, they must be consistent or the request returns a 400.",
   ).optional(),
-  description: z.string().max(512).optional(),
+  description: z.string().max(512).describe(
+    "Optional description of the MCP portal.",
+  ).optional(),
   hostname: z.string().regex(
     new RegExp(
       "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$",
     ),
-  ),
-  name: z.string().max(350),
+  ).describe("Hostname where the MCP portal is available."),
+  name: z.string().max(350).describe("Display name for the MCP portal."),
   secure_web_gateway: z.boolean().describe(
-    "Route outbound MCP traffic through Zero Trust Secure Web Gateway",
+    "Route outbound MCP traffic through Zero Trust Secure Web Gateway.",
   ).optional(),
   servers: z.array(z.object({
     default_disabled: z.boolean().optional(),
@@ -81,10 +83,12 @@ const GlobalArgsSchema = z.object({
       enabled: z.boolean().optional(),
       name: z.string(),
     })).optional(),
-  })).optional(),
+  })).describe(
+    "MCP servers attached to the portal and their portal-specific settings.",
+  ).optional(),
   id: z.string().min(1).max(32).regex(
     new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
-  ).describe("portal id"),
+  ).describe("Unique identifier for the MCP portal."),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -222,7 +226,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Portals. Registered at `@swamp/cloudflare/access/portals`. */
 export const model = {
   type: "@swamp/cloudflare/access/portals",
-  version: "2026.08.07.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -271,6 +275,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.07.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

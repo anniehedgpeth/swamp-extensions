@@ -104,7 +104,6 @@ const ResourceSchema = z.object({
   is_paused: z.boolean().optional(),
   last_hydrated: z.string().optional(),
   name: z.string().optional(),
-  organization_id: z.number().optional(),
   status: z.string().optional(),
   updated: z.string().optional(),
   use_cases: z.array(z.record(z.string(), z.unknown())).optional(),
@@ -145,7 +144,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Integrations. Registered at `@swamp/cloudflare/one/integrations`. */
 export const model = {
   type: "@swamp/cloudflare/one/integrations",
-  version: "2026.08.04.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.07.16.1",
@@ -174,6 +173,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.04.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

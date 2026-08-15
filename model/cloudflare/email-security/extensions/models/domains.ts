@@ -63,7 +63,7 @@ const GlobalArgsSchema = z.object({
       "NONE",
     ]),
   ),
-  folder: z.enum(["AllItems", "Inbox"]).optional(),
+  folder: z.string().optional(),
   integration_id: z.string().optional(),
   ip_restrictions: z.array(z.string()),
   lookback_hops: z.number().int().min(1).max(20).optional(),
@@ -138,7 +138,7 @@ const InputsSchema = z.object({
       "NONE",
     ]),
   ).optional(),
-  folder: z.enum(["AllItems", "Inbox"]).optional(),
+  folder: z.string().optional(),
   integration_id: z.string().optional(),
   ip_restrictions: z.array(z.string()).optional(),
   lookback_hops: z.number().int().min(1).max(20).optional(),
@@ -155,7 +155,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Domains. Registered at `@swamp/cloudflare/email-security/domains`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/domains",
-  version: "2026.07.24.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.07.18.1",
@@ -169,6 +169,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

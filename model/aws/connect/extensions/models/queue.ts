@@ -41,23 +41,23 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const TagSchema = z.object({
-  Key: z.string().min(1).max(128).regex(
-    new RegExp("^(?!aws:)[a-zA-Z+-=._:/]+$"),
-  ).describe(
-    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
-  ),
-  Value: z.string().min(0).max(256).describe(
-    "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
-  ),
-});
-
 const EmailAddressSchema = z.object({
   EmailAddressArn: z.string().regex(
     new RegExp(
       "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-f0-9]{8}-[-a-f0-9]{4}-[-a-f0-9]{4}-[-a-f0-9]{4}-[-a-f0-9]{12}/email-address/[-a-f0-9]{8}-[-a-f0-9]{4}-[-a-f0-9]{4}-[-a-f0-9]{4}-[-a-f0-9]{12}$",
     ),
   ).describe("The Amazon Resource Name (ARN) of the email address"),
+});
+
+const TagSchema = z.object({
+  Value: z.string().min(0).max(256).describe(
+    "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
+  Key: z.string().min(1).max(128).regex(
+    new RegExp("^(?!aws:)[a-zA-Z+-=._:/]+$"),
+  ).describe(
+    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
 });
 
 const GlobalArgsSchema = z.object({
@@ -76,49 +76,11 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  InstanceArn: z.string().regex(
-    new RegExp(
-      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
-    ),
-  ).describe("The identifier of the Amazon Connect instance."),
+  Status: z.enum(["ENABLED", "DISABLED"]).describe("The status of the queue.")
+    .optional(),
   Description: z.string().min(1).max(250).describe(
     "The description of the queue.",
   ).optional(),
-  HoursOfOperationArn: z.string().regex(
-    new RegExp(
-      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/operating-hours/[-a-zA-Z0-9]*$",
-    ),
-  ).describe("The identifier for the hours of operation."),
-  MaxContacts: z.number().int().min(0).describe(
-    "The maximum number of contacts that can be in the queue before it is considered full.",
-  ).optional(),
-  Name: z.string().min(1).max(127).describe("The name of the queue."),
-  OutboundCallerConfig: z.object({
-    OutboundCallerIdName: z.string().min(1).max(255).describe(
-      "The caller ID name.",
-    ).optional(),
-    OutboundCallerIdNumberArn: z.string().regex(
-      new RegExp(
-        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:phone-number/[-a-zA-Z0-9]*$",
-      ),
-    ).describe("The caller ID number.").optional(),
-    OutboundFlowArn: z.string().min(1).max(500).regex(
-      new RegExp(
-        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$",
-      ),
-    ).describe("The outbound whisper flow to be used during an outbound call.")
-      .optional(),
-  }).describe("The outbound caller ID name, number, and outbound whisper flow.")
-    .optional(),
-  OutboundEmailConfig: z.object({
-    OutboundEmailAddressId: z.string().regex(
-      new RegExp(
-        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/email-address/[-a-zA-Z0-9]*$",
-      ),
-    ).describe("The email address connect resource ID.").optional(),
-  }).describe("The outbound email address ID.").optional(),
-  Status: z.enum(["ENABLED", "DISABLED"]).describe("The status of the queue.")
-    .optional(),
   QuickConnectArns: z.array(
     z.string().regex(
       new RegExp(
@@ -128,34 +90,74 @@ const GlobalArgsSchema = z.object({
   ).describe(
     "The quick connects available to agents who are working the queue.",
   ).optional(),
-  Tags: z.array(TagSchema).describe(
-    "An array of key-value pairs to apply to this resource.",
-  ).optional(),
+  OutboundCallerConfig: z.object({
+    OutboundCallerIdNumberArn: z.string().regex(
+      new RegExp(
+        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:phone-number/[-a-zA-Z0-9]*$",
+      ),
+    ).describe("The caller ID number.").optional(),
+    OutboundFlowArn: z.string().min(1).max(500).regex(
+      new RegExp(
+        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*(:[a-zA-Z0-9-]+)?$",
+      ),
+    ).describe("The outbound whisper flow to be used during an outbound call.")
+      .optional(),
+    OutboundCallerIdName: z.string().min(1).max(255).describe(
+      "The caller ID name.",
+    ).optional(),
+  }).describe("The outbound caller ID name, number, and outbound whisper flow.")
+    .optional(),
   AdditionalEmailAddresses: z.array(EmailAddressSchema).describe(
     "The email addresses that agents can use when replying to or initiating email contacts",
+  ).optional(),
+  MaxContacts: z.number().int().min(0).describe(
+    "The maximum number of contacts that can be in the queue before it is considered full.",
+  ).optional(),
+  Name: z.string().min(1).max(127).describe("The name of the queue."),
+  HoursOfOperationArn: z.string().regex(
+    new RegExp(
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/operating-hours/[-a-zA-Z0-9]*$",
+    ),
+  ).describe("The identifier for the hours of operation."),
+  InstanceArn: z.string().regex(
+    new RegExp(
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
+    ),
+  ).describe("The identifier of the Amazon Connect instance."),
+  OutboundEmailConfig: z.object({
+    OutboundEmailAddressId: z.string().regex(
+      new RegExp(
+        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/email-address/[-a-zA-Z0-9]*$",
+      ),
+    ).describe("The email address connect resource ID.").optional(),
+  }).describe("The outbound email address ID.").optional(),
+  Tags: z.array(TagSchema).describe(
+    "An array of key-value pairs to apply to this resource.",
   ).optional(),
 });
 
 const StateSchema = z.object({
-  InstanceArn: z.string().optional(),
+  Status: z.string().optional(),
   Description: z.string().optional(),
-  HoursOfOperationArn: z.string().optional(),
-  MaxContacts: z.number().optional(),
-  Name: z.string().optional(),
+  QuickConnectArns: z.array(z.string()).optional(),
   OutboundCallerConfig: z.object({
-    OutboundCallerIdName: z.string(),
     OutboundCallerIdNumberArn: z.string(),
     OutboundFlowArn: z.string(),
+    OutboundCallerIdName: z.string(),
   }).optional(),
+  AdditionalEmailAddresses: z.array(EmailAddressSchema).optional(),
+  MaxContacts: z.number().optional(),
+  LastModifiedRegion: z.string().optional(),
+  Name: z.string().optional(),
+  HoursOfOperationArn: z.string().optional(),
+  Type: z.string().optional(),
+  InstanceArn: z.string().optional(),
   OutboundEmailConfig: z.object({
     OutboundEmailAddressId: z.string(),
   }).optional(),
+  LastModifiedTime: z.number().optional(),
   QueueArn: z.string(),
-  Status: z.string().optional(),
-  QuickConnectArns: z.array(z.string()).optional(),
   Tags: z.array(TagSchema).optional(),
-  Type: z.string().optional(),
-  AdditionalEmailAddresses: z.array(EmailAddressSchema).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -166,50 +168,11 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  InstanceArn: z.string().regex(
-    new RegExp(
-      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
-    ),
-  ).describe("The identifier of the Amazon Connect instance.").optional(),
+  Status: z.enum(["ENABLED", "DISABLED"]).describe("The status of the queue.")
+    .optional(),
   Description: z.string().min(1).max(250).describe(
     "The description of the queue.",
   ).optional(),
-  HoursOfOperationArn: z.string().regex(
-    new RegExp(
-      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/operating-hours/[-a-zA-Z0-9]*$",
-    ),
-  ).describe("The identifier for the hours of operation.").optional(),
-  MaxContacts: z.number().int().min(0).describe(
-    "The maximum number of contacts that can be in the queue before it is considered full.",
-  ).optional(),
-  Name: z.string().min(1).max(127).describe("The name of the queue.")
-    .optional(),
-  OutboundCallerConfig: z.object({
-    OutboundCallerIdName: z.string().min(1).max(255).describe(
-      "The caller ID name.",
-    ).optional(),
-    OutboundCallerIdNumberArn: z.string().regex(
-      new RegExp(
-        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:phone-number/[-a-zA-Z0-9]*$",
-      ),
-    ).describe("The caller ID number.").optional(),
-    OutboundFlowArn: z.string().min(1).max(500).regex(
-      new RegExp(
-        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*$",
-      ),
-    ).describe("The outbound whisper flow to be used during an outbound call.")
-      .optional(),
-  }).describe("The outbound caller ID name, number, and outbound whisper flow.")
-    .optional(),
-  OutboundEmailConfig: z.object({
-    OutboundEmailAddressId: z.string().regex(
-      new RegExp(
-        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/email-address/[-a-zA-Z0-9]*$",
-      ),
-    ).describe("The email address connect resource ID.").optional(),
-  }).describe("The outbound email address ID.").optional(),
-  Status: z.enum(["ENABLED", "DISABLED"]).describe("The status of the queue.")
-    .optional(),
   QuickConnectArns: z.array(
     z.string().regex(
       new RegExp(
@@ -219,11 +182,50 @@ const InputsSchema = z.object({
   ).describe(
     "The quick connects available to agents who are working the queue.",
   ).optional(),
-  Tags: z.array(TagSchema).describe(
-    "An array of key-value pairs to apply to this resource.",
-  ).optional(),
+  OutboundCallerConfig: z.object({
+    OutboundCallerIdNumberArn: z.string().regex(
+      new RegExp(
+        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:phone-number/[-a-zA-Z0-9]*$",
+      ),
+    ).describe("The caller ID number.").optional(),
+    OutboundFlowArn: z.string().min(1).max(500).regex(
+      new RegExp(
+        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/contact-flow/[-a-zA-Z0-9]*(:[a-zA-Z0-9-]+)?$",
+      ),
+    ).describe("The outbound whisper flow to be used during an outbound call.")
+      .optional(),
+    OutboundCallerIdName: z.string().min(1).max(255).describe(
+      "The caller ID name.",
+    ).optional(),
+  }).describe("The outbound caller ID name, number, and outbound whisper flow.")
+    .optional(),
   AdditionalEmailAddresses: z.array(EmailAddressSchema).describe(
     "The email addresses that agents can use when replying to or initiating email contacts",
+  ).optional(),
+  MaxContacts: z.number().int().min(0).describe(
+    "The maximum number of contacts that can be in the queue before it is considered full.",
+  ).optional(),
+  Name: z.string().min(1).max(127).describe("The name of the queue.")
+    .optional(),
+  HoursOfOperationArn: z.string().regex(
+    new RegExp(
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/operating-hours/[-a-zA-Z0-9]*$",
+    ),
+  ).describe("The identifier for the hours of operation.").optional(),
+  InstanceArn: z.string().regex(
+    new RegExp(
+      "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*$",
+    ),
+  ).describe("The identifier of the Amazon Connect instance.").optional(),
+  OutboundEmailConfig: z.object({
+    OutboundEmailAddressId: z.string().regex(
+      new RegExp(
+        "^arn:aws[-a-z0-9]*:connect:[-a-z0-9]*:[0-9]{12}:instance/[-a-zA-Z0-9]*/email-address/[-a-zA-Z0-9]*$",
+      ),
+    ).describe("The email address connect resource ID.").optional(),
+  }).describe("The outbound email address ID.").optional(),
+  Tags: z.array(TagSchema).describe(
+    "An array of key-value pairs to apply to this resource.",
   ).optional(),
 });
 
@@ -246,7 +248,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Connect Queue. Registered at `@swamp/aws/connect/queue`. */
 export const model = {
   type: "@swamp/aws/connect/queue",
-  version: "2026.06.15.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -285,6 +287,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

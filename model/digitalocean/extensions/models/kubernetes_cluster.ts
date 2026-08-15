@@ -119,6 +119,16 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "An object specifying whether the Nvidia GPU Device Plugin should be enabled in the Kubernetes cluster. It's enabled by default for clusters with an Nvidia GPU node pool.",
   ).optional(),
+  nvidia_gpu_dra_driver: z.object({
+    enabled: z.boolean().optional(),
+  }).describe(
+    "An object specifying whether the NVIDIA GPU DRA Driver should be enabled in the Kubernetes cluster. Mutually exclusive with `nvidia_gpu_device_plugin`.",
+  ).optional(),
+  amd_gpu_dra_driver: z.object({
+    enabled: z.boolean().optional(),
+  }).describe(
+    "An object specifying whether the AMD GPU DRA Driver should be enabled in the Kubernetes cluster. Mutually exclusive with `amd_gpu_device_plugin`.",
+  ).optional(),
   rdma_shared_dev_plugin: z.object({
     enabled: z.boolean().optional(),
   }).describe(
@@ -190,6 +200,10 @@ const GlobalArgsSchema = z.object({
       created_at: z.string().optional(),
       updated_at: z.string().optional(),
     })).optional(),
+    gpu_partition_mode: z.enum([
+      "AMD_PARTITION_MODE_SPX_NPS1",
+      "AMD_PARTITION_MODE_DPX_NPS2",
+    ]).optional(),
   })).describe(
     "An object specifying the details of the worker nodes available to the Kubernetes cluster.",
   ),
@@ -238,6 +252,7 @@ const ResourceSchema = z.object({
       created_at: z.string().optional(),
       updated_at: z.string().optional(),
     })).optional(),
+    gpu_partition_mode: z.string().optional(),
   })).optional(),
   maintenance_policy: z.object({
     start_time: z.string().optional(),
@@ -281,6 +296,12 @@ const ResourceSchema = z.object({
     enabled: z.boolean().optional(),
   }).nullable().optional(),
   nvidia_gpu_device_plugin: z.object({
+    enabled: z.boolean().optional(),
+  }).nullable().optional(),
+  nvidia_gpu_dra_driver: z.object({
+    enabled: z.boolean().optional(),
+  }).nullable().optional(),
+  amd_gpu_dra_driver: z.object({
     enabled: z.boolean().optional(),
   }).nullable().optional(),
   rdma_shared_dev_plugin: z.object({
@@ -347,6 +368,12 @@ const InputsSchema = z.object({
   nvidia_gpu_device_plugin: z.object({
     enabled: z.boolean().optional(),
   }).optional(),
+  nvidia_gpu_dra_driver: z.object({
+    enabled: z.boolean().optional(),
+  }).optional(),
+  amd_gpu_dra_driver: z.object({
+    enabled: z.boolean().optional(),
+  }).optional(),
   rdma_shared_dev_plugin: z.object({
     enabled: z.boolean().optional(),
   }).optional(),
@@ -402,6 +429,10 @@ const InputsSchema = z.object({
       created_at: z.string().optional(),
       updated_at: z.string().optional(),
     })).optional(),
+    gpu_partition_mode: z.enum([
+      "AMD_PARTITION_MODE_SPX_NPS1",
+      "AMD_PARTITION_MODE_DPX_NPS2",
+    ]).optional(),
   })).optional(),
   isolated_workers: z.boolean().optional(),
   token: z.string().meta({ sensitive: true }).optional(),
@@ -410,7 +441,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for DigitalOcean kubernetes cluster. Registered at `@swamp/digitalocean/kubernetes-cluster`. */
 export const model = {
   type: "@swamp/digitalocean/kubernetes-cluster",
-  version: "2026.08.04.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.03.27.1",
@@ -485,6 +516,11 @@ export const model = {
     {
       toVersion: "2026.08.04.1",
       description: "Added: isolated_workers",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
+      description: "Added: nvidia_gpu_dra_driver, amd_gpu_dra_driver",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -575,6 +611,12 @@ export const model = {
         }
         if (g.nvidia_gpu_device_plugin !== undefined) {
           body.nvidia_gpu_device_plugin = g.nvidia_gpu_device_plugin;
+        }
+        if (g.nvidia_gpu_dra_driver !== undefined) {
+          body.nvidia_gpu_dra_driver = g.nvidia_gpu_dra_driver;
+        }
+        if (g.amd_gpu_dra_driver !== undefined) {
+          body.amd_gpu_dra_driver = g.amd_gpu_dra_driver;
         }
         if (g.rdma_shared_dev_plugin !== undefined) {
           body.rdma_shared_dev_plugin = g.rdma_shared_dev_plugin;
@@ -685,6 +727,12 @@ export const model = {
         }
         if (g.nvidia_gpu_device_plugin !== undefined) {
           body.nvidia_gpu_device_plugin = g.nvidia_gpu_device_plugin;
+        }
+        if (g.nvidia_gpu_dra_driver !== undefined) {
+          body.nvidia_gpu_dra_driver = g.nvidia_gpu_dra_driver;
+        }
+        if (g.amd_gpu_dra_driver !== undefined) {
+          body.amd_gpu_dra_driver = g.amd_gpu_dra_driver;
         }
         if (g.rdma_shared_dev_plugin !== undefined) {
           body.rdma_shared_dev_plugin = g.rdma_shared_dev_plugin;

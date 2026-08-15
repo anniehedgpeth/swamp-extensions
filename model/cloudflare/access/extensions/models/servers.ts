@@ -43,17 +43,21 @@ import {
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
-  auth_credentials: z.string().optional(),
+  auth_credentials: z.string().describe(
+    'Static credential for the upstream MCP server. For auth_type "bearer", either a raw token string (e.g. "sk-abc123"), which is wrapped server-side as `Authorization: Bearer <token>`, or a JSON-encoded object of the form `{"headers":{"Header-Name":"value",...}}` for custom or multiple static headers (e.g. Cloudflare Access service tokens: `{"headers":{"cf-access-client-id":"...","cf-access-client-secret":"..."}}`).',
+  ).optional(),
   client_secret: z.string().describe(
     "Pre-registered OAuth client_secret. Write-only - accepted on create/update when auth_credentials.auth_mode is 'manual'. Stored AES-GCM-encrypted in server_oauth_secrets; never returned by read endpoints.",
   ).optional(),
-  description: z.string().max(512).optional(),
+  description: z.string().max(512).describe(
+    "Optional description of the MCP server.",
+  ).optional(),
   is_shared_oauth_callback_enabled: z.boolean().describe(
     "When true, the gateway worker uses the shared Cloudflare-owned OAuth callback endpoint as the redirect_uri for upstream on-behalf OAuth, instead of the customer portal hostname. Defaults to false (off); opt in per server by setting true.",
   ).optional(),
-  name: z.string().max(350),
+  name: z.string().max(350).describe("Display name for the MCP server."),
   secure_web_gateway: z.boolean().describe(
-    "Route outbound traffic to this MCP server through Zero Trust Secure Web Gateway",
+    "Route outbound traffic to this MCP server through Zero Trust Secure Web Gateway.",
   ).optional(),
   updated_prompts: z.array(z.object({
     alias: z.string().max(40).regex(
@@ -62,7 +66,7 @@ const GlobalArgsSchema = z.object({
     description: z.string().optional(),
     enabled: z.boolean().optional(),
     name: z.string(),
-  })).optional(),
+  })).describe("Server-wide prompt capability overrides.").optional(),
   updated_tools: z.array(z.object({
     alias: z.string().max(40).regex(
       new RegExp("^[a-zA-Z0-9]+([_-][a-zA-Z0-9]+)*$"),
@@ -70,12 +74,14 @@ const GlobalArgsSchema = z.object({
     description: z.string().optional(),
     enabled: z.boolean().optional(),
     name: z.string(),
-  })).optional(),
-  auth_type: z.enum(["oauth", "bearer", "unauthenticated"]),
-  hostname: z.string(),
+  })).describe("Server-wide tool capability overrides.").optional(),
+  auth_type: z.enum(["oauth", "bearer", "unauthenticated"]).describe(
+    "Authentication method used to connect to the upstream MCP server.",
+  ),
+  hostname: z.string().describe("URL of the upstream MCP endpoint."),
   id: z.string().min(1).max(32).regex(
     new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
-  ).describe("server id"),
+  ).describe("Unique identifier for the MCP server."),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -184,7 +190,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Servers. Registered at `@swamp/cloudflare/access/servers`. */
 export const model = {
   type: "@swamp/cloudflare/access/servers",
-  version: "2026.08.07.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -223,6 +229,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.07.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

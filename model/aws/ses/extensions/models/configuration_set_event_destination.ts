@@ -130,7 +130,7 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   Id: z.string(),
-  ConfigurationSetName: z.string().optional(),
+  ConfigurationSetName: z.string(),
   EventDestination: z.object({
     Name: z.string(),
     Enabled: z.boolean(),
@@ -197,7 +197,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for SES ConfigurationSetEventDestination. Registered at `@swamp/aws/ses/configuration-set-event-destination`. */
 export const model = {
   type: "@swamp/aws/ses/configuration-set-event-destination",
-  version: "2026.06.15.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -236,6 +236,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -326,10 +331,16 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.Id?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.Id?.toString(),
+          existing.ConfigurationSetName?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         const currentState = await readResource(
           "AWS::SES::ConfigurationSetEventDestination",
           identifier,
@@ -404,10 +415,16 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.Id?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
+        const idParts = [
+          existing.Id?.toString(),
+          existing.ConfigurationSetName?.toString(),
+        ];
+        if (idParts.some((p) => !p)) {
+          throw new Error(
+            "Missing primary identifier fields in existing state",
+          );
         }
+        const identifier = idParts.join("|");
         try {
           const result = await readResource(
             "AWS::SES::ConfigurationSetEventDestination",

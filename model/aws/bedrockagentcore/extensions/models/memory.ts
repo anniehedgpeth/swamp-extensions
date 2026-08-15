@@ -81,6 +81,9 @@ const MetadataSchemaEntrySchema = z.object({
   Type: z.enum(["STRING", "STRINGLIST", "NUMBER"]).describe(
     "Supported data types for metadata values",
   ).optional(),
+  ExtractionType: z.enum(["LLM_INFERRED", "STRICTLY_CONSISTENT"]).describe(
+    "Specifies whether the metadata value is extracted by the LLM or passed through deterministically from the event",
+  ).optional(),
   ExtractionConfig: ExtractionConfigSchema.optional(),
 });
 
@@ -615,7 +618,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore Memory. Registered at `@swamp/aws/bedrockagentcore/memory`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/memory",
-  version: "2026.06.15.1",
+  version: "2026.08.15.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -664,6 +667,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.15.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
