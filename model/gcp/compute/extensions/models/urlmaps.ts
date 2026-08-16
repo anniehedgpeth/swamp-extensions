@@ -420,6 +420,16 @@ const GlobalArgsSchema = z.object({
       pathTemplateRewrite: z.string().describe(
         "If specified, the pattern rewrites the URL path (based on the:path header) using the HTTP template syntax. A corresponding path_template_match must be specified. Any template variables must exist in the path_template_match field. - -At least one variable must be specified in the path_template_match field - You can omit variables from the rewritten URL - The * and ** operators cannot be matched unless they have a corresponding variable name - e.g. {format=*} or {var=**}. For example, a path_template_match of /static/{format=**} could be rewritten as /static/content/{format} to prefix/content to the URL. Variables can also be re-ordered in a rewrite, so that /{country}/{format}/{suffix=**} can be rewritten as /content/{format}/{country}/{suffix}. At least one non-empty routeRules[].matchRules[].path_template_match is required. Only one of path_prefix_rewrite orpath_template_rewrite may be specified.",
       ).optional(),
+      regexRewrite: z.object({
+        pathPattern: z.string().describe(
+          "Required. The regular expression used to match against the URL path. It uses RE2 syntax with the following constraints: - Any single character operators - Groups are allowed to have only submatch operator inside - Groups are allowed only without any char repetition, e.g..* - Any char repetition, e.g..*, is only allowed to be used in a single regex together with: - Empty string operators - Other repetitions - Ranges - Repetitions of ranges - Ranges are only allowed to have: - Character range - Digits range - Symbols listed in characters allowed for ranges",
+        ).optional(),
+        pathSubstitution: z.string().describe(
+          "Required. Required when path pattern is specified. Used to rewrite matching parts of the path.",
+        ).optional(),
+      }).describe(
+        "The regex rewrite to be applied to the URL. Only one ofpathPrefixRewrite, pathTemplateRewrite, orregexRewrite may be specified.",
+      ).optional(),
     }).describe(
       "The spec to modify the URL of the request, before forwarding the request to the matched service. urlRewrite is the only action supported in UrlMaps for classic Application Load Balancers. Not supported when the URL map is bound to a target gRPC proxy that has the validateForProxyless field set to true.",
     ).optional(),
@@ -754,6 +764,16 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         pathTemplateRewrite: z.string().describe(
           "If specified, the pattern rewrites the URL path (based on the:path header) using the HTTP template syntax. A corresponding path_template_match must be specified. Any template variables must exist in the path_template_match field. - -At least one variable must be specified in the path_template_match field - You can omit variables from the rewritten URL - The * and ** operators cannot be matched unless they have a corresponding variable name - e.g. {format=*} or {var=**}. For example, a path_template_match of /static/{format=**} could be rewritten as /static/content/{format} to prefix/content to the URL. Variables can also be re-ordered in a rewrite, so that /{country}/{format}/{suffix=**} can be rewritten as /content/{format}/{country}/{suffix}. At least one non-empty routeRules[].matchRules[].path_template_match is required. Only one of path_prefix_rewrite orpath_template_rewrite may be specified.",
+        ).optional(),
+        regexRewrite: z.object({
+          pathPattern: z.unknown().describe(
+            "Required. The regular expression used to match against the URL path. It uses RE2 syntax with the following constraints: - Any single character operators - Groups are allowed to have only submatch operator inside - Groups are allowed only without any char repetition, e.g..* - Any char repetition, e.g..*, is only allowed to be used in a single regex together with: - Empty string operators - Other repetitions - Ranges - Repetitions of ranges - Ranges are only allowed to have: - Character range - Digits range - Symbols listed in characters allowed for ranges",
+          ).optional(),
+          pathSubstitution: z.unknown().describe(
+            "Required. Required when path pattern is specified. Used to rewrite matching parts of the path.",
+          ).optional(),
+        }).describe(
+          "The regex rewrite to be applied to the URL. Only one ofpathPrefixRewrite, pathTemplateRewrite, orregexRewrite may be specified.",
         ).optional(),
       }).describe(
         "The spec to modify the URL of the request, before forwarding the request to the matched service. urlRewrite is the only action supported in UrlMaps for classic Application Load Balancers. Not supported when the URL map is bound to a target gRPC proxy that has the validateForProxyless field set to true.",
@@ -1137,6 +1157,10 @@ const StateSchema = z.object({
       hostRewrite: z.string(),
       pathPrefixRewrite: z.string(),
       pathTemplateRewrite: z.string(),
+      regexRewrite: z.object({
+        pathPattern: z.string(),
+        pathSubstitution: z.string(),
+      }),
     }),
     weightedBackendServices: z.array(z.object({
       backendService: z.string(),
@@ -1268,6 +1292,10 @@ const StateSchema = z.object({
         hostRewrite: z.string(),
         pathPrefixRewrite: z.string(),
         pathTemplateRewrite: z.string(),
+        regexRewrite: z.object({
+          pathPattern: z.unknown(),
+          pathSubstitution: z.unknown(),
+        }),
       }),
       weightedBackendServices: z.array(z.object({
         backendService: z.unknown(),
@@ -1628,6 +1656,16 @@ const InputsSchema = z.object({
       pathTemplateRewrite: z.string().describe(
         "If specified, the pattern rewrites the URL path (based on the:path header) using the HTTP template syntax. A corresponding path_template_match must be specified. Any template variables must exist in the path_template_match field. - -At least one variable must be specified in the path_template_match field - You can omit variables from the rewritten URL - The * and ** operators cannot be matched unless they have a corresponding variable name - e.g. {format=*} or {var=**}. For example, a path_template_match of /static/{format=**} could be rewritten as /static/content/{format} to prefix/content to the URL. Variables can also be re-ordered in a rewrite, so that /{country}/{format}/{suffix=**} can be rewritten as /content/{format}/{country}/{suffix}. At least one non-empty routeRules[].matchRules[].path_template_match is required. Only one of path_prefix_rewrite orpath_template_rewrite may be specified.",
       ).optional(),
+      regexRewrite: z.object({
+        pathPattern: z.string().describe(
+          "Required. The regular expression used to match against the URL path. It uses RE2 syntax with the following constraints: - Any single character operators - Groups are allowed to have only submatch operator inside - Groups are allowed only without any char repetition, e.g..* - Any char repetition, e.g..*, is only allowed to be used in a single regex together with: - Empty string operators - Other repetitions - Ranges - Repetitions of ranges - Ranges are only allowed to have: - Character range - Digits range - Symbols listed in characters allowed for ranges",
+        ).optional(),
+        pathSubstitution: z.string().describe(
+          "Required. Required when path pattern is specified. Used to rewrite matching parts of the path.",
+        ).optional(),
+      }).describe(
+        "The regex rewrite to be applied to the URL. Only one ofpathPrefixRewrite, pathTemplateRewrite, orregexRewrite may be specified.",
+      ).optional(),
     }).describe(
       "The spec to modify the URL of the request, before forwarding the request to the matched service. urlRewrite is the only action supported in UrlMaps for classic Application Load Balancers. Not supported when the URL map is bound to a target gRPC proxy that has the validateForProxyless field set to true.",
     ).optional(),
@@ -1963,6 +2001,16 @@ const InputsSchema = z.object({
         pathTemplateRewrite: z.string().describe(
           "If specified, the pattern rewrites the URL path (based on the:path header) using the HTTP template syntax. A corresponding path_template_match must be specified. Any template variables must exist in the path_template_match field. - -At least one variable must be specified in the path_template_match field - You can omit variables from the rewritten URL - The * and ** operators cannot be matched unless they have a corresponding variable name - e.g. {format=*} or {var=**}. For example, a path_template_match of /static/{format=**} could be rewritten as /static/content/{format} to prefix/content to the URL. Variables can also be re-ordered in a rewrite, so that /{country}/{format}/{suffix=**} can be rewritten as /content/{format}/{country}/{suffix}. At least one non-empty routeRules[].matchRules[].path_template_match is required. Only one of path_prefix_rewrite orpath_template_rewrite may be specified.",
         ).optional(),
+        regexRewrite: z.object({
+          pathPattern: z.unknown().describe(
+            "Required. The regular expression used to match against the URL path. It uses RE2 syntax with the following constraints: - Any single character operators - Groups are allowed to have only submatch operator inside - Groups are allowed only without any char repetition, e.g..* - Any char repetition, e.g..*, is only allowed to be used in a single regex together with: - Empty string operators - Other repetitions - Ranges - Repetitions of ranges - Ranges are only allowed to have: - Character range - Digits range - Symbols listed in characters allowed for ranges",
+          ).optional(),
+          pathSubstitution: z.unknown().describe(
+            "Required. Required when path pattern is specified. Used to rewrite matching parts of the path.",
+          ).optional(),
+        }).describe(
+          "The regex rewrite to be applied to the URL. Only one ofpathPrefixRewrite, pathTemplateRewrite, orregexRewrite may be specified.",
+        ).optional(),
       }).describe(
         "The spec to modify the URL of the request, before forwarding the request to the matched service. urlRewrite is the only action supported in UrlMaps for classic Application Load Balancers. Not supported when the URL map is bound to a target gRPC proxy that has the validateForProxyless field set to true.",
       ).optional(),
@@ -2275,7 +2323,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine UrlMaps. Registered at `@swamp/gcp/compute/urlmaps`. */
 export const model = {
   type: "@swamp/gcp/compute/urlmaps",
-  version: "2026.08.12.2",
+  version: "2026.08.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2444,6 +2492,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

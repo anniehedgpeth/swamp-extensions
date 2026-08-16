@@ -172,7 +172,6 @@ const GlobalArgsSchema = z.object({
           loggingSettings: z.unknown().optional(),
           speechSettings: z.unknown().optional(),
         }).optional(),
-        codeBlockFunction: z.string().optional(),
         conditionalCases: z.array(z.unknown()).optional(),
         enableGenerativeFallback: z.boolean().optional(),
         generators: z.array(z.unknown()).optional(),
@@ -192,7 +191,6 @@ const GlobalArgsSchema = z.object({
           loggingSettings: z.unknown().optional(),
           speechSettings: z.unknown().optional(),
         }).optional(),
-        codeBlockFunction: z.string().optional(),
         conditionalCases: z.array(z.unknown()).optional(),
         enableGenerativeFallback: z.boolean().optional(),
         generators: z.array(z.unknown()).optional(),
@@ -313,7 +311,6 @@ const StateSchema = z.object({
           loggingSettings: z.unknown(),
           speechSettings: z.unknown(),
         }),
-        codeBlockFunction: z.string(),
         conditionalCases: z.array(z.unknown()),
         enableGenerativeFallback: z.boolean(),
         generators: z.array(z.unknown()),
@@ -333,7 +330,6 @@ const StateSchema = z.object({
           loggingSettings: z.unknown(),
           speechSettings: z.unknown(),
         }),
-        codeBlockFunction: z.string(),
         conditionalCases: z.array(z.unknown()),
         enableGenerativeFallback: z.boolean(),
         generators: z.array(z.unknown()),
@@ -423,7 +419,6 @@ const InputsSchema = z.object({
           loggingSettings: z.unknown().optional(),
           speechSettings: z.unknown().optional(),
         }).optional(),
-        codeBlockFunction: z.string().optional(),
         conditionalCases: z.array(z.unknown()).optional(),
         enableGenerativeFallback: z.boolean().optional(),
         generators: z.array(z.unknown()).optional(),
@@ -443,7 +438,6 @@ const InputsSchema = z.object({
           loggingSettings: z.unknown().optional(),
           speechSettings: z.unknown().optional(),
         }).optional(),
-        codeBlockFunction: z.string().optional(),
         conditionalCases: z.array(z.unknown()).optional(),
         enableGenerativeFallback: z.boolean().optional(),
         generators: z.array(z.unknown()).optional(),
@@ -572,7 +566,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Agents.Playbooks. Registered at `@swamp/gcp/dialogflow/agents-playbooks`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/agents-playbooks",
-  version: "2026.08.15.1",
+  version: "2026.08.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -711,6 +705,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

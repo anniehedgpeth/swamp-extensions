@@ -17,15 +17,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/gcp/networkservices/agentconnectivitytemplates
+// Auto-generated extension model for @swamp/gcp/networkservices/producerextensions
 // Do not edit manually. Re-generate with: deno task generate:gcp
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Network Services AgentConnectivityTemplates.
+ * Swamp extension model for Google Cloud Network Services ProducerExtensions.
  *
- * AgentConnectivityTemplate represents a reusable network configuration.
+ * `ProducerExtension` is a resource representing producer defined configuration for their service extension.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -42,18 +42,17 @@ import {
   isResourceNotFoundError,
   listResources,
   readResource,
-  updateResource,
 } from "./_lib/gcp.ts";
 
 /** Construct the fully-qualified resource name from parent and short name. */
 function buildResourceName(parent: string, shortName: string): string {
-  return `${parent}/agentConnectivityTemplates/${shortName}`;
+  return `${parent}/producerExtensions/${shortName}`;
 }
 
 const BASE_URL = "https://networkservices.googleapis.com/";
 
 const GET_CONFIG = {
-  "id": "networkservices.projects.locations.agentConnectivityTemplates.get",
+  "id": "networkservices.projects.locations.producerExtensions.get",
   "path": "v1/{+name}",
   "httpMethod": "GET",
   "parameterOrder": [
@@ -68,43 +67,25 @@ const GET_CONFIG = {
 } as const;
 
 const INSERT_CONFIG = {
-  "id": "networkservices.projects.locations.agentConnectivityTemplates.create",
-  "path": "v1/{+parent}/agentConnectivityTemplates",
+  "id": "networkservices.projects.locations.producerExtensions.create",
+  "path": "v1/{+parent}/producerExtensions",
   "httpMethod": "POST",
   "parameterOrder": [
     "parent",
   ],
   "parameters": {
-    "agentConnectivityTemplateId": {
-      "location": "query",
-    },
     "parent": {
       "location": "path",
       "required": true,
     },
-  },
-} as const;
-
-const PATCH_CONFIG = {
-  "id": "networkservices.projects.locations.agentConnectivityTemplates.patch",
-  "path": "v1/{+name}",
-  "httpMethod": "PATCH",
-  "parameterOrder": [
-    "name",
-  ],
-  "parameters": {
-    "name": {
-      "location": "path",
-      "required": true,
-    },
-    "updateMask": {
+    "producerExtensionId": {
       "location": "query",
     },
   },
 } as const;
 
 const DELETE_CONFIG = {
-  "id": "networkservices.projects.locations.agentConnectivityTemplates.delete",
+  "id": "networkservices.projects.locations.producerExtensions.delete",
   "path": "v1/{+name}",
   "httpMethod": "DELETE",
   "parameterOrder": [
@@ -122,8 +103,8 @@ const DELETE_CONFIG = {
 } as const;
 
 const LIST_CONFIG = {
-  "id": "networkservices.projects.locations.agentConnectivityTemplates.list",
-  "path": "v1/{+parent}/agentConnectivityTemplates",
+  "id": "networkservices.projects.locations.producerExtensions.list",
+  "path": "v1/{+parent}/producerExtensions",
   "httpMethod": "GET",
   "parameterOrder": [
     "parent",
@@ -138,9 +119,6 @@ const LIST_CONFIG = {
     "parent": {
       "location": "path",
       "required": true,
-    },
-    "returnPartialSuccess": {
-      "location": "query",
     },
   },
 } as const;
@@ -164,60 +142,44 @@ const GlobalArgsSchema = z.object({
   apiEndpoint: z.string().describe(
     "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
   ).optional(),
-  accessPath: z.enum([
-    "ACCESS_PATH_UNSPECIFIED",
-    "CLIENT_TO_AGENT",
-    "AGENT_TO_ANYWHERE",
-  ]).describe(
-    "Required. Immutable. The path of the access. Maps roughly to ingress/egress, though we keep CLIENT_TO_AGENT and AGENT_TO_ANYWHERE as carryovers from Agent Gateway's original resource model. The path is immutable once set. Exactly one path can be set.",
-  ).optional(),
-  accessTypes: z.array(z.enum(["ACCESS_TYPE_UNSPECIFIED", "PUBLIC", "PRIVATE"]))
-    .describe(
-      "Optional. The types of network access provided to the gateway. Both PUBLIC and PRIVATE can be configured.",
-    ).optional(),
-  agentCompute: z.enum([
-    "AGENT_COMPUTE_UNSPECIFIED",
-    "GKE",
-    "CLOUD_RUN",
-    "BORG",
-  ]).describe(
-    "Optional. The compute environment where the agent is hosted. Exactly one type of compute must be chosen.",
-  ).optional(),
-  deploymentModel: z.enum([
-    "DEPLOYMENT_MODEL_UNSPECIFIED",
-    "CENTRALIZED",
-    "AMBIENT",
-  ]).describe("Required. The deployment model for the gateway.").optional(),
   description: z.string().describe(
-    "Optional. A free-text description of the resource. Max length 1024 characters.",
+    "Optional. A human-readable description of the resource.",
   ).optional(),
-  egressNetworkConfig: z.object({
-    dnsPeeringConfig: z.object({
-      domain: z.string().describe("Optional. The domain to peer.").optional(),
-      targetNetwork: z.string().describe(
-        "Optional. The target network resource name for DNS peering. Format: projects/{project}/global/networks/{network_id}",
-      ).optional(),
-    }).describe("Optional. DNS Peering configuration.").optional(),
-    networkAttachment: z.string().describe(
-      "Optional. The network attachment resource name. Format: projects/{project}/regions/{region}/networkAttachments/{network_attachment_id}",
+  extensionSettings: z.object({
+    authority: z.string().describe(
+      "Optional. The `:authority` header in the request sent to the extension service.",
     ).optional(),
-    trustConfig: z.string().describe(
-      "Optional. Deprecated: Use tls_config instead. The trust config resource name. Format: projects/{project}/locations/{location}/trustConfigs/{trust_config}",
+    observabilityMode: z.boolean().describe(
+      "Optional. Whether the extension should function in observability mode.",
     ).optional(),
-    vpcEgress: z.enum([
-      "VPC_EGRESS_UNSPECIFIED",
-      "ALL_TRAFFIC",
-      "PRIVATE_RANGES_ONLY",
-    ]).describe("Optional. The VPC egress setting.").optional(),
-  }).describe("Optional. Configuration for egress network traffic.").optional(),
+    service: z.string().describe("Required. URI of the PSC attachment.")
+      .optional(),
+    supportedEvents: z.array(
+      z.enum([
+        "EVENT_TYPE_UNSPECIFIED",
+        "REQUEST_HEADERS",
+        "REQUEST_BODY",
+        "RESPONSE_HEADERS",
+        "RESPONSE_BODY",
+        "REQUEST_TRAILERS",
+        "RESPONSE_TRAILERS",
+      ]),
+    ).describe("Required. The event types supported by the extension.")
+      .optional(),
+  }).describe(
+    "Required. The configuration for the service that this `ProducerExtension` offers.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
-    "Optional. Set of label tags associated with the AgentConnectivityTemplate resource.",
+    "Optional. Set of labels associated with the `ProducerExtension` resource. The format must comply with [the following requirements]((https://cloud.google.com/compute/docs/labeling-resources#requirements).",
   ).optional(),
   name: z.string().describe(
-    "Identifier. Name of the AgentConnectivityTemplate resource. It matches pattern `projects/*/locations/*/agentConnectivityTemplates/`.",
+    "Identifier. Name of the `ProducerExtension` resource in the following format: `projects/{project}/locations/{location}/producerExtensions/{producer_extension}`.",
   ).optional(),
-  agentConnectivityTemplateId: z.string().describe(
-    "Required. Short name of the AgentConnectivityTemplate resource to be created.",
+  phase: z.enum(["PHASE_UNSPECIFIED", "TRAFFIC", "AUTHZ"]).describe(
+    "Required. The phase in which this `ProducerExtension` should execute.",
+  ).optional(),
+  producerExtensionId: z.string().describe(
+    "Required. Short name of the `ProducerExtension` resource to be created.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -225,24 +187,18 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
-  accessPath: z.string().optional(),
-  accessTypes: z.array(z.string()).optional(),
-  agentCompute: z.string().optional(),
   createTime: z.string().optional(),
-  deploymentModel: z.string().optional(),
   description: z.string().optional(),
-  egressNetworkConfig: z.object({
-    dnsPeeringConfig: z.object({
-      domain: z.string(),
-      targetNetwork: z.string(),
-    }),
-    networkAttachment: z.string(),
-    trustConfig: z.string(),
-    vpcEgress: z.string(),
-  }).optional(),
   etag: z.string().optional(),
+  extensionSettings: z.object({
+    authority: z.string(),
+    observabilityMode: z.boolean(),
+    service: z.string(),
+    supportedEvents: z.array(z.string()),
+  }).optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
+  phase: z.string().optional(),
   updateTime: z.string().optional(),
 }).passthrough();
 
@@ -255,60 +211,44 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
   apiEndpoint: z.string().optional(),
-  accessPath: z.enum([
-    "ACCESS_PATH_UNSPECIFIED",
-    "CLIENT_TO_AGENT",
-    "AGENT_TO_ANYWHERE",
-  ]).describe(
-    "Required. Immutable. The path of the access. Maps roughly to ingress/egress, though we keep CLIENT_TO_AGENT and AGENT_TO_ANYWHERE as carryovers from Agent Gateway's original resource model. The path is immutable once set. Exactly one path can be set.",
-  ).optional(),
-  accessTypes: z.array(z.enum(["ACCESS_TYPE_UNSPECIFIED", "PUBLIC", "PRIVATE"]))
-    .describe(
-      "Optional. The types of network access provided to the gateway. Both PUBLIC and PRIVATE can be configured.",
-    ).optional(),
-  agentCompute: z.enum([
-    "AGENT_COMPUTE_UNSPECIFIED",
-    "GKE",
-    "CLOUD_RUN",
-    "BORG",
-  ]).describe(
-    "Optional. The compute environment where the agent is hosted. Exactly one type of compute must be chosen.",
-  ).optional(),
-  deploymentModel: z.enum([
-    "DEPLOYMENT_MODEL_UNSPECIFIED",
-    "CENTRALIZED",
-    "AMBIENT",
-  ]).describe("Required. The deployment model for the gateway.").optional(),
   description: z.string().describe(
-    "Optional. A free-text description of the resource. Max length 1024 characters.",
+    "Optional. A human-readable description of the resource.",
   ).optional(),
-  egressNetworkConfig: z.object({
-    dnsPeeringConfig: z.object({
-      domain: z.string().describe("Optional. The domain to peer.").optional(),
-      targetNetwork: z.string().describe(
-        "Optional. The target network resource name for DNS peering. Format: projects/{project}/global/networks/{network_id}",
-      ).optional(),
-    }).describe("Optional. DNS Peering configuration.").optional(),
-    networkAttachment: z.string().describe(
-      "Optional. The network attachment resource name. Format: projects/{project}/regions/{region}/networkAttachments/{network_attachment_id}",
+  extensionSettings: z.object({
+    authority: z.string().describe(
+      "Optional. The `:authority` header in the request sent to the extension service.",
     ).optional(),
-    trustConfig: z.string().describe(
-      "Optional. Deprecated: Use tls_config instead. The trust config resource name. Format: projects/{project}/locations/{location}/trustConfigs/{trust_config}",
+    observabilityMode: z.boolean().describe(
+      "Optional. Whether the extension should function in observability mode.",
     ).optional(),
-    vpcEgress: z.enum([
-      "VPC_EGRESS_UNSPECIFIED",
-      "ALL_TRAFFIC",
-      "PRIVATE_RANGES_ONLY",
-    ]).describe("Optional. The VPC egress setting.").optional(),
-  }).describe("Optional. Configuration for egress network traffic.").optional(),
+    service: z.string().describe("Required. URI of the PSC attachment.")
+      .optional(),
+    supportedEvents: z.array(
+      z.enum([
+        "EVENT_TYPE_UNSPECIFIED",
+        "REQUEST_HEADERS",
+        "REQUEST_BODY",
+        "RESPONSE_HEADERS",
+        "RESPONSE_BODY",
+        "REQUEST_TRAILERS",
+        "RESPONSE_TRAILERS",
+      ]),
+    ).describe("Required. The event types supported by the extension.")
+      .optional(),
+  }).describe(
+    "Required. The configuration for the service that this `ProducerExtension` offers.",
+  ).optional(),
   labels: z.record(z.string(), z.string()).describe(
-    "Optional. Set of label tags associated with the AgentConnectivityTemplate resource.",
+    "Optional. Set of labels associated with the `ProducerExtension` resource. The format must comply with [the following requirements]((https://cloud.google.com/compute/docs/labeling-resources#requirements).",
   ).optional(),
   name: z.string().describe(
-    "Identifier. Name of the AgentConnectivityTemplate resource. It matches pattern `projects/*/locations/*/agentConnectivityTemplates/`.",
+    "Identifier. Name of the `ProducerExtension` resource in the following format: `projects/{project}/locations/{location}/producerExtensions/{producer_extension}`.",
   ).optional(),
-  agentConnectivityTemplateId: z.string().describe(
-    "Required. Short name of the AgentConnectivityTemplate resource to be created.",
+  phase: z.enum(["PHASE_UNSPECIFIED", "TRAFFIC", "AUTHZ"]).describe(
+    "Required. The phase in which this `ProducerExtension` should execute.",
+  ).optional(),
+  producerExtensionId: z.string().describe(
+    "Required. Short name of the `ProducerExtension` resource to be created.",
   ).optional(),
   location: z.string().describe(
     "The location for this resource (e.g., 'us', 'us-central1', 'europe-west1')",
@@ -338,23 +278,16 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Network Services AgentConnectivityTemplates. Registered at `@swamp/gcp/networkservices/agentconnectivitytemplates`. */
+/** Swamp extension model for Google Cloud Network Services ProducerExtensions. Registered at `@swamp/gcp/networkservices/producerextensions`. */
 export const model = {
-  type: "@swamp/gcp/networkservices/agentconnectivitytemplates",
+  type: "@swamp/gcp/networkservices/producerextensions",
   version: "2026.08.16.1",
-  upgrades: [
-    {
-      toVersion: "2026.08.16.1",
-      description: "Added: agentCompute, deploymentModel",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
       description:
-        "AgentConnectivityTemplate represents a reusable network configuration.",
+        "`ProducerExtension` is a resource representing producer defined configuration...",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -362,7 +295,7 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a agentConnectivityTemplates",
+      description: "Create a producerExtensions",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
@@ -375,28 +308,17 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
-        if (g["accessPath"] !== undefined) body["accessPath"] = g["accessPath"];
-        if (g["accessTypes"] !== undefined) {
-          body["accessTypes"] = g["accessTypes"];
-        }
-        if (g["agentCompute"] !== undefined) {
-          body["agentCompute"] = g["agentCompute"];
-        }
-        if (g["deploymentModel"] !== undefined) {
-          body["deploymentModel"] = g["deploymentModel"];
-        }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
-        if (g["egressNetworkConfig"] !== undefined) {
-          body["egressNetworkConfig"] = g["egressNetworkConfig"];
+        if (g["extensionSettings"] !== undefined) {
+          body["extensionSettings"] = g["extensionSettings"];
         }
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
         if (g["name"] !== undefined) body["name"] = g["name"];
-        if (g["agentConnectivityTemplateId"] !== undefined) {
-          params["agentConnectivityTemplateId"] = String(
-            g["agentConnectivityTemplateId"],
-          );
+        if (g["phase"] !== undefined) body["phase"] = g["phase"];
+        if (g["producerExtensionId"] !== undefined) {
+          params["producerExtensionId"] = String(g["producerExtensionId"]);
         }
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
@@ -434,11 +356,9 @@ export const model = {
       },
     },
     get: {
-      description: "Get a agentConnectivityTemplates",
+      description: "Get a producerExtensions",
       arguments: z.object({
-        identifier: z.string().describe(
-          "The name of the agentConnectivityTemplates",
-        ),
+        identifier: z.string().describe("The name of the producerExtensions"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
@@ -470,97 +390,10 @@ export const model = {
         return { dataHandles: [handle] };
       },
     },
-    update: {
-      description: "Update agentConnectivityTemplates attributes",
-      arguments: z.object({
-        identifier: z.string().describe(
-          "Target a specific agentConnectivityTemplates by name (e.g. one discovered by list)",
-        ).optional(),
-      }),
-      execute: async (args: { identifier?: string }, context: any) => {
-        const g = context.globalArgs;
-        const baseUrl = g["apiEndpoint"]?.toString() ??
-          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
-        const credentials = _buildGcpCredentials(g);
-        const projectId = await getProjectId(credentials);
-        const instanceName =
-          (g.name?.toString() ?? args.identifier ?? "current").replace(
-            /[\/\\]/g,
-            "_",
-          ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          instanceName,
-        );
-        if (!content) {
-          throw new Error(
-            "No existing state found - run create, get, or list first",
-          );
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        const params: Record<string, string> = { project: projectId };
-        const existingName = existing["name"]?.toString();
-        if (existingName && existingName.includes("/")) {
-          params["name"] = existingName;
-        } else {
-          params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
-            existingName ?? g["name"]?.toString() ?? "",
-          );
-        }
-        const body: Record<string, unknown> = {};
-        if (g["accessTypes"] !== undefined) {
-          body["accessTypes"] = g["accessTypes"];
-        }
-        if (g["agentCompute"] !== undefined) {
-          body["agentCompute"] = g["agentCompute"];
-        }
-        if (g["deploymentModel"] !== undefined) {
-          body["deploymentModel"] = g["deploymentModel"];
-        }
-        if (g["description"] !== undefined) {
-          body["description"] = g["description"];
-        }
-        if (g["egressNetworkConfig"] !== undefined) {
-          body["egressNetworkConfig"] = g["egressNetworkConfig"];
-        }
-        if (g["labels"] !== undefined) body["labels"] = g["labels"];
-        const updateMaskKeys = Object.keys(body);
-        if (updateMaskKeys.length > 0) {
-          params["updateMask"] = updateMaskKeys.join(",");
-        }
-        for (const key of Object.keys(existing)) {
-          if (
-            key === "fingerprint" || key === "labelFingerprint" ||
-            key === "etag" || key.endsWith("Fingerprint")
-          ) {
-            body[key] = existing[key];
-          }
-        }
-        const result = await updateResource(
-          baseUrl,
-          PATCH_CONFIG,
-          params,
-          body,
-          GET_CONFIG,
-          undefined,
-          credentials,
-        ) as StateData;
-        const handle = await context.writeResource(
-          "state",
-          instanceName,
-          result,
-        );
-        return { dataHandles: [handle] };
-      },
-    },
     delete: {
-      description: "Delete the agentConnectivityTemplates",
+      description: "Delete the producerExtensions",
       arguments: z.object({
-        identifier: z.string().describe(
-          "The name of the agentConnectivityTemplates",
-        ),
+        identifier: z.string().describe("The name of the producerExtensions"),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
@@ -593,10 +426,10 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync agentConnectivityTemplates state from GCP",
+      description: "Sync producerExtensions state from GCP",
       arguments: z.object({
         identifier: z.string().describe(
-          "Target a specific agentConnectivityTemplates by name (e.g. one discovered by list)",
+          "Target a specific producerExtensions by name (e.g. one discovered by list)",
         ).optional(),
       }),
       execute: async (args: { identifier?: string }, context: any) => {
@@ -659,13 +492,10 @@ export const model = {
       },
     },
     list: {
-      description: "List agentConnectivityTemplates resources",
+      description: "List producerExtensions resources",
       arguments: z.object({
         pageSize: z.number().describe(
-          "Optional. Maximum number of AgentConnectivityTemplates to return per call.",
-        ).optional(),
-        returnPartialSuccess: z.boolean().describe(
-          "Optional. If true, allow partial responses for multi-regional Aggregated List requests. Otherwise if one of the locations is down or unreachable, the Aggregated List request will fail.",
+          "Optional. Maximum number of `ProducerExtension` resources to return per call.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
@@ -684,14 +514,11 @@ export const model = {
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }
-        if (args["returnPartialSuccess"] !== undefined) {
-          params["returnPartialSuccess"] = String(args["returnPartialSuccess"]);
-        }
         const { items, nextPageToken } = await listResources(
           baseUrl,
           LIST_CONFIG,
           params,
-          "agentConnectivityTemplates",
+          "producerExtensions",
           (args.maxPages as number | undefined) ?? 10,
           credentials,
         );

@@ -417,6 +417,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       enforceOnKey: z.enum([
         "ALL",
+        "ASN",
         "HTTP_COOKIE",
         "HTTP_HEADER",
         "HTTP_PATH",
@@ -929,6 +930,7 @@ const InputsSchema = z.object({
       ).optional(),
       enforceOnKey: z.enum([
         "ALL",
+        "ASN",
         "HTTP_COOKIE",
         "HTTP_HEADER",
         "HTTP_PATH",
@@ -1053,7 +1055,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine OrganizationSecurityPolicies. Registered at `@swamp/gcp/compute/organizationsecuritypolicies`. */
 export const model = {
   type: "@swamp/gcp/compute/organizationsecuritypolicies",
-  version: "2026.08.12.2",
+  version: "2026.08.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1207,6 +1209,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -437,15 +437,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.14.1",
-      description: "Removed: reservedPublicIpConfig",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { reservedPublicIpConfig: _reservedPublicIpConfig, ...rest } =
-          old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.15.1",
       description: "Added: reservedPublicIpConfig",
       upgradeAttributes: (old: Record<string, unknown>) => old,

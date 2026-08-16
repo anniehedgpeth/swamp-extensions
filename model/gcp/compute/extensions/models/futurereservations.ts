@@ -327,6 +327,9 @@ const GlobalArgsSchema = z.object({
   reservationName: z.string().describe(
     "Name of reservations where the capacity is provisioned at the time of delivery of future reservations. If the reservation with the given name does not exist already, it is created automatically at the time of Approval with INACTIVE state till specified start-time. Either provide the reservation_name or a name_prefix.",
   ).optional(),
+  resourceName: z.string().describe(
+    "Name of the resource intended to be delivered. Name should conform to RFC1035. This will be the name of storage pool or Exapool for persistent disk FRs.",
+  ).optional(),
   schedulingType: z.enum([
     "GROUPED",
     "GROUP_MAINTENANCE_TYPE_UNSPECIFIED",
@@ -392,6 +395,32 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Future Reservation configuration to indicate instance properties and total count.",
   ).optional(),
+  storagePoolProperties: z.object({
+    requestedExapoolProvisionedCapacityGb: z.object({
+      capacityOptimized: z.string().describe(
+        "Size, in GiB, of provisioned capacity-optimized capacity for this Exapool",
+      ).optional(),
+      readOptimized: z.string().describe(
+        "Size, in GiB, of provisioned read-optimized capacity for this Exapool",
+      ).optional(),
+      writeOptimized: z.string().describe(
+        "Size, in GiB, of provisioned write-optimized capacity for this Exapool",
+      ).optional(),
+    }).describe("Requested exapool provisioned capacity in GiB.").optional(),
+    requestedStoragePoolProvisionedCapacity: z.object({
+      poolProvisionedCapacityGb: z.string().describe(
+        "Size of the storage pool in GiB.",
+      ).optional(),
+      poolProvisionedIops: z.string().describe(
+        "Provisioned IOPS of the storage pool. Only relevant if the storage pool type is hyperdisk-balanced.",
+      ).optional(),
+      poolProvisionedThroughput: z.string().describe(
+        "Provisioned throughput of the storage pool in MiB/s. Only relevant if the storage pool type is hyperdisk-balanced or hyperdisk-throughput.",
+      ).optional(),
+    }).describe("Requested storage pool provisioned capacity.").optional(),
+    storagePoolType: z.string().describe("Type of the storage pool.")
+      .optional(),
+  }).describe("Storage pool details for the future reservation.").optional(),
   timeWindow: z.object({
     duration: z.object({
       nanos: z.number().int().describe(
@@ -463,6 +492,7 @@ const StateSchema = z.object({
     apiVersion: z.string(),
     resourceType: z.string(),
   }).optional(),
+  resourceName: z.string().optional(),
   schedulingType: z.string().optional(),
   selfLink: z.string().optional(),
   selfLinkWithId: z.string().optional(),
@@ -491,6 +521,11 @@ const StateSchema = z.object({
   status: z.object({
     amendmentStatus: z.string(),
     autoCreatedReservations: z.array(z.string()),
+    exapoolProvisionedCapacityGb: z.object({
+      capacityOptimized: z.string(),
+      readOptimized: z.string(),
+      writeOptimized: z.string(),
+    }),
     existingMatchingUsageInfo: z.object({
       count: z.string(),
       timestamp: z.string(),
@@ -536,6 +571,24 @@ const StateSchema = z.object({
     specificSkuProperties: z.object({
       sourceInstanceTemplateId: z.string(),
     }),
+    storagePoolProvisionedCapacity: z.object({
+      poolProvisionedCapacityGb: z.string(),
+      poolProvisionedIops: z.string(),
+      poolProvisionedThroughput: z.string(),
+    }),
+  }).optional(),
+  storagePoolProperties: z.object({
+    requestedExapoolProvisionedCapacityGb: z.object({
+      capacityOptimized: z.string(),
+      readOptimized: z.string(),
+      writeOptimized: z.string(),
+    }),
+    requestedStoragePoolProvisionedCapacity: z.object({
+      poolProvisionedCapacityGb: z.string(),
+      poolProvisionedIops: z.string(),
+      poolProvisionedThroughput: z.string(),
+    }),
+    storagePoolType: z.string(),
   }).optional(),
   timeWindow: z.object({
     duration: z.object({
@@ -673,6 +726,9 @@ const InputsSchema = z.object({
   reservationName: z.string().describe(
     "Name of reservations where the capacity is provisioned at the time of delivery of future reservations. If the reservation with the given name does not exist already, it is created automatically at the time of Approval with INACTIVE state till specified start-time. Either provide the reservation_name or a name_prefix.",
   ).optional(),
+  resourceName: z.string().describe(
+    "Name of the resource intended to be delivered. Name should conform to RFC1035. This will be the name of storage pool or Exapool for persistent disk FRs.",
+  ).optional(),
   schedulingType: z.enum([
     "GROUPED",
     "GROUP_MAINTENANCE_TYPE_UNSPECIFIED",
@@ -738,6 +794,32 @@ const InputsSchema = z.object({
   }).describe(
     "Future Reservation configuration to indicate instance properties and total count.",
   ).optional(),
+  storagePoolProperties: z.object({
+    requestedExapoolProvisionedCapacityGb: z.object({
+      capacityOptimized: z.string().describe(
+        "Size, in GiB, of provisioned capacity-optimized capacity for this Exapool",
+      ).optional(),
+      readOptimized: z.string().describe(
+        "Size, in GiB, of provisioned read-optimized capacity for this Exapool",
+      ).optional(),
+      writeOptimized: z.string().describe(
+        "Size, in GiB, of provisioned write-optimized capacity for this Exapool",
+      ).optional(),
+    }).describe("Requested exapool provisioned capacity in GiB.").optional(),
+    requestedStoragePoolProvisionedCapacity: z.object({
+      poolProvisionedCapacityGb: z.string().describe(
+        "Size of the storage pool in GiB.",
+      ).optional(),
+      poolProvisionedIops: z.string().describe(
+        "Provisioned IOPS of the storage pool. Only relevant if the storage pool type is hyperdisk-balanced.",
+      ).optional(),
+      poolProvisionedThroughput: z.string().describe(
+        "Provisioned throughput of the storage pool in MiB/s. Only relevant if the storage pool type is hyperdisk-balanced or hyperdisk-throughput.",
+      ).optional(),
+    }).describe("Requested storage pool provisioned capacity.").optional(),
+    storagePoolType: z.string().describe("Type of the storage pool.")
+      .optional(),
+  }).describe("Storage pool details for the future reservation.").optional(),
   timeWindow: z.object({
     duration: z.object({
       nanos: z.number().int().describe(
@@ -788,7 +870,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine FutureReservations. Registered at `@swamp/gcp/compute/futurereservations`. */
 export const model = {
   type: "@swamp/gcp/compute/futurereservations",
-  version: "2026.08.12.2",
+  version: "2026.08.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -935,6 +1017,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.16.1",
+      description: "Added: resourceName, storagePoolProperties",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1002,6 +1089,9 @@ export const model = {
         if (g["reservationName"] !== undefined) {
           body["reservationName"] = g["reservationName"];
         }
+        if (g["resourceName"] !== undefined) {
+          body["resourceName"] = g["resourceName"];
+        }
         if (g["schedulingType"] !== undefined) {
           body["schedulingType"] = g["schedulingType"];
         }
@@ -1014,6 +1104,9 @@ export const model = {
         }
         if (g["specificSkuProperties"] !== undefined) {
           body["specificSkuProperties"] = g["specificSkuProperties"];
+        }
+        if (g["storagePoolProperties"] !== undefined) {
+          body["storagePoolProperties"] = g["storagePoolProperties"];
         }
         if (g["timeWindow"] !== undefined) body["timeWindow"] = g["timeWindow"];
         if (g["requestId"] !== undefined) {
@@ -1159,6 +1252,9 @@ export const model = {
         if (g["reservationName"] !== undefined) {
           body["reservationName"] = g["reservationName"];
         }
+        if (g["resourceName"] !== undefined) {
+          body["resourceName"] = g["resourceName"];
+        }
         if (g["schedulingType"] !== undefined) {
           body["schedulingType"] = g["schedulingType"];
         }
@@ -1171,6 +1267,9 @@ export const model = {
         }
         if (g["specificSkuProperties"] !== undefined) {
           body["specificSkuProperties"] = g["specificSkuProperties"];
+        }
+        if (g["storagePoolProperties"] !== undefined) {
+          body["storagePoolProperties"] = g["storagePoolProperties"];
         }
         if (g["timeWindow"] !== undefined) body["timeWindow"] = g["timeWindow"];
         const updateMaskKeys = Object.keys(body);

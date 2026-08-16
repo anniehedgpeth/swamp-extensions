@@ -563,6 +563,9 @@ const GlobalArgsSchema = z.object({
     "MEMORY_OPTIMIZED_X4_960_12T",
     "MEMORY_OPTIMIZED_X4_960_16T",
     "NETWORK_OPTIMIZED_C4N",
+    "NETWORK_OPTIMIZED_U4C",
+    "NETWORK_OPTIMIZED_U4P",
+    "NETWORK_OPTIMIZED_U4S",
     "STORAGE_OPTIMIZED_Z3",
     "TYPE_UNSPECIFIED",
   ]).describe(
@@ -1098,6 +1101,9 @@ const InputsSchema = z.object({
     "MEMORY_OPTIMIZED_X4_960_12T",
     "MEMORY_OPTIMIZED_X4_960_16T",
     "NETWORK_OPTIMIZED_C4N",
+    "NETWORK_OPTIMIZED_U4C",
+    "NETWORK_OPTIMIZED_U4P",
+    "NETWORK_OPTIMIZED_U4S",
     "STORAGE_OPTIMIZED_Z3",
     "TYPE_UNSPECIFIED",
   ]).describe(
@@ -1134,7 +1140,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionCommitments. Registered at `@swamp/gcp/compute/regioncommitments`. */
 export const model = {
   type: "@swamp/gcp/compute/regioncommitments",
-  version: "2026.08.12.2",
+  version: "2026.08.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1308,6 +1314,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

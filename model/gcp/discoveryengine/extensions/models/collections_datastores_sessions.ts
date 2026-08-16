@@ -316,6 +316,12 @@ const GlobalArgsSchema = z.object({
         verdict: z.enum(["UNSPECIFIED", "ALLOW", "BLOCK"]).describe(
           "Final verdict of the customer policy enforcement. If only one policy blocked the processing, the verdict is BLOCK.",
         ).optional(),
+        violationSource: z.enum([
+          "VIOLATION_SOURCE_UNSPECIFIED",
+          "SYSTEM",
+          "PROMPT",
+          "ATTACHMENT",
+        ]).describe("Output only. The source of the violation.").optional(),
       }).describe(
         "Optional. The field contains information about the various policy checks' results like the banned phrases or the Model Armor checks. This field is populated only if the assist call was skipped due to a policy violation.",
       ).optional(),
@@ -427,6 +433,7 @@ const StateSchema = z.object({
       customerPolicyEnforcementResult: z.object({
         policyResults: z.array(z.unknown()),
         verdict: z.string(),
+        violationSource: z.string(),
       }),
       name: z.string(),
       replies: z.array(z.object({
@@ -598,6 +605,12 @@ const InputsSchema = z.object({
         verdict: z.enum(["UNSPECIFIED", "ALLOW", "BLOCK"]).describe(
           "Final verdict of the customer policy enforcement. If only one policy blocked the processing, the verdict is BLOCK.",
         ).optional(),
+        violationSource: z.enum([
+          "VIOLATION_SOURCE_UNSPECIFIED",
+          "SYSTEM",
+          "PROMPT",
+          "ATTACHMENT",
+        ]).describe("Output only. The source of the violation.").optional(),
       }).describe(
         "Optional. The field contains information about the various policy checks' results like the banned phrases or the Model Armor checks. This field is populated only if the assist call was skipped due to a policy violation.",
       ).optional(),
@@ -675,7 +688,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.DataStores.Sessions. Registered at `@swamp/gcp/discoveryengine/collections-datastores-sessions`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-datastores-sessions",
-  version: "2026.08.12.2",
+  version: "2026.08.16.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -829,6 +842,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.16.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
