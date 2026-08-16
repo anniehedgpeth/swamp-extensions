@@ -238,7 +238,7 @@ class OnePasswordVaultProvider implements VaultProvider {
           args.push("--account", this.opAccount);
         }
         const result = await this.runOp(args);
-        return result.trim();
+        return result.replace(/\n$/, "");
       } catch (err) {
         if (err instanceof Error) {
           span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });

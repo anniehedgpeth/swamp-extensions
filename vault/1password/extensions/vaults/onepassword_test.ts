@@ -171,7 +171,7 @@ function createOpMock() {
         return { stdout: "", stderr: `item "${item}" not found`, code: 1 };
       }
       if (itemData.fields.has(field)) {
-        return { stdout: itemData.fields.get(field)!, code: 0 };
+        return { stdout: itemData.fields.get(field)! + "\n", code: 0 };
       }
       const slashIdx = field.indexOf("/");
       if (slashIdx >= 0) {
@@ -179,7 +179,7 @@ function createOpMock() {
         const sectionField = field.slice(slashIdx + 1);
         const sectionData = itemData.sectionFields.get(section);
         if (sectionData?.has(sectionField)) {
-          return { stdout: sectionData.get(sectionField)!, code: 0 };
+          return { stdout: sectionData.get(sectionField)! + "\n", code: 0 };
         }
       }
       return { stdout: "", stderr: `field "${field}" not found`, code: 1 };
@@ -968,4 +968,33 @@ Deno.test("1password vault: put with tags via template path includes tag fields"
   });
 
   assertEquals(result, 'value-with-"quotes"');
+});
+
+// --- Whitespace preservation tests (issue #1664) ---
+
+Deno.test("1password vault: get preserves trailing whitespace in secret values", async () => {
+  const pemKey =
+    "-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----\n";
+  const { result } = await withMockedCommand(createOpMock(), async () => {
+    const provider = vault.createProvider("test", {
+      op_vault: "Engineering",
+    });
+    await provider.put("pem-key", pemKey);
+    return await provider.get("pem-key");
+  });
+
+  assertEquals(result, pemKey);
+});
+
+Deno.test("1password vault: get preserves leading whitespace in secret values", async () => {
+  const paddedValue = "  leading-spaces-matter";
+  const { result } = await withMockedCommand(createOpMock(), async () => {
+    const provider = vault.createProvider("test", {
+      op_vault: "Engineering",
+    });
+    await provider.put("padded", paddedValue);
+    return await provider.get("padded");
+  });
+
+  assertEquals(result, paddedValue);
 });
