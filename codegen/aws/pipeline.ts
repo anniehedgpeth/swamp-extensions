@@ -270,6 +270,7 @@ export async function generateAwsModels(options: {
       read: !!cfSchema.handlers?.read,
       update: !!cfSchema.handlers?.update,
       delete: !!cfSchema.handlers?.delete,
+      list: !!cfSchema.handlers?.list,
     };
 
     const serviceName = typeNameToServiceName(typeName);

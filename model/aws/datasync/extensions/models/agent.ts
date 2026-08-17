@@ -26,7 +26,7 @@
  * Swamp extension model for DataSync Agent (AWS::DataSync::Agent).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
- * get, update, delete, and sync can be driven through `swamp model`.
+ * get, update, delete, sync, and list can be driven through `swamp model`.
  *
  * @module
  */
@@ -36,6 +36,7 @@ import {
   createResource,
   deleteResource,
   isResourceNotFoundError,
+  listResources,
   readResource,
   updateResource,
 } from "./_lib/aws.ts";
@@ -171,49 +172,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for DataSync Agent. Registered at `@swamp/aws/datasync/agent`. */
 export const model = {
   type: "@swamp/aws/datasync/agent",
-  version: "2026.06.15.1",
-  upgrades: [
-    {
-      toVersion: "2026.04.01.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.03.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.04.23.2",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.06.1",
-      description: "Added: accessKeyId, secretAccessKey, sessionToken, region",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.08.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-    {
-      toVersion: "2026.06.15.1",
-      description: "No schema changes",
-      upgradeAttributes: (old: Record<string, unknown>) => old,
-    },
-  ],
+  version: "2026.08.17.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
@@ -405,6 +364,49 @@ export const model = {
           }
           throw error;
         }
+      },
+    },
+    list: {
+      description: "List DataSync Agent resources",
+      arguments: z.object({
+        maxPages: z.number().describe(
+          "Maximum number of pages to fetch (default: 10)",
+        ).optional(),
+        resourceModel: z.string().describe(
+          "JSON resource model for parent-scoped listing (e.g. parent identifier)",
+        ).optional(),
+      }),
+      execute: async (
+        args: { maxPages?: number; resourceModel?: string },
+        context: any,
+      ) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { items, nextToken } = await listResources(
+          "AWS::DataSync::Agent",
+          {
+            resourceModel: args.resourceModel,
+            maxPages: args.maxPages,
+            credentials,
+          },
+        );
+        const dataHandles = [];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const instanceName =
+            (item.properties?.AgentArn?.toString() ?? item.identifier).replace(
+              /[\/\\]/g,
+              "_",
+            ).replace(/\.\./g, "_").replace(/\0/g, "");
+          const handle = await context.writeResource("state", instanceName, {
+            ...item.properties,
+            _identifier: item.identifier,
+          });
+          dataHandles.push(handle);
+        }
+        return {
+          dataHandles,
+          result: { count: items.length, nextPageToken: nextToken },
+        };
       },
     },
   },

@@ -26,7 +26,7 @@
  * Swamp extension model for Glue DataCatalogEncryptionSettings (AWS::Glue::DataCatalogEncryptionSettings).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
- * get, update, delete, and sync can be driven through `swamp model`.
+ * get, update, delete, sync, and list can be driven through `swamp model`.
  *
  * @module
  */
@@ -139,7 +139,14 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Glue DataCatalogEncryptionSettings. Registered at `@swamp/aws/glue/data-catalog-encryption-settings`. */
 export const model = {
   type: "@swamp/aws/glue/data-catalog-encryption-settings",
-  version: "2026.06.27.1",
+  version: "2026.08.17.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

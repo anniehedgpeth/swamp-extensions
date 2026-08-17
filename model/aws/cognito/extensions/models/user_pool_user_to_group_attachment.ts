@@ -26,7 +26,7 @@
  * Swamp extension model for Cognito UserPoolUserToGroupAttachment (AWS::Cognito::UserPoolUserToGroupAttachment).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
- * get, update, delete, and sync can be driven through `swamp model`.
+ * get, update, delete, sync, and list can be driven through `swamp model`.
  *
  * @module
  */
@@ -99,7 +99,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Cognito UserPoolUserToGroupAttachment. Registered at `@swamp/aws/cognito/user-pool-user-to-group-attachment`. */
 export const model = {
   type: "@swamp/aws/cognito/user-pool-user-to-group-attachment",
-  version: "2026.06.15.1",
+  version: "2026.08.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -138,6 +138,11 @@ export const model = {
     },
     {
       toVersion: "2026.06.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

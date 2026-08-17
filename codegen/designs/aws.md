@@ -103,7 +103,8 @@ handlers the resource supports:
     "create": { "permissions": ["ec2:RunInstances", ...] },
     "read": { "permissions": ["ec2:DescribeInstances", ...] },
     "update": { "permissions": ["ec2:ModifyInstanceAttribute", ...] },
-    "delete": { "permissions": ["ec2:TerminateInstances", ...] }
+    "delete": { "permissions": ["ec2:TerminateInstances", ...] },
+    "list": { "permissions": ["ec2:DescribeInstances", ...] }
   }
 }
 ```
@@ -117,6 +118,7 @@ includes only the methods for which handlers exist:
 | `read`   | `get`            |
 | `update` | `update`         |
 | `delete` | `delete`         |
+| `list`   | `list`           |
 
 ### Per-service grouping
 
@@ -148,7 +150,6 @@ Unlike the Hetzner and DigitalOcean providers, there is no:
 - **Path-based resource discovery** — resources come from CF schemas, not URLs
 - **Action methods** — CloudControl handles all operations uniformly
 - **Sub-resource methods** — each CF type is a standalone resource
-- **Discovery endpoints** — no equivalent concept
 - **Response envelope unwrapping** — CloudControl returns JSON properties
   directly
 - **HTTP method precedence** — all operations go through CloudControl commands
@@ -453,6 +454,97 @@ const idParts = [
 ];
 const identifier = idParts.join("|");
 ```
+
+---
+
+## 8½. List Method
+
+Every generated model with a `list` handler in its CloudFormation schema
+includes a `list` method backed by CloudControl's `ListResourcesCommand`. This
+enables resource discovery without knowing identifiers upfront — the `list` +
+`get` combination provides the import workflow: `list` discovers what exists,
+`get` fetches full state for each resource.
+
+### How list works
+
+1. Call `listResources()` from `_lib/aws.ts` with the resource's type name
+2. Paginate via `NextToken` up to `maxPages` (default 10, user-configurable)
+3. Deduplicate results by `Identifier` (handles parent-scoped listing that may
+   return duplicates across parent resources)
+4. Parse `Properties` JSON when present in the response
+5. Write each result as a `"state"` resource keyed by the primary identifier
+   (sanitized: slashes, `..`, null bytes replaced)
+6. Include `_identifier` in each state record so it can be passed directly to
+   `get` for full-state import
+7. Return `{ dataHandles, result: { count, nextPageToken } }`
+
+### Arguments
+
+| Argument        | Type              | Description                                                 |
+| --------------- | ----------------- | ----------------------------------------------------------- |
+| `maxPages`      | `number` optional | Pagination ceiling (default 10). Prevents cardinality traps |
+| `resourceModel` | `string` optional | JSON resource model for parent-scoped listing               |
+
+### Sparse list results
+
+CloudControl `ListResources` often returns only the primary identifier — no
+properties beyond the ID. This differs from GCP, where list responses include
+full resource properties. For AWS, the state written by `list` may be sparse;
+callers should follow up with `get` for full state when needed.
+
+### Parent-scoped resources
+
+Some resources require a parent identifier to list. For example:
+
+- `AWS::EC2::Route` needs `ResourceModel: {"RouteTableId": "rtb-123"}`
+- `AWS::ECS::Service` needs `ResourceModel: {"Cluster": "arn:..."}`
+- `AWS::EKS::Nodegroup` needs `ResourceModel: {"ClusterName": "my-cluster"}`
+
+The `resourceModel` argument accepts a JSON string with the parent identifier.
+The generated method does not auto-discover parent values — that requires
+cross-model orchestration beyond the single-model scope.
+
+### Unsupported list handlers
+
+Some resource types declare a `list` handler in the CF schema but CloudControl
+raises `UnsupportedActionException` at runtime. The `listResources()` helper
+catches this and throws a clear error:
+`"<TypeName> does not support listing via
+CloudControl. The resource type has no LIST handler."`.
+
+### Truncation reporting
+
+When the pagination ceiling is reached before all results are fetched, the
+return value includes `nextPageToken` (the CloudControl `NextToken`). This
+provides honest truncation reporting — a capped listing that includes
+`nextPageToken` tells the caller more data exists. A listing without
+`nextPageToken` is complete.
+
+### Throttling
+
+`listResources()` uses the same `withRetry()` wrapper as all CRUD operations.
+The throttling detection includes `"Rate exceeded"` — a bare-message throttling
+pattern that CloudControl uses in addition to standard `ThrottlingException`.
+
+### Enrichment override
+
+When an enrichment provides a `listMethod` for a resource (e.g., RDS DBCluster
+uses the native `DescribeDBClusters` SDK call for richer list results), the
+enrichment list method takes priority over the generated CloudControl-based one.
+The generator checks `input.listMethod` before emitting the generated list
+block.
+
+### Import workflow
+
+The `list` + `get` combination replaces the need for a separate `adopt` method
+(as Hetzner provides). The workflow is:
+
+1. Call `list` to discover resource identifiers in a region
+2. Call `get` with each identifier to fetch full state and import under
+   management
+3. The resource is now tracked — `sync`, `update`, and `delete` work on it
+
+This matches GCP's pattern, where `list` + `get` provides the same capability.
 
 ---
 
@@ -876,13 +968,15 @@ export const model = {
     update: { ... },                      // if update handler exists
     delete: { ... },                      // if delete handler exists
     sync: { ... },                        // always present
+    list: { ... },                        // if list handler exists
   },
 };
 ```
 
 ### Shared lib (`_lib/aws.ts`)
 
-Exports: `createResource`, `readResource`, `updateResource`, `deleteResource`
+Exports: `createResource`, `readResource`, `updateResource`, `deleteResource`,
+`listResources`
 
 Key behaviors:
 
@@ -1030,6 +1124,7 @@ description strings do not get the ignore.
 | Naming field           | Writable primary ID or synthetic                  | `name` or `label` or synthetic     | `name` or `label` or synthetic                    |
 | Action methods         | Not applicable                                    | Not applicable                     | Discriminator-based discovery                     |
 | Sub-resource methods   | Not applicable                                    | Not applicable                     | Heuristic-based detection                         |
+| List method            | CloudControl `ListResources` (handler-gated)      | `listAll()` helper (all resources) | Not generated                                     |
 | Discovery methods      | Not applicable                                    | Not applicable                     | `/options` endpoint matching                      |
 | Response handling      | Parse JSON from `Properties` string               | HTTP response + envelope unwrap    | HTTP response + envelope unwrap                   |
 | Async operations       | Poll `GetResourceRequestStatus` until terminal    | Synchronous (API handles it)       | Synchronous (API handles it)                      |

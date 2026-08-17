@@ -12,12 +12,15 @@ export function generateAwsLibFile(): string {
 // Auto-generated shared helper for AWS CloudControl extension models.
 // Do not edit manually. Re-generate with: deno task generate:aws
 
+// deno-lint-ignore-file no-explicit-any
+
 import {
   CloudControlClient,
   CreateResourceCommand,
   DeleteResourceCommand,
   GetResourceCommand,
   GetResourceRequestStatusCommand,
+  ListResourcesCommand,
   UpdateResourceCommand,
 } from "npm:@aws-sdk/client-cloudcontrol@3.1090.0";
 import jsonpatch from "npm:fast-json-patch@3.1.1";
@@ -99,6 +102,7 @@ function isThrottlingError(error: unknown): boolean {
     msg.includes("Throttling") ||
     msg.includes("TooManyRequests") ||
     msg.includes("RequestLimitExceeded") ||
+    msg.includes("Rate exceeded") ||
     name === "ThrottlingException"
   );
 }
@@ -460,6 +464,88 @@ export async function deleteResource(
     }
     throw error;
   }
+}
+
+/**
+ * List AWS resources via CloudControl API.
+ * Paginates via NextToken up to maxPages, deduplicates by Identifier,
+ * and parses Properties when present.
+ * Returns items with their identifiers and any available properties.
+ */
+export async function listResources(
+  typeName: string,
+  options?: {
+    resourceModel?: string;
+    maxPages?: number;
+    credentials?: AwsCredentials;
+  },
+): Promise<{ items: { identifier: string; properties?: Record<string, unknown> }[]; nextToken?: string }> {
+  const client = createClient(options?.credentials);
+  const maxPages = options?.maxPages ?? 10;
+
+  console.log(\`[LIST] Listing \${typeName} (maxPages: \${maxPages})\`);
+
+  const seen = new Set<string>();
+  const items: { identifier: string; properties?: Record<string, unknown> }[] = [];
+  let nextToken: string | undefined;
+
+  for (let page = 0; page < maxPages; page++) {
+    const input: Record<string, unknown> = { TypeName: typeName };
+    if (options?.resourceModel) input.ResourceModel = options.resourceModel;
+    if (nextToken) input.NextToken = nextToken;
+
+    let response;
+    try {
+      response = await withRetry(
+        () => client.send(new ListResourcesCommand(input as any)),
+        \`\${typeName} list (page \${page + 1})\`,
+      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      const name = error instanceof Error ? error.name : "";
+      if (
+        name === "UnsupportedActionException" ||
+        msg.includes("UnsupportedAction") ||
+        msg.includes("does not support LIST")
+      ) {
+        throw new Error(
+          \`\${typeName} does not support listing via CloudControl. The resource type has no LIST handler.\`,
+        );
+      }
+      throw error;
+    }
+
+    const descriptions = response.ResourceDescriptions ?? [];
+    for (const desc of descriptions) {
+      const identifier = desc.Identifier;
+      if (!identifier || seen.has(identifier)) continue;
+      seen.add(identifier);
+
+      let properties: Record<string, unknown> | undefined;
+      if (desc.Properties) {
+        try {
+          properties = JSON.parse(desc.Properties);
+        } catch {
+          // Properties not parseable — include item with identifier only
+        }
+      }
+
+      items.push({ identifier, properties });
+    }
+
+    nextToken = response.NextToken;
+    if (!nextToken) break;
+
+    console.log(\`[LIST] Page \${page + 1}: \${descriptions.length} resources, continuing...\`);
+  }
+
+  if (nextToken) {
+    console.log(\`[LIST] Reached maxPages (\${maxPages}), \${items.length} resources found. More available (nextToken present).\`);
+  } else {
+    console.log(\`[LIST] Complete: \${items.length} resources found.\`);
+  }
+
+  return { items, nextToken };
 }
 `;
 }

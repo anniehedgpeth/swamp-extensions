@@ -16,6 +16,7 @@ export interface ResourceHandlers {
   read: boolean;
   update: boolean;
   delete: boolean;
+  list: boolean;
 }
 
 export interface AwsExtensionModelListMethod {
@@ -151,7 +152,7 @@ export function generateAwsExtensionModel(
     ` * Wraps the CloudFormation resource type as a swamp model so create,`,
   );
   lines.push(
-    ` * get, update, delete, and sync can be driven through \`swamp model\`.`,
+    ` * get, update, delete, sync, and list can be driven through \`swamp model\`.`,
   );
   lines.push(` *`);
   lines.push(` * @module`);
@@ -169,6 +170,7 @@ export function generateAwsExtensionModel(
   if (handlers.create) helperImports.push("createResource");
   if (handlers.update) helperImports.push("updateResource");
   if (handlers.delete) helperImports.push("deleteResource");
+  if (handlers.list && !input.listMethod) helperImports.push("listResources");
   lines.push(
     `import { ${helperImports.join(", ")} } from "./_lib/aws.ts";`,
   );
@@ -758,6 +760,72 @@ export function generateAwsExtensionModel(
     lines.push(`        }`);
     lines.push(
       `        return { dataHandles, result: { count: items.length } };`,
+    );
+    lines.push(`      },`);
+    lines.push(`    },`);
+  }
+
+  // generated list method (from CloudControl ListResources, when handler exists and no enrichment override)
+  if (handlers.list && !input.listMethod) {
+    const isCompositeId = onlyProperties.primaryIdentifier.length > 1;
+
+    lines.push(`    list: {`);
+    lines.push(
+      `      description: "List ${resourceDesc} resources",`,
+    );
+    lines.push(`      arguments: z.object({`);
+    lines.push(
+      `        maxPages: z.number().describe("Maximum number of pages to fetch (default: 10)").optional(),`,
+    );
+    lines.push(
+      `        resourceModel: z.string().describe("JSON resource model for parent-scoped listing (e.g. parent identifier)").optional(),`,
+    );
+    lines.push(`      }),`);
+    lines.push(
+      `      execute: async (args: { maxPages?: number; resourceModel?: string }, context: any) => {`,
+    );
+    lines.push(
+      `        const credentials = _buildCredentials(context.globalArgs);`,
+    );
+    lines.push(
+      `        const { items, nextToken } = await listResources("${typeName}", {`,
+    );
+    lines.push(`          resourceModel: args.resourceModel,`);
+    lines.push(`          maxPages: args.maxPages,`);
+    lines.push(`          credentials,`);
+    lines.push(`        });`);
+    lines.push(`        const dataHandles = [];`);
+    lines.push(`        for (let i = 0; i < items.length; i++) {`);
+    lines.push(`          const item = items[i];`);
+
+    if (isCompositeId) {
+      lines.push(
+        `          const instanceName = ${
+          wrapWithSanitize(`item.identifier`)
+        };`,
+      );
+    } else {
+      lines.push(
+        `          const instanceName = ${
+          wrapWithSanitize(
+            `item.properties?.${primaryId}?.toString() ?? item.identifier`,
+          )
+        };`,
+      );
+    }
+
+    lines.push(
+      `          const handle = await context.writeResource("state", instanceName, {`,
+    );
+    lines.push(`            ...item.properties,`);
+    lines.push(
+      `            _identifier: item.identifier,`,
+    );
+    lines.push(`          });`);
+    lines.push(`          dataHandles.push(handle);`);
+    lines.push(`        }`);
+    lines.push(
+      `        return { dataHandles, result: { count: items.length, nextPageToken: nextToken } };`,
     );
     lines.push(`      },`);
     lines.push(`    },`);
