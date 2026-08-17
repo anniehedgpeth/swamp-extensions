@@ -225,6 +225,7 @@ const GlobalArgsSchema = z.object({
           useTimeoutBasedEndpointing: z.unknown().optional(),
         }).optional(),
       }).optional(),
+      codeBlockFunction: z.string().optional(),
       conditionalCases: z.array(z.object({
         cases: z.unknown().optional(),
       })).optional(),
@@ -331,6 +332,7 @@ const GlobalArgsSchema = z.object({
           useTimeoutBasedEndpointing: z.boolean().optional(),
         }).optional(),
       }).optional(),
+      codeBlockFunction: z.string().optional(),
       conditionalCases: z.array(z.object({
         cases: z.array(z.unknown()).optional(),
       })).optional(),
@@ -473,6 +475,7 @@ const GlobalArgsSchema = z.object({
           useTimeoutBasedEndpointing: z.unknown().optional(),
         }).optional(),
       }).optional(),
+      codeBlockFunction: z.string().optional(),
       conditionalCases: z.array(z.object({
         cases: z.unknown().optional(),
       })).optional(),
@@ -572,6 +575,7 @@ const StateSchema = z.object({
           useTimeoutBasedEndpointing: z.unknown(),
         }),
       }),
+      codeBlockFunction: z.string(),
       conditionalCases: z.array(z.object({
         cases: z.unknown(),
       })),
@@ -653,6 +657,7 @@ const StateSchema = z.object({
           useTimeoutBasedEndpointing: z.boolean(),
         }),
       }),
+      codeBlockFunction: z.string(),
       conditionalCases: z.array(z.object({
         cases: z.array(z.unknown()),
       })),
@@ -766,6 +771,7 @@ const StateSchema = z.object({
           useTimeoutBasedEndpointing: z.unknown(),
         }),
       }),
+      codeBlockFunction: z.string(),
       conditionalCases: z.array(z.object({
         cases: z.unknown(),
       })),
@@ -865,6 +871,7 @@ const InputsSchema = z.object({
           useTimeoutBasedEndpointing: z.unknown().optional(),
         }).optional(),
       }).optional(),
+      codeBlockFunction: z.string().optional(),
       conditionalCases: z.array(z.object({
         cases: z.unknown().optional(),
       })).optional(),
@@ -971,6 +978,7 @@ const InputsSchema = z.object({
           useTimeoutBasedEndpointing: z.boolean().optional(),
         }).optional(),
       }).optional(),
+      codeBlockFunction: z.string().optional(),
       conditionalCases: z.array(z.object({
         cases: z.array(z.unknown()).optional(),
       })).optional(),
@@ -1113,6 +1121,7 @@ const InputsSchema = z.object({
           useTimeoutBasedEndpointing: z.unknown().optional(),
         }).optional(),
       }).optional(),
+      codeBlockFunction: z.string().optional(),
       conditionalCases: z.array(z.object({
         cases: z.unknown().optional(),
       })).optional(),
@@ -1182,7 +1191,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Agents.Flows. Registered at `@swamp/gcp/dialogflow/agents-flows`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/agents-flows",
-  version: "2026.08.16.1",
+  version: "2026.08.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1326,6 +1335,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.16.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

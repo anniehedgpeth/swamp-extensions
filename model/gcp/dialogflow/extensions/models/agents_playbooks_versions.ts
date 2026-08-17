@@ -209,6 +209,7 @@ const GlobalArgsSchema = z.object({
         event: z.string().optional(),
         fulfillment: z.object({
           advancedSettings: z.unknown().optional(),
+          codeBlockFunction: z.unknown().optional(),
           conditionalCases: z.unknown().optional(),
           enableGenerativeFallback: z.unknown().optional(),
           generators: z.unknown().optional(),
@@ -223,6 +224,7 @@ const GlobalArgsSchema = z.object({
         condition: z.string().optional(),
         fulfillment: z.object({
           advancedSettings: z.unknown().optional(),
+          codeBlockFunction: z.unknown().optional(),
           conditionalCases: z.unknown().optional(),
           enableGenerativeFallback: z.unknown().optional(),
           generators: z.unknown().optional(),
@@ -382,6 +384,7 @@ const StateSchema = z.object({
         event: z.string(),
         fulfillment: z.object({
           advancedSettings: z.unknown(),
+          codeBlockFunction: z.unknown(),
           conditionalCases: z.unknown(),
           enableGenerativeFallback: z.unknown(),
           generators: z.unknown(),
@@ -396,6 +399,7 @@ const StateSchema = z.object({
         condition: z.string(),
         fulfillment: z.object({
           advancedSettings: z.unknown(),
+          codeBlockFunction: z.unknown(),
           conditionalCases: z.unknown(),
           enableGenerativeFallback: z.unknown(),
           generators: z.unknown(),
@@ -543,6 +547,7 @@ const InputsSchema = z.object({
         event: z.string().optional(),
         fulfillment: z.object({
           advancedSettings: z.unknown().optional(),
+          codeBlockFunction: z.unknown().optional(),
           conditionalCases: z.unknown().optional(),
           enableGenerativeFallback: z.unknown().optional(),
           generators: z.unknown().optional(),
@@ -557,6 +562,7 @@ const InputsSchema = z.object({
         condition: z.string().optional(),
         fulfillment: z.object({
           advancedSettings: z.unknown().optional(),
+          codeBlockFunction: z.unknown().optional(),
           conditionalCases: z.unknown().optional(),
           enableGenerativeFallback: z.unknown().optional(),
           generators: z.unknown().optional(),
@@ -675,7 +681,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Agents.Playbooks.Versions. Registered at `@swamp/gcp/dialogflow/agents-playbooks-versions`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/agents-playbooks-versions",
-  version: "2026.08.16.1",
+  version: "2026.08.17.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -814,6 +820,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.16.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.17.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
