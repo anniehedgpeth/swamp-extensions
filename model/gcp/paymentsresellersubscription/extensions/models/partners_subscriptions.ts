@@ -423,6 +423,7 @@ const StateSchema = z.object({
     state: z.string(),
   })).optional(),
   migrationDetails: z.object({
+    legacyCreationTime: z.string(),
     migratedSubscriptionId: z.string(),
   }).optional(),
   name: z.string(),
@@ -748,7 +749,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Payments Reseller Subscription Partners.Subscriptions. Registered at `@swamp/gcp/paymentsresellersubscription/partners-subscriptions`. */
 export const model = {
   type: "@swamp/gcp/paymentsresellersubscription/partners-subscriptions",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -914,6 +915,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -326,6 +326,9 @@ const GlobalArgsSchema = z.object({
     actualStartTime: z.string().describe(
       "The date and time that the broadcast actually started. This information is only available once the broadcast's state is live.",
     ).optional(),
+    categoryId: z.string().describe(
+      "The YouTube video category associated with the video broadcast.",
+    ).optional(),
     channelId: z.string().describe(
       "The ID that YouTube uses to uniquely identify the channel that is publishing the broadcast.",
     ).optional(),
@@ -513,6 +516,7 @@ const StateSchema = z.object({
   snippet: z.object({
     actualEndTime: z.string(),
     actualStartTime: z.string(),
+    categoryId: z.string(),
     channelId: z.string(),
     description: z.string(),
     isDefaultBroadcast: z.boolean(),
@@ -717,6 +721,9 @@ const InputsSchema = z.object({
     actualStartTime: z.string().describe(
       "The date and time that the broadcast actually started. This information is only available once the broadcast's state is live.",
     ).optional(),
+    categoryId: z.string().describe(
+      "The YouTube video category associated with the video broadcast.",
+    ).optional(),
     channelId: z.string().describe(
       "The ID that YouTube uses to uniquely identify the channel that is publishing the broadcast.",
     ).optional(),
@@ -877,7 +884,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data LiveBroadcasts. Registered at `@swamp/gcp/youtube/livebroadcasts`. */
 export const model = {
   type: "@swamp/gcp/youtube/livebroadcasts",
-  version: "2026.08.13.1",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -996,6 +1003,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

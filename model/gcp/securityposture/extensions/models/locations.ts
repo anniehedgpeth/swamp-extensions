@@ -45,7 +45,7 @@ import {
 const BASE_URL = "https://securityposture.googleapis.com/";
 
 const GET_CONFIG = {
-  "id": "securityposture.projects.locations.get",
+  "id": "securityposture.organizations.locations.get",
   "path": "v1/{+name}",
   "httpMethod": "GET",
   "parameterOrder": [
@@ -60,7 +60,7 @@ const GET_CONFIG = {
 } as const;
 
 const LIST_CONFIG = {
-  "id": "securityposture.projects.locations.list",
+  "id": "securityposture.organizations.locations.list",
   "path": "v1/{+name}/locations",
   "httpMethod": "GET",
   "parameterOrder": [
@@ -158,7 +158,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Security Posture Locations. Registered at `@swamp/gcp/securityposture/locations`. */
 export const model = {
   type: "@swamp/gcp/securityposture/locations",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -287,6 +287,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

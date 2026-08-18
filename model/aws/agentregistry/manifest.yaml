@@ -1,0 +1,20 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/aws/agentregistry"
+version: "2026.08.18.1"
+description: "AWS AGENTREGISTRY infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - aws
+  - agentregistry
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added: registry, registry_record
+models:
+  - registry.ts
+  - registry_record.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

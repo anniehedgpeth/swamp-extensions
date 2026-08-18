@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs.ServingConfigs.
+ * Swamp extension model for Google Cloud AI Commerce Search Catalogs.ServingConfigs.
  *
  * Configures metadata that is used to generate serving time results (e.g. search results or recommendation predictions).
  *
@@ -395,10 +395,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs.ServingConfigs. Registered at `@swamp/gcp/retail/catalogs-servingconfigs`. */
+/** Swamp extension model for Google Cloud AI Commerce Search Catalogs.ServingConfigs. Registered at `@swamp/gcp/retail/catalogs-servingconfigs`. */
 export const model = {
   type: "@swamp/gcp/retail/catalogs-servingconfigs",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -527,6 +527,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -1,0 +1,384 @@
+// Swamp, an Automation Framework
+// Copyright (C) 2026 Elder Swamp Club, Inc.
+//
+// This file is part of Swamp.
+//
+// Swamp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License version 3
+// as published by the Free Software Foundation, with the Swamp
+// Extension and Definition Exception (found in the "COPYING-EXCEPTION"
+// file).
+//
+// Swamp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
+
+// Auto-generated extension model for @swamp/aws/servicediscovery/private-dns-namespace
+// Do not edit manually. Re-generate with: deno task generate:aws
+
+// deno-lint-ignore-file no-explicit-any
+
+/**
+ * Swamp extension model for ServiceDiscovery PrivateDnsNamespace (AWS::ServiceDiscovery::PrivateDnsNamespace).
+ *
+ * Wraps the CloudFormation resource type as a swamp model so create,
+ * get, update, delete, sync, and list can be driven through `swamp model`.
+ *
+ * @module
+ */
+
+import { z } from "npm:zod@4.3.6";
+import {
+  createResource,
+  deleteResource,
+  isResourceNotFoundError,
+  listResources,
+  readResource,
+  updateResource,
+} from "./_lib/aws.ts";
+import type { AwsCredentials } from "./_lib/aws.ts";
+
+const SOASchema = z.object({
+  TTL: z.number().min(0).max(2147483647).optional(),
+});
+
+const PrivateDnsPropertiesMutableSchema = z.object({
+  SOA: SOASchema.optional(),
+});
+
+const TagSchema = z.object({
+  Value: z.string(),
+  Key: z.string(),
+});
+
+const GlobalArgsSchema = z.object({
+  name: z.string().describe(
+    "Instance name for this resource (used as the unique identifier in the factory pattern)",
+  ),
+  accessKeyId: z.string().meta({ sensitive: true }).describe(
+    "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  secretAccessKey: z.string().meta({ sensitive: true }).describe(
+    "AWS secret access key; overrides AWS_SECRET_ACCESS_KEY environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  sessionToken: z.string().meta({ sensitive: true }).describe(
+    "AWS session token for temporary credentials; overrides AWS_SESSION_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
+  ).optional(),
+  region: z.string().describe(
+    "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
+  ).optional(),
+  Description: z.string().max(1024).describe("A description of the namespace.")
+    .optional(),
+  Vpc: z.string().describe(
+    "The ID of the Amazon VPC that you want to associate the namespace with.",
+  ).optional(),
+  Properties: z.object({
+    DnsProperties: PrivateDnsPropertiesMutableSchema.optional(),
+  }).describe("Properties of the private DNS namespace.").optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags for the namespace. Each tag consists of a key and an optional value, both of which you define. Tag keys can have a maximum character length of 128 characters, and tag values can have a maximum length of 256 characters.",
+  ).optional(),
+  Name: z.string().min(1).max(1024).describe(
+    "The name that you want to assign to this namespace. When you create a private DNS namespace, AWS Cloud Map automatically creates an Amazon Route 53 private hosted zone that has the same name as the namespace.",
+  ),
+});
+
+const StateSchema = z.object({
+  Description: z.string().optional(),
+  HostedZoneId: z.string().optional(),
+  Vpc: z.string().optional(),
+  Id: z.string(),
+  Arn: z.string().optional(),
+  Properties: z.object({
+    DnsProperties: PrivateDnsPropertiesMutableSchema,
+  }).optional(),
+  Tags: z.array(TagSchema).optional(),
+  Name: z.string().optional(),
+}).passthrough();
+
+type StateData = z.infer<typeof StateSchema>;
+
+const InputsSchema = z.object({
+  name: z.string().optional(),
+  accessKeyId: z.string().meta({ sensitive: true }).optional(),
+  secretAccessKey: z.string().meta({ sensitive: true }).optional(),
+  sessionToken: z.string().meta({ sensitive: true }).optional(),
+  region: z.string().optional(),
+  Description: z.string().max(1024).describe("A description of the namespace.")
+    .optional(),
+  Vpc: z.string().describe(
+    "The ID of the Amazon VPC that you want to associate the namespace with.",
+  ).optional(),
+  Properties: z.object({
+    DnsProperties: PrivateDnsPropertiesMutableSchema.optional(),
+  }).describe("Properties of the private DNS namespace.").optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags for the namespace. Each tag consists of a key and an optional value, both of which you define. Tag keys can have a maximum character length of 128 characters, and tag values can have a maximum length of 256 characters.",
+  ).optional(),
+  Name: z.string().min(1).max(1024).describe(
+    "The name that you want to assign to this namespace. When you create a private DNS namespace, AWS Cloud Map automatically creates an Amazon Route 53 private hosted zone that has the same name as the namespace.",
+  ).optional(),
+});
+
+const _credentialKeys = new Set([
+  "accessKeyId",
+  "secretAccessKey",
+  "sessionToken",
+  "region",
+]);
+
+function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
+  return {
+    accessKeyId: g.accessKeyId as string | undefined,
+    secretAccessKey: g.secretAccessKey as string | undefined,
+    sessionToken: g.sessionToken as string | undefined,
+    region: g.region as string | undefined,
+  };
+}
+
+/** Swamp extension model for ServiceDiscovery PrivateDnsNamespace. Registered at `@swamp/aws/servicediscovery/private-dns-namespace`. */
+export const model = {
+  type: "@swamp/aws/servicediscovery/private-dns-namespace",
+  version: "2026.08.18.1",
+  globalArguments: GlobalArgsSchema,
+  inputsSchema: InputsSchema,
+  resources: {
+    state: {
+      description: "ServiceDiscovery PrivateDnsNamespace resource state",
+      schema: StateSchema,
+      lifetime: "infinite",
+      garbageCollection: 10,
+    },
+  },
+  methods: {
+    create: {
+      description: "Create a ServiceDiscovery PrivateDnsNamespace",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const desiredState: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await createResource(
+          "AWS::ServiceDiscovery::PrivateDnsNamespace",
+          desiredState,
+          credentials,
+        ) as StateData;
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    get: {
+      description: "Get a ServiceDiscovery PrivateDnsNamespace",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the ServiceDiscovery PrivateDnsNamespace",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const result = await readResource(
+          "AWS::ServiceDiscovery::PrivateDnsNamespace",
+          args.identifier,
+          credentials,
+        ) as StateData;
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    update: {
+      description: "Update a ServiceDiscovery PrivateDnsNamespace",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const identifier = existing.Id?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
+        }
+        const currentState = await readResource(
+          "AWS::ServiceDiscovery::PrivateDnsNamespace",
+          identifier,
+          credentials,
+        ) as StateData;
+        const desiredState: Record<string, unknown> = { ...currentState };
+        for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
+          if (_credentialKeys.has(key)) continue;
+          if (value !== undefined) desiredState[key] = value;
+        }
+        const result = await updateResource(
+          "AWS::ServiceDiscovery::PrivateDnsNamespace",
+          identifier,
+          currentState,
+          desiredState,
+          ["Vpc", "Name"],
+          credentials,
+        );
+        const handle = await context.writeResource(
+          "state",
+          instanceName,
+          result,
+        );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete a ServiceDiscovery PrivateDnsNamespace",
+      arguments: z.object({
+        identifier: z.string().describe(
+          "The primary identifier of the ServiceDiscovery PrivateDnsNamespace",
+        ),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { existed } = await deleteResource(
+          "AWS::ServiceDiscovery::PrivateDnsNamespace",
+          args.identifier,
+          credentials,
+        );
+        const instanceName =
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          identifier: args.identifier,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
+        return { dataHandles: [handle] };
+      },
+    },
+    sync: {
+      description: "Sync ServiceDiscovery PrivateDnsNamespace state from AWS",
+      arguments: z.object({}),
+      execute: async (_args: Record<string, never>, context: any) => {
+        const g = context.globalArgs;
+        const credentials = _buildCredentials(g);
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const content = await context.dataRepository.getContent(
+          context.modelType,
+          context.modelId,
+          instanceName,
+        );
+        if (!content) {
+          throw new Error("No existing state found - run create or get first");
+        }
+        const existing = JSON.parse(new TextDecoder().decode(content));
+        const identifier = existing.Id?.toString();
+        if (!identifier) {
+          throw new Error("No identifier found in existing state");
+        }
+        try {
+          const result = await readResource(
+            "AWS::ServiceDiscovery::PrivateDnsNamespace",
+            identifier,
+            credentials,
+          ) as StateData;
+          const handle = await context.writeResource(
+            "state",
+            instanceName,
+            result,
+          );
+          return { dataHandles: [handle] };
+        } catch (error: unknown) {
+          if (isResourceNotFoundError(error)) {
+            const handle = await context.writeResource("state", instanceName, {
+              identifier,
+              status: "not_found",
+              syncedAt: new Date().toISOString(),
+            });
+            return { dataHandles: [handle] };
+          }
+          throw error;
+        }
+      },
+    },
+    list: {
+      description: "List ServiceDiscovery PrivateDnsNamespace resources",
+      arguments: z.object({
+        maxPages: z.number().describe(
+          "Maximum number of pages to fetch (default: 10)",
+        ).optional(),
+        resourceModel: z.string().describe(
+          "JSON resource model for parent-scoped listing (e.g. parent identifier)",
+        ).optional(),
+      }),
+      execute: async (
+        args: { maxPages?: number; resourceModel?: string },
+        context: any,
+      ) => {
+        const credentials = _buildCredentials(context.globalArgs);
+        const { items, nextToken } = await listResources(
+          "AWS::ServiceDiscovery::PrivateDnsNamespace",
+          {
+            resourceModel: args.resourceModel,
+            maxPages: args.maxPages,
+            credentials,
+          },
+        );
+        const dataHandles = [];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const instanceName =
+            (item.properties?.Id?.toString() ?? item.identifier).replace(
+              /[\/\\]/g,
+              "_",
+            ).replace(/\.\./g, "_").replace(/\0/g, "");
+          const handle = await context.writeResource("state", instanceName, {
+            ...item.properties,
+            _identifier: item.identifier,
+          });
+          dataHandles.push(handle);
+        }
+        return {
+          dataHandles,
+          result: { count: items.length, nextPageToken: nextToken },
+        };
+      },
+    },
+  },
+};

@@ -23,7 +23,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs.Branches.Products.
+ * Swamp extension model for Google Cloud AI Commerce Search Catalogs.Branches.Products.
  *
  * Product captures all metadata information of items to be recommended or searched.
  *
@@ -816,10 +816,10 @@ function _buildGcpCredentials(
   };
 }
 
-/** Swamp extension model for Google Cloud Vertex AI Search for commerce Catalogs.Branches.Products. Registered at `@swamp/gcp/retail/catalogs-branches-products`. */
+/** Swamp extension model for Google Cloud AI Commerce Search Catalogs.Branches.Products. Registered at `@swamp/gcp/retail/catalogs-branches-products`. */
 export const model = {
   type: "@swamp/gcp/retail/catalogs-branches-products",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -973,6 +973,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -123,7 +123,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for VpcLattice ServiceNetwork. Registered at `@swamp/aws/vpclattice/service-network`. */
 export const model = {
   type: "@swamp/aws/vpclattice/service-network",
-  version: "2026.08.17.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -172,6 +172,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -282,7 +287,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["Name"],
+          ["Name", "SharingConfig"],
           credentials,
         );
         const handle = await context.writeResource(

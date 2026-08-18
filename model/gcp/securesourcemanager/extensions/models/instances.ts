@@ -235,6 +235,8 @@ const StateSchema = z.object({
     pscAllowedProjects: z.array(z.string()),
     sshServiceAttachment: z.string(),
   }).optional(),
+  satisfiesPzi: z.boolean().optional(),
+  satisfiesPzs: z.boolean().optional(),
   state: z.string().optional(),
   stateNote: z.string().optional(),
   updateTime: z.string().optional(),
@@ -335,7 +337,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secure Source Manager Instances. Registered at `@swamp/gcp/securesourcemanager/instances`. */
 export const model = {
   type: "@swamp/gcp/securesourcemanager/instances",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -467,6 +469,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

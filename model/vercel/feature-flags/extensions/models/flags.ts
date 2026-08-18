@@ -82,45 +82,22 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   description: z.string().nullable().optional(),
+  experiment: z.object({
+    rampId: z.string().optional(),
+    rampPercentage: z.number().optional(),
+    id: z.string().optional(),
+    base: z.object({
+      type: z.string().optional(),
+      kind: z.string().optional(),
+      attribute: z.string().optional(),
+    }).optional(),
+    weights: z.record(z.string(), z.unknown()).optional(),
+    defaultVariantId: z.string().optional(),
+    exposureLogging: z.boolean().optional(),
+  }).nullable().optional(),
   maintainerIds: z.array(z.string()).nullable().optional(),
   permanent: z.boolean().nullable().optional(),
   tags: z.array(z.string()).nullable().optional(),
-  experiment: z.object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    numVariants: z.number().optional(),
-    surfaceArea: z.string().optional(),
-    stickyRequirement: z.boolean().optional(),
-    layer: z.string().optional(),
-    guardrailMetrics: z.array(z.object({
-      description: z.string().optional(),
-      metricFormula: z.string().optional(),
-      name: z.string().optional(),
-      metricType: z.string().optional(),
-      metricUnit: z.string().optional(),
-      directionality: z.string().optional(),
-    })).optional(),
-    hypothesis: z.string().optional(),
-    device: z.string().optional(),
-    controlVariantId: z.string().optional(),
-    startedAt: z.number().optional(),
-    endedAt: z.number().optional(),
-    decision: z.string().optional(),
-    decisionReason: z.string().optional(),
-    duration: z.number().optional(),
-    durationUnit: z.string().optional(),
-    allocationPercent: z.number().optional(),
-    allocationUnit: z.string().optional(),
-    primaryMetrics: z.array(z.object({
-      description: z.string().optional(),
-      metricFormula: z.string().optional(),
-      name: z.string().optional(),
-      metricType: z.string().optional(),
-      metricUnit: z.string().optional(),
-      directionality: z.string().optional(),
-    })).optional(),
-    status: z.string().optional(),
-  }).nullable().optional(),
   updatedBy: z.string().nullable().optional(),
   variants: z.array(z.record(z.string(), z.unknown())).nullable().optional(),
   id: z.string(),
@@ -172,7 +149,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Flags. Registered at `@swamp/vercel/feature-flags/flags`. */
 export const model = {
   type: "@swamp/vercel/feature-flags/flags",
-  version: "2026.08.03.4",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -211,6 +188,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.03.4",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

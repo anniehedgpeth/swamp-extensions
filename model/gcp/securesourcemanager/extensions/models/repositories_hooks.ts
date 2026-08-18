@@ -161,9 +161,9 @@ const GlobalArgsSchema = z.object({
   disabled: z.boolean().describe(
     "Optional. Determines if the hook disabled or not. Set to true to stop sending traffic.",
   ).optional(),
-  events: z.array(z.enum(["UNSPECIFIED", "PUSH", "PULL_REQUEST"])).describe(
-    "Optional. The events that trigger hook on.",
-  ).optional(),
+  events: z.array(
+    z.enum(["UNSPECIFIED", "PUSH", "PULL_REQUEST", "PULL_REQUEST_COMMENT"]),
+  ).describe("Optional. The events that trigger hook on.").optional(),
   name: z.string().describe(
     "Identifier. A unique identifier for a Hook. The name should be of the format: `projects/{project}/locations/{location_id}/repositories/{repository_id}/hooks/{hook_id}`",
   ).optional(),
@@ -215,9 +215,9 @@ const InputsSchema = z.object({
   disabled: z.boolean().describe(
     "Optional. Determines if the hook disabled or not. Set to true to stop sending traffic.",
   ).optional(),
-  events: z.array(z.enum(["UNSPECIFIED", "PUSH", "PULL_REQUEST"])).describe(
-    "Optional. The events that trigger hook on.",
-  ).optional(),
+  events: z.array(
+    z.enum(["UNSPECIFIED", "PUSH", "PULL_REQUEST", "PULL_REQUEST_COMMENT"]),
+  ).describe("Optional. The events that trigger hook on.").optional(),
   name: z.string().describe(
     "Identifier. A unique identifier for a Hook. The name should be of the format: `projects/{project}/locations/{location_id}/repositories/{repository_id}/hooks/{hook_id}`",
   ).optional(),
@@ -269,7 +269,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Secure Source Manager Repositories.Hooks. Registered at `@swamp/gcp/securesourcemanager/repositories-hooks`. */
 export const model = {
   type: "@swamp/gcp/securesourcemanager/repositories-hooks",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -398,6 +398,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
