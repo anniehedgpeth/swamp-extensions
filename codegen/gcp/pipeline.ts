@@ -173,6 +173,8 @@ export interface GcpParsedResource {
   availableScopes?: string[];
   /** Whether this resource only supports global location */
   isGlobalOnly: boolean;
+  /** Whether this resource has a separate global endpoint (no locations segment) alongside its regional endpoint */
+  hasGlobalEndpoint: boolean;
   /** Whether this resource has no GET (must list + filter) */
   listOnly: boolean;
   /** CRUD method configurations for runtime URL building */
@@ -351,6 +353,7 @@ interface ResourceSpec extends GcpResourceMethods {
   resourcePath: string[];
   handlers: GcpResourceHandlers;
   availableScopes?: string[];
+  hasGlobalEndpoint?: boolean;
 }
 
 // === PUBLIC API ===
@@ -1134,24 +1137,36 @@ function collectResources(
   }
 }
 
+function hasLocationsSegment(resourcePath: string[]): boolean {
+  return resourcePath.some((segment) => segment.toLowerCase() === "locations");
+}
+
 function deduplicateScopedResources(
   resourceSpecs: ResourceSpec[],
 ): ResourceSpec[] {
   const byStrippedPath = new Map<
     string,
-    { spec: ResourceSpec; scopes: string[] }
+    {
+      spec: ResourceSpec;
+      scopes: string[];
+      seenWithLocations: boolean;
+      seenWithoutLocations: boolean;
+    }
   >();
 
   for (const spec of resourceSpecs) {
     const scope = getScopePrefix(spec.resourcePath);
     const strippedPath = stripScopePrefix(spec.resourcePath);
     const key = strippedPath.join(".");
+    const withLocations = hasLocationsSegment(spec.resourcePath);
 
     if (byStrippedPath.has(key)) {
       const existing = byStrippedPath.get(key)!;
       if (scope && !existing.scopes.includes(scope)) {
         existing.scopes.push(scope);
       }
+      if (withLocations) existing.seenWithLocations = true;
+      else existing.seenWithoutLocations = true;
     } else {
       byStrippedPath.set(key, {
         spec: {
@@ -1160,14 +1175,19 @@ function deduplicateScopedResources(
           resourceName: spec.resourceName,
         },
         scopes: scope ? [scope] : [],
+        seenWithLocations: withLocations,
+        seenWithoutLocations: !withLocations,
       });
     }
   }
 
-  return Array.from(byStrippedPath.values()).map(({ spec, scopes }) => ({
-    ...spec,
-    availableScopes: scopes.length > 0 ? scopes : undefined,
-  }));
+  return Array.from(byStrippedPath.values()).map(
+    ({ spec, scopes, seenWithLocations, seenWithoutLocations }) => ({
+      ...spec,
+      availableScopes: scopes.length > 0 ? scopes : undefined,
+      hasGlobalEndpoint: seenWithLocations && seenWithoutLocations,
+    }),
+  );
 }
 
 function getScopePrefix(resourcePath: string[]): string | null {
@@ -1666,6 +1686,7 @@ function buildGcpParsedResource(
     handlers,
     availableScopes,
     isGlobalOnly,
+    hasGlobalEndpoint: spec.hasGlobalEndpoint ?? false,
     listOnly,
     methodConfigs,
     actionMethods: buildActionMethods(spec.actionMethods || {}, doc),

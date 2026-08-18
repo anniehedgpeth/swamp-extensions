@@ -476,7 +476,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Generators. Registered at `@swamp/gcp/dialogflow/generators`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/generators",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -485,6 +485,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -510,9 +515,10 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        params["parent"] =
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`;
         const body: Record<string, unknown> = {};
         if (g["agentCoachingContext"] !== undefined) {
           body["agentCoachingContext"] = g["agentCoachingContext"];
@@ -564,9 +570,10 @@ export const model = {
           {
             listConfig: LIST_CONFIG,
             listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
+              "parent":
+                String(g["location"] ?? "") === "global" || !g["location"]
+                  ? `projects/${projectId}`
+                  : `projects/${projectId}/locations/${String(g["location"])}`,
             },
             matchField: "name",
             matchValue: String(g["name"] ?? ""),
@@ -699,9 +706,10 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        params["parent"] =
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`;
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }

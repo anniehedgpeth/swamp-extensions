@@ -799,7 +799,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow ConversationProfiles. Registered at `@swamp/gcp/dialogflow/conversationprofiles`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/conversationprofiles",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -808,6 +808,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -833,9 +838,10 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        params["parent"] =
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`;
         const body: Record<string, unknown> = {};
         if (g["automatedAgentConfig"] !== undefined) {
           body["automatedAgentConfig"] = g["automatedAgentConfig"];
@@ -878,7 +884,9 @@ export const model = {
         if (g["updateTime"] !== undefined) body["updateTime"] = g["updateTime"];
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["location"] ?? "") === "global" || !g["location"]
+              ? `projects/${projectId}`
+              : `projects/${projectId}/locations/${String(g["location"])}`,
             String(g["name"]),
           );
         }
@@ -892,9 +900,10 @@ export const model = {
           {
             listConfig: LIST_CONFIG,
             listParams: {
-              "parent": `projects/${projectId}/locations/${
-                String(g["location"] ?? "")
-              }`,
+              "parent":
+                String(g["location"] ?? "") === "global" || !g["location"]
+                  ? `projects/${projectId}`
+                  : `projects/${projectId}/locations/${String(g["location"])}`,
             },
             matchField: "displayName",
             matchValue: String(g["displayName"] ?? ""),
@@ -924,7 +933,9 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`,
           args.identifier,
         );
         const result = await readResource(
@@ -981,7 +992,9 @@ export const model = {
           params["name"] = existingName;
         } else {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["location"] ?? "") === "global" || !g["location"]
+              ? `projects/${projectId}`
+              : `projects/${projectId}/locations/${String(g["location"])}`,
             existingName ?? g["name"]?.toString() ?? "",
           );
         }
@@ -1066,7 +1079,9 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`,
           args.identifier,
         );
         const { existed } = await deleteResource(
@@ -1126,7 +1141,9 @@ export const model = {
             const shortName = existingName ?? g["name"]?.toString();
             if (!shortName) throw new Error("No identifier found");
             params["name"] = buildResourceName(
-              `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+              String(g["location"] ?? "") === "global" || !g["location"]
+                ? `projects/${projectId}`
+                : `projects/${projectId}/locations/${String(g["location"])}`,
               shortName,
             );
           }
@@ -1169,9 +1186,10 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        params["parent"] =
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`;
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }

@@ -138,7 +138,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Authorizeddomains. Registered at `@swamp/gcp/run/authorizeddomains`. */
 export const model = {
   type: "@swamp/gcp/run/authorizeddomains",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -147,6 +147,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -279,9 +284,10 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        params["parent"] =
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`;
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }

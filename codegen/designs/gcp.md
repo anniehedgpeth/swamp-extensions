@@ -365,6 +365,17 @@ on the resource's scope and nesting depth:
   is not exposed in `GlobalArgsSchema` — users set `location` instead, and the
   generated code derives the parent path.
 
+  **Global endpoint detection:** Some GCP APIs define resources under both
+  `projects.{resource}` (global) and `projects.locations.{resource}` (regional)
+  in the Discovery Document. During scope deduplication, the pipeline detects
+  when both paths contribute to the same merged resource and sets
+  `hasGlobalEndpoint: true`. For these resources, the generated parent
+  expression is conditional: when `location` is `"global"` or unset, the parent
+  omits the `locations` segment (`projects/${projectId}`); otherwise it includes
+  it (`projects/${projectId}/locations/${location}`). This handles APIs like
+  Secret Manager, Cloud Build, and Dialogflow where the global API rejects
+  `locations/global` as an invalid parent.
+
 - **Nested project-only resources** (`availableScopes: ["projects"]`,
   `resourcePath.length > 1`): the parent is read from `globalArgs.parent`, which
   includes the full ancestor chain. For example,

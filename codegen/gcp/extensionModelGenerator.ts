@@ -185,7 +185,9 @@ export function generateGcpExtensionModel(
   const shouldConstructParent = isProjectOnly &&
     !resource.domainProperties["parent"];
   const parentExpr = shouldConstructParent
-    ? '`projects/${projectId}/locations/${String(g["location"] ?? "")}`'
+    ? resource.hasGlobalEndpoint
+      ? '(String(g["location"] ?? "") === "global" || !g["location"] ? `projects/${projectId}` : `projects/${projectId}/locations/${String(g["location"])}`)'
+      : '`projects/${projectId}/locations/${String(g["location"] ?? "")}`'
     : 'String(g["parent"] ?? "")';
 
   // Method configs as constants

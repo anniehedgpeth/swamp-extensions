@@ -180,6 +180,7 @@ async function importGeneratedModel(mockPort: number): Promise<{
     primaryIdentifier: ["name"],
     handlers: { create: true, read: true, update: true, delete: true },
     isGlobalOnly: false,
+    hasGlobalEndpoint: false,
     listOnly: false,
     methodConfigs: {
       get: makeMethodConfig({

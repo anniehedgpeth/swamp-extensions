@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/gcp/dialogflow"
-version: "2026.08.17.1"
+version: "2026.08.18.1"
 description: "Google Cloud dialogflow infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - cloud
   - infrastructure
 releaseNotes: |
-  - Updated: agents_flows, agents_flows_pages, agents_flows_transitionroutegroups, agents_playbooks, agents_playbooks_versions, agents_testcases, agents_testcases_results, agents_transitionroutegroups
+  - Updated: answerrecords, conversationdatasets, conversationmodels, conversationprofiles, conversations, generators, knowledgebases
 models:
   - agent_entitytypes.ts
   - agent_environments.ts

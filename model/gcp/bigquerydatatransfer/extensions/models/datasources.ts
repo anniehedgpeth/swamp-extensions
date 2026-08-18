@@ -193,7 +193,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Data Transfer DataSources. Registered at `@swamp/gcp/bigquerydatatransfer/datasources`. */
 export const model = {
   type: "@swamp/gcp/bigquerydatatransfer/datasources",
-  version: "2026.08.12.2",
+  version: "2026.08.18.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -320,6 +320,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -346,7 +351,9 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params["name"] = buildResourceName(
-          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`,
           args.identifier,
         );
         const result = await readResource(
@@ -405,7 +412,9 @@ export const model = {
             const shortName = existingName ?? g["name"]?.toString();
             if (!shortName) throw new Error("No identifier found");
             params["name"] = buildResourceName(
-              `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+              String(g["location"] ?? "") === "global" || !g["location"]
+                ? `projects/${projectId}`
+                : `projects/${projectId}/locations/${String(g["location"])}`,
               shortName,
             );
           }
@@ -450,9 +459,10 @@ export const model = {
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        params["parent"] = `projects/${projectId}/locations/${
-          String(g["location"] ?? "")
-        }`;
+        params["parent"] =
+          String(g["location"] ?? "") === "global" || !g["location"]
+            ? `projects/${projectId}`
+            : `projects/${projectId}/locations/${String(g["location"])}`;
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }
@@ -493,7 +503,9 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["name"] !== undefined) {
           params["name"] = buildResourceName(
-            `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+            String(g["location"] ?? "") === "global" || !g["location"]
+              ? `projects/${projectId}`
+              : `projects/${projectId}/locations/${String(g["location"])}`,
             String(g["name"]),
           );
         }
