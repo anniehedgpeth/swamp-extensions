@@ -64,7 +64,7 @@ export async function runClone(
         argv.push(args.path);
       }
 
-      const result = await execGit(argv);
+      const result = await execGit(argv, { signal: ctx.signal });
       if (result.exitCode !== 0) {
         throw new Error(
           `git clone failed (exit ${result.exitCode}): ${
@@ -140,7 +140,10 @@ export async function runDiff(
         argv.push(...args.paths);
       }
 
-      const result = await execGit(argv, { cwd: globals.repoPath });
+      const result = await execGit(argv, {
+        cwd: globals.repoPath,
+        signal: ctx.signal,
+      });
       if (result.exitCode !== 0) {
         throw new Error(
           `git diff failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -198,7 +201,10 @@ export async function runStatus(
         argv.push(...args.paths);
       }
 
-      const result = await execGit(argv, { cwd: globals.repoPath });
+      const result = await execGit(argv, {
+        cwd: globals.repoPath,
+        signal: ctx.signal,
+      });
       if (result.exitCode !== 0) {
         throw new Error(
           `git status failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -270,7 +276,10 @@ export async function runLog(
         argv.push(...args.paths);
       }
 
-      const result = await execGit(argv, { cwd: globals.repoPath });
+      const result = await execGit(argv, {
+        cwd: globals.repoPath,
+        signal: ctx.signal,
+      });
       if (result.exitCode !== 0) {
         throw new Error(
           `git log failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -343,14 +352,20 @@ export async function runCommit(
       const cwd = globals.repoPath;
 
       if (args.addAll) {
-        const addResult = await execGit(["add", "-A"], { cwd });
+        const addResult = await execGit(["add", "-A"], {
+          cwd,
+          signal: ctx.signal,
+        });
         if (addResult.exitCode !== 0) {
           throw new Error(
             `git add failed (exit ${addResult.exitCode}): ${addResult.stderr}`,
           );
         }
       } else if (args.paths && args.paths.length > 0) {
-        const addResult = await execGit(["add", "--", ...args.paths], { cwd });
+        const addResult = await execGit(["add", "--", ...args.paths], {
+          cwd,
+          signal: ctx.signal,
+        });
         if (addResult.exitCode !== 0) {
           throw new Error(
             `git add failed (exit ${addResult.exitCode}): ${addResult.stderr}`,
@@ -367,14 +382,20 @@ export async function runCommit(
       }
       commitArgv.push("commit", "-m", args.message);
 
-      const commitResult = await execGit(commitArgv, { cwd });
+      const commitResult = await execGit(commitArgv, {
+        cwd,
+        signal: ctx.signal,
+      });
       if (commitResult.exitCode !== 0) {
         throw new Error(
           `git commit failed (exit ${commitResult.exitCode}): ${commitResult.stderr}`,
         );
       }
 
-      const shaResult = await execGit(["rev-parse", "HEAD"], { cwd });
+      const shaResult = await execGit(["rev-parse", "HEAD"], {
+        cwd,
+        signal: ctx.signal,
+      });
       if (shaResult.exitCode !== 0) {
         throw new Error(
           `git rev-parse HEAD failed (exit ${shaResult.exitCode}): ${shaResult.stderr}`,
@@ -436,7 +457,10 @@ export async function runPush(
 
       argv.push(remote, args.branch);
 
-      const result = await execGit(argv, { cwd: globals.repoPath });
+      const result = await execGit(argv, {
+        cwd: globals.repoPath,
+        signal: ctx.signal,
+      });
       if (result.exitCode !== 0) {
         throw new Error(
           `git push failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -492,7 +516,10 @@ export async function runBranch(
       const cwd = globals.repoPath;
 
       if (args.list) {
-        const result = await execGit(["branch", "--list"], { cwd });
+        const result = await execGit(["branch", "--list"], {
+          cwd,
+          signal: ctx.signal,
+        });
         if (result.exitCode !== 0) {
           throw new Error(
             `git branch --list failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -535,7 +562,7 @@ export async function runBranch(
           argv.push(args.startPoint);
         }
 
-        const result = await execGit(argv, { cwd });
+        const result = await execGit(argv, { cwd, signal: ctx.signal });
         if (result.exitCode !== 0) {
           throw new Error(
             `git checkout -b failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -558,7 +585,10 @@ export async function runBranch(
         return { dataHandles: [handle] };
       }
 
-      const result = await execGit(["checkout", args.name], { cwd });
+      const result = await execGit(["checkout", args.name], {
+        cwd,
+        signal: ctx.signal,
+      });
       if (result.exitCode !== 0) {
         throw new Error(
           `git checkout failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -609,7 +639,7 @@ export async function runConfig(
         const scopeFlag = args.scope === "global" ? "--global" : "--local";
         const result = await execGit(
           ["config", scopeFlag, args.key, args.value],
-          { cwd },
+          { cwd, signal: ctx.signal },
         );
         if (result.exitCode !== 0) {
           throw new Error(
@@ -632,7 +662,10 @@ export async function runConfig(
         return { dataHandles: [handle] };
       }
 
-      const result = await execGit(["config", args.key], { cwd });
+      const result = await execGit(["config", args.key], {
+        cwd,
+        signal: ctx.signal,
+      });
       if (result.exitCode !== 0) {
         throw new Error(
           `git config get failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -690,7 +723,10 @@ export async function runPull(
         argv.push(args.branch);
       }
 
-      const result = await execGit(argv, { cwd: globals.repoPath });
+      const result = await execGit(argv, {
+        cwd: globals.repoPath,
+        signal: ctx.signal,
+      });
       if (result.exitCode !== 0) {
         throw new Error(
           `git pull failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -763,7 +799,10 @@ export async function runFetch(
 
       argv.push(remote);
 
-      const result = await execGit(argv, { cwd: globals.repoPath });
+      const result = await execGit(argv, {
+        cwd: globals.repoPath,
+        signal: ctx.signal,
+      });
       if (result.exitCode !== 0) {
         throw new Error(
           `git fetch failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -821,7 +860,10 @@ export async function runCherryPick(
       const cwd = globals.repoPath;
 
       if (args.abort) {
-        const result = await execGit(["cherry-pick", "--abort"], { cwd });
+        const result = await execGit(["cherry-pick", "--abort"], {
+          cwd,
+          signal: ctx.signal,
+        });
         if (result.exitCode !== 0) {
           throw new Error(
             `git cherry-pick --abort failed (exit ${result.exitCode}): ${result.stderr}`,
@@ -862,7 +904,7 @@ export async function runCherryPick(
       }
       argv.push("--", ...args.commits);
 
-      const result = await execGit(argv, { cwd });
+      const result = await execGit(argv, { cwd, signal: ctx.signal });
       const raw = (result.stdout + result.stderr).trim();
 
       if (result.exitCode !== 0) {
@@ -877,7 +919,7 @@ export async function runCherryPick(
 
         const statusResult = await execGit(
           ["diff", "--name-only", "--diff-filter=U"],
-          { cwd },
+          { cwd, signal: ctx.signal },
         );
         const conflictFiles = statusResult.stdout
           .split("\n")
@@ -965,7 +1007,7 @@ export async function runUpstreamState(
         } else {
           const headResult = await execGit(
             ["rev-parse", "--abbrev-ref", "HEAD"],
-            { cwd },
+            { cwd, signal: ctx.signal },
           );
           if (headResult.exitCode !== 0) {
             throw new Error(
@@ -978,7 +1020,7 @@ export async function runUpstreamState(
         const upstreamRef = args.branch ? `${args.branch}@{u}` : "@{u}";
         const upstreamResult = await execGit(
           ["rev-parse", "--abbrev-ref", "--symbolic-full-name", upstreamRef],
-          { cwd },
+          { cwd, signal: ctx.signal },
         );
 
         const trackingRefAvailable = upstreamResult.exitCode === 0;
@@ -992,7 +1034,7 @@ export async function runUpstreamState(
 
           const countResult = await execGit(
             ["rev-list", "--left-right", "--count", `${upstream}...${branch}`],
-            { cwd },
+            { cwd, signal: ctx.signal },
           );
           if (countResult.exitCode !== 0) {
             throw new Error(
@@ -1016,11 +1058,11 @@ export async function runUpstreamState(
         } else {
           const remoteResult = await execGit(
             ["config", "--get", `branch.${branch}.remote`],
-            { cwd },
+            { cwd, signal: ctx.signal },
           );
           const mergeResult = await execGit(
             ["config", "--get", `branch.${branch}.merge`],
-            { cwd },
+            { cwd, signal: ctx.signal },
           );
           const remote = remoteResult.exitCode === 0
             ? remoteResult.stdout.trim()

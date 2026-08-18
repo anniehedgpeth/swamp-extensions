@@ -20,6 +20,7 @@ interface Harness {
 
 function makeHarness(
   globalArgs: Record<string, unknown> = {},
+  opts?: { signal?: AbortSignal },
 ): Harness {
   const writes: Harness["writes"] = [];
   const logs: Harness["logs"] = [];
@@ -29,7 +30,7 @@ function makeHarness(
   };
 
   const ctx: GitContext = {
-    signal: new AbortController().signal,
+    signal: opts?.signal ?? new AbortController().signal,
     globalArgs: { repoPath: ".", remote: "origin", ...globalArgs },
     logger: {
       debug: log("debug"),
@@ -2105,6 +2106,63 @@ Deno.test("upstream_state: malformed rev-list output throws", async () => {
       Error,
       "unexpected rev-list output",
     );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// AbortSignal threading
+// ---------------------------------------------------------------------------
+
+Deno.test("execGit passes signal to executor", async () => {
+  let receivedSignal: AbortSignal | undefined;
+  const ac = new AbortController();
+  setCommandExecutor((_argv, opts) => {
+    receivedSignal = opts?.signal;
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness({}, { signal: ac.signal });
+    await model.methods.status.execute({}, ctx);
+    assertEquals(receivedSignal, ac.signal);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("aborted signal rejects the method", async () => {
+  const ac = new AbortController();
+  ac.abort();
+  setCommandExecutor((_argv, opts) => {
+    if (opts?.signal?.aborted) {
+      throw new DOMException("The operation was aborted.", "AbortError");
+    }
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness({}, { signal: ac.signal });
+    await assertRejects(
+      () => model.methods.status.execute({}, ctx),
+      DOMException,
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("non-aborted signal does not affect normal execution", async () => {
+  const ac = new AbortController();
+  setCommandExecutor((_argv, opts) => {
+    assertEquals(opts?.signal !== undefined, true);
+    assertEquals(opts?.signal?.aborted, false);
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness({}, { signal: ac.signal });
+    await model.methods.status.execute({}, ctx);
+    assertEquals(writes.length, 1);
+    assertEquals(writes[0].data.clean, true);
   } finally {
     resetCommandExecutor();
   }

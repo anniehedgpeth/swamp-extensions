@@ -52,7 +52,7 @@ import type { GitContext } from "./_lib/types.ts";
 /** Git model — clone, diff, status, log, commit, push, pull, fetch, cherry_pick, branch, config, upstream_state. */
 export const model = {
   type: "@swamp/git",
-  version: "2026.08.17.1",
+  version: "2026.08.18.1",
 
   globalArguments: GlobalArgsSchema,
 
@@ -77,6 +77,14 @@ export const model = {
       toVersion: "2026.08.17.1",
       description:
         "Fix upstream_state for sparse-fetch repos: add trackingRefAvailable and configuredUpstream fields. hasUpstream now reflects configured upstream, not just local tracking ref availability.",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ): Record<string, unknown> => old,
+    },
+    {
+      toVersion: "2026.08.18.1",
+      description:
+        "Thread AbortSignal from model context to Git subprocesses. Cancelling a Swamp operation now terminates in-flight git commands. No globalArguments changes.",
       upgradeAttributes: (
         old: Record<string, unknown>,
       ): Record<string, unknown> => old,
