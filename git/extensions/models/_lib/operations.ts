@@ -476,9 +476,10 @@ export async function runPush(
         `pushed ${args.branch} to ${remote}${args.force ? " (force)" : ""}`,
       );
 
+      const safeBranch = args.branch.replace(/\//g, "-");
       const handle = await ctx.writeResource(
         "pushResult",
-        `push-${args.branch}`,
+        `push-${safeBranch}`,
         {
           remote,
           branch: args.branch,
@@ -575,9 +576,10 @@ export async function runBranch(
 
         ctx.logger.info(`created and switched to branch ${args.name}`);
 
+        const safeName = args.name.replace(/\//g, "-");
         const handle = await ctx.writeResource(
           "branchResult",
-          `branch-${args.name}`,
+          `branch-${safeName}`,
           { current: args.name, created: true },
           { tags: { method: "branch", action: "create", branch: args.name } },
         );
@@ -601,9 +603,10 @@ export async function runBranch(
 
       ctx.logger.info(`switched to branch ${args.name}`);
 
+      const safeName = args.name.replace(/\//g, "-");
       const handle = await ctx.writeResource(
         "branchResult",
-        `branch-${args.name}`,
+        `branch-${safeName}`,
         { current: args.name, created: false },
         { tags: { method: "branch", action: "switch", branch: args.name } },
       );

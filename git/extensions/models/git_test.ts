@@ -791,6 +791,21 @@ Deno.test("push set-upstream", async () => {
   }
 });
 
+Deno.test("push with slash branch sanitizes resource name", async () => {
+  setCommandExecutor(() => ok(""));
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.push.execute({
+      branch: "feature/my-branch",
+    }, ctx);
+
+    assertEquals(writes[0].name, "push-feature-my-branch");
+    assertEquals(writes[0].data.branch, "feature/my-branch");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
 Deno.test("push uses override remote", async () => {
   const calls: string[][] = [];
   setCommandExecutor((argv) => {
@@ -889,6 +904,35 @@ Deno.test("branch switch", async () => {
     assertEquals(calls[0].includes("-b"), false);
 
     assertEquals(writes[0].data.created, false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("branch create with slash sanitizes resource name", async () => {
+  setCommandExecutor(() => ok(""));
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.branch.execute({
+      name: "feature/my-branch",
+      create: true,
+    }, ctx);
+
+    assertEquals(writes[0].name, "branch-feature-my-branch");
+    assertEquals(writes[0].data.current, "feature/my-branch");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("branch switch with slash sanitizes resource name", async () => {
+  setCommandExecutor(() => ok(""));
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.branch.execute({ name: "issue-42/fix" }, ctx);
+
+    assertEquals(writes[0].name, "branch-issue-42-fix");
+    assertEquals(writes[0].data.current, "issue-42/fix");
   } finally {
     resetCommandExecutor();
   }
