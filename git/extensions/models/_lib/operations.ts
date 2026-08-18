@@ -981,12 +981,13 @@ export async function runUpstreamState(
           { cwd },
         );
 
-        const hasUpstream = upstreamResult.exitCode === 0;
+        const trackingRefAvailable = upstreamResult.exitCode === 0;
         let upstream = "";
+        let configuredUpstream = "";
         let ahead = 0;
         let behind = 0;
 
-        if (hasUpstream) {
+        if (trackingRefAvailable) {
           upstream = upstreamResult.stdout.trim();
 
           const countResult = await execGit(
@@ -1011,21 +1012,45 @@ export async function runUpstreamState(
           }
           behind = parseInt(parts[0], 10);
           ahead = parseInt(parts[1], 10);
+          configuredUpstream = upstream;
+        } else {
+          const remoteResult = await execGit(
+            ["config", "--get", `branch.${branch}.remote`],
+            { cwd },
+          );
+          const mergeResult = await execGit(
+            ["config", "--get", `branch.${branch}.merge`],
+            { cwd },
+          );
+          const remote = remoteResult.exitCode === 0
+            ? remoteResult.stdout.trim()
+            : "";
+          const merge = mergeResult.exitCode === 0
+            ? mergeResult.stdout.trim()
+            : "";
+          if (remote !== "" && merge !== "") {
+            const shortMerge = merge.replace(/^refs\/heads\//, "");
+            configuredUpstream = `${remote}/${shortMerge}`;
+          }
         }
 
-        const pushed = hasUpstream && ahead === 0;
-        const synced = hasUpstream && ahead === 0 && behind === 0;
+        const hasUpstream = trackingRefAvailable ||
+          configuredUpstream !== "";
+        const pushed = trackingRefAvailable && ahead === 0;
+        const synced = trackingRefAvailable && ahead === 0 && behind === 0;
 
         span.setAttribute(Attr.METHOD, "upstream-state");
         span.setAttribute(Attr.BRANCH, branch);
         span.setAttribute(Attr.EXIT_CODE, 0);
-        if (hasUpstream) {
+        if (trackingRefAvailable) {
           span.setAttribute(Attr.UPSTREAM_REF, upstream);
         }
 
         ctx.logger.info(
-          hasUpstream
+          trackingRefAvailable
             ? `${branch} tracking ${upstream}: ahead=${ahead} behind=${behind}`
+            : hasUpstream
+            ? `${branch} has configured upstream ${configuredUpstream} but no local tracking ref`
             : `${branch} has no upstream`,
         );
 
@@ -1037,6 +1062,8 @@ export async function runUpstreamState(
             branch,
             hasUpstream,
             upstream,
+            configuredUpstream,
+            trackingRefAvailable,
             ahead,
             behind,
             pushed,

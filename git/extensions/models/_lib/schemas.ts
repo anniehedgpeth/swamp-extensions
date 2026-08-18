@@ -282,10 +282,21 @@ export type UpstreamStateArgs = z.infer<typeof UpstreamStateArgsSchema>;
 
 export const UpstreamStateResultSchema = z.object({
   branch: z.string(),
-  hasUpstream: z.boolean(),
+  hasUpstream: z.boolean()
+    .describe(
+      "True when the branch has a configured upstream (remote + merge ref), even if the tracking ref is not locally available",
+    ),
   upstream: z.string()
     .describe(
-      "Upstream tracking ref, or empty string when hasUpstream is false",
+      "Upstream tracking ref (e.g. origin/main) when trackingRefAvailable is true, otherwise empty string",
+    ),
+  configuredUpstream: z.string()
+    .describe(
+      "Configured upstream from branch.<name>.remote + branch.<name>.merge (e.g. origin/feature), or empty string when no upstream is configured",
+    ),
+  trackingRefAvailable: z.boolean()
+    .describe(
+      "Whether the remote-tracking ref exists locally (git rev-parse @{u} resolved). When false, ahead/behind/pushed/synced are defaults (0/false) — check this field first.",
     ),
   ahead: z.number().int(),
   behind: z.number().int(),

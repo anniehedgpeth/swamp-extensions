@@ -292,7 +292,7 @@ swamp data query repo 'tags.clean == "false"'
 | `clone`  | Clone a repository with configurable depth, branch, and auth token |
 | `diff`   | Show changes between refs — name-only file lists, stat summaries, or full diffs |
 | `status` | Working tree status with structured entries and clean/dirty flag |
-| `upstream_state` | Tracking-branch state: ahead/behind counts, pushed/synced flags |
+| `upstream_state` | Tracking-branch state: configured upstream, tracking-ref availability, ahead/behind counts, pushed/synced flags |
 | `log`    | Commit history with structured entries (SHA, author, date, message) |
 | `commit` | Stage files and create a commit |
 | `push`   | Push commits to a remote |
@@ -309,7 +309,7 @@ swamp data query repo 'tags.clean == "false"'
 | `cloneResult`  | Clone path, URL, depth, branch |
 | `diffResult`   | Changed files array, raw diff, count, base/head refs |
 | `statusResult` | Status entries with path and status code, clean flag, count |
-| `upstreamStateResult` | Branch, upstream, ahead/behind counts, pushed/synced flags |
+| `upstreamStateResult` | Branch, upstream, configuredUpstream, trackingRefAvailable, ahead/behind counts (nullable), pushed/synced flags (nullable) |
 | `logResult`    | Structured commit entries (SHA, author, date, message) |
 | `commitResult` | Commit SHA and message |
 | `pushResult`   | Remote, branch, forced flag |

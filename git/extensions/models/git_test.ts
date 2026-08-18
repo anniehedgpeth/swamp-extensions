@@ -1833,6 +1833,8 @@ Deno.test("upstream_state: synced with upstream", async () => {
     assertEquals(data.branch, "main");
     assertEquals(data.hasUpstream, true);
     assertEquals(data.upstream, "origin/main");
+    assertEquals(data.configuredUpstream, "origin/main");
+    assertEquals(data.trackingRefAvailable, true);
     assertEquals(data.ahead, 0);
     assertEquals(data.behind, 0);
     assertEquals(data.pushed, true);
@@ -1859,6 +1861,8 @@ Deno.test("upstream_state: ahead only (unpushed commits)", async () => {
     const data = writes[0].data;
     assertEquals(data.branch, "feature");
     assertEquals(data.hasUpstream, true);
+    assertEquals(data.trackingRefAvailable, true);
+    assertEquals(data.configuredUpstream, "origin/feature");
     assertEquals(data.ahead, 3);
     assertEquals(data.behind, 0);
     assertEquals(data.pushed, false);
@@ -1919,7 +1923,11 @@ Deno.test("upstream_state: no upstream configured", async () => {
   setCommandExecutor(() => {
     callIdx++;
     if (callIdx === 1) return ok("feature\n");
-    return fail("fatal: no upstream configured for branch 'feature'");
+    if (callIdx === 2) {
+      return fail("fatal: no upstream configured for branch 'feature'");
+    }
+    if (callIdx === 3) return fail(""); // git config branch.feature.remote
+    return fail(""); // git config branch.feature.merge
   });
   try {
     const { ctx, writes } = makeHarness();
@@ -1929,6 +1937,8 @@ Deno.test("upstream_state: no upstream configured", async () => {
     assertEquals(data.branch, "feature");
     assertEquals(data.hasUpstream, false);
     assertEquals(data.upstream, "");
+    assertEquals(data.configuredUpstream, "");
+    assertEquals(data.trackingRefAvailable, false);
     assertEquals(data.ahead, 0);
     assertEquals(data.behind, 0);
     assertEquals(data.pushed, false);
@@ -1945,7 +1955,11 @@ Deno.test("upstream_state: detached HEAD", async () => {
   setCommandExecutor(() => {
     callIdx++;
     if (callIdx === 1) return ok("HEAD\n");
-    return fail("fatal: no upstream configured for branch 'HEAD'");
+    if (callIdx === 2) {
+      return fail("fatal: no upstream configured for branch 'HEAD'");
+    }
+    if (callIdx === 3) return fail(""); // git config branch.HEAD.remote
+    return fail(""); // git config branch.HEAD.merge
   });
   try {
     const { ctx, writes } = makeHarness();
@@ -1954,6 +1968,7 @@ Deno.test("upstream_state: detached HEAD", async () => {
     const data = writes[0].data;
     assertEquals(data.branch, "HEAD");
     assertEquals(data.hasUpstream, false);
+    assertEquals(data.trackingRefAvailable, false);
     assertEquals(data.pushed, false);
     assertEquals(data.synced, false);
   } finally {
@@ -1980,6 +1995,8 @@ Deno.test("upstream_state: explicit branch arg", async () => {
     const data = writes[0].data;
     assertEquals(data.branch, "develop");
     assertEquals(data.hasUpstream, true);
+    assertEquals(data.trackingRefAvailable, true);
+    assertEquals(data.configuredUpstream, "origin/develop");
     assertEquals(data.upstream, "origin/develop");
     assertEquals(data.ahead, 2);
     assertEquals(data.behind, 1);
@@ -2004,6 +2021,70 @@ Deno.test("upstream_state: branch with slash sanitizes resource name", async () 
 
     assertEquals(writes[0].name, "upstream-state-feature-foo");
     assertEquals(writes[0].data.branch, "feature/foo");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: configured upstream but no tracking ref (sparse fetch)", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("mere-dev-flow\n");
+    if (callIdx === 2) {
+      return fail(
+        "fatal: no upstream configured for branch 'mere-dev-flow'",
+      );
+    }
+    if (callIdx === 3) return ok("origin\n"); // git config branch.mere-dev-flow.remote
+    return ok("refs/heads/mere-dev-flow\n"); // git config branch.mere-dev-flow.merge
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    assertEquals(writes.length, 1);
+    const data = writes[0].data;
+    assertEquals(data.branch, "mere-dev-flow");
+    assertEquals(data.hasUpstream, true);
+    assertEquals(data.trackingRefAvailable, false);
+    assertEquals(data.upstream, "");
+    assertEquals(data.configuredUpstream, "origin/mere-dev-flow");
+    assertEquals(data.ahead, 0);
+    assertEquals(data.behind, 0);
+    assertEquals(data.pushed, false);
+    assertEquals(data.synced, false);
+    assertEquals(writes[0].tags?.pushed, "false");
+    assertEquals(writes[0].tags?.synced, "false");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("upstream_state: partial config (remote only, no merge) treated as no upstream", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("feature\n");
+    if (callIdx === 2) {
+      return fail("fatal: no upstream configured for branch 'feature'");
+    }
+    if (callIdx === 3) return ok("origin\n"); // git config branch.feature.remote
+    return fail(""); // git config branch.feature.merge — not set
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.upstream_state.execute({}, ctx);
+
+    const data = writes[0].data;
+    assertEquals(data.branch, "feature");
+    assertEquals(data.hasUpstream, false);
+    assertEquals(data.trackingRefAvailable, false);
+    assertEquals(data.configuredUpstream, "");
+    assertEquals(data.ahead, 0);
+    assertEquals(data.behind, 0);
+    assertEquals(data.pushed, false);
+    assertEquals(data.synced, false);
   } finally {
     resetCommandExecutor();
   }

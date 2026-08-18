@@ -52,7 +52,7 @@ import type { GitContext } from "./_lib/types.ts";
 /** Git model — clone, diff, status, log, commit, push, pull, fetch, cherry_pick, branch, config, upstream_state. */
 export const model = {
   type: "@swamp/git",
-  version: "2026.08.13.1",
+  version: "2026.08.17.1",
 
   globalArguments: GlobalArgsSchema,
 
@@ -69,6 +69,14 @@ export const model = {
       toVersion: "2026.08.13.1",
       description:
         "Add upstream_state method for tracking-branch state. No globalArguments changes.",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ): Record<string, unknown> => old,
+    },
+    {
+      toVersion: "2026.08.17.1",
+      description:
+        "Fix upstream_state for sparse-fetch repos: add trackingRefAvailable and configuredUpstream fields. hasUpstream now reflects configured upstream, not just local tracking ref availability.",
       upgradeAttributes: (
         old: Record<string, unknown>,
       ): Record<string, unknown> => old,
@@ -148,7 +156,7 @@ export const model = {
     },
     upstreamStateResult: {
       description:
-        "Tracking-branch state: branch, upstream, ahead/behind counts, pushed/synced flags",
+        "Tracking-branch state: branch, upstream, configuredUpstream, trackingRefAvailable, ahead/behind counts (nullable), pushed/synced flags (nullable)",
       schema: UpstreamStateResultSchema,
       lifetime: "ephemeral" as const,
       // Higher than peers (5–10) per issue #1634: "how long has this been
