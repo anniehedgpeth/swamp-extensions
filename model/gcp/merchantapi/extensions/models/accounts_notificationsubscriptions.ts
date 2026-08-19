@@ -246,7 +246,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Merchant Accounts.Notificationsubscriptions. Registered at `@swamp/gcp/merchantapi/accounts-notificationsubscriptions`. */
 export const model = {
   type: "@swamp/gcp/merchantapi/accounts-notificationsubscriptions",
-  version: "2026.08.12.2",
+  version: "2026.08.19.1",
   upgrades: [
     {
       toVersion: "2026.07.24.1",
@@ -260,6 +260,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -552,7 +557,7 @@ export const model = {
       description: "List notificationsubscriptions resources",
       arguments: z.object({
         pageSize: z.number().describe(
-          "The maximum number of notification subscriptions to return in a page. The default value for `page_size` is 100. The maximum value is `200`. Values above `200` will be coerced to `200`.",
+          "Optional. The maximum number of notification subscriptions to return in a page. The default value for `page_size` is 100. The maximum value is `200`. Values above `200` will be coerced to `200`.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

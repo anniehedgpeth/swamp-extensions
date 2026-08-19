@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/drs"
-version: "2026.08.18.1"
+version: "2026.08.19.1"
 description: "AWS DRS infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,8 +9,6 @@ labels:
   - drs
   - cloud
   - infrastructure
-releaseNotes: |
-  - Added: source_network
 models:
   - source_network.ts
 additionalFiles:

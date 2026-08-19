@@ -82,23 +82,6 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   description: z.string().nullable().optional(),
-  experiment: z.object({
-    rampId: z.string().optional(),
-    rampPercentage: z.number().optional(),
-    id: z.string().optional(),
-    base: z.object({
-      type: z.string().optional(),
-      kind: z.string().optional(),
-      attribute: z.string().optional(),
-    }).optional(),
-    weights: z.record(z.string(), z.unknown()).optional(),
-    defaultVariantId: z.string().optional(),
-    exposureLogging: z.boolean().optional(),
-  }).nullable().optional(),
-  maintainerIds: z.array(z.string()).nullable().optional(),
-  permanent: z.boolean().nullable().optional(),
-  tags: z.array(z.string()).nullable().optional(),
-  updatedBy: z.string().nullable().optional(),
   variants: z.array(z.record(z.string(), z.unknown())).nullable().optional(),
   id: z.string(),
   environments: z.record(z.string(), z.unknown()).nullable().optional(),
@@ -106,9 +89,13 @@ const ResourceSchema = z.object({
   revision: z.number().nullable().optional(),
   seed: z.number().nullable().optional(),
   state: z.string().nullable().optional(),
+  maintainerIds: z.array(z.string()).nullable().optional(),
+  permanent: z.boolean().nullable().optional(),
+  tags: z.array(z.string()).nullable().optional(),
   slug: z.string().nullable().optional(),
   createdAt: z.number().nullable().optional(),
   updatedAt: z.number().nullable().optional(),
+  updatedBy: z.string().nullable().optional(),
   createdBy: z.string().nullable().optional(),
   ownerId: z.string().nullable().optional(),
   projectId: z.string().nullable().optional(),
@@ -149,7 +136,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Flags. Registered at `@swamp/vercel/feature-flags/flags`. */
 export const model = {
   type: "@swamp/vercel/feature-flags/flags",
-  version: "2026.08.18.1",
+  version: "2026.08.19.1",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -193,6 +180,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -289,9 +281,6 @@ export const model = {
           filters.push(["permanent", String(g.permanent)]);
         }
         if (g.kind !== undefined) filters.push(["kind", String(g.kind)]);
-        if (g.updatedBy !== undefined) {
-          filters.push(["updatedBy", String(g.updatedBy)]);
-        }
         if (g.id !== undefined) filters.push(["id", String(g.id)]);
         if (g.revision !== undefined) {
           filters.push(["revision", String(g.revision)]);
@@ -301,6 +290,9 @@ export const model = {
         }
         if (g.updatedAt !== undefined) {
           filters.push(["updatedAt", String(g.updatedAt)]);
+        }
+        if (g.updatedBy !== undefined) {
+          filters.push(["updatedBy", String(g.updatedBy)]);
         }
         if (g.ownerId !== undefined) {
           filters.push(["ownerId", String(g.ownerId)]);

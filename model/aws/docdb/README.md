@@ -14,9 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/docdb/dbcluster_parameter_group` to
-see the full list of configurable properties and available methods for this
-model.
+Use `swamp model type describe @swamp/aws/docdb/dbsubnet_group` to see the full
+list of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -48,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new dbcluster_parameter_group model
-swamp model create @swamp/aws/docdb/dbcluster_parameter_group my-dbcluster_parameter_group
+# Create a new dbsubnet_group model
+swamp model create @swamp/aws/docdb/dbsubnet_group my-dbsubnet_group
 
 # Edit the model to configure its properties
-swamp model edit my-dbcluster_parameter_group
+swamp model edit my-dbsubnet_group
 
 # Create the resource in AWS
-swamp model method run my-dbcluster_parameter_group create
+swamp model method run my-dbsubnet_group create
 
 # Sync current state from AWS
-swamp model method run my-dbcluster_parameter_group sync
+swamp model method run my-dbsubnet_group sync
 ```
 
 ## License

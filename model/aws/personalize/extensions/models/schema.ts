@@ -41,6 +41,13 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
+const TagSchema = z.object({
+  Key: z.string().min(1).max(128).regex(
+    new RegExp("^(?!aws:)[a-zA-Z+-=._:/]+$"),
+  ),
+  Value: z.string().min(0).max(256),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -64,6 +71,9 @@ const GlobalArgsSchema = z.object({
   Domain: z.enum(["ECOMMERCE", "VIDEO_ON_DEMAND"]).describe(
     "The domain of a Domain dataset group.",
   ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags used to organize, track, or control access for this resource.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -71,6 +81,7 @@ const StateSchema = z.object({
   SchemaArn: z.string(),
   Schema: z.string().optional(),
   Domain: z.string().optional(),
+  Tags: z.array(TagSchema).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -88,6 +99,9 @@ const InputsSchema = z.object({
     .optional(),
   Domain: z.enum(["ECOMMERCE", "VIDEO_ON_DEMAND"]).describe(
     "The domain of a Domain dataset group.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags used to organize, track, or control access for this resource.",
   ).optional(),
 });
 
@@ -110,7 +124,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Personalize Schema. Registered at `@swamp/aws/personalize/schema`. */
 export const model = {
   type: "@swamp/aws/personalize/schema",
-  version: "2026.08.17.2",
+  version: "2026.08.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -160,6 +174,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.19.1",
+      description: "Added: Tags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

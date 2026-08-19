@@ -17,13 +17,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Swamp.  If not, see <https://www.gnu.org/licenses/>.
 
-// Auto-generated extension model for @swamp/aws/docdb/dbcluster-parameter-group
+// Auto-generated extension model for @swamp/aws/ses/receipt-filter
 // Do not edit manually. Re-generate with: deno task generate:aws
 
 // deno-lint-ignore-file no-explicit-any
 
 /**
- * Swamp extension model for DocDB DBClusterParameterGroup (AWS::DocDB::DBClusterParameterGroup).
+ * Swamp extension model for SES ReceiptFilter (AWS::SES::ReceiptFilter).
  *
  * Wraps the CloudFormation resource type as a swamp model so create,
  * get, update, delete, sync, and list can be driven through `swamp model`.
@@ -38,16 +38,22 @@ import {
   isResourceNotFoundError,
   listResources,
   readResource,
-  updateResource,
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
-const TagSchema = z.object({
-  Value: z.string().describe("The value for the tag."),
-  Key: z.string().describe("The key name of the tag."),
+const IpFilterSchema = z.object({
+  Policy: z.string().describe(
+    "Indicates whether to block or allow incoming mail from the specified IP addresses.",
+  ),
+  Cidr: z.string().describe(
+    "A single IP address or a range of IP addresses to block or allow, specified in CIDR notation.",
+  ),
 });
 
 const GlobalArgsSchema = z.object({
+  name: z.string().describe(
+    "Instance name for this resource (used as the unique identifier in the factory pattern)",
+  ),
   accessKeyId: z.string().meta({ sensitive: true }).describe(
     "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -60,52 +66,39 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Description: z.string().min(1).max(255).describe(
-    "The description for the DB cluster parameter group.",
+  Filter: z.object({
+    IpFilter: IpFilterSchema.describe(
+      "A structure that provides the IP addresses to block or allow, and whether to block or allow incoming mail from them.",
+    ),
+    Name: z.string().describe("The name of the IP address filter.").optional(),
+  }).describe(
+    "A structure that describes the IP address filter to create, which consists of a name, an IP address range, and whether to allow or block mail from it.",
   ),
-  Parameters: z.record(z.string(), z.unknown()).describe(
-    "An object containing key-value pairs of parameters to set for the DB cluster parameter group.",
-  ),
-  Family: z.string().min(1).max(255).describe(
-    "The DB cluster parameter group family name (e.g. docdb5.0).",
-  ),
-  Tags: z.array(TagSchema).describe(
-    "An array of key-value pairs to apply to this resource.",
-  ).optional(),
-  Name: z.string().min(1).max(255).regex(new RegExp("[a-zA-Z0-9-]*")).describe(
-    "The name of the DB cluster parameter group. If omitted, CloudFormation generates a unique name. The name is stored as lowercase.",
-  ).optional(),
 });
 
 const StateSchema = z.object({
-  Description: z.string().optional(),
-  Parameters: z.record(z.string(), z.unknown()).optional(),
-  Family: z.string().optional(),
-  Tags: z.array(TagSchema).optional(),
-  Name: z.string(),
+  Id: z.string(),
+  Filter: z.object({
+    IpFilter: IpFilterSchema,
+    Name: z.string(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
 
 const InputsSchema = z.object({
+  name: z.string().optional(),
   accessKeyId: z.string().meta({ sensitive: true }).optional(),
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Description: z.string().min(1).max(255).describe(
-    "The description for the DB cluster parameter group.",
-  ).optional(),
-  Parameters: z.record(z.string(), z.unknown()).describe(
-    "An object containing key-value pairs of parameters to set for the DB cluster parameter group.",
-  ).optional(),
-  Family: z.string().min(1).max(255).describe(
-    "The DB cluster parameter group family name (e.g. docdb5.0).",
-  ).optional(),
-  Tags: z.array(TagSchema).describe(
-    "An array of key-value pairs to apply to this resource.",
-  ).optional(),
-  Name: z.string().min(1).max(255).regex(new RegExp("[a-zA-Z0-9-]*")).describe(
-    "The name of the DB cluster parameter group. If omitted, CloudFormation generates a unique name. The name is stored as lowercase.",
+  Filter: z.object({
+    IpFilter: IpFilterSchema.describe(
+      "A structure that provides the IP addresses to block or allow, and whether to block or allow incoming mail from them.",
+    ).optional(),
+    Name: z.string().describe("The name of the IP address filter.").optional(),
+  }).describe(
+    "A structure that describes the IP address filter to create, which consists of a name, an IP address range, and whether to allow or block mail from it.",
   ).optional(),
 });
 
@@ -125,15 +118,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
   };
 }
 
-/** Swamp extension model for DocDB DBClusterParameterGroup. Registered at `@swamp/aws/docdb/dbcluster-parameter-group`. */
+/** Swamp extension model for SES ReceiptFilter. Registered at `@swamp/aws/ses/receipt-filter`. */
 export const model = {
-  type: "@swamp/aws/docdb/dbcluster-parameter-group",
-  version: "2026.08.18.1",
+  type: "@swamp/aws/ses/receipt-filter",
+  version: "2026.08.19.1",
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "DocDB DBClusterParameterGroup resource state",
+      description: "SES ReceiptFilter resource state",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -141,23 +134,26 @@ export const model = {
   },
   methods: {
     create: {
-      description: "Create a DocDB DBClusterParameterGroup",
+      description: "Create a SES ReceiptFilter",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildCredentials(g);
         const desiredState: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(g)) {
+          if (key === "name") continue;
           if (_credentialKeys.has(key)) continue;
           if (value !== undefined) desiredState[key] = value;
         }
         const result = await createResource(
-          "AWS::DocDB::DBClusterParameterGroup",
+          "AWS::SES::ReceiptFilter",
           desiredState,
           credentials,
         ) as StateData;
-        const instanceName = ((result.Name ?? g.Name)?.toString() ?? "current")
-          .replace(/[\/\\]/g, "_").replace(/\.\./g, "_").replace(/\0/g, "");
+        const instanceName = (g.name?.toString() ?? "current").replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -167,72 +163,24 @@ export const model = {
       },
     },
     get: {
-      description: "Get a DocDB DBClusterParameterGroup",
+      description: "Get a SES ReceiptFilter",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the DocDB DBClusterParameterGroup",
+          "The primary identifier of the SES ReceiptFilter",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const result = await readResource(
-          "AWS::DocDB::DBClusterParameterGroup",
+          "AWS::SES::ReceiptFilter",
           args.identifier,
           credentials,
         ) as StateData;
         const instanceName =
-          ((result.Name ?? context.globalArgs.Name)?.toString() ??
-            args.identifier).replace(/[\/\\]/g, "_").replace(/\.\./g, "_")
-            .replace(/\0/g, "");
-        const handle = await context.writeResource(
-          "state",
-          instanceName,
-          result,
-        );
-        return { dataHandles: [handle] };
-      },
-    },
-    update: {
-      description: "Update a DocDB DBClusterParameterGroup",
-      arguments: z.object({}),
-      execute: async (_args: Record<string, never>, context: any) => {
-        const g = context.globalArgs;
-        const credentials = _buildCredentials(g);
-        const instanceName = (g.Name?.toString() ?? "current").replace(
-          /[\/\\]/g,
-          "_",
-        ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          instanceName,
-        );
-        if (!content) {
-          throw new Error("No existing state found - run create or get first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.Name?.toString();
-        if (!identifier) {
-          throw new Error("No identifier found in existing state");
-        }
-        const currentState = await readResource(
-          "AWS::DocDB::DBClusterParameterGroup",
-          identifier,
-          credentials,
-        ) as StateData;
-        const desiredState: Record<string, unknown> = { ...currentState };
-        for (const [key, value] of Object.entries(g)) {
-          if (_credentialKeys.has(key)) continue;
-          if (value !== undefined) desiredState[key] = value;
-        }
-        const result = await updateResource(
-          "AWS::DocDB::DBClusterParameterGroup",
-          identifier,
-          currentState,
-          desiredState,
-          ["Family", "Description", "Name"],
-          credentials,
-        );
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
+            /[\/\\]/g,
+            "_",
+          ).replace(/\.\./g, "_").replace(/\0/g, "");
         const handle = await context.writeResource(
           "state",
           instanceName,
@@ -242,21 +190,21 @@ export const model = {
       },
     },
     delete: {
-      description: "Delete a DocDB DBClusterParameterGroup",
+      description: "Delete a SES ReceiptFilter",
       arguments: z.object({
         identifier: z.string().describe(
-          "The primary identifier of the DocDB DBClusterParameterGroup",
+          "The primary identifier of the SES ReceiptFilter",
         ),
       }),
       execute: async (args: { identifier: string }, context: any) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { existed } = await deleteResource(
-          "AWS::DocDB::DBClusterParameterGroup",
+          "AWS::SES::ReceiptFilter",
           args.identifier,
           credentials,
         );
         const instanceName =
-          (context.globalArgs.Name?.toString() ?? args.identifier).replace(
+          (context.globalArgs.name?.toString() ?? args.identifier).replace(
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -270,12 +218,12 @@ export const model = {
       },
     },
     sync: {
-      description: "Sync DocDB DBClusterParameterGroup state from AWS",
+      description: "Sync SES ReceiptFilter state from AWS",
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
         const credentials = _buildCredentials(g);
-        const instanceName = (g.Name?.toString() ?? "current").replace(
+        const instanceName = (g.name?.toString() ?? "current").replace(
           /[\/\\]/g,
           "_",
         ).replace(/\.\./g, "_").replace(/\0/g, "");
@@ -288,13 +236,13 @@ export const model = {
           throw new Error("No existing state found - run create or get first");
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const identifier = existing.Name?.toString();
+        const identifier = existing.Id?.toString();
         if (!identifier) {
           throw new Error("No identifier found in existing state");
         }
         try {
           const result = await readResource(
-            "AWS::DocDB::DBClusterParameterGroup",
+            "AWS::SES::ReceiptFilter",
             identifier,
             credentials,
           ) as StateData;
@@ -318,7 +266,7 @@ export const model = {
       },
     },
     list: {
-      description: "List DocDB DBClusterParameterGroup resources",
+      description: "List SES ReceiptFilter resources",
       arguments: z.object({
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
@@ -333,7 +281,7 @@ export const model = {
       ) => {
         const credentials = _buildCredentials(context.globalArgs);
         const { items, nextToken } = await listResources(
-          "AWS::DocDB::DBClusterParameterGroup",
+          "AWS::SES::ReceiptFilter",
           {
             resourceModel: args.resourceModel,
             maxPages: args.maxPages,
@@ -344,7 +292,7 @@ export const model = {
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
           const instanceName =
-            (item.properties?.Name?.toString() ?? item.identifier).replace(
+            (item.properties?.Id?.toString() ?? item.identifier).replace(
               /[\/\\]/g,
               "_",
             ).replace(/\.\./g, "_").replace(/\0/g, "");

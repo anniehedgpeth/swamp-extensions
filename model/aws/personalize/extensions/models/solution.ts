@@ -71,6 +71,13 @@ const IntegerHyperParameterRangeSchema = z.object({
   ).optional(),
 });
 
+const TagSchema = z.object({
+  Key: z.string().min(1).max(128).regex(
+    new RegExp("^(?!aws:)[a-zA-Z+-=._:/]+$"),
+  ),
+  Value: z.string().min(0).max(256),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -167,6 +174,9 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "The configuration to use with the solution. When performAutoML is set to true, Amazon Personalize only evaluates the autoMLConfig section of the solution configuration.",
   ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags used to organize, track, or control access for this resource.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -206,6 +216,7 @@ const StateSchema = z.object({
       }),
     }),
   }).optional(),
+  Tags: z.array(TagSchema).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -297,6 +308,9 @@ const InputsSchema = z.object({
   }).describe(
     "The configuration to use with the solution. When performAutoML is set to true, Amazon Personalize only evaluates the autoMLConfig section of the solution configuration.",
   ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "The tags used to organize, track, or control access for this resource.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -318,7 +332,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Personalize Solution. Registered at `@swamp/aws/personalize/solution`. */
 export const model = {
   type: "@swamp/aws/personalize/solution",
-  version: "2026.08.17.2",
+  version: "2026.08.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -368,6 +382,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.19.1",
+      description: "Added: Tags",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

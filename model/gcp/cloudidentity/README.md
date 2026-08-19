@@ -13,9 +13,8 @@ the live state in GCP. Available methods:
 - **delete** — remove the resource from GCP
 - **sync** — refresh all resource properties from the API
 
-Use
-`swamp model type describe @swamp/gcp/cloudidentity/customers_userinvitations`
-to see the full list of configurable properties and available methods for this
+Use `swamp model type describe @swamp/gcp/cloudidentity/allowlisteddomains` to
+see the full list of configurable properties and available methods for this
 model.
 
 ## Authentication
@@ -67,17 +66,17 @@ gcloud config set project my-project
 ## Usage
 
 ```bash
-# Create a new customers_userinvitations model
-swamp model create @swamp/gcp/cloudidentity/customers_userinvitations my-customers_userinvitations
+# Create a new allowlisteddomains model
+swamp model create @swamp/gcp/cloudidentity/allowlisteddomains my-allowlisteddomains
 
 # Edit the model to configure its properties
-swamp model edit my-customers_userinvitations
+swamp model edit my-allowlisteddomains
 
 # Create the resource in GCP
-swamp model method run my-customers_userinvitations create
+swamp model method run my-allowlisteddomains create
 
 # Sync current state from GCP
-swamp model method run my-customers_userinvitations sync
+swamp model method run my-allowlisteddomains sync
 ```
 
 ## License

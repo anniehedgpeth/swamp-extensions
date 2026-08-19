@@ -202,7 +202,10 @@ const GlobalArgsSchema = z.object({
       .optional(),
     gcsSource: z.object({
       audioUri: z.string().describe(
-        "Cloud Storage URI that points to a file that contains the conversation audio.",
+        "Immutable. Deprecated: Use `audio_uris` instead. Cloud Storage URI that points to a file that contains the conversation audio.",
+      ).optional(),
+      audioUris: z.array(z.string()).describe(
+        "Immutable. Cloud Storage URIs that point to files that contain the conversation audio. Supports both single audio files and multi-leg session recordings (e.g., call transfers, rolling recording buffers).",
       ).optional(),
       transcriptUri: z.string().describe(
         "Immutable. Cloud Storage URI that points to a file that contains the conversation transcript.",
@@ -369,6 +372,7 @@ const StateSchema = z.object({
     }),
     gcsSource: z.object({
       audioUri: z.string(),
+      audioUris: z.array(z.string()),
       transcriptUri: z.string(),
     }),
     metadataUri: z.string(),
@@ -662,7 +666,10 @@ const InputsSchema = z.object({
       .optional(),
     gcsSource: z.object({
       audioUri: z.string().describe(
-        "Cloud Storage URI that points to a file that contains the conversation audio.",
+        "Immutable. Deprecated: Use `audio_uris` instead. Cloud Storage URI that points to a file that contains the conversation audio.",
+      ).optional(),
+      audioUris: z.array(z.string()).describe(
+        "Immutable. Cloud Storage URIs that point to files that contain the conversation audio. Supports both single audio files and multi-leg session recordings (e.g., call transfers, rolling recording buffers).",
       ).optional(),
       transcriptUri: z.string().describe(
         "Immutable. Cloud Storage URI that points to a file that contains the conversation transcript.",
@@ -836,7 +843,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Contact Center AI Insights Conversations. Registered at `@swamp/gcp/contactcenterinsights/conversations`. */
 export const model = {
   type: "@swamp/gcp/contactcenterinsights/conversations",
-  version: "2026.08.12.2",
+  version: "2026.08.19.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1020,6 +1027,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.19.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
