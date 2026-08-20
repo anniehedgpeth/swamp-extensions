@@ -49,39 +49,15 @@ const ProviderSchema = z.object({
 });
 
 const EncryptionConfigSchema = z.object({
+  Provider: ProviderSchema.describe("The encryption provider for the cluster.")
+    .optional(),
   Resources: z.array(z.string()).describe(
     'Specifies the resources to be encrypted. The only supported value is "secrets".',
   ).optional(),
-  Provider: ProviderSchema.describe("The encryption provider for the cluster.")
-    .optional(),
 });
 
 const ElasticLoadBalancingSchema = z.object({
   Enabled: z.boolean().describe("Todo: add description").optional(),
-});
-
-const EtcdPlacementSchema = z.object({
-  SpreadLevel: z.string().describe(
-    "Optional parameter to specify the placement group spread level for etcd instances. If not provided, EKS will deploy etcd instances without a placement group.",
-  ).optional(),
-});
-
-const ControlPlanePlacementSchema = z.object({
-  GroupName: z.string().describe(
-    "The name of the placement group for the Kubernetes control plane instances. This setting can't be changed after cluster creation.",
-  ).optional(),
-  SpreadLevel: z.string().describe(
-    "Optional parameter to specify the placement group spread level for control plane instances. If not provided, EKS will deploy control plane instances without a placement group.",
-  ).optional(),
-});
-
-const TagSchema = z.object({
-  Value: z.string().min(0).max(256).describe(
-    "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
-  ),
-  Key: z.string().min(1).max(128).describe(
-    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
-  ),
 });
 
 const LoggingTypeConfigSchema = z.object({
@@ -100,20 +76,18 @@ const ClusterLoggingSchema = z.object({
   ).optional(),
 });
 
-const BlockStorageSchema = z.object({
-  Enabled: z.boolean().describe("Todo: add description").optional(),
+const ControlPlanePlacementSchema = z.object({
+  GroupName: z.string().describe(
+    "The name of the placement group for the Kubernetes control plane instances. This setting can't be changed after cluster creation.",
+  ).optional(),
+  SpreadLevel: z.string().describe(
+    "Optional parameter to specify the placement group spread level for control plane instances. If not provided, EKS will deploy control plane instances without a placement group.",
+  ).optional(),
 });
 
-const ServiceNodePortRangeSchema = z.object({
-  MinPort: z.number().int().describe("The minimum port number in the range.")
-    .optional(),
-  MaxPort: z.number().int().describe("The maximum port number in the range.")
-    .optional(),
-});
-
-const HorizontalPodAutoscalerControllerConfigSchema = z.object({
-  HorizontalPodAutoscalerSyncPeriod: z.string().describe(
-    "The interval between each sync of the horizontal pod autoscaler (e.g., 15s, 1m).",
+const EtcdPlacementSchema = z.object({
+  SpreadLevel: z.string().describe(
+    "Optional parameter to specify the placement group spread level for etcd instances. If not provided, EKS will deploy etcd instances without a placement group.",
   ).optional(),
 });
 
@@ -129,12 +103,32 @@ const RemotePodNetworkSchema = z.object({
   ),
 });
 
+const BlockStorageSchema = z.object({
+  Enabled: z.boolean().describe("Todo: add description").optional(),
+});
+
+const TagSchema = z.object({
+  Key: z.string().min(1).max(128).describe(
+    "The key name of the tag. You can specify a value that is 1 to 128 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
+  Value: z.string().min(0).max(256).describe(
+    "The value for the tag. You can specify a value that is 0 to 256 Unicode characters in length and cannot be prefixed with aws:. You can use any of the following characters: the set of Unicode letters, digits, whitespace, _,., /, =, +, and -.",
+  ),
+});
+
+const ServiceNodePortRangeSchema = z.object({
+  MinPort: z.number().int().describe("The minimum port number in the range.")
+    .optional(),
+  MaxPort: z.number().int().describe("The maximum port number in the range.")
+    .optional(),
+});
+
 const ResourceWeightSchema = z.object({
-  Weight: z.number().int().describe(
-    "The weight assigned to the resource for scoring. Must be between 1 and 100.",
-  ).optional(),
   Name: z.string().describe(
     "The name of the resource (for example, cpu or memory).",
+  ).optional(),
+  Weight: z.number().int().describe(
+    "The weight assigned to the resource for scoring. Must be between 1 and 100.",
   ).optional(),
 });
 
@@ -153,6 +147,12 @@ const NodeResourcesFitConfigSchema = z.object({
   ).optional(),
 });
 
+const HorizontalPodAutoscalerControllerConfigSchema = z.object({
+  HorizontalPodAutoscalerSyncPeriod: z.string().describe(
+    "The interval between each sync of the horizontal pod autoscaler (e.g., 15s, 1m).",
+  ).optional(),
+});
+
 const GlobalArgsSchema = z.object({
   accessKeyId: z.string().meta({ sensitive: true }).describe(
     "AWS access key ID; overrides AWS_ACCESS_KEY_ID environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -166,18 +166,6 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  Force: z.boolean().describe("Force cluster version update").optional(),
-  AccessConfig: z.object({
-    AuthenticationMode: z.enum(["CONFIG_MAP", "API_AND_CONFIG_MAP", "API"])
-      .describe(
-        "Specify the authentication mode that should be used to create your cluster.",
-      ).optional(),
-    BootstrapClusterCreatorAdminPermissions: z.boolean().describe(
-      "Set this value to false to avoid creating a default cluster admin Access Entry using the IAM principal used to create the cluster.",
-    ).optional(),
-  }).describe(
-    "An object representing the Access Config to use for the cluster.",
-  ).optional(),
   EncryptionConfig: z.array(EncryptionConfigSchema).optional(),
   KubernetesNetworkConfig: z.object({
     ServiceIpv4Cidr: z.string().describe(
@@ -191,46 +179,6 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe("The Kubernetes network configuration for the cluster.")
     .optional(),
-  Name: z.string().min(1).max(100).regex(
-    new RegExp("^[0-9A-Za-z][A-Za-z0-9\\-_]*"),
-  ).describe("The unique name to give to your cluster.").optional(),
-  Version: z.string().regex(new RegExp("1\\.\\d\\d")).describe(
-    "The desired Kubernetes version for your cluster. If you don't specify a value here, the latest version available in Amazon EKS is used.",
-  ).optional(),
-  ControlPlaneScalingConfig: z.object({
-    Tier: z.enum([
-      "standard",
-      "tier-xl",
-      "tier-2xl",
-      "tier-4xl",
-      "tier-8xl",
-      "tier-ultra",
-    ]).describe("The scaling tier for the provisioned control plane.")
-      .optional(),
-  }).describe("Configuration for provisioned control plane scaling.")
-    .optional(),
-  OutpostConfig: z.object({
-    EtcdPlacement: EtcdPlacementSchema.describe(
-      "An object representing the placement configuration for the etcd instances of your local Amazon EKS cluster on an AWS Outpost.",
-    ).optional(),
-    OutpostArns: z.array(z.string()).describe(
-      "The ARN of the Outpost that you want to use for your local Amazon EKS cluster on Outposts. Only a single Outpost ARN is supported.",
-    ),
-    ControlPlanePlacement: ControlPlanePlacementSchema.describe(
-      "An object representing the placement configuration for all the control plane instances of your local Amazon EKS cluster on an AWS Outpost.",
-    ).optional(),
-    EtcdInstanceType: z.string().describe(
-      "The EC2 instance type for etcd instances of your local Amazon EKS cluster on AWS Outposts. This instance type applies to all etcd instances and cannot be changed after cluster creation.",
-    ).optional(),
-    ControlPlaneInstanceType: z.string().describe(
-      "The EC2 instance type for the Kubernetes control plane instances of your local Amazon EKS cluster on AWS Outposts. This instance type applies to all control plane instances and cannot be changed after cluster creation.",
-    ),
-  }).describe(
-    "An object representing the Outpost configuration to use for AWS EKS outpost cluster.",
-  ).optional(),
-  Tags: z.array(TagSchema).describe(
-    "An array of key-value pairs to apply to this resource.",
-  ).optional(),
   Logging: z.object({
     ClusterLogging: ClusterLoggingSchema.describe(
       "The cluster control plane logging configuration for your cluster.",
@@ -238,54 +186,60 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Enable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs based on log types. By default, cluster control plane logs aren't exported to CloudWatch Logs.",
   ).optional(),
-  RollbackConfig: z.object({
-    TimeoutMinutes: z.number().int().min(120).max(10080).describe(
-      "The timeout in minutes for the version rollback operation. If not specified, defaults to 720 minutes (12 hours).",
+  Name: z.string().min(1).max(100).regex(
+    new RegExp("^[0-9A-Za-z][A-Za-z0-9\\-_]*"),
+  ).describe("The unique name to give to your cluster.").optional(),
+  ResourcesVpcConfig: z.object({
+    EndpointPrivateAccess: z.boolean().describe(
+      "Set this value to true to enable private access for your cluster's Kubernetes API server endpoint. If you enable private access, Kubernetes API requests from within your cluster's VPC use the private VPC endpoint. The default value for this parameter is false, which disables private access for your Kubernetes API server. If you disable private access and you have nodes or AWS Fargate pods in the cluster, then ensure that publicAccessCidrs includes the necessary CIDR blocks for communication with the nodes or Fargate pods.",
+    ).optional(),
+    EndpointPublicAccess: z.boolean().describe(
+      "Set this value to false to disable public access to your cluster's Kubernetes API server endpoint. If you disable public access, your cluster's Kubernetes API server can only receive requests from within the cluster VPC. The default value for this parameter is true, which enables public access for your Kubernetes API server.",
+    ).optional(),
+    PublicAccessCidrs: z.array(z.string()).describe(
+      "The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint. Communication to the endpoint from addresses outside of the CIDR blocks that you specify is denied. The default value is 0.0.0.0/0. If you've disabled private endpoint access and you have nodes or AWS Fargate pods in the cluster, then ensure that you specify the necessary CIDR blocks.",
+    ).optional(),
+    SecurityGroupIds: z.array(z.string()).describe(
+      "Specify one or more security groups for the cross-account elastic network interfaces that Amazon EKS creates to use to allow communication between your worker nodes and the Kubernetes control plane. If you don't specify a security group, the default security group for your VPC is used.",
+    ).optional(),
+    SubnetIds: z.array(z.string()).describe(
+      "Specify subnets for your Amazon EKS nodes. Amazon EKS creates cross-account elastic network interfaces in these subnets to allow communication between your nodes and the Kubernetes control plane.",
+    ),
+    ControlPlaneEgressMode: z.string().describe(
+      "Specify the egress mode for the cluster control plane. If you set this to CUSTOMER_ROUTED, the control plane routes traffic through your VPC subnets instead of using AWS managed networking.",
     ).optional(),
   }).describe(
-    "The rollback configuration to use for the cluster version rollback.",
-  ).optional(),
-  ComputeConfig: z.object({
-    NodePools: z.array(z.string()).describe("Todo: add description").optional(),
-    NodeRoleArn: z.string().describe("Todo: add description").optional(),
-    Enabled: z.boolean().describe("Todo: add description").optional(),
-  }).describe("Todo: add description").optional(),
-  StorageConfig: z.object({
-    BlockStorage: BlockStorageSchema.describe("Todo: add description")
-      .optional(),
-  }).describe("Todo: add description").optional(),
-  BootstrapSelfManagedAddons: z.boolean().describe(
-    "Set this value to false to avoid creating the default networking add-ons when the cluster is created.",
-  ).optional(),
-  KubeApiServerConfig: z.object({
-    ServiceNodePortRange: ServiceNodePortRangeSchema.describe(
-      "The port range for Kubernetes NodePort services.",
-    ).optional(),
-    EventTtl: z.string().describe(
-      "The duration that Kubernetes events are retained (e.g., 30m, 1h).",
-    ).optional(),
-  }).describe(
-    "The configuration for the Kubernetes API server on an Amazon EKS cluster.",
-  ).optional(),
-  DeletionProtection: z.boolean().describe(
-    "Set this value to true to enable deletion protection for the cluster.",
-  ).optional(),
-  ZonalShiftConfig: z.object({
-    Enabled: z.boolean().describe(
-      "Set this value to true to enable zonal shift for the cluster.",
-    ).optional(),
-  }).describe("The current zonal shift configuration to use for the cluster.")
-    .optional(),
-  RoleArn: z.string().describe(
-    "The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.",
+    "An object representing the VPC configuration to use for an Amazon EKS cluster.",
   ),
-  KubeControllerManagerConfig: z.object({
-    HorizontalPodAutoscalerControllerConfig:
-      HorizontalPodAutoscalerControllerConfigSchema.describe(
-        "The horizontal pod autoscaler controller configuration.",
+  OutpostConfig: z.object({
+    OutpostArns: z.array(z.string()).describe(
+      "The ARN of the Outpost that you want to use for your local Amazon EKS cluster on Outposts. Only a single Outpost ARN is supported.",
+    ),
+    ControlPlaneInstanceType: z.string().describe(
+      "The EC2 instance type for the Kubernetes control plane instances of your local Amazon EKS cluster on AWS Outposts. This instance type applies to all control plane instances and cannot be changed after cluster creation.",
+    ),
+    ControlPlanePlacement: ControlPlanePlacementSchema.describe(
+      "An object representing the placement configuration for all the control plane instances of your local Amazon EKS cluster on an AWS Outpost.",
+    ).optional(),
+    EtcdInstanceType: z.string().describe(
+      "The EC2 instance type for etcd instances of your local Amazon EKS cluster on AWS Outposts. This instance type applies to all etcd instances and cannot be changed after cluster creation.",
+    ).optional(),
+    EtcdPlacement: EtcdPlacementSchema.describe(
+      "An object representing the placement configuration for the etcd instances of your local Amazon EKS cluster on an AWS Outpost.",
+    ).optional(),
+  }).describe(
+    "An object representing the Outpost configuration to use for AWS EKS outpost cluster.",
+  ).optional(),
+  AccessConfig: z.object({
+    BootstrapClusterCreatorAdminPermissions: z.boolean().describe(
+      "Set this value to false to avoid creating a default cluster admin Access Entry using the IAM principal used to create the cluster.",
+    ).optional(),
+    AuthenticationMode: z.enum(["CONFIG_MAP", "API_AND_CONFIG_MAP", "API"])
+      .describe(
+        "Specify the authentication mode that should be used to create your cluster.",
       ).optional(),
   }).describe(
-    "The configuration for the Kubernetes controller manager on an Amazon EKS cluster.",
+    "An object representing the Access Config to use for the cluster.",
   ).optional(),
   UpgradePolicy: z.object({
     SupportType: z.enum(["STANDARD", "EXTENDED"]).describe(
@@ -304,6 +258,69 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "Configuration fields for specifying on-premises node and pod CIDRs that are external to the VPC passed during cluster creation.",
   ).optional(),
+  ComputeConfig: z.object({
+    Enabled: z.boolean().describe("Todo: add description").optional(),
+    NodeRoleArn: z.string().describe("Todo: add description").optional(),
+    NodePools: z.array(z.string()).describe("Todo: add description").optional(),
+  }).describe("Todo: add description").optional(),
+  StorageConfig: z.object({
+    BlockStorage: BlockStorageSchema.describe("Todo: add description")
+      .optional(),
+  }).describe("Todo: add description").optional(),
+  RoleArn: z.string().describe(
+    "The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.",
+  ),
+  Version: z.string().regex(new RegExp("1\\.\\d\\d")).describe(
+    "The desired Kubernetes version for your cluster. If you don't specify a value here, the latest version available in Amazon EKS is used.",
+  ).optional(),
+  Force: z.boolean().describe("Force cluster version update").optional(),
+  RollbackConfig: z.object({
+    TimeoutMinutes: z.number().int().min(120).max(10080).describe(
+      "The timeout in minutes for the version rollback operation. If not specified, defaults to 720 minutes (12 hours).",
+    ).optional(),
+  }).describe(
+    "The rollback configuration to use for the cluster version rollback.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "An array of key-value pairs to apply to this resource.",
+  ).optional(),
+  ActiveCertificateAuthorityId: z.string().describe(
+    "The ID of the certificate authority to activate as the cluster's signing CA. Setting or changing this value activates the specified CA (the previously active CA becomes trusted).",
+  ).optional(),
+  BootstrapSelfManagedAddons: z.boolean().describe(
+    "Set this value to false to avoid creating the default networking add-ons when the cluster is created.",
+  ).optional(),
+  DeletionProtection: z.boolean().describe(
+    "Set this value to true to enable deletion protection for the cluster.",
+  ).optional(),
+  ZonalShiftConfig: z.object({
+    Enabled: z.boolean().describe(
+      "Set this value to true to enable zonal shift for the cluster.",
+    ).optional(),
+  }).describe("The current zonal shift configuration to use for the cluster.")
+    .optional(),
+  ControlPlaneScalingConfig: z.object({
+    Tier: z.enum([
+      "standard",
+      "tier-xl",
+      "tier-2xl",
+      "tier-4xl",
+      "tier-8xl",
+      "tier-ultra",
+    ]).describe("The scaling tier for the provisioned control plane.")
+      .optional(),
+  }).describe("Configuration for provisioned control plane scaling.")
+    .optional(),
+  KubeApiServerConfig: z.object({
+    EventTtl: z.string().describe(
+      "The duration that Kubernetes events are retained (e.g., 30m, 1h).",
+    ).optional(),
+    ServiceNodePortRange: ServiceNodePortRangeSchema.describe(
+      "The port range for Kubernetes NodePort services.",
+    ).optional(),
+  }).describe(
+    "The configuration for the Kubernetes API server on an Amazon EKS cluster.",
+  ).optional(),
   KubeSchedulerConfig: z.object({
     NodeResourcesFit: NodeResourcesFitConfigSchema.describe(
       "The NodeResourcesFit plugin configuration for the Kubernetes scheduler.",
@@ -311,37 +328,17 @@ const GlobalArgsSchema = z.object({
   }).describe(
     "The configuration for the Kubernetes scheduler on an Amazon EKS cluster.",
   ).optional(),
-  ResourcesVpcConfig: z.object({
-    EndpointPublicAccess: z.boolean().describe(
-      "Set this value to false to disable public access to your cluster's Kubernetes API server endpoint. If you disable public access, your cluster's Kubernetes API server can only receive requests from within the cluster VPC. The default value for this parameter is true, which enables public access for your Kubernetes API server.",
-    ).optional(),
-    ControlPlaneEgressMode: z.string().describe(
-      "Specify the egress mode for the cluster control plane. If you set this to CUSTOMER_ROUTED, the control plane routes traffic through your VPC subnets instead of using AWS managed networking.",
-    ).optional(),
-    PublicAccessCidrs: z.array(z.string()).describe(
-      "The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint. Communication to the endpoint from addresses outside of the CIDR blocks that you specify is denied. The default value is 0.0.0.0/0. If you've disabled private endpoint access and you have nodes or AWS Fargate pods in the cluster, then ensure that you specify the necessary CIDR blocks.",
-    ).optional(),
-    EndpointPrivateAccess: z.boolean().describe(
-      "Set this value to true to enable private access for your cluster's Kubernetes API server endpoint. If you enable private access, Kubernetes API requests from within your cluster's VPC use the private VPC endpoint. The default value for this parameter is false, which disables private access for your Kubernetes API server. If you disable private access and you have nodes or AWS Fargate pods in the cluster, then ensure that publicAccessCidrs includes the necessary CIDR blocks for communication with the nodes or Fargate pods.",
-    ).optional(),
-    SecurityGroupIds: z.array(z.string()).describe(
-      "Specify one or more security groups for the cross-account elastic network interfaces that Amazon EKS creates to use to allow communication between your worker nodes and the Kubernetes control plane. If you don't specify a security group, the default security group for your VPC is used.",
-    ).optional(),
-    SubnetIds: z.array(z.string()).describe(
-      "Specify subnets for your Amazon EKS nodes. Amazon EKS creates cross-account elastic network interfaces in these subnets to allow communication between your nodes and the Kubernetes control plane.",
-    ),
+  KubeControllerManagerConfig: z.object({
+    HorizontalPodAutoscalerControllerConfig:
+      HorizontalPodAutoscalerControllerConfigSchema.describe(
+        "The horizontal pod autoscaler controller configuration.",
+      ).optional(),
   }).describe(
-    "An object representing the VPC configuration to use for an Amazon EKS cluster.",
-  ),
+    "The configuration for the Kubernetes controller manager on an Amazon EKS cluster.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
-  Force: z.boolean().optional(),
-  AccessConfig: z.object({
-    AuthenticationMode: z.string(),
-    BootstrapClusterCreatorAdminPermissions: z.boolean(),
-  }).optional(),
-  CertificateAuthorityData: z.string().optional(),
   EncryptionConfig: z.array(EncryptionConfigSchema).optional(),
   KubernetesNetworkConfig: z.object({
     ServiceIpv4Cidr: z.string(),
@@ -349,50 +346,29 @@ const StateSchema = z.object({
     IpFamily: z.string(),
     ElasticLoadBalancing: ElasticLoadBalancingSchema,
   }).optional(),
-  Name: z.string(),
-  Endpoint: z.string().optional(),
-  Version: z.string().optional(),
-  ControlPlaneScalingConfig: z.object({
-    Tier: z.string(),
-  }).optional(),
-  ClusterSecurityGroupId: z.string().optional(),
-  OutpostConfig: z.object({
-    EtcdPlacement: EtcdPlacementSchema,
-    OutpostArns: z.array(z.string()),
-    ControlPlanePlacement: ControlPlanePlacementSchema,
-    EtcdInstanceType: z.string(),
-    ControlPlaneInstanceType: z.string(),
-  }).optional(),
-  Tags: z.array(TagSchema).optional(),
-  OpenIdConnectIssuerUrl: z.string().optional(),
   Logging: z.object({
     ClusterLogging: ClusterLoggingSchema,
   }).optional(),
-  RollbackConfig: z.object({
-    TimeoutMinutes: z.number(),
+  Name: z.string(),
+  Id: z.string().optional(),
+  ResourcesVpcConfig: z.object({
+    EndpointPrivateAccess: z.boolean(),
+    EndpointPublicAccess: z.boolean(),
+    PublicAccessCidrs: z.array(z.string()),
+    SecurityGroupIds: z.array(z.string()),
+    SubnetIds: z.array(z.string()),
+    ControlPlaneEgressMode: z.string(),
   }).optional(),
-  ComputeConfig: z.object({
-    NodePools: z.array(z.string()),
-    NodeRoleArn: z.string(),
-    Enabled: z.boolean(),
+  OutpostConfig: z.object({
+    OutpostArns: z.array(z.string()),
+    ControlPlaneInstanceType: z.string(),
+    ControlPlanePlacement: ControlPlanePlacementSchema,
+    EtcdInstanceType: z.string(),
+    EtcdPlacement: EtcdPlacementSchema,
   }).optional(),
-  StorageConfig: z.object({
-    BlockStorage: BlockStorageSchema,
-  }).optional(),
-  BootstrapSelfManagedAddons: z.boolean().optional(),
-  KubeApiServerConfig: z.object({
-    ServiceNodePortRange: ServiceNodePortRangeSchema,
-    EventTtl: z.string(),
-  }).optional(),
-  EncryptionConfigKeyArn: z.string().optional(),
-  DeletionProtection: z.boolean().optional(),
-  ZonalShiftConfig: z.object({
-    Enabled: z.boolean(),
-  }).optional(),
-  RoleArn: z.string().optional(),
-  KubeControllerManagerConfig: z.object({
-    HorizontalPodAutoscalerControllerConfig:
-      HorizontalPodAutoscalerControllerConfigSchema,
+  AccessConfig: z.object({
+    BootstrapClusterCreatorAdminPermissions: z.boolean(),
+    AuthenticationMode: z.string(),
   }).optional(),
   UpgradePolicy: z.object({
     SupportType: z.string(),
@@ -401,18 +377,53 @@ const StateSchema = z.object({
     RemoteNodeNetworks: z.array(RemoteNodeNetworkSchema),
     RemotePodNetworks: z.array(RemotePodNetworkSchema),
   }).optional(),
+  ComputeConfig: z.object({
+    Enabled: z.boolean(),
+    NodeRoleArn: z.string(),
+    NodePools: z.array(z.string()),
+  }).optional(),
+  StorageConfig: z.object({
+    BlockStorage: BlockStorageSchema,
+  }).optional(),
+  RoleArn: z.string().optional(),
+  Version: z.string().optional(),
+  Force: z.boolean().optional(),
+  RollbackConfig: z.object({
+    TimeoutMinutes: z.number(),
+  }).optional(),
+  Tags: z.array(TagSchema).optional(),
+  Arn: z.string().optional(),
+  Endpoint: z.string().optional(),
+  CertificateAuthorityData: z.string().optional(),
+  ActiveCertificateAuthorityId: z.string().optional(),
+  CertificateAuthority: z.object({
+    Data: z.string(),
+    Active: z.object({
+      Id: z.string(),
+      ActivatedBy: z.string(),
+    }),
+  }).optional(),
+  ClusterSecurityGroupId: z.string().optional(),
+  EncryptionConfigKeyArn: z.string().optional(),
+  OpenIdConnectIssuerUrl: z.string().optional(),
+  BootstrapSelfManagedAddons: z.boolean().optional(),
+  DeletionProtection: z.boolean().optional(),
+  ZonalShiftConfig: z.object({
+    Enabled: z.boolean(),
+  }).optional(),
+  ControlPlaneScalingConfig: z.object({
+    Tier: z.string(),
+  }).optional(),
+  KubeApiServerConfig: z.object({
+    EventTtl: z.string(),
+    ServiceNodePortRange: ServiceNodePortRangeSchema,
+  }).optional(),
   KubeSchedulerConfig: z.object({
     NodeResourcesFit: NodeResourcesFitConfigSchema,
   }).optional(),
-  Id: z.string().optional(),
-  Arn: z.string().optional(),
-  ResourcesVpcConfig: z.object({
-    EndpointPublicAccess: z.boolean(),
-    ControlPlaneEgressMode: z.string(),
-    PublicAccessCidrs: z.array(z.string()),
-    EndpointPrivateAccess: z.boolean(),
-    SecurityGroupIds: z.array(z.string()),
-    SubnetIds: z.array(z.string()),
+  KubeControllerManagerConfig: z.object({
+    HorizontalPodAutoscalerControllerConfig:
+      HorizontalPodAutoscalerControllerConfigSchema,
   }).optional(),
 }).passthrough();
 
@@ -423,18 +434,6 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  Force: z.boolean().describe("Force cluster version update").optional(),
-  AccessConfig: z.object({
-    AuthenticationMode: z.enum(["CONFIG_MAP", "API_AND_CONFIG_MAP", "API"])
-      .describe(
-        "Specify the authentication mode that should be used to create your cluster.",
-      ).optional(),
-    BootstrapClusterCreatorAdminPermissions: z.boolean().describe(
-      "Set this value to false to avoid creating a default cluster admin Access Entry using the IAM principal used to create the cluster.",
-    ).optional(),
-  }).describe(
-    "An object representing the Access Config to use for the cluster.",
-  ).optional(),
   EncryptionConfig: z.array(EncryptionConfigSchema).optional(),
   KubernetesNetworkConfig: z.object({
     ServiceIpv4Cidr: z.string().describe(
@@ -448,46 +447,6 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe("The Kubernetes network configuration for the cluster.")
     .optional(),
-  Name: z.string().min(1).max(100).regex(
-    new RegExp("^[0-9A-Za-z][A-Za-z0-9\\-_]*"),
-  ).describe("The unique name to give to your cluster.").optional(),
-  Version: z.string().regex(new RegExp("1\\.\\d\\d")).describe(
-    "The desired Kubernetes version for your cluster. If you don't specify a value here, the latest version available in Amazon EKS is used.",
-  ).optional(),
-  ControlPlaneScalingConfig: z.object({
-    Tier: z.enum([
-      "standard",
-      "tier-xl",
-      "tier-2xl",
-      "tier-4xl",
-      "tier-8xl",
-      "tier-ultra",
-    ]).describe("The scaling tier for the provisioned control plane.")
-      .optional(),
-  }).describe("Configuration for provisioned control plane scaling.")
-    .optional(),
-  OutpostConfig: z.object({
-    EtcdPlacement: EtcdPlacementSchema.describe(
-      "An object representing the placement configuration for the etcd instances of your local Amazon EKS cluster on an AWS Outpost.",
-    ).optional(),
-    OutpostArns: z.array(z.string()).describe(
-      "The ARN of the Outpost that you want to use for your local Amazon EKS cluster on Outposts. Only a single Outpost ARN is supported.",
-    ).optional(),
-    ControlPlanePlacement: ControlPlanePlacementSchema.describe(
-      "An object representing the placement configuration for all the control plane instances of your local Amazon EKS cluster on an AWS Outpost.",
-    ).optional(),
-    EtcdInstanceType: z.string().describe(
-      "The EC2 instance type for etcd instances of your local Amazon EKS cluster on AWS Outposts. This instance type applies to all etcd instances and cannot be changed after cluster creation.",
-    ).optional(),
-    ControlPlaneInstanceType: z.string().describe(
-      "The EC2 instance type for the Kubernetes control plane instances of your local Amazon EKS cluster on AWS Outposts. This instance type applies to all control plane instances and cannot be changed after cluster creation.",
-    ).optional(),
-  }).describe(
-    "An object representing the Outpost configuration to use for AWS EKS outpost cluster.",
-  ).optional(),
-  Tags: z.array(TagSchema).describe(
-    "An array of key-value pairs to apply to this resource.",
-  ).optional(),
   Logging: z.object({
     ClusterLogging: ClusterLoggingSchema.describe(
       "The cluster control plane logging configuration for your cluster.",
@@ -495,54 +454,60 @@ const InputsSchema = z.object({
   }).describe(
     "Enable exporting the Kubernetes control plane logs for your cluster to CloudWatch Logs based on log types. By default, cluster control plane logs aren't exported to CloudWatch Logs.",
   ).optional(),
-  RollbackConfig: z.object({
-    TimeoutMinutes: z.number().int().min(120).max(10080).describe(
-      "The timeout in minutes for the version rollback operation. If not specified, defaults to 720 minutes (12 hours).",
+  Name: z.string().min(1).max(100).regex(
+    new RegExp("^[0-9A-Za-z][A-Za-z0-9\\-_]*"),
+  ).describe("The unique name to give to your cluster.").optional(),
+  ResourcesVpcConfig: z.object({
+    EndpointPrivateAccess: z.boolean().describe(
+      "Set this value to true to enable private access for your cluster's Kubernetes API server endpoint. If you enable private access, Kubernetes API requests from within your cluster's VPC use the private VPC endpoint. The default value for this parameter is false, which disables private access for your Kubernetes API server. If you disable private access and you have nodes or AWS Fargate pods in the cluster, then ensure that publicAccessCidrs includes the necessary CIDR blocks for communication with the nodes or Fargate pods.",
+    ).optional(),
+    EndpointPublicAccess: z.boolean().describe(
+      "Set this value to false to disable public access to your cluster's Kubernetes API server endpoint. If you disable public access, your cluster's Kubernetes API server can only receive requests from within the cluster VPC. The default value for this parameter is true, which enables public access for your Kubernetes API server.",
+    ).optional(),
+    PublicAccessCidrs: z.array(z.string()).describe(
+      "The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint. Communication to the endpoint from addresses outside of the CIDR blocks that you specify is denied. The default value is 0.0.0.0/0. If you've disabled private endpoint access and you have nodes or AWS Fargate pods in the cluster, then ensure that you specify the necessary CIDR blocks.",
+    ).optional(),
+    SecurityGroupIds: z.array(z.string()).describe(
+      "Specify one or more security groups for the cross-account elastic network interfaces that Amazon EKS creates to use to allow communication between your worker nodes and the Kubernetes control plane. If you don't specify a security group, the default security group for your VPC is used.",
+    ).optional(),
+    SubnetIds: z.array(z.string()).describe(
+      "Specify subnets for your Amazon EKS nodes. Amazon EKS creates cross-account elastic network interfaces in these subnets to allow communication between your nodes and the Kubernetes control plane.",
+    ).optional(),
+    ControlPlaneEgressMode: z.string().describe(
+      "Specify the egress mode for the cluster control plane. If you set this to CUSTOMER_ROUTED, the control plane routes traffic through your VPC subnets instead of using AWS managed networking.",
     ).optional(),
   }).describe(
-    "The rollback configuration to use for the cluster version rollback.",
+    "An object representing the VPC configuration to use for an Amazon EKS cluster.",
   ).optional(),
-  ComputeConfig: z.object({
-    NodePools: z.array(z.string()).describe("Todo: add description").optional(),
-    NodeRoleArn: z.string().describe("Todo: add description").optional(),
-    Enabled: z.boolean().describe("Todo: add description").optional(),
-  }).describe("Todo: add description").optional(),
-  StorageConfig: z.object({
-    BlockStorage: BlockStorageSchema.describe("Todo: add description")
-      .optional(),
-  }).describe("Todo: add description").optional(),
-  BootstrapSelfManagedAddons: z.boolean().describe(
-    "Set this value to false to avoid creating the default networking add-ons when the cluster is created.",
-  ).optional(),
-  KubeApiServerConfig: z.object({
-    ServiceNodePortRange: ServiceNodePortRangeSchema.describe(
-      "The port range for Kubernetes NodePort services.",
+  OutpostConfig: z.object({
+    OutpostArns: z.array(z.string()).describe(
+      "The ARN of the Outpost that you want to use for your local Amazon EKS cluster on Outposts. Only a single Outpost ARN is supported.",
     ).optional(),
-    EventTtl: z.string().describe(
-      "The duration that Kubernetes events are retained (e.g., 30m, 1h).",
+    ControlPlaneInstanceType: z.string().describe(
+      "The EC2 instance type for the Kubernetes control plane instances of your local Amazon EKS cluster on AWS Outposts. This instance type applies to all control plane instances and cannot be changed after cluster creation.",
+    ).optional(),
+    ControlPlanePlacement: ControlPlanePlacementSchema.describe(
+      "An object representing the placement configuration for all the control plane instances of your local Amazon EKS cluster on an AWS Outpost.",
+    ).optional(),
+    EtcdInstanceType: z.string().describe(
+      "The EC2 instance type for etcd instances of your local Amazon EKS cluster on AWS Outposts. This instance type applies to all etcd instances and cannot be changed after cluster creation.",
+    ).optional(),
+    EtcdPlacement: EtcdPlacementSchema.describe(
+      "An object representing the placement configuration for the etcd instances of your local Amazon EKS cluster on an AWS Outpost.",
     ).optional(),
   }).describe(
-    "The configuration for the Kubernetes API server on an Amazon EKS cluster.",
+    "An object representing the Outpost configuration to use for AWS EKS outpost cluster.",
   ).optional(),
-  DeletionProtection: z.boolean().describe(
-    "Set this value to true to enable deletion protection for the cluster.",
-  ).optional(),
-  ZonalShiftConfig: z.object({
-    Enabled: z.boolean().describe(
-      "Set this value to true to enable zonal shift for the cluster.",
+  AccessConfig: z.object({
+    BootstrapClusterCreatorAdminPermissions: z.boolean().describe(
+      "Set this value to false to avoid creating a default cluster admin Access Entry using the IAM principal used to create the cluster.",
     ).optional(),
-  }).describe("The current zonal shift configuration to use for the cluster.")
-    .optional(),
-  RoleArn: z.string().describe(
-    "The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.",
-  ).optional(),
-  KubeControllerManagerConfig: z.object({
-    HorizontalPodAutoscalerControllerConfig:
-      HorizontalPodAutoscalerControllerConfigSchema.describe(
-        "The horizontal pod autoscaler controller configuration.",
+    AuthenticationMode: z.enum(["CONFIG_MAP", "API_AND_CONFIG_MAP", "API"])
+      .describe(
+        "Specify the authentication mode that should be used to create your cluster.",
       ).optional(),
   }).describe(
-    "The configuration for the Kubernetes controller manager on an Amazon EKS cluster.",
+    "An object representing the Access Config to use for the cluster.",
   ).optional(),
   UpgradePolicy: z.object({
     SupportType: z.enum(["STANDARD", "EXTENDED"]).describe(
@@ -561,6 +526,69 @@ const InputsSchema = z.object({
   }).describe(
     "Configuration fields for specifying on-premises node and pod CIDRs that are external to the VPC passed during cluster creation.",
   ).optional(),
+  ComputeConfig: z.object({
+    Enabled: z.boolean().describe("Todo: add description").optional(),
+    NodeRoleArn: z.string().describe("Todo: add description").optional(),
+    NodePools: z.array(z.string()).describe("Todo: add description").optional(),
+  }).describe("Todo: add description").optional(),
+  StorageConfig: z.object({
+    BlockStorage: BlockStorageSchema.describe("Todo: add description")
+      .optional(),
+  }).describe("Todo: add description").optional(),
+  RoleArn: z.string().describe(
+    "The Amazon Resource Name (ARN) of the IAM role that provides permissions for the Kubernetes control plane to make calls to AWS API operations on your behalf.",
+  ).optional(),
+  Version: z.string().regex(new RegExp("1\\.\\d\\d")).describe(
+    "The desired Kubernetes version for your cluster. If you don't specify a value here, the latest version available in Amazon EKS is used.",
+  ).optional(),
+  Force: z.boolean().describe("Force cluster version update").optional(),
+  RollbackConfig: z.object({
+    TimeoutMinutes: z.number().int().min(120).max(10080).describe(
+      "The timeout in minutes for the version rollback operation. If not specified, defaults to 720 minutes (12 hours).",
+    ).optional(),
+  }).describe(
+    "The rollback configuration to use for the cluster version rollback.",
+  ).optional(),
+  Tags: z.array(TagSchema).describe(
+    "An array of key-value pairs to apply to this resource.",
+  ).optional(),
+  ActiveCertificateAuthorityId: z.string().describe(
+    "The ID of the certificate authority to activate as the cluster's signing CA. Setting or changing this value activates the specified CA (the previously active CA becomes trusted).",
+  ).optional(),
+  BootstrapSelfManagedAddons: z.boolean().describe(
+    "Set this value to false to avoid creating the default networking add-ons when the cluster is created.",
+  ).optional(),
+  DeletionProtection: z.boolean().describe(
+    "Set this value to true to enable deletion protection for the cluster.",
+  ).optional(),
+  ZonalShiftConfig: z.object({
+    Enabled: z.boolean().describe(
+      "Set this value to true to enable zonal shift for the cluster.",
+    ).optional(),
+  }).describe("The current zonal shift configuration to use for the cluster.")
+    .optional(),
+  ControlPlaneScalingConfig: z.object({
+    Tier: z.enum([
+      "standard",
+      "tier-xl",
+      "tier-2xl",
+      "tier-4xl",
+      "tier-8xl",
+      "tier-ultra",
+    ]).describe("The scaling tier for the provisioned control plane.")
+      .optional(),
+  }).describe("Configuration for provisioned control plane scaling.")
+    .optional(),
+  KubeApiServerConfig: z.object({
+    EventTtl: z.string().describe(
+      "The duration that Kubernetes events are retained (e.g., 30m, 1h).",
+    ).optional(),
+    ServiceNodePortRange: ServiceNodePortRangeSchema.describe(
+      "The port range for Kubernetes NodePort services.",
+    ).optional(),
+  }).describe(
+    "The configuration for the Kubernetes API server on an Amazon EKS cluster.",
+  ).optional(),
   KubeSchedulerConfig: z.object({
     NodeResourcesFit: NodeResourcesFitConfigSchema.describe(
       "The NodeResourcesFit plugin configuration for the Kubernetes scheduler.",
@@ -568,27 +596,13 @@ const InputsSchema = z.object({
   }).describe(
     "The configuration for the Kubernetes scheduler on an Amazon EKS cluster.",
   ).optional(),
-  ResourcesVpcConfig: z.object({
-    EndpointPublicAccess: z.boolean().describe(
-      "Set this value to false to disable public access to your cluster's Kubernetes API server endpoint. If you disable public access, your cluster's Kubernetes API server can only receive requests from within the cluster VPC. The default value for this parameter is true, which enables public access for your Kubernetes API server.",
-    ).optional(),
-    ControlPlaneEgressMode: z.string().describe(
-      "Specify the egress mode for the cluster control plane. If you set this to CUSTOMER_ROUTED, the control plane routes traffic through your VPC subnets instead of using AWS managed networking.",
-    ).optional(),
-    PublicAccessCidrs: z.array(z.string()).describe(
-      "The CIDR blocks that are allowed access to your cluster's public Kubernetes API server endpoint. Communication to the endpoint from addresses outside of the CIDR blocks that you specify is denied. The default value is 0.0.0.0/0. If you've disabled private endpoint access and you have nodes or AWS Fargate pods in the cluster, then ensure that you specify the necessary CIDR blocks.",
-    ).optional(),
-    EndpointPrivateAccess: z.boolean().describe(
-      "Set this value to true to enable private access for your cluster's Kubernetes API server endpoint. If you enable private access, Kubernetes API requests from within your cluster's VPC use the private VPC endpoint. The default value for this parameter is false, which disables private access for your Kubernetes API server. If you disable private access and you have nodes or AWS Fargate pods in the cluster, then ensure that publicAccessCidrs includes the necessary CIDR blocks for communication with the nodes or Fargate pods.",
-    ).optional(),
-    SecurityGroupIds: z.array(z.string()).describe(
-      "Specify one or more security groups for the cross-account elastic network interfaces that Amazon EKS creates to use to allow communication between your worker nodes and the Kubernetes control plane. If you don't specify a security group, the default security group for your VPC is used.",
-    ).optional(),
-    SubnetIds: z.array(z.string()).describe(
-      "Specify subnets for your Amazon EKS nodes. Amazon EKS creates cross-account elastic network interfaces in these subnets to allow communication between your nodes and the Kubernetes control plane.",
-    ).optional(),
+  KubeControllerManagerConfig: z.object({
+    HorizontalPodAutoscalerControllerConfig:
+      HorizontalPodAutoscalerControllerConfigSchema.describe(
+        "The horizontal pod autoscaler controller configuration.",
+      ).optional(),
   }).describe(
-    "An object representing the VPC configuration to use for an Amazon EKS cluster.",
+    "The configuration for the Kubernetes controller manager on an Amazon EKS cluster.",
   ).optional(),
 });
 
@@ -611,7 +625,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EKS Cluster. Registered at `@swamp/aws/eks/cluster`. */
 export const model = {
   type: "@swamp/aws/eks/cluster",
-  version: "2026.08.17.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -687,6 +701,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
+      description: "Added: ActiveCertificateAuthorityId",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

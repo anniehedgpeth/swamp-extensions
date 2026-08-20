@@ -14,8 +14,8 @@ methods:
 - **delete** — remove the resource from AWS
 - **sync** — refresh all resource properties from AWS
 
-Use `swamp model type describe @swamp/aws/deadline/farm` to see the full list of
-configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/aws/deadline/budget` to see the full list
+of configurable properties and available methods for this model.
 
 ## Authentication
 
@@ -47,17 +47,17 @@ export AWS_SECRET_ACCESS_KEY=wJal...
 ## Usage
 
 ```bash
-# Create a new farm model
-swamp model create @swamp/aws/deadline/farm my-farm
+# Create a new budget model
+swamp model create @swamp/aws/deadline/budget my-budget
 
 # Edit the model to configure its properties
-swamp model edit my-farm
+swamp model edit my-budget
 
 # Create the resource in AWS
-swamp model method run my-farm create
+swamp model method run my-budget create
 
 # Sync current state from AWS
-swamp model method run my-farm sync
+swamp model method run my-budget sync
 ```
 
 ## License

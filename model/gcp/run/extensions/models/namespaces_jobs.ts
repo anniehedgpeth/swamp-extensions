@@ -300,6 +300,9 @@ const GlobalArgsSchema = z.object({
         "Optional. Optional metadata for this Execution, including labels and annotations. The following annotation keys set properties of the created execution: * `run.googleapis.com/cloudsql-instances` sets Cloud SQL connections. Multiple values should be comma separated. * `run.googleapis.com/vpc-access-connector` sets a Serverless VPC Access connector. * `run.googleapis.com/vpc-access-egress` sets VPC egress. Supported values are `all-traffic`, `all` (deprecated), and `private-ranges-only`. `all-traffic` and `all` provide the same functionality. `all` is deprecated but will continue to be supported. Prefer `all-traffic`.",
       ).optional(),
       spec: z.object({
+        delayExecution: z.boolean().describe(
+          "Optional. If true, the system will start the execution within the next 12 hours depending on available capacity.",
+        ).optional(),
         parallelism: z.number().int().describe(
           "Optional. Specifies the maximum desired number of tasks the execution should run at given time. When the job is run, if this field is 0 or unset, the maximum possible value will be used for that execution. The actual number of tasks running in steady state will be less than this number when there are fewer tasks waiting to be completed, i.e. when the work left to do is less than max parallelism.",
         ).optional(),
@@ -404,6 +407,7 @@ const StateSchema = z.object({
         uid: z.string(),
       }),
       spec: z.object({
+        delayExecution: z.boolean(),
         parallelism: z.number(),
         taskCount: z.number(),
         template: z.object({
@@ -581,6 +585,9 @@ const InputsSchema = z.object({
         "Optional. Optional metadata for this Execution, including labels and annotations. The following annotation keys set properties of the created execution: * `run.googleapis.com/cloudsql-instances` sets Cloud SQL connections. Multiple values should be comma separated. * `run.googleapis.com/vpc-access-connector` sets a Serverless VPC Access connector. * `run.googleapis.com/vpc-access-egress` sets VPC egress. Supported values are `all-traffic`, `all` (deprecated), and `private-ranges-only`. `all-traffic` and `all` provide the same functionality. `all` is deprecated but will continue to be supported. Prefer `all-traffic`.",
       ).optional(),
       spec: z.object({
+        delayExecution: z.boolean().describe(
+          "Optional. If true, the system will start the execution within the next 12 hours depending on available capacity.",
+        ).optional(),
         parallelism: z.number().int().describe(
           "Optional. Specifies the maximum desired number of tasks the execution should run at given time. When the job is run, if this field is 0 or unset, the maximum possible value will be used for that execution. The actual number of tasks running in steady state will be less than this number when there are fewer tasks waiting to be completed, i.e. when the work left to do is less than max parallelism.",
         ).optional(),
@@ -655,7 +662,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Namespaces.Jobs. Registered at `@swamp/gcp/run/namespaces-jobs`. */
 export const model = {
   type: "@swamp/gcp/run/namespaces-jobs",
-  version: "2026.08.13.1",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -669,6 +676,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

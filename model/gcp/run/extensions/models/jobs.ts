@@ -226,6 +226,9 @@ const GlobalArgsSchema = z.object({
     clientVersion: z.string().describe(
       "Optional. Arbitrary version identifier for the API client.",
     ).optional(),
+    delayExecution: z.boolean().describe(
+      "Optional. If true, the system will start the execution within the next 12 hours depending on available capacity.",
+    ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "Unstructured key value map that can be used to organize and categorize objects. User-provided labels are shared with Google's billing system, so they can be used to filter, or break down billing charges by team, component, environment, state, etc. For more information, visit https://cloud.google.com/resource-manager/docs/creating-managing-labels or https://cloud.google.com/run/docs/configuring/labels. Cloud Run API v2 does not support labels with `run.googleapis.com`, `cloud.googleapis.com`, `serving.knative.dev`, or `autoscaling.knative.dev` namespaces, and they will be rejected. All system labels in v1 now have a corresponding field in v2 ExecutionTemplate.",
     ).optional(),
@@ -545,6 +548,7 @@ const StateSchema = z.object({
     annotations: z.record(z.string(), z.unknown()),
     client: z.string(),
     clientVersion: z.string(),
+    delayExecution: z.boolean(),
     labels: z.record(z.string(), z.unknown()),
     parallelism: z.number(),
     taskCount: z.number(),
@@ -723,6 +727,9 @@ const InputsSchema = z.object({
     ).optional(),
     clientVersion: z.string().describe(
       "Optional. Arbitrary version identifier for the API client.",
+    ).optional(),
+    delayExecution: z.boolean().describe(
+      "Optional. If true, the system will start the execution within the next 12 hours depending on available capacity.",
     ).optional(),
     labels: z.record(z.string(), z.string()).describe(
       "Unstructured key value map that can be used to organize and categorize objects. User-provided labels are shared with Google's billing system, so they can be used to filter, or break down billing charges by team, component, environment, state, etc. For more information, visit https://cloud.google.com/resource-manager/docs/creating-managing-labels or https://cloud.google.com/run/docs/configuring/labels. Cloud Run API v2 does not support labels with `run.googleapis.com`, `cloud.googleapis.com`, `serving.knative.dev`, or `autoscaling.knative.dev` namespaces, and they will be rejected. All system labels in v1 now have a corresponding field in v2 ExecutionTemplate.",
@@ -1022,7 +1029,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Jobs. Registered at `@swamp/gcp/run/jobs`. */
 export const model = {
   type: "@swamp/gcp/run/jobs",
-  version: "2026.08.12.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1183,6 +1190,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

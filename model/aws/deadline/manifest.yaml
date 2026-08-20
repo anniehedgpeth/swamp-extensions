@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/deadline"
-version: "2026.08.19.1"
+version: "2026.08.20.1"
 description: "AWS DEADLINE infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,7 +9,10 @@ labels:
   - deadline
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: budget, worker
 models:
+  - budget.ts
   - farm.ts
   - fleet.ts
   - license_endpoint.ts
@@ -21,6 +24,7 @@ models:
   - queue_fleet_association.ts
   - queue_limit_association.ts
   - storage_profile.ts
+  - worker.ts
 additionalFiles:
   - LICENSE.txt
   - README.md

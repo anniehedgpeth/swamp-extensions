@@ -66,6 +66,9 @@ const GET_CONFIG = {
     "source": {
       "location": "query",
     },
+    "view": {
+      "location": "query",
+    },
   },
 } as const;
 
@@ -202,6 +205,7 @@ const StateSchema = z.object({
       eventTime: z.string(),
       role: z.string(),
     })),
+    resolvedDeveloperInstruction: z.string(),
     rootSpan: z.object({
       attributes: z.record(z.string(), z.unknown()),
       childSpans: z.array(z.record(z.string(), z.unknown())),
@@ -210,6 +214,7 @@ const StateSchema = z.object({
       name: z.string(),
       startTime: z.string(),
     }),
+    templateAttributes: z.record(z.string(), z.unknown()),
     userIntendedText: z.string(),
   })).optional(),
 }).passthrough();
@@ -258,7 +263,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Conversations. Registered at `@swamp/gcp/ces/apps-conversations`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-conversations",
-  version: "2026.08.12.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -387,6 +392,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -238,6 +238,9 @@ const GlobalArgsSchema = z.object({
   description: z.string().describe(
     "User-provided description of the Service. This field currently has a 512-character limit.",
   ).optional(),
+  durableExecution: z.boolean().describe(
+    "Optional. Immutable. Indicates whether the Service has durable execution enabled. This field is immutable once the Service is created.",
+  ).optional(),
   iapEnabled: z.boolean().describe("Optional. IAP settings on the Service.")
     .optional(),
   ingress: z.enum([
@@ -755,6 +758,7 @@ const StateSchema = z.object({
   defaultUriDisabled: z.boolean().optional(),
   deleteTime: z.string().optional(),
   description: z.string().optional(),
+  durableExecution: z.boolean().optional(),
   etag: z.string().optional(),
   expireTime: z.string().optional(),
   generation: z.string().optional(),
@@ -1039,6 +1043,9 @@ const InputsSchema = z.object({
   ).optional(),
   description: z.string().describe(
     "User-provided description of the Service. This field currently has a 512-character limit.",
+  ).optional(),
+  durableExecution: z.boolean().describe(
+    "Optional. Immutable. Indicates whether the Service has durable execution enabled. This field is immutable once the Service is created.",
   ).optional(),
   iapEnabled: z.boolean().describe("Optional. IAP settings on the Service.")
     .optional(),
@@ -1546,7 +1553,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Services. Registered at `@swamp/gcp/run/services`. */
 export const model = {
   type: "@swamp/gcp/run/services",
-  version: "2026.08.12.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1726,6 +1733,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.20.1",
+      description: "Added: durableExecution",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1774,6 +1786,9 @@ export const model = {
         }
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
+        }
+        if (g["durableExecution"] !== undefined) {
+          body["durableExecution"] = g["durableExecution"];
         }
         if (g["iapEnabled"] !== undefined) body["iapEnabled"] = g["iapEnabled"];
         if (g["ingress"] !== undefined) body["ingress"] = g["ingress"];

@@ -77,6 +77,7 @@ const GlobalArgsSchema = z.object({
   SupportedRegions: z.array(z.string()).describe(
     "The Regions from which service consumers can access the service.",
   ).optional(),
+  PrivateDnsName: z.string().optional(),
 });
 
 const StateSchema = z.object({
@@ -89,6 +90,13 @@ const StateSchema = z.object({
   Tags: z.array(TagSchema).optional(),
   SupportedIpAddressTypes: z.array(z.string()).optional(),
   SupportedRegions: z.array(z.string()).optional(),
+  PrivateDnsName: z.string().optional(),
+  PrivateDnsNameConfiguration: z.object({
+    Name: z.string(),
+    State: z.string(),
+    Type: z.string(),
+    Value: z.string(),
+  }).optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -113,6 +121,7 @@ const InputsSchema = z.object({
   SupportedRegions: z.array(z.string()).describe(
     "The Regions from which service consumers can access the service.",
   ).optional(),
+  PrivateDnsName: z.string().optional(),
 });
 
 const _credentialKeys = new Set([
@@ -134,7 +143,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EC2 VPCEndpointService. Registered at `@swamp/aws/ec2/vpcendpoint-service`. */
 export const model = {
   type: "@swamp/aws/ec2/vpcendpoint-service",
-  version: "2026.08.17.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -184,6 +193,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
+      description: "Added: PrivateDnsName",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -68,7 +68,7 @@ const GlobalArgsSchema = z.object({
   ),
   Description: z.string().min(1).max(256).optional(),
   Regions: z.array(z.string().min(1).max(32)).describe(
-    "A list of regions the Global Resolver will exist in. This list cannot be updated and will stay fixed for the duration of the Global Resolver.",
+    "The list of regions the Global Resolver exists in. Regions can be added or removed on update; the order of this list is not significant.",
   ),
   ObservabilityRegion: z.string().min(1).max(32).optional(),
   IpAddressType: z.enum(["IPV4", "DUAL_STACK"]).optional(),
@@ -107,7 +107,7 @@ const InputsSchema = z.object({
   ).optional(),
   Description: z.string().min(1).max(256).optional(),
   Regions: z.array(z.string().min(1).max(32)).describe(
-    "A list of regions the Global Resolver will exist in. This list cannot be updated and will stay fixed for the duration of the Global Resolver.",
+    "The list of regions the Global Resolver exists in. Regions can be added or removed on update; the order of this list is not significant.",
   ).optional(),
   ObservabilityRegion: z.string().min(1).max(32).optional(),
   IpAddressType: z.enum(["IPV4", "DUAL_STACK"]).optional(),
@@ -134,7 +134,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Route53GlobalResolver GlobalResolver. Registered at `@swamp/aws/route53globalresolver/global-resolver`. */
 export const model = {
   type: "@swamp/aws/route53globalresolver/global-resolver",
-  version: "2026.08.17.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -188,6 +188,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -378,14 +378,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.06.1",
-      description: "Removed: gitAccessToken",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { gitAccessToken: _gitAccessToken, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.19.1",
       description: "Added: gitAccessToken",
       upgradeAttributes: (old: Record<string, unknown>) => old,

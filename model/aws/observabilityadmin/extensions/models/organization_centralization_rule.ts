@@ -67,6 +67,10 @@ const LogsEncryptionConfigurationSchema = z.object({
     ),
   ).optional(),
   EncryptionConflictResolutionStrategy: z.enum(["ALLOW", "SKIP"]).optional(),
+  EncryptionScope: z.enum([
+    "ENCRYPTED_SOURCE_ONLY",
+    "NEW_DESTINATION_LOG_GROUPS",
+  ]).optional(),
 });
 
 const LogsBackupConfigurationSchema = z.object({
@@ -192,7 +196,14 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ObservabilityAdmin OrganizationCentralizationRule. Registered at `@swamp/aws/observabilityadmin/organization-centralization-rule`. */
 export const model = {
   type: "@swamp/aws/observabilityadmin/organization-centralization-rule",
-  version: "2026.08.17.1",
+  version: "2026.08.20.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

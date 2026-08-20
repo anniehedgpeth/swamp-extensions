@@ -1083,6 +1083,7 @@ const ResourceSchema = z.object({
     passwordProtection: z.array(z.string()).optional(),
     privateLinkEndpoint: z.array(z.string()).optional(),
     productionAliasProtectionBypass: z.array(z.string()).optional(),
+    productionShareableLink: z.array(z.string()).optional(),
     project: z.array(z.string()).optional(),
     projectAccessGroup: z.array(z.string()).optional(),
     projectAnalyticsSampling: z.array(z.string()).optional(),
@@ -1124,6 +1125,7 @@ const ResourceSchema = z.object({
     pageIntegrity: z.array(z.string()).optional(),
     seawallConfig: z.array(z.string()).optional(),
     securityPlusConfiguration: z.array(z.string()).optional(),
+    shareableLink: z.array(z.string()).optional(),
     shareableLinkStrict: z.array(z.string()).optional(),
     sharedEnvVarConnection: z.array(z.string()).optional(),
     skewProtection: z.array(z.string()).optional(),
@@ -1131,6 +1133,7 @@ const ResourceSchema = z.object({
     trustedIps: z.array(z.string()).optional(),
     trustedSources: z.array(z.string()).optional(),
     v0Chat: z.array(z.string()).optional(),
+    vercelAuth: z.array(z.string()).optional(),
     vercelRun: z.array(z.string()).optional(),
     webAnalytics: z.array(z.string()).optional(),
   }).nullable().optional(),
@@ -1616,7 +1619,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/projects/projects`. */
 export const model = {
   type: "@swamp/vercel/projects/projects",
-  version: "2026.08.19.1",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -1680,6 +1683,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -66,8 +66,14 @@ const ResourcePolicySchema = z.object({
   PolicyDocument: z.record(z.string(), z.unknown()),
 });
 
+const TagSchema = z.object({
+  Value: z.string(),
+  Key: z.string(),
+});
+
 const ReplicaStreamSpecificationSchema = z.object({
   ResourcePolicy: ResourcePolicySchema.optional(),
+  Tags: z.array(TagSchema).optional(),
 });
 
 const TargetTrackingScalingPolicyConfigurationSchema = z.object({
@@ -102,11 +108,6 @@ const ReplicaGlobalSecondaryIndexSpecificationSchema = z.object({
     .optional(),
   ReadOnDemandThroughputSettings: ReadOnDemandThroughputSettingsSchema
     .optional(),
-});
-
-const TagSchema = z.object({
-  Value: z.string(),
-  Key: z.string(),
 });
 
 const ReplicaSpecificationSchema = z.object({
@@ -346,7 +347,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for DynamoDB GlobalTable. Registered at `@swamp/aws/dynamodb/global-table`. */
 export const model = {
   type: "@swamp/aws/dynamodb/global-table",
-  version: "2026.08.17.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -415,6 +416,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

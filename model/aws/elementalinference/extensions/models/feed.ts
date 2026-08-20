@@ -42,10 +42,15 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
+const DataSourceConfigurationSchema = z.object({
+  FixtureId: z.string().min(1).max(128),
+});
+
 const ClippingConfigSchema = z.object({
   CallbackMetadata: z.string().max(1024).regex(
     new RegExp("^[\\w \\-\\.',@:;]*$"),
   ).optional(),
+  DataSourceConfiguration: DataSourceConfigurationSchema.optional(),
 });
 
 const AspectRatioSchema = z.object({
@@ -151,7 +156,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ElementalInference Feed. Registered at `@swamp/aws/elementalinference/feed`. */
 export const model = {
   type: "@swamp/aws/elementalinference/feed",
-  version: "2026.08.17.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -205,6 +210,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

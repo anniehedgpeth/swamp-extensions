@@ -181,6 +181,7 @@ const StateSchema = z.object({
     uid: z.string(),
   }).optional(),
   spec: z.object({
+    delayExecution: z.boolean(),
     parallelism: z.number(),
     taskCount: z.number(),
     template: z.object({
@@ -282,7 +283,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Namespaces.Executions. Registered at `@swamp/gcp/run/namespaces-executions`. */
 export const model = {
   type: "@swamp/gcp/run/namespaces-executions",
-  version: "2026.08.12.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -291,6 +292,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

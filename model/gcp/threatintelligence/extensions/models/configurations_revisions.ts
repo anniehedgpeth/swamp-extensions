@@ -114,7 +114,26 @@ const StateSchema = z.object({
     description: z.string(),
     detail: z.object({
       customThreatScenario: z.object({
+        compiledLuceneQuery: z.string(),
         documentCondition: z.string(),
+        legacyMonitorMetadata: z.object({
+          aggregationEnabled: z.boolean(),
+          aggregationSimilarity: z.number(),
+          conditionVersion: z.number(),
+          creatorUserId: z.string(),
+          description: z.string(),
+          disabledCode: z.string(),
+          disabledReason: z.string(),
+          displayName: z.string(),
+          emailNotificationEnabled: z.boolean(),
+          emailNotificationImmediate: z.boolean(),
+          legacyMonitorId: z.string(),
+          staleTime: z.string(),
+          templateId: z.string(),
+          tenantId: z.string(),
+          updaterUserId: z.string(),
+          version: z.number(),
+        }),
       }),
       customerProfile: z.object({
         citations: z.array(z.object({
@@ -283,7 +302,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Threat Intelligence Configurations.Revisions. Registered at `@swamp/gcp/threatintelligence/configurations-revisions`. */
 export const model = {
   type: "@swamp/gcp/threatintelligence/configurations-revisions",
-  version: "2026.08.12.2",
+  version: "2026.08.20.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -422,6 +441,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.20.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
