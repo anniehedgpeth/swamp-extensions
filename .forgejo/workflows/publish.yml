@@ -59,6 +59,8 @@ jobs:
         chunk: ${{ fromJson(needs.detect-changes.outputs.chunks) }}
     steps:
       - uses: actions/checkout@v6
+      - name: Disable TTY to prevent interactive prompts
+        run: sudo rm -f /dev/tty
       - uses: systeminit/setup-swamp@v0.1.0
         timeout-minutes: 3
         with:
