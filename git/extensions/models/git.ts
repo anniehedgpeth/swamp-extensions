@@ -1,5 +1,7 @@
 import { z } from "npm:zod@4.3.6";
 import {
+  AmendArgsSchema,
+  AmendResultSchema,
   BranchArgsSchema,
   BranchResultSchema,
   CherryPickArgsSchema,
@@ -27,6 +29,7 @@ import {
   UpstreamStateResultSchema,
 } from "./_lib/schemas.ts";
 import {
+  runAmend,
   runBranch,
   runCherryPick,
   runClone,
@@ -49,10 +52,10 @@ import type { GitContext } from "./_lib/types.ts";
  * @module
  */
 
-/** Git model — clone, diff, status, log, commit, push, pull, fetch, cherry_pick, branch, config, upstream_state. */
+/** Git model — clone, diff, status, log, commit, amend, push, pull, fetch, cherry_pick, branch, config, upstream_state. */
 export const model = {
   type: "@swamp/git",
-  version: "2026.08.18.2",
+  version: "2026.08.20.1",
 
   globalArguments: GlobalArgsSchema,
 
@@ -97,6 +100,14 @@ export const model = {
         old: Record<string, unknown>,
       ): Record<string, unknown> => old,
     },
+    {
+      toVersion: "2026.08.20.1",
+      description:
+        "Add amend method for rewriting the most recent commit. Add forceWithLease to push for safer force-pushes. No globalArguments changes.",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ): Record<string, unknown> => old,
+    },
   ],
 
   resources: {
@@ -129,6 +140,13 @@ export const model = {
     commitResult: {
       description: "Result of a git commit: SHA and message",
       schema: CommitResultSchema,
+      lifetime: "ephemeral" as const,
+      garbageCollection: 10,
+    },
+    amendResult: {
+      description:
+        "Result of a git commit --amend: old SHA, new SHA, and message",
+      schema: AmendResultSchema,
       lifetime: "ephemeral" as const,
       garbageCollection: 10,
     },
@@ -191,6 +209,7 @@ export const model = {
         "status",
         "log",
         "commit",
+        "amend",
         "push",
         "pull",
         "fetch",
@@ -209,6 +228,7 @@ export const model = {
         "status",
         "log",
         "commit",
+        "amend",
         "push",
         "pull",
         "fetch",
@@ -253,8 +273,16 @@ export const model = {
       execute: (args: z.input<typeof CommitArgsSchema>, ctx: GitContext) =>
         runCommit(CommitArgsSchema.parse(args), ctx),
     },
+    amend: {
+      description:
+        "Amend the most recent commit — rewrite message and/or staged content",
+      arguments: AmendArgsSchema,
+      execute: (args: z.input<typeof AmendArgsSchema>, ctx: GitContext) =>
+        runAmend(AmendArgsSchema.parse(args), ctx),
+    },
     push: {
-      description: "Push commits to a remote",
+      description:
+        "Push commits to a remote with optional force or force-with-lease",
       arguments: PushArgsSchema,
       execute: (args: z.input<typeof PushArgsSchema>, ctx: GitContext) =>
         runPush(PushArgsSchema.parse(args), ctx),

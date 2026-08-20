@@ -101,6 +101,31 @@ export const CommitArgsSchema = z.object({
 
 export type CommitArgs = z.infer<typeof CommitArgsSchema>;
 
+export const AmendArgsSchema = z.object({
+  message: z.string().min(1).optional()
+    .describe("New commit message (omit to keep existing message)"),
+  paths: z.array(z.string()).optional()
+    .describe("Additional paths to stage before amending"),
+  addAll: z.boolean().default(false)
+    .describe("Run git add -A before amending"),
+  keepMessage: z.boolean().default(false)
+    .describe("Keep the existing commit message (--no-edit)"),
+}).refine(
+  (v) => v.message !== undefined || v.keepMessage,
+  {
+    message:
+      "either message or keepMessage must be provided — amend needs a message source",
+  },
+).refine(
+  (v) => !(v.message !== undefined && v.keepMessage),
+  {
+    message:
+      "message and keepMessage are mutually exclusive — provide one or the other",
+  },
+);
+
+export type AmendArgs = z.infer<typeof AmendArgsSchema>;
+
 export const PushArgsSchema = z.object({
   remote: safeRefOptional
     .describe("Remote name (defaults to global remote)"),
@@ -108,9 +133,19 @@ export const PushArgsSchema = z.object({
     .describe("Branch to push"),
   force: z.boolean().default(false)
     .describe("Force push (--force)"),
+  forceWithLease: z.boolean().default(false)
+    .describe(
+      "Force push with lease check (--force-with-lease) — refuses when the remote moved since the last fetch",
+    ),
   setUpstream: z.boolean().default(false)
     .describe("Set upstream tracking (-u)"),
-});
+}).refine(
+  (v) => !(v.force && v.forceWithLease),
+  {
+    message:
+      "force and forceWithLease are mutually exclusive — use one or the other",
+  },
+);
 
 export type PushArgs = z.infer<typeof PushArgsSchema>;
 
@@ -230,10 +265,17 @@ export const CommitResultSchema = z.object({
   message: z.string(),
 });
 
+export const AmendResultSchema = z.object({
+  oldSha: z.string(),
+  newSha: z.string(),
+  message: z.string(),
+});
+
 export const PushResultSchema = z.object({
   remote: z.string(),
   branch: z.string(),
   forced: z.boolean(),
+  forceWithLease: z.boolean(),
 });
 
 export const BranchResultSchema = z.object({

@@ -3,6 +3,7 @@ import { Attr, getTracer } from "./tracing.ts";
 import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
 import { GlobalArgsSchema } from "./schemas.ts";
 import type {
+  AmendArgs,
   BranchArgs,
   CherryPickArgs,
   CloneArgs,
@@ -435,6 +436,130 @@ export async function runCommit(
 }
 
 // ---------------------------------------------------------------------------
+// amend
+// ---------------------------------------------------------------------------
+
+export async function runAmend(
+  args: AmendArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan("git.amend", async (span) => {
+    try {
+      const globals = resolveGlobalArgs(ctx.globalArgs);
+      const cwd = globals.repoPath;
+
+      const oldShaResult = await execGit(["rev-parse", "HEAD"], {
+        cwd,
+        signal: ctx.signal,
+      });
+      if (oldShaResult.exitCode !== 0) {
+        throw new Error(
+          "cannot amend: no HEAD commit exists (empty repository)",
+        );
+      }
+      const oldSha = oldShaResult.stdout.trim();
+
+      if (args.addAll) {
+        const addResult = await execGit(["add", "-A"], {
+          cwd,
+          signal: ctx.signal,
+        });
+        if (addResult.exitCode !== 0) {
+          throw new Error(
+            `git add failed (exit ${addResult.exitCode}): ${addResult.stderr}`,
+          );
+        }
+      } else if (args.paths && args.paths.length > 0) {
+        const addResult = await execGit(["add", "--", ...args.paths], {
+          cwd,
+          signal: ctx.signal,
+        });
+        if (addResult.exitCode !== 0) {
+          throw new Error(
+            `git add failed (exit ${addResult.exitCode}): ${addResult.stderr}`,
+          );
+        }
+      }
+
+      const commitArgv = [];
+      if (globals.authorName) {
+        commitArgv.push("-c", `user.name=${globals.authorName}`);
+      }
+      if (globals.authorEmail) {
+        commitArgv.push("-c", `user.email=${globals.authorEmail}`);
+      }
+      commitArgv.push("commit", "--amend");
+
+      if (args.keepMessage) {
+        commitArgv.push("--no-edit");
+      } else {
+        commitArgv.push("-m", args.message!);
+      }
+
+      const commitResult = await execGit(commitArgv, {
+        cwd,
+        signal: ctx.signal,
+      });
+      if (commitResult.exitCode !== 0) {
+        throw new Error(
+          `git commit --amend failed (exit ${commitResult.exitCode}): ${commitResult.stderr}`,
+        );
+      }
+
+      const newShaResult = await execGit(["rev-parse", "HEAD"], {
+        cwd,
+        signal: ctx.signal,
+      });
+      if (newShaResult.exitCode !== 0) {
+        throw new Error(
+          `git rev-parse HEAD failed (exit ${newShaResult.exitCode}): ${newShaResult.stderr}`,
+        );
+      }
+      const newSha = newShaResult.stdout.trim();
+
+      const messageResult = await execGit(
+        ["log", "-1", "--format=%s"],
+        { cwd, signal: ctx.signal },
+      );
+      const message = messageResult.exitCode === 0
+        ? messageResult.stdout.trim()
+        : (args.message ?? "");
+
+      span.setAttribute(Attr.METHOD, "amend");
+      span.setAttribute(Attr.COMMIT_SHA, newSha);
+      span.setAttribute(Attr.EXIT_CODE, commitResult.exitCode);
+
+      ctx.logger.info(
+        `amended ${oldSha.substring(0, 8)} → ${newSha.substring(0, 8)}`,
+      );
+
+      const handle = await ctx.writeResource(
+        "amendResult",
+        `amend-${newSha.substring(0, 8)}`,
+        {
+          oldSha,
+          newSha,
+          message,
+        },
+        {
+          tags: { method: "amend", oldSha, newSha },
+        },
+      );
+
+      return { dataHandles: [handle] };
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // push
 // ---------------------------------------------------------------------------
 
@@ -448,7 +573,9 @@ export async function runPush(
       const remote = args.remote || globals.remote;
       const argv = ["push"];
 
-      if (args.force) {
+      if (args.forceWithLease) {
+        argv.push("--force-with-lease");
+      } else if (args.force) {
         argv.push("--force");
       }
       if (args.setUpstream) {
@@ -472,8 +599,13 @@ export async function runPush(
       span.setAttribute(Attr.BRANCH, args.branch);
       span.setAttribute(Attr.EXIT_CODE, result.exitCode);
 
+      const forceLabel = args.forceWithLease
+        ? " (force-with-lease)"
+        : args.force
+        ? " (force)"
+        : "";
       ctx.logger.info(
-        `pushed ${args.branch} to ${remote}${args.force ? " (force)" : ""}`,
+        `pushed ${args.branch} to ${remote}${forceLabel}`,
       );
 
       const safeBranch = args.branch.replace(/\//g, "-");
@@ -483,7 +615,8 @@ export async function runPush(
         {
           remote,
           branch: args.branch,
-          forced: args.force,
+          forced: args.force || args.forceWithLease,
+          forceWithLease: args.forceWithLease,
         },
         {
           tags: { method: "push", remote, branch: args.branch },

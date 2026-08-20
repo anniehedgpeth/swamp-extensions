@@ -295,7 +295,8 @@ swamp data query repo 'tags.clean == "false"'
 | `upstream_state` | Tracking-branch state: configured upstream, tracking-ref availability, ahead/behind counts, pushed/synced flags |
 | `log`    | Commit history with structured entries (SHA, author, date, message) |
 | `commit` | Stage files and create a commit |
-| `push`   | Push commits to a remote |
+| `amend`  | Amend the most recent commit — rewrite message and/or staged content, recording old and new SHA |
+| `push`   | Push commits to a remote (with optional force or force-with-lease) |
 | `pull`   | Pull changes from a remote |
 | `fetch`  | Fetch refs from a remote with optional tag and prune support |
 | `cherry_pick` | Cherry-pick commits or abort an in-progress cherry-pick |
@@ -312,7 +313,8 @@ swamp data query repo 'tags.clean == "false"'
 | `upstreamStateResult` | Branch, upstream, configuredUpstream, trackingRefAvailable, ahead/behind counts (nullable), pushed/synced flags (nullable) |
 | `logResult`    | Structured commit entries (SHA, author, date, message) |
 | `commitResult` | Commit SHA and message |
-| `pushResult`   | Remote, branch, forced flag |
+| `amendResult`  | Old SHA, new SHA, and message of the amended commit |
+| `pushResult`   | Remote, branch, forced flag, forceWithLease flag |
 | `pullResult`   | Remote, branch, already-up-to-date flag |
 | `fetchResult`  | Remote, tags, pruned flag |
 | `cherryPickResult` | Applied commits, conflict status, conflicting files |
@@ -323,7 +325,7 @@ swamp data query repo 'tags.clean == "false"'
 
 | Check              | Applies To | Description |
 | ------------------ | ---------- | ----------- |
-| `git-available`    | all 12 methods | Verifies `git` binary is on PATH |
+| `git-available`    | all 13 methods | Verifies `git` binary is on PATH |
 | `repo-initialized` | all except `clone` | Verifies `repoPath` is inside a git work tree |
 
 ## License

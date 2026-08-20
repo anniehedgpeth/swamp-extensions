@@ -99,9 +99,9 @@ Deno.test("globalArguments accepts full config", () => {
 // Resource declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 12 resource specs exist", () => {
+Deno.test("all 13 resource specs exist", () => {
   const names = Object.keys(model.resources);
-  assertEquals(names.length, 12);
+  assertEquals(names.length, 13);
   for (
     const name of [
       "cloneResult",
@@ -109,6 +109,7 @@ Deno.test("all 12 resource specs exist", () => {
       "statusResult",
       "logResult",
       "commitResult",
+      "amendResult",
       "pushResult",
       "branchResult",
       "configResult",
@@ -141,9 +142,9 @@ Deno.test("resources have description and schema", () => {
 // Method declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 12 methods exist", () => {
+Deno.test("all 13 methods exist", () => {
   const names = Object.keys(model.methods);
-  assertEquals(names.length, 12);
+  assertEquals(names.length, 13);
   for (
     const name of [
       "clone",
@@ -151,6 +152,7 @@ Deno.test("all 12 methods exist", () => {
       "status",
       "log",
       "commit",
+      "amend",
       "push",
       "pull",
       "fetch",
@@ -190,6 +192,10 @@ Deno.test("git-available check exists and covers all methods", () => {
     true,
   );
   assertEquals(
+    model.checks["git-available"].appliesTo.includes("amend"),
+    true,
+  );
+  assertEquals(
     model.checks["git-available"].appliesTo.includes("pull"),
     true,
   );
@@ -215,6 +221,10 @@ Deno.test("repo-initialized check exists and excludes clone", () => {
   );
   assertEquals(
     model.checks["repo-initialized"].appliesTo.includes("diff"),
+    true,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("amend"),
     true,
   );
   assertEquals(
@@ -269,10 +279,20 @@ Deno.test("PushArgs requires branch", () => {
   assertEquals(result.success, false);
 });
 
-Deno.test("PushArgs defaults force to false", () => {
+Deno.test("PushArgs defaults force and forceWithLease to false", () => {
   const result = model.methods.push.arguments.parse({ branch: "main" });
   assertEquals(result.force, false);
+  assertEquals(result.forceWithLease, false);
   assertEquals(result.setUpstream, false);
+});
+
+Deno.test("PushArgs rejects force and forceWithLease together", () => {
+  const result = model.methods.push.arguments.safeParse({
+    branch: "main",
+    force: true,
+    forceWithLease: true,
+  });
+  assertEquals(result.success, false);
 });
 
 Deno.test("BranchArgs defaults", () => {
@@ -747,6 +767,7 @@ Deno.test("push normal", async () => {
     assertEquals(writes[0].data.remote, "origin");
     assertEquals(writes[0].data.branch, "main");
     assertEquals(writes[0].data.forced, false);
+    assertEquals(writes[0].data.forceWithLease, false);
   } finally {
     resetCommandExecutor();
   }
@@ -2207,6 +2228,254 @@ Deno.test("non-aborted signal does not affect normal execution", async () => {
     await model.methods.status.execute({}, ctx);
     assertEquals(writes.length, 1);
     assertEquals(writes[0].data.clean, true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// amend schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("AmendArgs requires message or keepMessage", () => {
+  const result = model.methods.amend.arguments.safeParse({});
+  assertEquals(result.success, false);
+});
+
+Deno.test("AmendArgs accepts message only", () => {
+  const result = model.methods.amend.arguments.parse({
+    message: "new message",
+  });
+  assertEquals(result.keepMessage, false);
+});
+
+Deno.test("AmendArgs accepts keepMessage only", () => {
+  const result = model.methods.amend.arguments.parse({ keepMessage: true });
+  assertEquals(result.keepMessage, true);
+});
+
+Deno.test("AmendArgs rejects message and keepMessage together", () => {
+  const result = model.methods.amend.arguments.safeParse({
+    message: "new message",
+    keepMessage: true,
+  });
+  assertEquals(result.success, false);
+});
+
+Deno.test("AmendArgs defaults addAll to false", () => {
+  const result = model.methods.amend.arguments.parse({
+    message: "amend msg",
+  });
+  assertEquals(result.addAll, false);
+});
+
+// ---------------------------------------------------------------------------
+// amend operation
+// ---------------------------------------------------------------------------
+
+Deno.test("amend with new message", async () => {
+  const calls: string[][] = [];
+  let callIdx = 0;
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    callIdx++;
+    if (callIdx === 1) return ok("oldsha1234567890\n");
+    if (callIdx === 2) return ok("");
+    if (callIdx === 3) return ok("newsha0987654321\n");
+    return ok("new commit message\n");
+  });
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.amend.execute(
+      { message: "new commit message" },
+      ctx,
+    );
+
+    assertEquals(calls.length, 4);
+    assertEquals(calls[0].includes("rev-parse"), true);
+    assertEquals(calls[1].includes("--amend"), true);
+    assertEquals(calls[1].includes("-m"), true);
+    assertEquals(calls[1].includes("new commit message"), true);
+    assertEquals(calls[2].includes("rev-parse"), true);
+
+    assertEquals(writes.length, 1);
+    assertEquals(writes[0].specName, "amendResult");
+    assertEquals(writes[0].data.oldSha, "oldsha1234567890");
+    assertEquals(writes[0].data.newSha, "newsha0987654321");
+    assertEquals(writes[0].data.message, "new commit message");
+    assertEquals(
+      logs.some((l) =>
+        l.message.includes("oldsha12") && l.message.includes("newsha09")
+      ),
+      true,
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("amend with keepMessage uses --no-edit", async () => {
+  const calls: string[][] = [];
+  let callIdx = 0;
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    callIdx++;
+    if (callIdx === 1) return ok("oldsha\n");
+    if (callIdx === 2) return ok("");
+    if (callIdx === 3) return ok("newsha\n");
+    return ok("kept message\n");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await model.methods.amend.execute({ keepMessage: true }, ctx);
+
+    const commitArgv = calls[1];
+    assertEquals(commitArgv.includes("--amend"), true);
+    assertEquals(commitArgv.includes("--no-edit"), true);
+    assertEquals(commitArgv.includes("-m"), false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("amend stages paths before amending", async () => {
+  const calls: string[][] = [];
+  let callIdx = 0;
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    callIdx++;
+    if (callIdx === 1) return ok("oldsha\n");
+    if (callIdx === 2) return ok("");
+    if (callIdx === 3) return ok("");
+    if (callIdx === 4) return ok("newsha\n");
+    return ok("msg\n");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await model.methods.amend.execute(
+      { message: "msg", paths: ["src/main.ts"] },
+      ctx,
+    );
+
+    assertEquals(calls[1].includes("add"), true);
+    const dashIdx = calls[1].indexOf("--");
+    assertEquals(dashIdx > 0, true);
+    assertEquals(calls[1].includes("src/main.ts"), true);
+
+    assertEquals(calls[2].includes("--amend"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("amend with addAll stages all before amending", async () => {
+  const calls: string[][] = [];
+  let callIdx = 0;
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    callIdx++;
+    if (callIdx === 1) return ok("oldsha\n");
+    if (callIdx === 2) return ok("");
+    if (callIdx === 3) return ok("");
+    if (callIdx === 4) return ok("newsha\n");
+    return ok("msg\n");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await model.methods.amend.execute(
+      { message: "msg", addAll: true },
+      ctx,
+    );
+
+    assertEquals(calls[1].includes("add"), true);
+    assertEquals(calls[1].includes("-A"), true);
+    assertEquals(calls[2].includes("--amend"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("amend refuses on empty repo (no HEAD)", async () => {
+  setCommandExecutor(() => fail("fatal: bad default revision 'HEAD'", 128));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.amend.execute({ message: "amend" }, ctx),
+      Error,
+      "cannot amend: no HEAD commit exists",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("amend uses -c flags for author config", async () => {
+  const calls: string[][] = [];
+  let callIdx = 0;
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    callIdx++;
+    if (callIdx === 1) return ok("oldsha\n");
+    if (callIdx === 2) return ok("");
+    if (callIdx === 3) return ok("newsha\n");
+    return ok("msg\n");
+  });
+  try {
+    const { ctx } = makeHarness({
+      authorName: "Bot",
+      authorEmail: "bot@example.com",
+    });
+    await model.methods.amend.execute({ message: "amend" }, ctx);
+
+    const commitArgv = calls[1];
+    assertEquals(commitArgv.includes("-c"), true);
+    assertEquals(commitArgv.includes("user.name=Bot"), true);
+    assertEquals(commitArgv.includes("user.email=bot@example.com"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("amend throws on commit --amend failure", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok("oldsha\n");
+    return fail("nothing to amend");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.amend.execute({ message: "amend" }, ctx),
+      Error,
+      "git commit --amend failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// push forceWithLease operation
+// ---------------------------------------------------------------------------
+
+Deno.test("push forceWithLease passes --force-with-lease", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.push.execute({
+      branch: "main",
+      forceWithLease: true,
+    }, ctx);
+
+    assertEquals(calls[0].includes("--force-with-lease"), true);
+    assertEquals(calls[0].includes("--force"), false);
+    assertEquals(writes[0].data.forced, true);
+    assertEquals(writes[0].data.forceWithLease, true);
   } finally {
     resetCommandExecutor();
   }
