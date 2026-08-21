@@ -411,6 +411,17 @@ const GlobalArgsSchema = z.object({
           "(Optional) Width of the thumbnail image.",
         ).optional(),
       }).describe("The default image for this resource.").optional(),
+      fhd: z.object({
+        height: z.number().int().describe(
+          "(Optional) Height of the thumbnail image.",
+        ).optional(),
+        url: z.string().describe("The thumbnail image's URL.").optional(),
+        width: z.number().int().describe(
+          "(Optional) Width of the thumbnail image.",
+        ).optional(),
+      }).describe(
+        "The full high definition (1080p) quality image for this resource.",
+      ).optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -439,6 +450,17 @@ const GlobalArgsSchema = z.object({
           "(Optional) Width of the thumbnail image.",
         ).optional(),
       }).describe("The medium quality image for this resource.").optional(),
+      qhd: z.object({
+        height: z.number().int().describe(
+          "(Optional) Height of the thumbnail image.",
+        ).optional(),
+        url: z.string().describe("The thumbnail image's URL.").optional(),
+        width: z.number().int().describe(
+          "(Optional) Width of the thumbnail image.",
+        ).optional(),
+      }).describe(
+        "The quad high definition (1440p / 2K) quality image for this resource.",
+      ).optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -448,6 +470,17 @@ const GlobalArgsSchema = z.object({
           "(Optional) Width of the thumbnail image.",
         ).optional(),
       }).describe("The standard quality image for this resource.").optional(),
+      uhd: z.object({
+        height: z.number().int().describe(
+          "(Optional) Height of the thumbnail image.",
+        ).optional(),
+        url: z.string().describe("The thumbnail image's URL.").optional(),
+        width: z.number().int().describe(
+          "(Optional) Width of the thumbnail image.",
+        ).optional(),
+      }).describe(
+        "The ultra-high resolution (4K) quality image for this resource.",
+      ).optional(),
     }).describe(
       "A map of thumbnail images associated with the channel. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail. When displaying thumbnails in your application, make sure that your code uses the image URLs exactly as they are returned in API responses. For example, your application should not use the http domain instead of the https domain in a URL returned in an API response. Beginning in July 2018, channel thumbnail URLs will only be available in the https domain, which is how the URLs appear in API responses. After that time, you might see broken images in your application if it tries to load YouTube images from the http domain. Thumbnail images might be empty for newly created channels and might take up to one day to populate.",
     ).optional(),
@@ -651,6 +684,11 @@ const StateSchema = z.object({
         url: z.string(),
         width: z.number(),
       }),
+      fhd: z.object({
+        height: z.number(),
+        url: z.string(),
+        width: z.number(),
+      }),
       high: z.object({
         height: z.number(),
         url: z.string(),
@@ -666,7 +704,17 @@ const StateSchema = z.object({
         url: z.string(),
         width: z.number(),
       }),
+      qhd: z.object({
+        height: z.number(),
+        url: z.string(),
+        width: z.number(),
+      }),
       standard: z.object({
+        height: z.number(),
+        url: z.string(),
+        width: z.number(),
+      }),
+      uhd: z.object({
         height: z.number(),
         url: z.string(),
         width: z.number(),
@@ -973,6 +1021,17 @@ const InputsSchema = z.object({
           "(Optional) Width of the thumbnail image.",
         ).optional(),
       }).describe("The default image for this resource.").optional(),
+      fhd: z.object({
+        height: z.number().int().describe(
+          "(Optional) Height of the thumbnail image.",
+        ).optional(),
+        url: z.string().describe("The thumbnail image's URL.").optional(),
+        width: z.number().int().describe(
+          "(Optional) Width of the thumbnail image.",
+        ).optional(),
+      }).describe(
+        "The full high definition (1080p) quality image for this resource.",
+      ).optional(),
       high: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -1001,6 +1060,17 @@ const InputsSchema = z.object({
           "(Optional) Width of the thumbnail image.",
         ).optional(),
       }).describe("The medium quality image for this resource.").optional(),
+      qhd: z.object({
+        height: z.number().int().describe(
+          "(Optional) Height of the thumbnail image.",
+        ).optional(),
+        url: z.string().describe("The thumbnail image's URL.").optional(),
+        width: z.number().int().describe(
+          "(Optional) Width of the thumbnail image.",
+        ).optional(),
+      }).describe(
+        "The quad high definition (1440p / 2K) quality image for this resource.",
+      ).optional(),
       standard: z.object({
         height: z.number().int().describe(
           "(Optional) Height of the thumbnail image.",
@@ -1010,6 +1080,17 @@ const InputsSchema = z.object({
           "(Optional) Width of the thumbnail image.",
         ).optional(),
       }).describe("The standard quality image for this resource.").optional(),
+      uhd: z.object({
+        height: z.number().int().describe(
+          "(Optional) Height of the thumbnail image.",
+        ).optional(),
+        url: z.string().describe("The thumbnail image's URL.").optional(),
+        width: z.number().int().describe(
+          "(Optional) Width of the thumbnail image.",
+        ).optional(),
+      }).describe(
+        "The ultra-high resolution (4K) quality image for this resource.",
+      ).optional(),
     }).describe(
       "A map of thumbnail images associated with the channel. For each object in the map, the key is the name of the thumbnail image, and the value is an object that contains other information about the thumbnail. When displaying thumbnails in your application, make sure that your code uses the image URLs exactly as they are returned in API responses. For example, your application should not use the http domain instead of the https domain in a URL returned in an API response. Beginning in July 2018, channel thumbnail URLs will only be available in the https domain, which is how the URLs appear in API responses. After that time, you might see broken images in your application if it tries to load YouTube images from the http domain. Thumbnail images might be empty for newly created channels and might take up to one day to populate.",
     ).optional(),
@@ -1098,7 +1179,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Channels. Registered at `@swamp/gcp/youtube/channels`. */
 export const model = {
   type: "@swamp/gcp/youtube/channels",
-  version: "2026.08.13.1",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1222,6 +1303,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

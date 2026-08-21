@@ -278,10 +278,6 @@ const GlobalArgsSchema = z.object({
   }).describe("Allows to protect project deployments with a password")
     .optional(),
   passport: z.object({
-    publicPathRules: z.array(z.object({
-      type: z.enum(["equals", "startsWith"]),
-      value: z.string().max(2048).regex(new RegExp("^/[^?#\\\\s]*$")),
-    })).optional(),
     connectorId: z.string(),
     deploymentType: z.enum([
       "all",
@@ -503,6 +499,7 @@ const ResourceSchema = z.object({
     disabledAt: z.number().optional(),
     canceledAt: z.number().optional(),
     hasData: z.boolean().optional(),
+    dataReceivedAt: z.number().optional(),
     paidAt: z.number().optional(),
   }).nullable().optional(),
   autoExposeSystemEnvs: z.boolean().nullable().optional(),
@@ -870,6 +867,7 @@ const ResourceSchema = z.object({
     accessGroup: z.array(z.string()).optional(),
     agent: z.array(z.string()).optional(),
     aiGatewayApiKey: z.array(z.string()).optional(),
+    aiGatewayApiKeyBypassAll: z.array(z.string()).optional(),
     aiGatewayApiKeyOwnedBySelf: z.array(z.string()).optional(),
     aiGatewayApiKeySpendAttribution: z.array(z.string()).optional(),
     aiGatewayApiKeyZdrExemption: z.array(z.string()).optional(),
@@ -1521,10 +1519,6 @@ const InputsSchema = z.object({
     password: z.string().max(72).optional(),
   }).optional(),
   passport: z.object({
-    publicPathRules: z.array(z.object({
-      type: z.enum(["equals", "startsWith"]),
-      value: z.string().max(2048).regex(new RegExp("^/[^?#\\\\s]*$")),
-    })).optional(),
     connectorId: z.string(),
     deploymentType: z.enum([
       "all",
@@ -1619,7 +1613,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/projects/projects`. */
 export const model = {
   type: "@swamp/vercel/projects/projects",
-  version: "2026.08.20.1",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -1688,6 +1682,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

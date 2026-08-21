@@ -379,6 +379,9 @@ const GlobalArgsSchema = z.object({
       family: z.string().describe(
         "Optional. Use this VM image family to find the image; the newest image in this family will be used.",
       ).optional(),
+      imageDescription: z.string().describe(
+        'Output only. A human-readable description of the image running on the instance (for example, "Debian 11, Python 3.10"), derived at read time from the image release configuration (the source of truth). Set to "Custom" for unrecognized boot-disk images.',
+      ).optional(),
       name: z.string().describe(
         "Optional. Use VM image name to find the image.",
       ).optional(),
@@ -474,6 +477,7 @@ const StateSchema = z.object({
     tags: z.array(z.string()),
     vmImage: z.object({
       family: z.string(),
+      imageDescription: z.string(),
       name: z.string(),
       project: z.string(),
     }),
@@ -716,6 +720,9 @@ const InputsSchema = z.object({
       family: z.string().describe(
         "Optional. Use this VM image family to find the image; the newest image in this family will be used.",
       ).optional(),
+      imageDescription: z.string().describe(
+        'Output only. A human-readable description of the image running on the instance (for example, "Debian 11, Python 3.10"), derived at read time from the image release configuration (the source of truth). Set to "Custom" for unrecognized boot-disk images.',
+      ).optional(),
       name: z.string().describe(
         "Optional. Use VM image name to find the image.",
       ).optional(),
@@ -770,7 +777,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Notebooks Instances. Registered at `@swamp/gcp/notebooks/instances`. */
 export const model = {
   type: "@swamp/gcp/notebooks/instances",
-  version: "2026.08.12.2",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -939,6 +946,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

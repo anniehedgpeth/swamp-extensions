@@ -257,6 +257,7 @@ const GlobalArgsSchema = z.object({
     credentialProviderPolicy: z.enum([
       "CREDENTIAL_PROVIDER_POLICY_UNSPECIFIED",
       "CREDENTIAL_PROVIDER_ALLOWED",
+      "CREDENTIAL_PROVIDER_DISALLOWED",
     ]).describe(
       "Optional. Whether the app is allowed to act as a credential provider on Android 14 and above.",
     ).optional(),
@@ -478,6 +479,7 @@ const GlobalArgsSchema = z.object({
     "CREDENTIAL_PROVIDER_POLICY_DEFAULT_UNSPECIFIED",
     "CREDENTIAL_PROVIDER_DEFAULT_DISALLOWED",
     "CREDENTIAL_PROVIDER_DEFAULT_DISALLOWED_EXCEPT_SYSTEM",
+    "CREDENTIAL_PROVIDER_DEFAULT_ALLOWED",
   ]).describe(
     "Optional. Controls which apps are allowed to act as credential providers on Android 14 and above. These apps store credentials, see this (https://developer.android.com/training/sign-in/passkeys) and this (https://developer.android.com/reference/androidx/credentials/CredentialManager) for details. See also credentialProviderPolicy.",
   ).optional(),
@@ -2068,6 +2070,7 @@ const InputsSchema = z.object({
     credentialProviderPolicy: z.enum([
       "CREDENTIAL_PROVIDER_POLICY_UNSPECIFIED",
       "CREDENTIAL_PROVIDER_ALLOWED",
+      "CREDENTIAL_PROVIDER_DISALLOWED",
     ]).describe(
       "Optional. Whether the app is allowed to act as a credential provider on Android 14 and above.",
     ).optional(),
@@ -2289,6 +2292,7 @@ const InputsSchema = z.object({
     "CREDENTIAL_PROVIDER_POLICY_DEFAULT_UNSPECIFIED",
     "CREDENTIAL_PROVIDER_DEFAULT_DISALLOWED",
     "CREDENTIAL_PROVIDER_DEFAULT_DISALLOWED_EXCEPT_SYSTEM",
+    "CREDENTIAL_PROVIDER_DEFAULT_ALLOWED",
   ]).describe(
     "Optional. Controls which apps are allowed to act as credential providers on Android 14 and above. These apps store credentials, see this (https://developer.android.com/training/sign-in/passkeys) and this (https://developer.android.com/reference/androidx/credentials/CredentialManager) for details. See also credentialProviderPolicy.",
   ).optional(),
@@ -3381,7 +3385,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises.Policies. Registered at `@swamp/gcp/androidmanagement/enterprises-policies`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises-policies",
-  version: "2026.08.12.2",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3530,6 +3534,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

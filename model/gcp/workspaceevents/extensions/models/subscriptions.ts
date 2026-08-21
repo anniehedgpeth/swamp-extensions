@@ -190,7 +190,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   driveOptions: z.object({
     includeDescendants: z.boolean().describe(
-      "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. This field must be `true` for subscriptions on shared drives. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
+      "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
     ).optional(),
   }).describe(
     "Optional. Features that are supported only for subscriptions on Drive resources.",
@@ -265,7 +265,7 @@ const InputsSchema = z.object({
   apiEndpoint: z.string().optional(),
   driveOptions: z.object({
     includeDescendants: z.boolean().describe(
-      "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. This field must be `true` for subscriptions on shared drives. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
+      "Optional. Immutable. For subscriptions to Google Drive events, whether to receive events about Drive files that are children of the target folder or shared drive. * If `false`, the subscription only receives events about changes to the folder or shared drive that's specified as the `targetResource`. * If `true`, the `mimeType` field of the `file` resource must be set to `application/vnd.google-apps.folder`. For details, see [Google Drive event types](https://developers.google.com/workspace/events/guides/events-drive#event-types).",
     ).optional(),
   }).describe(
     "Optional. Features that are supported only for subscriptions on Drive resources.",
@@ -327,7 +327,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Workspace Events Subscriptions. Registered at `@swamp/gcp/workspaceevents/subscriptions`. */
 export const model = {
   type: "@swamp/gcp/workspaceevents/subscriptions",
-  version: "2026.08.20.1",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -476,6 +476,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

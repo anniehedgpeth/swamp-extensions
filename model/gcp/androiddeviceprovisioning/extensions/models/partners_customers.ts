@@ -131,7 +131,7 @@ const GlobalArgsSchema = z.object({
       "Required. Input only. Email address of customer's users in the owner role. At least one `owner_email` is required. Owners share the same access as admins but can also add, delete, and edit your organization's portal users.",
     ).optional(),
     skipWelcomeEmail: z.boolean().describe(
-      "Input only. If set to true, welcome email will not be sent to the customer. It is recommended to skip the welcome email if devices will be claimed with additional DEVICE_PROTECTION service, as the customer will receive separate emails at device claim time. This field is ignored if this is not a Zero-touch customer.",
+      "Input only. Deprecated: This field is no longer supported and is ignored by the server.",
     ).optional(),
     termsStatus: z.enum([
       "TERMS_STATUS_UNSPECIFIED",
@@ -203,7 +203,7 @@ const InputsSchema = z.object({
       "Required. Input only. Email address of customer's users in the owner role. At least one `owner_email` is required. Owners share the same access as admins but can also add, delete, and edit your organization's portal users.",
     ).optional(),
     skipWelcomeEmail: z.boolean().describe(
-      "Input only. If set to true, welcome email will not be sent to the customer. It is recommended to skip the welcome email if devices will be claimed with additional DEVICE_PROTECTION service, as the customer will receive separate emails at device claim time. This field is ignored if this is not a Zero-touch customer.",
+      "Input only. Deprecated: This field is no longer supported and is ignored by the server.",
     ).optional(),
     termsStatus: z.enum([
       "TERMS_STATUS_UNSPECIFIED",
@@ -249,7 +249,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Device Provisioning Partner Partners.Customers. Registered at `@swamp/gcp/androiddeviceprovisioning/partners-customers`. */
 export const model = {
   type: "@swamp/gcp/androiddeviceprovisioning/partners-customers",
-  version: "2026.08.12.2",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -368,6 +368,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

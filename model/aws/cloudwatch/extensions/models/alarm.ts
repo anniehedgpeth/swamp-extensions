@@ -104,7 +104,7 @@ const MetricDataQuerySchema = z.object({
 
 const WallClockWindowSchema = z.object({
   Timezone: z.string().describe(
-    "The timezone for wall clock evaluation, in IANA time zone format (e.g., America/New_York, UTC).",
+    "The time zone to use when the alarm aligns the evaluation window to clock boundaries. You can specify an IANA time zone name (for example, America/New_York), a fixed UTC offset (for example, +05:30), or an offset-prefixed identifier (for example, UTC+05:30). The offset must be aligned to a multiple of 5 minutes. If you don't specify a time zone, CloudWatch uses UTC. The time zone affects window alignment for all periods, including periods of one hour or shorter.",
   ).optional(),
 });
 
@@ -172,14 +172,24 @@ const GlobalArgsSchema = z.object({
   Statistic: z.string().describe(
     "The statistic for the metric associated with the alarm, other than percentile. For percentile statistics, use ExtendedStatistic. For an alarm based on a metric, you must specify either Statistic or ExtendedStatistic but not both. For an alarm based on a math expression, you can't specify Statistic. Instead, you use Metrics.",
   ).optional(),
-  EvaluationWindow: z.object({
-    WallClockWindow: WallClockWindowSchema.describe(
-      "Configuration for wall clock based evaluation window.",
+  WarmUpConfiguration: z.object({
+    WarmUpPeriodDurationInMinutes: z.number().int().min(1).max(2880).describe(
+      "The length of the warm-up period, in minutes. For this duration after you create or update the alarm, the alarm stays in INSUFFICIENT_DATA and doesn't perform alarm actions. Valid values range from 1 to 2880 minutes (2 days). You can change this value while the alarm is still in its warm-up period. Changes have no effect after the warm-up period ends.",
     ).optional(),
-    SlidingWindow: z.record(z.string(), z.unknown()).describe(
-      "Configuration for sliding evaluation window (default behavior).",
+    OnlyStartEvaluatingAfterWarmUpPeriodEnds: z.boolean().describe(
+      "Specifies whether the alarm waits for the full warm-up period before it starts evaluating. If true, the alarm waits the entire WarmUpPeriodDurationInMinutes before it starts evaluating, even if metric data arrives earlier. If false, the alarm ends the warm-up period early and starts evaluating as soon as it has enough metric data to fill its evaluation window. This is the default behavior.",
     ).optional(),
   }).optional(),
+  EvaluationWindow: z.object({
+    WallClockWindow: WallClockWindowSchema.describe(
+      "A wall clock window, which aligns the evaluated range to fixed clock boundaries that match the alarm's period, such as the top of the hour, midnight, or the start of the calendar week.",
+    ).optional(),
+    SlidingWindow: z.record(z.string(), z.unknown()).describe(
+      "A sliding window, which advances each time the alarm is evaluated, forming a rolling time window. This is the default evaluation window.",
+    ).optional(),
+  }).describe(
+    "The evaluation window that the alarm uses to select the range of metric data that it evaluates. This is either a sliding window or a wall clock window. For more information, see [Alarm evaluation windows](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarm-evaluation-window.html) in the *CloudWatch User Guide*.",
+  ).optional(),
   InsufficientDataActions: z.array(z.string()).describe(
     "The actions to execute when this alarm transitions to the INSUFFICIENT_DATA state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
   ).optional(),
@@ -236,6 +246,10 @@ const StateSchema = z.object({
   Metrics: z.array(MetricDataQuerySchema).optional(),
   AlarmName: z.string(),
   Statistic: z.string().optional(),
+  WarmUpConfiguration: z.object({
+    WarmUpPeriodDurationInMinutes: z.number(),
+    OnlyStartEvaluatingAfterWarmUpPeriodEnds: z.boolean(),
+  }).optional(),
   EvaluationWindow: z.object({
     WallClockWindow: WallClockWindowSchema,
     SlidingWindow: z.record(z.string(), z.unknown()),
@@ -296,14 +310,24 @@ const InputsSchema = z.object({
   Statistic: z.string().describe(
     "The statistic for the metric associated with the alarm, other than percentile. For percentile statistics, use ExtendedStatistic. For an alarm based on a metric, you must specify either Statistic or ExtendedStatistic but not both. For an alarm based on a math expression, you can't specify Statistic. Instead, you use Metrics.",
   ).optional(),
-  EvaluationWindow: z.object({
-    WallClockWindow: WallClockWindowSchema.describe(
-      "Configuration for wall clock based evaluation window.",
+  WarmUpConfiguration: z.object({
+    WarmUpPeriodDurationInMinutes: z.number().int().min(1).max(2880).describe(
+      "The length of the warm-up period, in minutes. For this duration after you create or update the alarm, the alarm stays in INSUFFICIENT_DATA and doesn't perform alarm actions. Valid values range from 1 to 2880 minutes (2 days). You can change this value while the alarm is still in its warm-up period. Changes have no effect after the warm-up period ends.",
     ).optional(),
-    SlidingWindow: z.record(z.string(), z.unknown()).describe(
-      "Configuration for sliding evaluation window (default behavior).",
+    OnlyStartEvaluatingAfterWarmUpPeriodEnds: z.boolean().describe(
+      "Specifies whether the alarm waits for the full warm-up period before it starts evaluating. If true, the alarm waits the entire WarmUpPeriodDurationInMinutes before it starts evaluating, even if metric data arrives earlier. If false, the alarm ends the warm-up period early and starts evaluating as soon as it has enough metric data to fill its evaluation window. This is the default behavior.",
     ).optional(),
   }).optional(),
+  EvaluationWindow: z.object({
+    WallClockWindow: WallClockWindowSchema.describe(
+      "A wall clock window, which aligns the evaluated range to fixed clock boundaries that match the alarm's period, such as the top of the hour, midnight, or the start of the calendar week.",
+    ).optional(),
+    SlidingWindow: z.record(z.string(), z.unknown()).describe(
+      "A sliding window, which advances each time the alarm is evaluated, forming a rolling time window. This is the default evaluation window.",
+    ).optional(),
+  }).describe(
+    "The evaluation window that the alarm uses to select the range of metric data that it evaluates. This is either a sliding window or a wall clock window. For more information, see [Alarm evaluation windows](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/alarm-evaluation-window.html) in the *CloudWatch User Guide*.",
+  ).optional(),
   InsufficientDataActions: z.array(z.string()).describe(
     "The actions to execute when this alarm transitions to the INSUFFICIENT_DATA state from any other state. Each action is specified as an Amazon Resource Name (ARN).",
   ).optional(),
@@ -368,7 +392,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudWatch Alarm. Registered at `@swamp/aws/cloudwatch/alarm`. */
 export const model = {
   type: "@swamp/aws/cloudwatch/alarm",
-  version: "2026.08.17.2",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -433,6 +457,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
+      description: "Added: WarmUpConfiguration",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

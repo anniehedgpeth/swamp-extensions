@@ -207,6 +207,11 @@ const StateSchema = z.object({
         url: z.string(),
         width: z.number(),
       }),
+      fhd: z.object({
+        height: z.number(),
+        url: z.string(),
+        width: z.number(),
+      }),
       high: z.object({
         height: z.number(),
         url: z.string(),
@@ -222,7 +227,17 @@ const StateSchema = z.object({
         url: z.string(),
         width: z.number(),
       }),
+      qhd: z.object({
+        height: z.number(),
+        url: z.string(),
+        width: z.number(),
+      }),
       standard: z.object({
+        height: z.number(),
+        url: z.string(),
+        width: z.number(),
+      }),
+      uhd: z.object({
         height: z.number(),
         url: z.string(),
         width: z.number(),
@@ -273,7 +288,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud YouTube Data Search. Registered at `@swamp/gcp/youtube/search`. */
 export const model = {
   type: "@swamp/gcp/youtube/search",
-  version: "2026.08.12.2",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -407,6 +422,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

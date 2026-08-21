@@ -123,8 +123,8 @@ const StateSchema = z.object({
   Configuration: z.object({
     Lex: LexConfigurationSchema,
   }).optional(),
-  CreatedTimestamp: z.number().optional(),
-  LastUpdatedTimestamp: z.number().optional(),
+  CreatedTimestamp: z.string().optional(),
+  LastUpdatedTimestamp: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
 }).passthrough();
 
@@ -177,7 +177,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Chime AppInstanceBot. Registered at `@swamp/aws/chime/app-instance-bot`. */
 export const model = {
   type: "@swamp/aws/chime/app-instance-bot",
-  version: "2026.08.17.2",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.06.06.1",
@@ -201,6 +201,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

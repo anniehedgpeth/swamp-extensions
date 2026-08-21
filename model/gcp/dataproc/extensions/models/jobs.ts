@@ -581,7 +581,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Optional. Job is a SparkSql job.").optional(),
   status: z.object({
     details: z.string().describe(
-      "Optional. Output only. Job state details, such as an error description if the state is ERROR.",
+      "Optional. Job state details, such as an error description if the state is ERROR.",
     ).optional(),
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -609,7 +609,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   statusHistory: z.array(z.object({
     details: z.string().describe(
-      "Optional. Output only. Job state details, such as an error description if the state is ERROR.",
+      "Optional. Job state details, such as an error description if the state is ERROR.",
     ).optional(),
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -1279,7 +1279,7 @@ const InputsSchema = z.object({
   }).describe("Optional. Job is a SparkSql job.").optional(),
   status: z.object({
     details: z.string().describe(
-      "Optional. Output only. Job state details, such as an error description if the state is ERROR.",
+      "Optional. Job state details, such as an error description if the state is ERROR.",
     ).optional(),
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -1307,7 +1307,7 @@ const InputsSchema = z.object({
   ).optional(),
   statusHistory: z.array(z.object({
     details: z.string().describe(
-      "Optional. Output only. Job state details, such as an error description if the state is ERROR.",
+      "Optional. Job state details, such as an error description if the state is ERROR.",
     ).optional(),
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -1431,7 +1431,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Jobs. Registered at `@swamp/gcp/dataproc/jobs`. */
 export const model = {
   type: "@swamp/gcp/dataproc/jobs",
-  version: "2026.08.12.2",
+  version: "2026.08.21.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1555,6 +1555,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
