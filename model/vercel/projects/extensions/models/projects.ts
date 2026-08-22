@@ -286,6 +286,13 @@ const GlobalArgsSchema = z.object({
       "all_except_custom_domains",
     ]).optional(),
   }).describe("Passport configuration for the project.").optional(),
+  sandbox: z.object({
+    region: z.enum(["iad1", "sfo1", "cle1", "cdg1"]).optional(),
+    failoverRegions: z.array(z.enum(["iad1", "sfo1", "cle1", "cdg1"]))
+      .optional(),
+  }).describe(
+    "Specifies the default region and failover regions for sandboxes created in the project",
+  ).optional(),
   ssoProtection: z.object({
     deploymentType: z.enum([
       "all",
@@ -1527,6 +1534,11 @@ const InputsSchema = z.object({
       "all_except_custom_domains",
     ]).optional(),
   }).optional(),
+  sandbox: z.object({
+    region: z.enum(["iad1", "sfo1", "cle1", "cdg1"]).optional(),
+    failoverRegions: z.array(z.enum(["iad1", "sfo1", "cle1", "cdg1"]))
+      .optional(),
+  }).optional(),
   ssoProtection: z.object({
     deploymentType: z.enum([
       "all",
@@ -1613,7 +1625,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/projects/projects`. */
 export const model = {
   type: "@swamp/vercel/projects/projects",
-  version: "2026.08.21.1",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -1690,6 +1702,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.22.1",
+      description: "Added: sandbox",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1739,6 +1756,7 @@ export const model = {
           body.skipGitConnectDuringLink = g.skipGitConnectDuringLink;
         }
         if (g.ssoProtection !== undefined) body.ssoProtection = g.ssoProtection;
+        if (g.sandbox !== undefined) body.sandbox = g.sandbox;
         if (g.outputDirectory !== undefined) {
           body.outputDirectory = g.outputDirectory;
         }
@@ -2211,6 +2229,7 @@ export const model = {
           body.passwordProtection = g.passwordProtection;
         }
         if (g.passport !== undefined) body.passport = g.passport;
+        if (g.sandbox !== undefined) body.sandbox = g.sandbox;
         if (g.ssoProtection !== undefined) body.ssoProtection = g.ssoProtection;
         if (g.trustedIps !== undefined) body.trustedIps = g.trustedIps;
         if (g.trustedSources !== undefined) {

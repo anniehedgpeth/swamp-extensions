@@ -174,6 +174,9 @@ const GlobalArgsSchema = z.object({
       ]).describe("The machine config of the code execution environment.")
         .optional(),
     }).describe("Optional. The code execution environment.").optional(),
+    shellEnvironment: z.object({}).describe(
+      "Optional. The shell environment for executing shell commands and scripts.",
+    ).optional(),
   }).describe("Optional. The configuration of the SandboxEnvironment.")
     .optional(),
   ttl: z.string().describe(
@@ -208,6 +211,7 @@ const StateSchema = z.object({
       codeLanguage: z.string(),
       machineConfig: z.string(),
     }),
+    shellEnvironment: z.object({}),
   }).optional(),
   state: z.string().optional(),
   ttl: z.string().optional(),
@@ -254,6 +258,9 @@ const InputsSchema = z.object({
       ]).describe("The machine config of the code execution environment.")
         .optional(),
     }).describe("Optional. The code execution environment.").optional(),
+    shellEnvironment: z.object({}).describe(
+      "Optional. The shell environment for executing shell commands and scripts.",
+    ).optional(),
   }).describe("Optional. The configuration of the SandboxEnvironment.")
     .optional(),
   ttl: z.string().describe(
@@ -293,7 +300,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.SandboxEnvironments. Registered at `@swamp/gcp/aiplatform/reasoningengines-sandboxenvironments`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sandboxenvironments",
-  version: "2026.08.12.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -461,6 +468,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

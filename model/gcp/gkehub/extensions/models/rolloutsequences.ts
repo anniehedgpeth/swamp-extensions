@@ -361,7 +361,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub RolloutSequences. Registered at `@swamp/gcp/gkehub/rolloutsequences`. */
 export const model = {
   type: "@swamp/gcp/gkehub/rolloutsequences",
-  version: "2026.08.12.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -370,6 +370,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -724,6 +729,11 @@ export const model = {
       description: "upgrade",
       arguments: z.object({
         force: z.any().optional(),
+        ignoreClusterDisruptionBudgets: z.any().optional(),
+        ignoreMaintenancePolicies: z.any().optional(),
+        patchOnly: z.any().optional(),
+        soakDurationOverrideAllStages: z.any().optional(),
+        soakDurationOverridePerStage: z.any().optional(),
         upgradeType: z.any().optional(),
         version: z.any().optional(),
       }),
@@ -742,6 +752,24 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (args["force"] !== undefined) body["force"] = args["force"];
+        if (args["ignoreClusterDisruptionBudgets"] !== undefined) {
+          body["ignoreClusterDisruptionBudgets"] =
+            args["ignoreClusterDisruptionBudgets"];
+        }
+        if (args["ignoreMaintenancePolicies"] !== undefined) {
+          body["ignoreMaintenancePolicies"] = args["ignoreMaintenancePolicies"];
+        }
+        if (args["patchOnly"] !== undefined) {
+          body["patchOnly"] = args["patchOnly"];
+        }
+        if (args["soakDurationOverrideAllStages"] !== undefined) {
+          body["soakDurationOverrideAllStages"] =
+            args["soakDurationOverrideAllStages"];
+        }
+        if (args["soakDurationOverridePerStage"] !== undefined) {
+          body["soakDurationOverridePerStage"] =
+            args["soakDurationOverridePerStage"];
+        }
         if (args["upgradeType"] !== undefined) {
           body["upgradeType"] = args["upgradeType"];
         }

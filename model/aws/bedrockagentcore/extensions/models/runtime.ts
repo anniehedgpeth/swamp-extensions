@@ -45,7 +45,7 @@ import type { AwsCredentials } from "./_lib/aws.ts";
 const ContainerConfigurationSchema = z.object({
   ContainerUri: z.string().min(1).max(1024).regex(
     new RegExp(
-      "^\\d{12}\\.dkr\\.ecr\\.([a-z0-9-]+)\\.amazonaws\\.com/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*)([:@]\\S+)$",
+      "^(([0-9]{12})\\.dkr\\.ecr\\.([a-z0-9-]+)\\.amazonaws\\.com(\\.cn)?|public\\.ecr\\.aws)/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*)(?::([^:@]{1,300}))?(?:@(.+))?$",
     ),
   ).describe("The ECR URI of the container"),
 });
@@ -186,6 +186,15 @@ const S3FilesAccessPointConfigurationSchema = z.object({
   ).describe("Mount path for filesystem configuration"),
 });
 
+const CapacityProviderVolumeConfigurationSchema = z.object({
+  VolumeName: z.string().min(1).max(48).regex(
+    new RegExp("^[a-zA-Z][a-zA-Z0-9_-]{0,47}$"),
+  ).describe("Name of the capacity provider volume"),
+  MountPath: z.string().min(6).max(200).regex(
+    new RegExp("^/mnt/[a-zA-Z0-9._-]+/?$"),
+  ).describe("Mount path for filesystem configuration"),
+});
+
 const FilesystemConfigurationSchema = z.object({
   SessionStorage: SessionStorageConfigurationSchema.describe(
     "Configuration for session storage",
@@ -195,6 +204,9 @@ const FilesystemConfigurationSchema = z.object({
   ).optional(),
   S3FilesAccessPoint: S3FilesAccessPointConfigurationSchema.describe(
     "Configuration for S3 Files access point filesystem",
+  ).optional(),
+  CapacityProviderVolume: CapacityProviderVolumeConfigurationSchema.describe(
+    "Configuration for a CapacityProvider-managed volume to mount into the agent runtime",
   ).optional(),
 });
 
@@ -235,7 +247,7 @@ const GlobalArgsSchema = z.object({
     NetworkModeConfig: VpcConfigSchema.describe(
       "Network mode configuration for VPC",
     ).optional(),
-  }).describe("Network access configuration for the Agent"),
+  }).describe("Network access configuration for the Agent").optional(),
   ProtocolConfiguration: z.enum(["MCP", "HTTP", "A2A", "AGUI"]).describe(
     "Protocol configuration for the agent runtime",
   ).optional(),
@@ -248,10 +260,10 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe("Authorizer configuration for the agent runtime").optional(),
   LifecycleConfiguration: z.object({
-    IdleRuntimeSessionTimeout: z.number().int().min(60).max(28800).describe(
+    IdleRuntimeSessionTimeout: z.number().int().min(60).max(1209600).describe(
       "Timeout in seconds for idle runtime sessions",
     ).optional(),
-    MaxLifetime: z.number().int().min(60).max(28800).describe(
+    MaxLifetime: z.number().int().min(60).max(1209600).describe(
       "Maximum lifetime in seconds for runtime sessions",
     ).optional(),
   }).describe("Lifecycle configuration for managing runtime sessions")
@@ -267,6 +279,14 @@ const GlobalArgsSchema = z.object({
   FilesystemConfigurations: z.array(FilesystemConfigurationSchema).describe(
     "Filesystem configurations for the agent runtime",
   ).optional(),
+  CapacityProviderConfiguration: z.object({
+    CapacityProviderArn: z.string().max(2048).regex(
+      new RegExp(
+        "^arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:capacity-provider/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}$",
+      ),
+    ).describe("ARN of the capacity provider"),
+  }).describe("Capacity provider configuration for the agent runtime")
+    .optional(),
   WorkloadIdentityDetails: z.object({
     WorkloadIdentityArn: z.string().min(1).max(1024).describe(
       "ARN of the workload identity",
@@ -305,6 +325,9 @@ const StateSchema = z.object({
     RequestHeaderAllowlist: z.array(z.string()),
   }).optional(),
   FilesystemConfigurations: z.array(FilesystemConfigurationSchema).optional(),
+  CapacityProviderConfiguration: z.object({
+    CapacityProviderArn: z.string(),
+  }).optional(),
   AgentRuntimeVersion: z.string().optional(),
   WorkloadIdentityDetails: z.object({
     WorkloadIdentityArn: z.string(),
@@ -358,10 +381,10 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe("Authorizer configuration for the agent runtime").optional(),
   LifecycleConfiguration: z.object({
-    IdleRuntimeSessionTimeout: z.number().int().min(60).max(28800).describe(
+    IdleRuntimeSessionTimeout: z.number().int().min(60).max(1209600).describe(
       "Timeout in seconds for idle runtime sessions",
     ).optional(),
-    MaxLifetime: z.number().int().min(60).max(28800).describe(
+    MaxLifetime: z.number().int().min(60).max(1209600).describe(
       "Maximum lifetime in seconds for runtime sessions",
     ).optional(),
   }).describe("Lifecycle configuration for managing runtime sessions")
@@ -377,6 +400,14 @@ const InputsSchema = z.object({
   FilesystemConfigurations: z.array(FilesystemConfigurationSchema).describe(
     "Filesystem configurations for the agent runtime",
   ).optional(),
+  CapacityProviderConfiguration: z.object({
+    CapacityProviderArn: z.string().max(2048).regex(
+      new RegExp(
+        "^arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:capacity-provider/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}$",
+      ),
+    ).describe("ARN of the capacity provider").optional(),
+  }).describe("Capacity provider configuration for the agent runtime")
+    .optional(),
   WorkloadIdentityDetails: z.object({
     WorkloadIdentityArn: z.string().min(1).max(1024).describe(
       "ARN of the workload identity",
@@ -407,7 +438,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore Runtime. Registered at `@swamp/aws/bedrockagentcore/runtime`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/runtime",
-  version: "2026.08.17.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -477,6 +508,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
+      description: "Added: CapacityProviderConfiguration",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -742,7 +742,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Healthcare Datasets.FhirStores. Registered at `@swamp/gcp/healthcare/datasets-fhirstores`. */
 export const model = {
   type: "@swamp/gcp/healthcare/datasets-fhirstores",
-  version: "2026.08.12.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -906,6 +906,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1430,6 +1435,7 @@ export const model = {
       description: "bulk delete",
       arguments: z.object({
         gcsDestination: z.any().optional(),
+        gcsSource: z.any().optional(),
         type: z.any().optional(),
         until: z.any().optional(),
         validateOnly: z.any().optional(),
@@ -1451,6 +1457,9 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["gcsDestination"] !== undefined) {
           body["gcsDestination"] = args["gcsDestination"];
+        }
+        if (args["gcsSource"] !== undefined) {
+          body["gcsSource"] = args["gcsSource"];
         }
         if (args["type"] !== undefined) body["type"] = args["type"];
         if (args["until"] !== undefined) body["until"] = args["until"];

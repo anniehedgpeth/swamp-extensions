@@ -187,7 +187,7 @@ const GlobalArgsSchema = z.object({
           "Optional. A list of paths to match against. Limited to 10 paths. If not specified, any path is allowed. Note that this path match includes the query parameters. For gRPC services, this should be a fully-qualified name of the form /package.service/method.",
         ).optional(),
         resources: z.array(z.unknown()).describe(
-          "Optional. A list of non-empty strings whose value is matched against the resource value. If not specified, any resource is allowed. If specified, a match occurs if any of the resources matches the resource value in the request. Limited to 5 resources.",
+          "Optional. A list of non-empty strings whose value is matched against the resource to which a request is sent (e.g., an Agent in AiApplication). If not specified, any resource is allowed. If specified, a match occurs if any of the resources matches the resource value in the request. Limited to 5 resources. When matching against resources in the AgentRegistry, use the URNs of the registry resources.",
         ).optional(),
       }).describe(
         "Optional. Describes properties of destination of a request. Within a destination, the match follows AND semantics across fields and OR semantics within a field, i.e. a match occurs when ANY path matches AND ANY header matches and ANY method matches. At least one of destination or not_destination must be specified.",
@@ -207,7 +207,7 @@ const GlobalArgsSchema = z.object({
           "Optional. A list of paths to match against. Limited to 10 paths. If not specified, any path is allowed. Note that this path match includes the query parameters. For gRPC services, this should be a fully-qualified name of the form /package.service/method.",
         ).optional(),
         resources: z.array(z.unknown()).describe(
-          "Optional. A list of non-empty strings whose value is matched against the resource value. If not specified, any resource is allowed. If specified, a match occurs if any of the resources matches the resource value in the request. Limited to 5 resources.",
+          "Optional. A list of non-empty strings whose value is matched against the resource to which a request is sent (e.g., an Agent in AiApplication). If not specified, any resource is allowed. If specified, a match occurs if any of the resources matches the resource value in the request. Limited to 5 resources. When matching against resources in the AgentRegistry, use the URNs of the registry resources.",
         ).optional(),
       }).describe(
         "Optional. Describes the negated properties of the request destination. Extension will not be invoked on requests that match the criteria specified in this field. At least one of destination or not_destination must be specified.",
@@ -232,7 +232,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   target: z.object({
     resources: z.array(z.string()).describe(
-      "Optional. The reference to the target resource, to which this binding should attach. Exactly one of `resources` or `scope` must be set. For Agent Gateway, this would be the full resource name, in the format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`. For AI App, this would be the full resource name, in the format: `projects/{project}/locations/{location}/applications/{application}`.",
+      "Optional. The reference to the target resource, to which this binding should attach. Exactly one of `resources` or `scope` must be set.",
     ).optional(),
     scope: z.object({
       parent: z.string().describe(
@@ -336,7 +336,7 @@ const InputsSchema = z.object({
           "Optional. A list of paths to match against. Limited to 10 paths. If not specified, any path is allowed. Note that this path match includes the query parameters. For gRPC services, this should be a fully-qualified name of the form /package.service/method.",
         ).optional(),
         resources: z.array(z.unknown()).describe(
-          "Optional. A list of non-empty strings whose value is matched against the resource value. If not specified, any resource is allowed. If specified, a match occurs if any of the resources matches the resource value in the request. Limited to 5 resources.",
+          "Optional. A list of non-empty strings whose value is matched against the resource to which a request is sent (e.g., an Agent in AiApplication). If not specified, any resource is allowed. If specified, a match occurs if any of the resources matches the resource value in the request. Limited to 5 resources. When matching against resources in the AgentRegistry, use the URNs of the registry resources.",
         ).optional(),
       }).describe(
         "Optional. Describes properties of destination of a request. Within a destination, the match follows AND semantics across fields and OR semantics within a field, i.e. a match occurs when ANY path matches AND ANY header matches and ANY method matches. At least one of destination or not_destination must be specified.",
@@ -356,7 +356,7 @@ const InputsSchema = z.object({
           "Optional. A list of paths to match against. Limited to 10 paths. If not specified, any path is allowed. Note that this path match includes the query parameters. For gRPC services, this should be a fully-qualified name of the form /package.service/method.",
         ).optional(),
         resources: z.array(z.unknown()).describe(
-          "Optional. A list of non-empty strings whose value is matched against the resource value. If not specified, any resource is allowed. If specified, a match occurs if any of the resources matches the resource value in the request. Limited to 5 resources.",
+          "Optional. A list of non-empty strings whose value is matched against the resource to which a request is sent (e.g., an Agent in AiApplication). If not specified, any resource is allowed. If specified, a match occurs if any of the resources matches the resource value in the request. Limited to 5 resources. When matching against resources in the AgentRegistry, use the URNs of the registry resources.",
         ).optional(),
       }).describe(
         "Optional. Describes the negated properties of the request destination. Extension will not be invoked on requests that match the criteria specified in this field. At least one of destination or not_destination must be specified.",
@@ -381,7 +381,7 @@ const InputsSchema = z.object({
   ).optional(),
   target: z.object({
     resources: z.array(z.string()).describe(
-      "Optional. The reference to the target resource, to which this binding should attach. Exactly one of `resources` or `scope` must be set. For Agent Gateway, this would be the full resource name, in the format: `projects/{project}/locations/{location}/agentGateways/{agent_gateway}`. For AI App, this would be the full resource name, in the format: `projects/{project}/locations/{location}/applications/{application}`.",
+      "Optional. The reference to the target resource, to which this binding should attach. Exactly one of `resources` or `scope` must be set.",
     ).optional(),
     scope: z.object({
       parent: z.string().describe(
@@ -436,7 +436,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services ExtensionBindings. Registered at `@swamp/gcp/networkservices/extensionbindings`. */
 export const model = {
   type: "@swamp/gcp/networkservices/extensionbindings",
-  version: "2026.08.16.1",
+  version: "2026.08.22.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.22.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

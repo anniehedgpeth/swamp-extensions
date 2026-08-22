@@ -173,6 +173,80 @@ const GlobalArgsSchema = z.object({
         'Required. Defines which version OTel Semantic Convention the data follows. Can be "1.39.0" or newer.',
       ).optional(),
     }).describe("Data source follows OpenTelemetry convention.").optional(),
+    sessionScope: z.object({
+      filter: z.array(z.object({
+        duration: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe("Filter on the duration of a session (in seconds).")
+          .optional(),
+        modelCallErrors: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe("Filter on the number of LLM call errors within a session.")
+          .optional(),
+        modelCalls: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe(
+          "Filter on the number of underlying LLM calls within a session.",
+        ).optional(),
+        toolCallErrors: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe(
+          "Filter on the number of tool call errors within a session.",
+        ).optional(),
+        toolCalls: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe(
+          "Filter on the number of underlying tool calls within a session.",
+        ).optional(),
+        totalTokenUsage: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe("Filter on the total token usage within a session.")
+          .optional(),
+        userTurns: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe("Filter on the number of user turns within a session.")
+          .optional(),
+      })).describe(
+        "Optional. A list of predicates to filter sessions. Multiple predicates are combined using AND. The maximum number of predicates is 10.",
+      ).optional(),
+      inactivityTrigger: z.object({
+        threshold: z.string().describe(
+          "Required. The amount of time that must pass with no new traces before a session is considered ready for evaluation. This is a required field if InactivityTrigger is used. The value must be a positive duration no greater than 7 days (604800 seconds).",
+        ).optional(),
+      }).describe(
+        "Session is considered ready for evaluation when there are no new traces for a specified period of inactivity.",
+      ).optional(),
+    }).describe(
+      "Scope online evaluation to OTel sessions (i.e. group of traces with the same conversation ID).",
+    ).optional(),
     traceScope: z.object({
       filter: z.array(z.object({
         duration: z.object({
@@ -418,6 +492,41 @@ const StateSchema = z.object({
     openTelemetry: z.object({
       semconvVersion: z.string(),
     }),
+    sessionScope: z.object({
+      filter: z.array(z.object({
+        duration: z.object({
+          comparisonOperator: z.unknown(),
+          value: z.unknown(),
+        }),
+        modelCallErrors: z.object({
+          comparisonOperator: z.unknown(),
+          value: z.unknown(),
+        }),
+        modelCalls: z.object({
+          comparisonOperator: z.unknown(),
+          value: z.unknown(),
+        }),
+        toolCallErrors: z.object({
+          comparisonOperator: z.unknown(),
+          value: z.unknown(),
+        }),
+        toolCalls: z.object({
+          comparisonOperator: z.unknown(),
+          value: z.unknown(),
+        }),
+        totalTokenUsage: z.object({
+          comparisonOperator: z.unknown(),
+          value: z.unknown(),
+        }),
+        userTurns: z.object({
+          comparisonOperator: z.unknown(),
+          value: z.unknown(),
+        }),
+      })),
+      inactivityTrigger: z.object({
+        threshold: z.string(),
+      }),
+    }),
     traceScope: z.object({
       filter: z.array(z.object({
         duration: z.object({
@@ -546,6 +655,80 @@ const InputsSchema = z.object({
         'Required. Defines which version OTel Semantic Convention the data follows. Can be "1.39.0" or newer.',
       ).optional(),
     }).describe("Data source follows OpenTelemetry convention.").optional(),
+    sessionScope: z.object({
+      filter: z.array(z.object({
+        duration: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe("Filter on the duration of a session (in seconds).")
+          .optional(),
+        modelCallErrors: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe("Filter on the number of LLM call errors within a session.")
+          .optional(),
+        modelCalls: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe(
+          "Filter on the number of underlying LLM calls within a session.",
+        ).optional(),
+        toolCallErrors: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe(
+          "Filter on the number of tool call errors within a session.",
+        ).optional(),
+        toolCalls: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe(
+          "Filter on the number of underlying tool calls within a session.",
+        ).optional(),
+        totalTokenUsage: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe("Filter on the total token usage within a session.")
+          .optional(),
+        userTurns: z.object({
+          comparisonOperator: z.unknown().describe(
+            "Required. The comparison operator to apply.",
+          ).optional(),
+          value: z.unknown().describe("Required. The value to compare against.")
+            .optional(),
+        }).describe("Filter on the number of user turns within a session.")
+          .optional(),
+      })).describe(
+        "Optional. A list of predicates to filter sessions. Multiple predicates are combined using AND. The maximum number of predicates is 10.",
+      ).optional(),
+      inactivityTrigger: z.object({
+        threshold: z.string().describe(
+          "Required. The amount of time that must pass with no new traces before a session is considered ready for evaluation. This is a required field if InactivityTrigger is used. The value must be a positive duration no greater than 7 days (604800 seconds).",
+        ).optional(),
+      }).describe(
+        "Session is considered ready for evaluation when there are no new traces for a specified period of inactivity.",
+      ).optional(),
+    }).describe(
+      "Scope online evaluation to OTel sessions (i.e. group of traces with the same conversation ID).",
+    ).optional(),
     traceScope: z.object({
       filter: z.array(z.object({
         duration: z.object({
@@ -810,7 +993,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform OnlineEvaluators. Registered at `@swamp/gcp/aiplatform/onlineevaluators`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/onlineevaluators",
-  version: "2026.08.12.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -829,6 +1012,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

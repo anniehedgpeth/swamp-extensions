@@ -280,7 +280,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore PaymentCredentialProvider. Registered at `@swamp/aws/bedrockagentcore/payment-credential-provider`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/payment-credential-provider",
-  version: "2026.08.17.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.06.03.1",
@@ -309,6 +309,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -419,7 +424,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["Name"],
+          ["Name", "CredentialProviderVendor"],
           credentials,
         );
         const handle = await context.writeResource(

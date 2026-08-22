@@ -292,6 +292,15 @@ const GlobalArgsSchema = z.object({
       imageUri: z.string().describe(
         "Optional. Default image for user to choose a preferred ML framework (for example, TensorFlow or Pytorch) by choosing from [Vertex prebuilt images](https://cloud.google.com/vertex-ai/docs/training/pre-built-containers). Either this or the resource_pool_images is required. Use this field if you need all the resource pools to have the same Ray image. Otherwise, use the {@code resource_pool_images} field.",
       ).optional(),
+      rayClusterAutoscalingSpec: z.object({
+        idleTimeoutMinutes: z.string().describe(
+          "Optional. The number of minutes that need to pass before an idle worker node is removed by the autoscaler. Default is 5 mins.",
+        ).optional(),
+        upscalingSpeed: z.string().describe(
+          "Optional. The number of nodes allowed to be pending as a multiple of the current number of nodes. [OSS Ray reference](https://docs.ray.io/en/latest/cluster/vms/user-guides/configuring-autoscaling.html#upscaling-and-downscaling-speed)",
+        ).optional(),
+      }).describe("Optional. Optional Ray autoscaling configurations.")
+        .optional(),
       rayLogsSpec: z.object({
         disabled: z.boolean().describe(
           "Optional. Flag to disable the export of Ray OSS logs to Cloud Logging.",
@@ -300,6 +309,9 @@ const GlobalArgsSchema = z.object({
       rayMetricSpec: z.object({
         disabled: z.boolean().describe(
           "Optional. Flag to disable the Ray metrics collection.",
+        ).optional(),
+        enableUsageStatsCollection: z.boolean().describe(
+          "Optional. Flag to enable the Ray usage stats collection by Anyscale. https://docs.ray.io/en/latest/cluster/usage-stats.html#usage-stats-collection Disable by default.",
         ).optional(),
       }).describe("Optional. Ray metrics configurations.").optional(),
       resourcePoolImages: z.record(z.string(), z.string()).describe(
@@ -384,11 +396,16 @@ const StateSchema = z.object({
     raySpec: z.object({
       headNodeResourcePoolId: z.string(),
       imageUri: z.string(),
+      rayClusterAutoscalingSpec: z.object({
+        idleTimeoutMinutes: z.string(),
+        upscalingSpeed: z.string(),
+      }),
       rayLogsSpec: z.object({
         disabled: z.boolean(),
       }),
       rayMetricSpec: z.object({
         disabled: z.boolean(),
+        enableUsageStatsCollection: z.boolean(),
       }),
       resourcePoolImages: z.record(z.string(), z.unknown()),
     }),
@@ -547,6 +564,15 @@ const InputsSchema = z.object({
       imageUri: z.string().describe(
         "Optional. Default image for user to choose a preferred ML framework (for example, TensorFlow or Pytorch) by choosing from [Vertex prebuilt images](https://cloud.google.com/vertex-ai/docs/training/pre-built-containers). Either this or the resource_pool_images is required. Use this field if you need all the resource pools to have the same Ray image. Otherwise, use the {@code resource_pool_images} field.",
       ).optional(),
+      rayClusterAutoscalingSpec: z.object({
+        idleTimeoutMinutes: z.string().describe(
+          "Optional. The number of minutes that need to pass before an idle worker node is removed by the autoscaler. Default is 5 mins.",
+        ).optional(),
+        upscalingSpeed: z.string().describe(
+          "Optional. The number of nodes allowed to be pending as a multiple of the current number of nodes. [OSS Ray reference](https://docs.ray.io/en/latest/cluster/vms/user-guides/configuring-autoscaling.html#upscaling-and-downscaling-speed)",
+        ).optional(),
+      }).describe("Optional. Optional Ray autoscaling configurations.")
+        .optional(),
       rayLogsSpec: z.object({
         disabled: z.boolean().describe(
           "Optional. Flag to disable the export of Ray OSS logs to Cloud Logging.",
@@ -555,6 +581,9 @@ const InputsSchema = z.object({
       rayMetricSpec: z.object({
         disabled: z.boolean().describe(
           "Optional. Flag to disable the Ray metrics collection.",
+        ).optional(),
+        enableUsageStatsCollection: z.boolean().describe(
+          "Optional. Flag to enable the Ray usage stats collection by Anyscale. https://docs.ray.io/en/latest/cluster/usage-stats.html#usage-stats-collection Disable by default.",
         ).optional(),
       }).describe("Optional. Ray metrics configurations.").optional(),
       resourcePoolImages: z.record(z.string(), z.string()).describe(
@@ -610,7 +639,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform PersistentResources. Registered at `@swamp/gcp/aiplatform/persistentresources`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/persistentresources",
-  version: "2026.08.14.1",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -788,6 +817,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.14.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

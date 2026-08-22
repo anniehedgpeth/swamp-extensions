@@ -78,9 +78,14 @@ const GlobalArgsSchema = z.object({
     new RegExp("^[a-zA-Z0-9\\s]+$"),
   ).describe("A description of the payment connector").optional(),
   ConnectorType: z.enum(["CoinbaseCDP", "StripePrivy"]),
+  ProvisionMode: z.enum(["MANUAL", "QUICK_CREATE"]).describe(
+    "The provision mode for creating the connector. MANUAL requires CredentialProviderConfigurations; QUICK_CREATE orchestrates OAuth consent and credential provisioning.",
+  ).optional(),
   CredentialProviderConfigurations: z.array(
     CredentialsProviderConfigurationSchema,
-  ).describe("The credential provider configurations for the connector"),
+  ).describe(
+    "The credential provider configurations for the connector. Required when ProvisionMode is MANUAL or not specified. Empty for QUICK_CREATE until provisioning completes.",
+  ).optional(),
 });
 
 const StateSchema = z.object({
@@ -90,12 +95,14 @@ const StateSchema = z.object({
   ConnectorName: z.string().optional(),
   Description: z.string().optional(),
   ConnectorType: z.string().optional(),
+  ProvisionMode: z.string().optional(),
   CredentialProviderConfigurations: z.array(
     CredentialsProviderConfigurationSchema,
   ).optional(),
   ConnectorStatus: z.string().optional(),
   ConnectorCreatedAt: z.string().optional(),
   ConnectorLastUpdatedAt: z.string().optional(),
+  AuthorizationUrl: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -115,10 +122,14 @@ const InputsSchema = z.object({
     new RegExp("^[a-zA-Z0-9\\s]+$"),
   ).describe("A description of the payment connector").optional(),
   ConnectorType: z.enum(["CoinbaseCDP", "StripePrivy"]).optional(),
+  ProvisionMode: z.enum(["MANUAL", "QUICK_CREATE"]).describe(
+    "The provision mode for creating the connector. MANUAL requires CredentialProviderConfigurations; QUICK_CREATE orchestrates OAuth consent and credential provisioning.",
+  ).optional(),
   CredentialProviderConfigurations: z.array(
     CredentialsProviderConfigurationSchema,
-  ).describe("The credential provider configurations for the connector")
-    .optional(),
+  ).describe(
+    "The credential provider configurations for the connector. Required when ProvisionMode is MANUAL or not specified. Empty for QUICK_CREATE until provisioning completes.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -140,7 +151,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore PaymentConnector. Registered at `@swamp/aws/bedrockagentcore/payment-connector`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/payment-connector",
-  version: "2026.08.17.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.06.06.1",
@@ -165,6 +176,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
+      description: "Added: ProvisionMode",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -274,7 +290,12 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          ["PaymentManagerId", "ConnectorName"],
+          [
+            "PaymentManagerId",
+            "ConnectorName",
+            "ProvisionMode",
+            "ConnectorType",
+          ],
           credentials,
         );
         const handle = await context.writeResource(

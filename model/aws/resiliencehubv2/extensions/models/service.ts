@@ -171,7 +171,9 @@ const GlobalArgsSchema = z.object({
   ).describe("The ARN of the resilience policy to associate.").optional(),
   PermissionModel: z.object({
     InvokerRoleName: z.string().regex(
-      new RegExp("^[A-Za-z0-9_+=,.@\\-]{1,64}$"),
+      new RegExp(
+        "^(([A-Za-z0-9_+=,.@\\-]+/){1,511})?[A-Za-z0-9_+=,.@\\-]{1,64}$",
+      ),
     ).describe("Name of the invoker IAM role."),
     CrossAccountRoleArns: z.array(CrossAccountRoleConfigurationSchema).describe(
       "Cross-account role ARNs.",
@@ -269,7 +271,9 @@ const InputsSchema = z.object({
   ).describe("The ARN of the resilience policy to associate.").optional(),
   PermissionModel: z.object({
     InvokerRoleName: z.string().regex(
-      new RegExp("^[A-Za-z0-9_+=,.@\\-]{1,64}$"),
+      new RegExp(
+        "^(([A-Za-z0-9_+=,.@\\-]+/){1,511})?[A-Za-z0-9_+=,.@\\-]{1,64}$",
+      ),
     ).describe("Name of the invoker IAM role.").optional(),
     CrossAccountRoleArns: z.array(CrossAccountRoleConfigurationSchema).describe(
       "Cross-account role ARNs.",
@@ -327,7 +331,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ResilienceHubV2 Service. Registered at `@swamp/aws/resiliencehubv2/service`. */
 export const model = {
   type: "@swamp/aws/resiliencehubv2/service",
-  version: "2026.08.17.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.06.06.1",
@@ -351,6 +355,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

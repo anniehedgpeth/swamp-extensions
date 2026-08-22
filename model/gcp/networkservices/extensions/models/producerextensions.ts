@@ -170,7 +170,7 @@ const GlobalArgsSchema = z.object({
     "Required. The configuration for the service that this `ProducerExtension` offers.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
-    "Optional. Set of labels associated with the `ProducerExtension` resource. The format must comply with [the following requirements]((https://cloud.google.com/compute/docs/labeling-resources#requirements).",
+    "Optional. Set of labels associated with the `ProducerExtension` resource. The format must comply with [the following requirements](https://cloud.google.com/compute/docs/labeling-resources#requirements).",
   ).optional(),
   name: z.string().describe(
     "Identifier. Name of the `ProducerExtension` resource in the following format: `projects/{project}/locations/{location}/producerExtensions/{producer_extension}`.",
@@ -239,7 +239,7 @@ const InputsSchema = z.object({
     "Required. The configuration for the service that this `ProducerExtension` offers.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
-    "Optional. Set of labels associated with the `ProducerExtension` resource. The format must comply with [the following requirements]((https://cloud.google.com/compute/docs/labeling-resources#requirements).",
+    "Optional. Set of labels associated with the `ProducerExtension` resource. The format must comply with [the following requirements](https://cloud.google.com/compute/docs/labeling-resources#requirements).",
   ).optional(),
   name: z.string().describe(
     "Identifier. Name of the `ProducerExtension` resource in the following format: `projects/{project}/locations/{location}/producerExtensions/{producer_extension}`.",
@@ -281,7 +281,14 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Services ProducerExtensions. Registered at `@swamp/gcp/networkservices/producerextensions`. */
 export const model = {
   type: "@swamp/gcp/networkservices/producerextensions",
-  version: "2026.08.16.1",
+  version: "2026.08.22.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.22.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

@@ -141,11 +141,14 @@ const StateSchema = z.object({
   deleteTime: z.string().optional(),
   displayName: z.string().optional(),
   etag: z.string().optional(),
+  ignoreClusterDisruptionBudgets: z.boolean().optional(),
+  ignoreMaintenancePolicies: z.boolean().optional(),
   intent: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   membershipStates: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
   rolloutSequence: z.string().optional(),
+  stageSoakDurationOverrides: z.record(z.string(), z.unknown()).optional(),
   stages: z.array(z.object({
     clusterSelector: z.object({
       labelSelector: z.string(),
@@ -210,7 +213,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud GKE Hub Rollouts. Registered at `@swamp/gcp/gkehub/rollouts`. */
 export const model = {
   type: "@swamp/gcp/gkehub/rollouts",
-  version: "2026.08.12.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -219,6 +222,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

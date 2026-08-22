@@ -126,16 +126,6 @@ const GlobalArgsSchema = z.object({
     overarchingGuidance: z.string().optional(),
     version: z.string().optional(),
   }).optional(),
-  cesAppSpecs: z.array(z.object({
-    cesApp: z.string().optional(),
-    confirmationRequirement: z.enum([
-      "CONFIRMATION_REQUIREMENT_UNSPECIFIED",
-      "REQUIRED",
-      "NOT_REQUIRED",
-    ]).optional(),
-    proactiveEnabled: z.boolean().optional(),
-    reactiveEnabled: z.boolean().optional(),
-  })).optional(),
   cesToolSpecs: z.array(z.object({
     cesTool: z.string().optional(),
     confirmationRequirement: z.enum([
@@ -347,16 +337,6 @@ const InputsSchema = z.object({
     overarchingGuidance: z.string().optional(),
     version: z.string().optional(),
   }).optional(),
-  cesAppSpecs: z.array(z.object({
-    cesApp: z.string().optional(),
-    confirmationRequirement: z.enum([
-      "CONFIRMATION_REQUIREMENT_UNSPECIFIED",
-      "REQUIRED",
-      "NOT_REQUIRED",
-    ]).optional(),
-    proactiveEnabled: z.boolean().optional(),
-    reactiveEnabled: z.boolean().optional(),
-  })).optional(),
   cesToolSpecs: z.array(z.object({
     cesTool: z.string().optional(),
     confirmationRequirement: z.enum([
@@ -476,7 +456,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Generators. Registered at `@swamp/gcp/dialogflow/generators`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/generators",
-  version: "2026.08.18.1",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -492,6 +472,14 @@ export const model = {
       toVersion: "2026.08.18.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
+      description: "Removed: cesAppSpecs",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { cesAppSpecs: _cesAppSpecs, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -522,9 +510,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["agentCoachingContext"] !== undefined) {
           body["agentCoachingContext"] = g["agentCoachingContext"];
-        }
-        if (g["cesAppSpecs"] !== undefined) {
-          body["cesAppSpecs"] = g["cesAppSpecs"];
         }
         if (g["cesToolSpecs"] !== undefined) {
           body["cesToolSpecs"] = g["cesToolSpecs"];

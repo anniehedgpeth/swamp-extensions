@@ -159,7 +159,7 @@ const GlobalArgsSchema = z.object({
     "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
   ).optional(),
   base_agent: z.string().describe(
-    "Required. The base agent for the agent. Supported values: * `antigravity-preview-05-2026`",
+    "Required. Immutable. The base agent for the agent. Supported values: * `antigravity-preview-05-2026` Immutable: `UpdateAgent` rejects a change, including clearing it. The kind of agent this is gets derived from this field when the agent is created and is recorded then; nothing recomputes it afterwards, so a later change would leave the agent described as one kind and behaving as another. Create a new agent instead.",
   ).optional(),
   base_environment: z.string().describe(
     "Optional. The base environment configuration for the agent. Valid types: * A string value for the environment ID, or `remote` for the default. * A struct value for the `environment_config`.",
@@ -226,7 +226,7 @@ const InputsSchema = z.object({
   quotaProject: z.string().optional(),
   apiEndpoint: z.string().optional(),
   base_agent: z.string().describe(
-    "Required. The base agent for the agent. Supported values: * `antigravity-preview-05-2026`",
+    "Required. Immutable. The base agent for the agent. Supported values: * `antigravity-preview-05-2026` Immutable: `UpdateAgent` rejects a change, including clearing it. The kind of agent this is gets derived from this field when the agent is created and is recorded then; nothing recomputes it afterwards, so a later change would leave the agent described as one kind and behaving as another. Create a new agent instead.",
   ).optional(),
   base_environment: z.string().describe(
     "Optional. The base environment configuration for the agent. Valid types: * A string value for the environment ID, or `remote` for the default. * A struct value for the `environment_config`.",
@@ -290,7 +290,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform Agents. Registered at `@swamp/gcp/aiplatform/agents`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/agents",
-  version: "2026.08.12.2",
+  version: "2026.08.22.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -304,6 +304,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.22.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -458,7 +463,6 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
-        if (g["base_agent"] !== undefined) body["base_agent"] = g["base_agent"];
         if (g["base_environment"] !== undefined) {
           body["base_environment"] = g["base_environment"];
         }
