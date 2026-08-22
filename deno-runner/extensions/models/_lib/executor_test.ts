@@ -88,6 +88,67 @@ Deno.test("execute captures stderr", async () => {
 });
 
 // ---------------------------------------------------------------------------
+// inheritEnv
+// ---------------------------------------------------------------------------
+
+Deno.test("execute with inheritEnv passes full parent environment", async () => {
+  const marker = `DENO_RUNNER_INHERIT_TEST_${Date.now()}`;
+  Deno.env.set(marker, "inherited_value");
+  try {
+    const { logger } = makeLogger();
+    const result = await execute({
+      binaryPath: "/bin/sh",
+      args: ["-c", `echo $${marker}`],
+      workingDir: Deno.cwd(),
+      inheritEnv: true,
+      logger,
+      signal: new AbortController().signal,
+    });
+
+    assertEquals(result.stdout.trim(), "inherited_value");
+    assertEquals(result.exitCode, 0);
+  } finally {
+    Deno.env.delete(marker);
+  }
+});
+
+Deno.test("execute without inheritEnv strips non-allowlisted vars", async () => {
+  const marker = `DENO_RUNNER_STRIPPED_TEST_${Date.now()}`;
+  Deno.env.set(marker, "should_not_appear");
+  try {
+    const { logger } = makeLogger();
+    const result = await execute({
+      binaryPath: "/bin/sh",
+      args: ["-c", `echo $${marker}`],
+      workingDir: Deno.cwd(),
+      logger,
+      signal: new AbortController().signal,
+    });
+
+    assertEquals(result.stdout.trim(), "");
+    assertEquals(result.exitCode, 0);
+  } finally {
+    Deno.env.delete(marker);
+  }
+});
+
+Deno.test("execute with inheritEnv merges extra env on top", async () => {
+  const { logger } = makeLogger();
+  const result = await execute({
+    binaryPath: "/bin/sh",
+    args: ["-c", "echo $INHERIT_MERGE_VAR"],
+    workingDir: Deno.cwd(),
+    inheritEnv: true,
+    env: { INHERIT_MERGE_VAR: "merged_value" },
+    logger,
+    signal: new AbortController().signal,
+  });
+
+  assertEquals(result.stdout.trim(), "merged_value");
+  assertEquals(result.exitCode, 0);
+});
+
+// ---------------------------------------------------------------------------
 // Working directory
 // ---------------------------------------------------------------------------
 

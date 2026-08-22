@@ -180,6 +180,21 @@ Deno.test("run args accept args without optional fields", () => {
   assertEquals(result.env, undefined);
 });
 
+Deno.test("run args accept inheritEnv", () => {
+  const result = model.methods.run.arguments.parse({
+    args: ["check", "src/main.ts"],
+    inheritEnv: true,
+  });
+  assertEquals(result.inheritEnv, true);
+});
+
+Deno.test("run args default inheritEnv to undefined", () => {
+  const result = model.methods.run.arguments.parse({
+    args: ["check", "src/main.ts"],
+  });
+  assertEquals(result.inheritEnv, undefined);
+});
+
 // ---------------------------------------------------------------------------
 // Task args validation
 // ---------------------------------------------------------------------------
@@ -214,6 +229,21 @@ Deno.test("task args accept taskName without optional fields", () => {
   assertEquals(result.taskName, "check");
   assertEquals(result.taskArgs, undefined);
   assertEquals(result.workingDir, undefined);
+});
+
+Deno.test("task args accept inheritEnv", () => {
+  const result = model.methods.task.arguments.parse({
+    taskName: "build",
+    inheritEnv: true,
+  });
+  assertEquals(result.inheritEnv, true);
+});
+
+Deno.test("task args default inheritEnv to undefined", () => {
+  const result = model.methods.task.arguments.parse({
+    taskName: "build",
+  });
+  assertEquals(result.inheritEnv, undefined);
 });
 
 // ---------------------------------------------------------------------------

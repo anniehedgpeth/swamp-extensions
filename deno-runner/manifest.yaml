@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/deno-runner"
-version: "2026.08.05.1"
+version: "2026.08.22.1"
 description: |
   Install and run Deno commands. Manages Deno binary downloads with
   checksum verification and provides generic command execution for CI

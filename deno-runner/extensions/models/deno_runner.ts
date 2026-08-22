@@ -21,11 +21,19 @@ import type { DenoRunnerContext } from "./_lib/types.ts";
 
 export const model = {
   type: "@swamp/deno-runner",
-  version: "2026.08.05.1",
+  version: "2026.08.22.1",
 
   globalArguments: GlobalArgsSchema,
 
-  upgrades: [] as Array<{
+  upgrades: [
+    {
+      toVersion: "2026.08.22.1",
+      description: "Add inheritEnv option to run and task methods",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ) => old,
+    },
+  ] as Array<{
     toVersion: string;
     description: string;
     upgradeAttributes: (
@@ -141,6 +149,7 @@ export const model = {
               args: args.args,
               workingDir,
               env: args.env,
+              inheritEnv: args.inheritEnv,
               logger: ctx.logger,
               signal: ctx.signal,
             });
@@ -213,6 +222,7 @@ export const model = {
               args: denoArgs,
               workingDir,
               env: args.env,
+              inheritEnv: args.inheritEnv,
               logger: ctx.logger,
               signal: ctx.signal,
             });

@@ -31,6 +31,13 @@ export const RunArgsSchema = z.object({
     .describe("Working directory for the command"),
   env: z.record(z.string(), z.string()).optional()
     .describe("Additional environment variables to set"),
+  inheritEnv: z.boolean().optional()
+    .describe(
+      "Inherit the full parent process environment instead of a curated " +
+        "allowlist. Extra env vars are merged on top. Useful when the " +
+        "command spawns sub-processes that need env vars outside the " +
+        "default allowlist.",
+    ),
 });
 
 export type RunArgs = z.infer<typeof RunArgsSchema>;
@@ -44,6 +51,13 @@ export const TaskArgsSchema = z.object({
     .describe("Working directory for the command"),
   env: z.record(z.string(), z.string()).optional()
     .describe("Additional environment variables to set"),
+  inheritEnv: z.boolean().optional()
+    .describe(
+      "Inherit the full parent process environment instead of a curated " +
+        "allowlist. Extra env vars are merged on top. Useful when the " +
+        "command spawns sub-processes that need env vars outside the " +
+        "default allowlist.",
+    ),
 });
 
 export type TaskArgs = z.infer<typeof TaskArgsSchema>;

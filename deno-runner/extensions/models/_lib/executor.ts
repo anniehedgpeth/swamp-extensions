@@ -7,6 +7,7 @@ export interface ExecuteOptions {
   readonly args: string[];
   readonly workingDir: string;
   readonly env?: Record<string, string>;
+  readonly inheritEnv?: boolean;
   readonly logger: DenoRunnerLogger;
   readonly signal: AbortSignal;
 }
@@ -72,8 +73,8 @@ export async function execute(opts: ExecuteOptions): Promise<ExecuteResult> {
       const command = new Deno.Command(opts.binaryPath, {
         args: opts.args,
         cwd: opts.workingDir,
-        clearEnv: true,
-        env: buildSubprocessEnv(opts.env),
+        clearEnv: !opts.inheritEnv,
+        env: opts.inheritEnv ? opts.env : buildSubprocessEnv(opts.env),
         stdout: "piped",
         stderr: "piped",
         signal: opts.signal,
