@@ -32,6 +32,10 @@ export async function executeReview(
 ): Promise<
   { dataHandles: Array<{ name: string; tags?: Record<string, string> }> }
 > {
+  if (!args.diff && (!args.files || args.files.length === 0)) {
+    throw new Error("Either 'files' or 'diff' must be provided");
+  }
+
   const globalArgs = GlobalArgsSchema.parse(ctx.globalArgs);
   const provider = getProvider(globalArgs.provider);
 
@@ -55,12 +59,18 @@ export async function executeReview(
       outputDir = await Deno.makeTempDir({ prefix: "agent-runner-" });
       const outputPath = `${outputDir}/result.json`;
 
+      const mode = args.diff ? { diff: args.diff } : { files: args.files! };
+
       const prompt = buildReviewPrompt(
         promptTemplate,
-        args.files,
         provider.outputInstructions(outputPath),
         outputPath,
+        mode,
       );
+
+      const effectiveProviderConfig = args.diff
+        ? injectDiffModeTools(globalArgs.provider, providerConfig)
+        : providerConfig;
 
       const output = await runAgent({
         globalArgs,
@@ -70,7 +80,7 @@ export async function executeReview(
         additionalDirs: [outputDir],
         outputPath,
         readOnly,
-        providerConfig,
+        providerConfig: effectiveProviderConfig,
         logger: ctx.logger,
         signal: ctx.signal,
       });
@@ -151,13 +161,17 @@ async function resolveProfile(
   };
 }
 
-function buildReviewPrompt(
+export function buildReviewPrompt(
   template: string,
-  files: string[],
   outputInstructions: string,
   outputPath: string,
+  mode: { files: string[] } | { diff: string },
 ): string {
-  const fileList = files.join("\n");
+  const changesSection = "diff" in mode
+    ? `DIFF (review these changes — do NOT review any other files):\n${mode.diff}`
+    : `CHANGED FILES (this is the complete list — do NOT review any other files):\n${
+      mode.files.join("\n")
+    }`;
 
   return `${template}
 
@@ -176,8 +190,39 @@ Output path: ${outputPath}
 
 ${outputInstructions}
 
-CHANGED FILES (this is the complete list — do NOT review any other files):
-${fileList}`;
+${changesSection}`;
+}
+
+const DIFF_MODE_ALLOWED_TOOLS = ["Read", "Grep", "Glob", "Bash(tee:*)"];
+
+export function injectDiffModeTools(
+  providerName: string,
+  providerConfig: Record<string, unknown>,
+): Record<string, unknown> {
+  const existing = providerConfig[providerName];
+  const providerSpecific = (existing && typeof existing === "object" &&
+      !Array.isArray(existing))
+    ? existing as Record<string, unknown>
+    : {};
+
+  if (providerSpecific.allowedTools) {
+    return providerConfig;
+  }
+
+  const disallowed = Array.isArray(providerSpecific.disallowedTools)
+    ? providerSpecific.disallowedTools as string[]
+    : [];
+  const allowed = DIFF_MODE_ALLOWED_TOOLS.filter(
+    (tool) => !disallowed.some((d) => tool === d || tool.startsWith(`${d}(`)),
+  );
+
+  return {
+    ...providerConfig,
+    [providerName]: {
+      ...providerSpecific,
+      allowedTools: allowed,
+    },
+  };
 }
 
 async function parseResult(

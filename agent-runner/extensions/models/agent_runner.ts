@@ -24,17 +24,18 @@ import type { AgentRunnerContext } from "./_lib/types.ts";
 /** Agent runner model — providers, review profiles, and execution methods. */
 export const model = {
   type: "@swamp/agent-runner",
-  version: "2026.08.05.1",
+  version: "2026.08.23.1",
 
   globalArguments: GlobalArgsSchema,
 
-  upgrades: [] as Array<{
-    toVersion: string;
-    description: string;
-    upgradeAttributes: (
-      old: Record<string, unknown>,
-    ) => Record<string, unknown>;
-  }>,
+  upgrades: [
+    {
+      toVersion: "2026.08.23.1",
+      description:
+        "Add optional diff input to review method for inline diff review mode",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
 
   resources: {
     reviewProfile: {

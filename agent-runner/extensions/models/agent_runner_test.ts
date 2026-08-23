@@ -499,11 +499,10 @@ Deno.test("ReviewProfile schema defaults readOnly to true", () => {
 // Review method argument validation
 // ---------------------------------------------------------------------------
 
-Deno.test("review args require either profile or promptFile", () => {
+Deno.test("review args schema accepts minimal input", () => {
   const result = model.methods.review.arguments.safeParse({
     files: ["src/main.ts"],
   });
-  // Schema itself doesn't enforce this (runtime does), but files is required
   assertEquals(result.success, true);
 });
 
@@ -513,7 +512,7 @@ Deno.test("review args accept profile name", () => {
     files: ["src/main.ts", "src/lib.ts"],
   });
   assertEquals(result.profile, "adversarial");
-  assertEquals(result.files.length, 2);
+  assertEquals(result.files?.length, 2);
 });
 
 Deno.test("review args accept inline prompt file", () => {

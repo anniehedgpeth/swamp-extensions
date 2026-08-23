@@ -55,8 +55,17 @@ export const ReviewArgsSchema = z.object({
     .describe("Path to prompt template (overrides profile if both given)"),
   model: z.string().optional()
     .describe("Model to use (overrides profile and global defaults)"),
-  files: z.array(z.string())
-    .describe("List of files to include in the review"),
+  files: z.array(z.string()).optional()
+    .describe(
+      "List of files to include in the review. The agent reads each file " +
+        "individually using CLI tools. Required when diff is not provided",
+    ),
+  diff: z.string().min(1).optional()
+    .describe(
+      "Diff content to include inline in the prompt. The agent reviews the " +
+        "changes directly without reading files from the repo. Required when " +
+        "files is not provided",
+    ),
   readOnly: z.boolean().optional()
     .describe("Whether the agent should have read-only access"),
   providerConfig: z.record(z.string(), z.unknown()).optional()

@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { ReviewResultSchema } from "./schemas.ts";
-import { extractJsonResult } from "./review.ts";
+import { buildReviewPrompt, extractJsonResult } from "./review.ts";
 
 // ---------------------------------------------------------------------------
 // Mock agent binary execution
@@ -206,7 +206,7 @@ Some trailing text with { braces } here.`;
 });
 
 // ---------------------------------------------------------------------------
-// Review prompt construction
+// Review prompt construction (uses real buildReviewPrompt from review.ts)
 // ---------------------------------------------------------------------------
 
 Deno.test("runner: review prompt includes template, files, and output instructions", () => {
@@ -216,11 +216,11 @@ Deno.test("runner: review prompt includes template, files, and output instructio
     "Write your result using tee /tmp/result.json <<'EOF'\n(json)\nEOF";
   const outputPath = "/tmp/result.json";
 
-  const prompt = buildTestPrompt(
+  const prompt = buildReviewPrompt(
     template,
-    files,
     outputInstructions,
     outputPath,
+    { files },
   );
 
   assertEquals(prompt.includes(template), true);
@@ -234,48 +234,27 @@ Deno.test("runner: review prompt includes template, files, and output instructio
 });
 
 Deno.test("runner: review prompt handles empty file list", () => {
-  const prompt = buildTestPrompt("review", [], "output here", "/tmp/r.json");
+  const prompt = buildReviewPrompt("review", "output here", "/tmp/r.json", {
+    files: [],
+  });
   assertEquals(prompt.includes("CHANGED FILES"), true);
 });
 
 Deno.test("runner: review prompt handles large file list", () => {
   const files = Array.from({ length: 500 }, (_, i) => `src/file_${i}.ts`);
-  const prompt = buildTestPrompt("review", files, "output", "/tmp/r.json");
+  const prompt = buildReviewPrompt("review", "output", "/tmp/r.json", {
+    files,
+  });
   assertEquals(prompt.includes("src/file_0.ts"), true);
   assertEquals(prompt.includes("src/file_499.ts"), true);
 });
 
-// Mirror of buildReviewPrompt from review.ts to test the prompt shape
-function buildTestPrompt(
-  template: string,
-  files: string[],
-  outputInstructions: string,
-  outputPath: string,
-): string {
-  const resultSchema = `{
-  "verdict": "pass" or "fail",
-  "body": "your full review formatted as markdown",
-  "findings": [...],
-  "highestSeverity": "critical" | "high" | "medium" | "low" | "none"
-}`;
-
-  return `${template}
-
-OUTPUT INSTRUCTIONS:
-Write your review result as JSON that conforms to this schema:
-
-${resultSchema}
-
-Rules for the JSON:
-- "verdict" must be "pass" if there are no critical or high severity findings, "fail" otherwise.
-- "highestSeverity" must match the highest severity in findings, or "none" if findings is empty.
-- "body" must be the full review formatted as markdown.
-- Every finding must have at minimum: severity, file, and description.
-
-Output path: ${outputPath}
-
-${outputInstructions}
-
-CHANGED FILES (this is the complete list — do NOT review any other files):
-${files.join("\n")}`;
-}
+Deno.test("runner: review prompt uses diff when provided", () => {
+  const diff = "diff --git a/src/main.ts b/src/main.ts\n+const x = 1;";
+  const prompt = buildReviewPrompt("review", "output", "/tmp/r.json", {
+    diff,
+  });
+  assertEquals(prompt.includes("DIFF (review these changes"), true);
+  assertEquals(prompt.includes(diff), true);
+  assertEquals(prompt.includes("CHANGED FILES"), false);
+});

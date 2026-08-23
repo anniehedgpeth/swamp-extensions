@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/agent-runner"
-version: "2026.08.05.1"
+version: "2026.08.23.1"
 description: |
   Run AI coding agents (Claude, Codex) with structured output for CI
   integration. Manages agent CLI binaries, resolves API tokens from
@@ -15,7 +15,7 @@ description: |
 
   | Method   | What it does |
   | -------- | ------------ |
-  | `review` | Run a coding agent review against a set of files and return a structured verdict (pass/fail) with findings. |
+  | `review` | Run a coding agent review against a set of files and return a structured verdict (pass/fail) with findings. Supports an optional `diff` input for inline diff review mode (faster, no repo exploration). |
   | `run`    | Run an arbitrary prompt through a coding agent and return the output. |
 
   ## Providers
