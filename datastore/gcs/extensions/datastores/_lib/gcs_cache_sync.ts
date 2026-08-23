@@ -504,6 +504,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
   private namespace: string | undefined = undefined;
   private namespaceBound = false;
   private preflightDone = false;
+  private freshV2Initialized = false;
 
   constructor(
     gcs: GcsClient,
@@ -1411,13 +1412,29 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       return true;
     });
 
+    // Sub-case (1): genuinely empty bucket. Initialize with shard-first
+    // (v2) indexing so all subsequent writes use shards from the start —
+    // no migration needed. The meta write is best-effort: if it fails
+    // (permissions, transient error), the bucket falls back to v1 on
+    // this run and retries v2 init on the next.
     if (filtered.length === 0) {
       this.index = {
         version: 1,
         lastPulled: new Date().toISOString(),
         entries: {},
       };
-      tracePhase("pullIndex.discover", discoverStart, "n=0");
+      try {
+        const meta: PartitionMetaV2 = {
+          version: 2,
+          partitions: [],
+          commitSeq: 0,
+        };
+        await this.writePartitionMeta(meta, signal);
+        this.freshV2Initialized = true;
+        tracePhase("pullIndex.discover", discoverStart, "n=0 v2-init");
+      } catch {
+        tracePhase("pullIndex.discover", discoverStart, "n=0 v2-init-failed");
+      }
       return null;
     }
 
@@ -1896,6 +1913,10 @@ export class GcsCacheSyncService implements DatastoreSyncService {
               forceRemote: true,
               signal,
             });
+            if (this.freshV2Initialized) {
+              v2CommitSeq = 0;
+              indexGeneration = null;
+            }
             tracePhase("pushChanged.pullIndex", indexStart);
           }
 

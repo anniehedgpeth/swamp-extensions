@@ -690,8 +690,8 @@ Deno.test("pullIndex discovery: skips internal cache files (swamp-club #225)", a
   }
 });
 
-// Test D — empty bucket regression pin: brand-new-bucket fallthrough.
-Deno.test("pullIndex discovery: empty bucket falls through to empty index (swamp-club #225 regression pin)", async () => {
+// Test D — empty bucket: brand-new bucket initializes v2 _meta.json.
+Deno.test("pullIndex discovery: empty bucket initializes v2 _meta.json (fresh datastore starts shard-first)", async () => {
   const cachePath = await Deno.makeTempDir({ prefix: "gcssync-225-D-" });
   try {
     const mock = createMockGcsClient();
@@ -711,7 +711,7 @@ Deno.test("pullIndex discovery: empty bucket falls through to empty index (swamp
     assertEquals(
       indexPut,
       undefined,
-      "no PutObject must fire on a genuinely empty bucket",
+      "no monolithic index PutObject must fire on a genuinely empty bucket",
     );
     const state = privateState(service);
     assertExists(state.index);
@@ -719,6 +719,89 @@ Deno.test("pullIndex discovery: empty bucket falls through to empty index (swamp
       Object.keys(state.index.entries).length,
       0,
       "in-memory entries must be empty for a brand-new bucket",
+    );
+    // Verify _meta.json v2 was written
+    const metaPut = mock.puts.find((p) => p.key === "_index/_meta.json");
+    assertExists(metaPut, "empty bucket must write _meta.json for v2 init");
+    const meta = JSON.parse(new TextDecoder().decode(metaPut.body));
+    assertEquals(meta.version, 2, "_meta.json must be version 2");
+    assertEquals(meta.commitSeq, 0, "commitSeq must start at 0");
+    assertEquals(meta.partitions, [], "partitions must be empty");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pushChanged: fresh empty bucket uses shard-first v2 path (no monolithic index written)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-fresh-v2-" });
+  try {
+    const mock = createMockGcsClient();
+    // Local cache has a file ready to push.
+    await seedFile(cachePath, "data/@org/m/id/latest", "id");
+    await seedFile(cachePath, "data/@org/m/id/metadata.yaml", "kind: test\n");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.markDirty({ relPath: "data/@org/m/id" });
+    const pushed = await service.pushChanged();
+    assertEquals(pushed, 2, "two local files should push");
+
+    // Verify v2 path was used: _meta.json should exist with commitSeq 1
+    const metaData = mock.storage.get("_index/_meta.json");
+    assertExists(metaData, "_meta.json must exist after push");
+    const meta = JSON.parse(new TextDecoder().decode(metaData));
+    assertEquals(meta.version, 2, "_meta.json must be version 2");
+    assertEquals(meta.commitSeq, 1, "commitSeq must be 1 after first push");
+
+    // Verify NO monolithic index was written — shard-first v2 skips it.
+    const monolithPuts = mock.puts.filter((p) =>
+      p.key === ".datastore-index.json"
+    );
+    assertEquals(
+      monolithPuts.length,
+      0,
+      "fresh v2 path must NOT write monolithic .datastore-index.json",
+    );
+
+    // Verify shard files were written.
+    const shardPut = mock.puts.find((p) =>
+      p.key.startsWith("_index/") && p.key !== "_index/_meta.json"
+    );
+    assertExists(shardPut, "shard index file must be written");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("commitPush: fresh empty bucket uses shard-first v2 path", async () => {
+  const cachePath = await Deno.makeTempDir({
+    prefix: "gcssync-fresh-v2-commit-",
+  });
+  try {
+    const mock = createMockGcsClient();
+    // Local cache has a file ready to push.
+    await seedFile(cachePath, "data/@org/m/id/latest", "id");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.markDirty({ relPath: "data/@org/m/id" });
+    const manifest = await service.preparePush!();
+    const result = await service.commitPush!(manifest);
+    assertEquals(result, 1, "one file should be committed");
+
+    // Verify v2 meta was written
+    const metaData = mock.storage.get("_index/_meta.json");
+    assertExists(metaData, "_meta.json must exist after commitPush");
+    const meta = JSON.parse(new TextDecoder().decode(metaData));
+    assertEquals(meta.version, 2, "_meta.json must be version 2");
+    assert(meta.commitSeq >= 1, "commitSeq must be >= 1");
+
+    // Verify NO monolithic index was written
+    const monolithPuts = mock.puts.filter((p) =>
+      p.key === ".datastore-index.json"
+    );
+    assertEquals(
+      monolithPuts.length,
+      0,
+      "fresh v2 commitPush must NOT write monolithic .datastore-index.json",
     );
   } finally {
     await Deno.remove(cachePath, { recursive: true });
@@ -4047,10 +4130,12 @@ Deno.test("pushChanged with namespace writes per-namespace index", async () => {
     const pushed = await svc.pushChanged({ namespace: "my-ns" });
     assert((pushed as number) >= 1);
 
-    const indexPuts = gcs.puts.filter((p) =>
-      p.key === "my-ns/.datastore-index.json"
+    // Fresh bucket uses v2 shard-first: _meta.json and shard files under
+    // the namespace, NOT a monolithic index.
+    const metaPuts = gcs.puts.filter((p) =>
+      p.key === "my-ns/_index/_meta.json"
     );
-    assert(indexPuts.length > 0, "must write per-namespace index");
+    assert(metaPuts.length > 0, "must write per-namespace _meta.json");
 
     const globalPuts = gcs.puts.filter((p) =>
       p.key === ".datastore-index.json"
@@ -4575,20 +4660,21 @@ Deno.test("preparePush + commitPush round-trip matches pushChanged behavior", as
     const manifest = await serviceB.preparePush();
     await serviceB.commitPush(manifest);
 
-    const indexA = mockA.puts.filter((p) => p.key === ".datastore-index.json")
-      .pop();
-    const indexB = mockB.puts.filter((p) => p.key === ".datastore-index.json")
-      .pop();
-    assertExists(indexA, "pushChanged should write index");
-    assertExists(indexB, "commitPush should write index");
+    // Fresh buckets use v2 shard-first: verify both paths write _meta.json
+    // and shard files with matching data entries.
+    const metaA = mockA.storage.get("_index/_meta.json");
+    const metaB = mockB.storage.get("_index/_meta.json");
+    assertExists(metaA, "pushChanged should write _meta.json");
+    assertExists(metaB, "commitPush should write _meta.json");
 
-    const parsedA = decodeIndex(indexA.body);
-    const parsedB = decodeIndex(indexB.body);
-
+    const parsedMetaA = JSON.parse(new TextDecoder().decode(metaA));
+    const parsedMetaB = JSON.parse(new TextDecoder().decode(metaB));
+    assertEquals(parsedMetaA.version, 2, "pushChanged _meta.json must be v2");
+    assertEquals(parsedMetaB.version, 2, "commitPush _meta.json must be v2");
     assertEquals(
-      Object.keys(parsedA.entries).sort(),
-      Object.keys(parsedB.entries).sort(),
-      "both paths should produce the same index entries",
+      parsedMetaA.partitions.sort(),
+      parsedMetaB.partitions.sort(),
+      "both paths should produce the same partition keys",
     );
   } finally {
     await Deno.remove(cacheA, { recursive: true });
@@ -5901,6 +5987,12 @@ Deno.test("#1052: GCS pushChanged slow path on v2 uses shard assembly, not monol
   const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1052-push-" });
   try {
     const mock = createMockGcsClient();
+    // Pre-seed a v1 monolithic index so the first push uses the v1 path
+    // (fresh empty buckets now initialize v2 directly).
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({}),
+    );
     const service = new GcsCacheSyncService(mock, cachePath);
 
     await seedFile(cachePath, "data/t1/m1/d1/1/raw", "old\n");
@@ -5955,6 +6047,12 @@ Deno.test("#1052: GCS preparePush slow path on v2 uses shard assembly, not monol
   const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1052-prep-" });
   try {
     const mock = createMockGcsClient();
+    // Pre-seed a v1 monolithic index so the first push uses the v1 path
+    // (fresh empty buckets now initialize v2 directly).
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({}),
+    );
     const service = new GcsCacheSyncService(mock, cachePath);
 
     await seedFile(cachePath, "data/t1/m1/d1/1/raw", "old\n");
