@@ -158,7 +158,11 @@ swamp model method run deno task \
 
 ## Command Output
 
-Both `run` and `task` write a `commandResult` resource with this structure:
+Both `run` and `task` write a `commandResult` resource with stdout, stderr,
+exit code, and the command string. If the command exits with a non-zero exit
+code, the method **fails the step** after writing the resource — so the output
+is still retrievable via `swamp data get` for debugging, but the workflow step
+reports the correct failure status.
 
 ```json
 {

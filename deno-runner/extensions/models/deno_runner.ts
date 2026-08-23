@@ -21,7 +21,7 @@ import type { DenoRunnerContext } from "./_lib/types.ts";
 
 export const model = {
   type: "@swamp/deno-runner",
-  version: "2026.08.22.1",
+  version: "2026.08.23.1",
 
   globalArguments: GlobalArgsSchema,
 
@@ -29,6 +29,14 @@ export const model = {
     {
       toVersion: "2026.08.22.1",
       description: "Add inheritEnv option to run and task methods",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ) => old,
+    },
+    {
+      toVersion: "2026.08.23.1",
+      description:
+        "Fail the step when the deno command exits with a non-zero exit code",
       upgradeAttributes: (
         old: Record<string, unknown>,
       ) => old,
@@ -174,6 +182,15 @@ export const model = {
               },
             );
 
+            if (result.exitCode !== 0) {
+              const msg =
+                `deno ${
+                  args.args.join(" ")
+                } exited with code ${result.exitCode}` +
+                (result.stderr.trim() ? `\n${result.stderr.trim()}` : "");
+              throw new Error(msg);
+            }
+
             return { dataHandles: [handle] };
           } catch (error) {
             span.setStatus({
@@ -247,6 +264,15 @@ export const model = {
                 },
               },
             );
+
+            if (result.exitCode !== 0) {
+              const msg =
+                `deno ${
+                  denoArgs.join(" ")
+                } exited with code ${result.exitCode}` +
+                (result.stderr.trim() ? `\n${result.stderr.trim()}` : "");
+              throw new Error(msg);
+            }
 
             return { dataHandles: [handle] };
           } catch (error) {

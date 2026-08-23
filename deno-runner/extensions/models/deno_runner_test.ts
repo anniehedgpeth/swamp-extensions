@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1.0.19";
+import { assertEquals, assertRejects } from "jsr:@std/assert@1.0.19";
 import { model } from "./deno_runner.ts";
 import type { DataHandle, DenoRunnerContext } from "./_lib/types.ts";
 
@@ -317,4 +317,91 @@ Deno.test("harness readResource returns null for missing", async () => {
   const { ctx } = makeHarness({ version: "2.7.5" });
   const result = await ctx.readResource("nonexistent");
   assertEquals(result, null);
+});
+
+// ---------------------------------------------------------------------------
+// Non-zero exit code fails the step
+// ---------------------------------------------------------------------------
+
+// Pre-seed the ensureDeno cache so methods find the binary without downloading.
+async function withDenoCache(
+  version: string,
+  fn: (tmpDir: string) => Promise<void>,
+  setup?: (tmpDir: string) => Promise<void>,
+): Promise<void> {
+  const tmpDir = await Deno.makeTempDir();
+  const cacheDir = `${tmpDir}/.swamp/deno-runner/bin/${version}`;
+  await Deno.mkdir(cacheDir, { recursive: true });
+  await Deno.symlink(Deno.execPath(), `${cacheDir}/deno`);
+  if (setup) await setup(tmpDir);
+  const origDir = Deno.cwd();
+  Deno.chdir(tmpDir);
+  try {
+    await fn(tmpDir);
+  } finally {
+    Deno.chdir(origDir);
+    await Deno.remove(tmpDir, { recursive: true });
+  }
+}
+
+Deno.test("run method throws on non-zero exit and still writes resource", async () => {
+  const version = "2.7.5";
+  const { ctx, writes } = makeHarness({ version });
+
+  await withDenoCache(version, async () => {
+    const err = await assertRejects(
+      () => model.methods.run.execute({ args: ["eval", "Deno.exit(1)"] }, ctx),
+      Error,
+    );
+
+    assertEquals(err.message.includes("exited with code 1"), true);
+    assertEquals(writes.length, 1);
+    assertEquals(writes[0].data.exitCode, 1);
+  });
+});
+
+Deno.test("run method includes stderr in error message", async () => {
+  const version = "2.7.5";
+  const { ctx } = makeHarness({ version });
+
+  await withDenoCache(version, async () => {
+    const err = await assertRejects(
+      () =>
+        model.methods.run.execute(
+          { args: ["eval", "console.error('boom'); Deno.exit(2)"] },
+          ctx,
+        ),
+      Error,
+    );
+
+    assertEquals(err.message.includes("exited with code 2"), true);
+    assertEquals(err.message.includes("boom"), true);
+  });
+});
+
+Deno.test("task method throws on non-zero exit and still writes resource", async () => {
+  const version = "2.7.5";
+  const { ctx, writes } = makeHarness({ version });
+
+  await withDenoCache(
+    version,
+    async () => {
+      const err = await assertRejects(
+        () => model.methods.task.execute({ taskName: "fail-task" }, ctx),
+        Error,
+      );
+
+      assertEquals(err.message.includes("exited with code 1"), true);
+      assertEquals(err.message.includes("deno task fail-task"), true);
+      assertEquals(writes.length, 1);
+      assertEquals(writes[0].data.exitCode, 1);
+      assertEquals(writes[0].tags?.taskName, "fail-task");
+    },
+    async (tmpDir) => {
+      await Deno.writeTextFile(
+        `${tmpDir}/deno.json`,
+        JSON.stringify({ tasks: { "fail-task": "exit 1" } }),
+      );
+    },
+  );
 });

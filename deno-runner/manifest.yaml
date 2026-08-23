@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/deno-runner"
-version: "2026.08.22.1"
+version: "2026.08.23.1"
 description: |
   Install and run Deno commands. Manages Deno binary downloads with
   checksum verification and provides generic command execution for CI
@@ -14,8 +14,8 @@ description: |
   | Method    | What it does |
   | --------- | ------------ |
   | `install` | Ensure a specific Deno version is downloaded and cached. Returns the binary path and platform info. |
-  | `run`     | Run an arbitrary `deno` subcommand with the specified arguments (e.g. `check`, `test`, `lint`, `fmt`, `install --frozen`). |
-  | `task`    | Run a named task from `deno.json` with optional extra arguments. |
+  | `run`     | Run an arbitrary `deno` subcommand with the specified arguments (e.g. `check`, `test`, `lint`, `fmt`, `install --frozen`). Fails the step on non-zero exit. |
+  | `task`    | Run a named task from `deno.json` with optional extra arguments. Fails the step on non-zero exit. |
 
   ## Usage
 
