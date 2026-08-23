@@ -479,6 +479,9 @@ const GlobalArgsSchema = z.object({
         destPath: z.string().describe(
           "Required. Where should the files be placed on the worker.",
         ).optional(),
+        fetchTags: z.boolean().describe(
+          "Optional. True if remote tags should be fetched too (default false). Note: when depth is 1 (default), git fetch only retrieves tags pointing to commits within the shallow boundary. Set depth to -1 to fetch all historical tags.",
+        ).optional(),
         recurseSubmodules: z.boolean().describe(
           "Optional. True if submodules should be fetched too (default false).",
         ).optional(),
@@ -1546,6 +1549,7 @@ const StateSchema = z.object({
       gitSource: z.object({
         depth: z.string(),
         destPath: z.string(),
+        fetchTags: z.boolean(),
         recurseSubmodules: z.boolean(),
         repository: z.object({
           developerConnect: z.unknown(),
@@ -1829,43 +1833,6 @@ const StateSchema = z.object({
     installationId: z.string(),
     name: z.string(),
     owner: z.string(),
-    pullRequest: z.object({
-      branch: z.string(),
-      commentControl: z.string(),
-      invertRegex: z.boolean(),
-    }),
-    push: z.object({
-      branch: z.string(),
-      invertRegex: z.boolean(),
-      tag: z.string(),
-    }),
-  }).optional(),
-  gitlabEnterpriseEventsConfig: z.object({
-    gitlabConfig: z.object({
-      connectedRepositories: z.array(z.object({
-        id: z.string(),
-        webhookId: z.number(),
-      })),
-      createTime: z.string(),
-      enterpriseConfig: z.object({
-        hostUri: z.string(),
-        serviceDirectoryConfig: z.object({
-          service: z.string(),
-        }),
-        sslCa: z.string(),
-      }),
-      name: z.string(),
-      secrets: z.object({
-        apiAccessTokenVersion: z.string(),
-        apiKeyVersion: z.string(),
-        readAccessTokenVersion: z.string(),
-        webhookSecretVersion: z.string(),
-      }),
-      username: z.string(),
-      webhookKey: z.string(),
-    }),
-    gitlabConfigResource: z.string(),
-    projectNamespace: z.string(),
     pullRequest: z.object({
       branch: z.string(),
       commentControl: z.string(),
@@ -2238,6 +2205,9 @@ const InputsSchema = z.object({
         ).optional(),
         destPath: z.string().describe(
           "Required. Where should the files be placed on the worker.",
+        ).optional(),
+        fetchTags: z.boolean().describe(
+          "Optional. True if remote tags should be fetched too (default false). Note: when depth is 1 (default), git fetch only retrieves tags pointing to commits within the shallow boundary. Set depth to -1 to fetch all historical tags.",
         ).optional(),
         recurseSubmodules: z.boolean().describe(
           "Optional. True if submodules should be fetched too (default false).",
@@ -3212,7 +3182,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build Triggers. Registered at `@swamp/gcp/cloudbuild/triggers`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/triggers",
-  version: "2026.08.18.1",
+  version: "2026.08.23.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -3231,6 +3201,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.23.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

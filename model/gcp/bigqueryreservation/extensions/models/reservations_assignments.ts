@@ -146,6 +146,22 @@ const GlobalArgsSchema = z.object({
   assignee: z.string().describe(
     "Optional. The resource which will use the reservation. E.g. `projects/myproject`, `folders/123`, or `organizations/456`.",
   ).optional(),
+  condition: z.object({
+    description: z.string().describe(
+      "Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.",
+    ).optional(),
+    expression: z.string().describe(
+      "Textual representation of an expression in Common Expression Language syntax.",
+    ).optional(),
+    location: z.string().describe(
+      "Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.",
+    ).optional(),
+    title: z.string().describe(
+      "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
+    ).optional(),
+  }).describe(
+    "Optional. Common Expression Language (CEL) condition that defines the matching criteria for this assignment. The condition must resolve to a boolean value. Supported variables will be added later.",
+  ).optional(),
   jobType: z.enum([
     "JOB_TYPE_UNSPECIFIED",
     "PIPELINE",
@@ -159,6 +175,9 @@ const GlobalArgsSchema = z.object({
     "AUTOMATIC_MATERIALIZED_VIEW_REFRESH",
   ]).describe("Optional. Which type of jobs will use the reservation.")
     .optional(),
+  precedence: z.string().describe(
+    "Optional. Specifies the priority precedence for this assignment. Used to resolve ambiguity when multiple assignments match a single job. Higher numerical values represent higher priority (e.g., 20 is higher than 10). If unspecified, it defaults to 0. Multiple assignments can share the same precedence, but it is recommended to use unique precedence values for assignments within the same assignee scope.",
+  ).optional(),
   principal: z.string().describe(
     "Optional. Represents the principal for this assignment. If not empty, jobs run by this principal will utilize the associated reservation. Otherwise, jobs will fall back to using the reservation assigned to the project, folder, or organization (in that order). If no reservation is assigned at any of these levels, on-demand capacity will be used. The supported formats are: * `principal://goog/subject/USER_EMAIL_ADDRESS` for users, * `principal://iam.googleapis.com/projects/-/serviceAccounts/SA_EMAIL_ADDRESS` for service accounts, * `principal://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/subject/SUBJECT_ID` for workload identity pool identities. * The special value `unknown_or_deleted_user` represents principals which cannot be read from the user info service, for example deleted users.",
   ).optional(),
@@ -185,9 +204,16 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   assignee: z.string().optional(),
+  condition: z.object({
+    description: z.string(),
+    expression: z.string(),
+    location: z.string(),
+    title: z.string(),
+  }).optional(),
   enableGeminiInBigquery: z.boolean().optional(),
   jobType: z.string().optional(),
   name: z.string(),
+  precedence: z.string().optional(),
   principal: z.string().optional(),
   schedulingPolicy: z.object({
     concurrency: z.string(),
@@ -209,6 +235,22 @@ const InputsSchema = z.object({
   assignee: z.string().describe(
     "Optional. The resource which will use the reservation. E.g. `projects/myproject`, `folders/123`, or `organizations/456`.",
   ).optional(),
+  condition: z.object({
+    description: z.string().describe(
+      "Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.",
+    ).optional(),
+    expression: z.string().describe(
+      "Textual representation of an expression in Common Expression Language syntax.",
+    ).optional(),
+    location: z.string().describe(
+      "Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.",
+    ).optional(),
+    title: z.string().describe(
+      "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
+    ).optional(),
+  }).describe(
+    "Optional. Common Expression Language (CEL) condition that defines the matching criteria for this assignment. The condition must resolve to a boolean value. Supported variables will be added later.",
+  ).optional(),
   jobType: z.enum([
     "JOB_TYPE_UNSPECIFIED",
     "PIPELINE",
@@ -222,6 +264,9 @@ const InputsSchema = z.object({
     "AUTOMATIC_MATERIALIZED_VIEW_REFRESH",
   ]).describe("Optional. Which type of jobs will use the reservation.")
     .optional(),
+  precedence: z.string().describe(
+    "Optional. Specifies the priority precedence for this assignment. Used to resolve ambiguity when multiple assignments match a single job. Higher numerical values represent higher priority (e.g., 20 is higher than 10). If unspecified, it defaults to 0. Multiple assignments can share the same precedence, but it is recommended to use unique precedence values for assignments within the same assignee scope.",
+  ).optional(),
   principal: z.string().describe(
     "Optional. Represents the principal for this assignment. If not empty, jobs run by this principal will utilize the associated reservation. Otherwise, jobs will fall back to using the reservation assigned to the project, folder, or organization (in that order). If no reservation is assigned at any of these levels, on-demand capacity will be used. The supported formats are: * `principal://goog/subject/USER_EMAIL_ADDRESS` for users, * `principal://iam.googleapis.com/projects/-/serviceAccounts/SA_EMAIL_ADDRESS` for service accounts, * `principal://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/subject/SUBJECT_ID` for workload identity pool identities. * The special value `unknown_or_deleted_user` represents principals which cannot be read from the user info service, for example deleted users.",
   ).optional(),
@@ -272,7 +317,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Reservation Reservations.Assignments. Registered at `@swamp/gcp/bigqueryreservation/reservations-assignments`. */
 export const model = {
   type: "@swamp/gcp/bigqueryreservation/reservations-assignments",
-  version: "2026.08.13.1",
+  version: "2026.08.23.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -444,6 +489,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.23.1",
+      description: "Added: condition, precedence",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -474,7 +524,9 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (g["assignee"] !== undefined) body["assignee"] = g["assignee"];
+        if (g["condition"] !== undefined) body["condition"] = g["condition"];
         if (g["jobType"] !== undefined) body["jobType"] = g["jobType"];
+        if (g["precedence"] !== undefined) body["precedence"] = g["precedence"];
         if (g["principal"] !== undefined) body["principal"] = g["principal"];
         if (g["schedulingPolicy"] !== undefined) {
           body["schedulingPolicy"] = g["schedulingPolicy"];
@@ -582,7 +634,9 @@ export const model = {
         params["name"] = existing["name"]?.toString() ?? "";
         const body: Record<string, unknown> = {};
         if (g["assignee"] !== undefined) body["assignee"] = g["assignee"];
+        if (g["condition"] !== undefined) body["condition"] = g["condition"];
         if (g["jobType"] !== undefined) body["jobType"] = g["jobType"];
+        if (g["precedence"] !== undefined) body["precedence"] = g["precedence"];
         if (g["principal"] !== undefined) body["principal"] = g["principal"];
         if (g["schedulingPolicy"] !== undefined) {
           body["schedulingPolicy"] = g["schedulingPolicy"];

@@ -173,8 +173,10 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  creationTime: z.string().optional(),
   name: z.string(),
   parentGroup: z.string().optional(),
+  updateTime: z.string().optional(),
 }).passthrough();
 
 type StateData = z.infer<typeof StateSchema>;
@@ -226,7 +228,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud BigQuery Reservation ReservationGroups. Registered at `@swamp/gcp/bigqueryreservation/reservationgroups`. */
 export const model = {
   type: "@swamp/gcp/bigqueryreservation/reservationgroups",
-  version: "2026.08.12.2",
+  version: "2026.08.23.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -350,6 +352,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.23.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

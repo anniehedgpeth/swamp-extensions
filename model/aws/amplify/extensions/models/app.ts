@@ -84,7 +84,7 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
-  AccessToken: z.string().min(1).max(255).optional(),
+  AccessToken: z.string().min(1).max(4096).optional(),
   AutoBranchCreationConfig: z.object({
     AutoBranchCreationPatterns: z.array(z.string().min(1).max(2048)).optional(),
     BasicAuthConfig: BasicAuthConfigSchema.optional(),
@@ -126,7 +126,7 @@ const GlobalArgsSchema = z.object({
   IAMServiceRole: z.string().min(1).max(1000).regex(new RegExp(".*", "s"))
     .optional(),
   Name: z.string().min(1).max(255).regex(new RegExp(".+", "s")),
-  OauthToken: z.string().max(1000).regex(new RegExp(".*", "s")).optional(),
+  OauthToken: z.string().max(4096).regex(new RegExp(".*", "s")).optional(),
   Platform: z.enum(["WEB", "WEB_DYNAMIC", "WEB_COMPUTE"]).optional(),
   Repository: z.string().regex(new RegExp(".*", "s")).optional(),
   Tags: z.array(TagSchema).optional(),
@@ -184,7 +184,7 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
-  AccessToken: z.string().min(1).max(255).optional(),
+  AccessToken: z.string().min(1).max(4096).optional(),
   AutoBranchCreationConfig: z.object({
     AutoBranchCreationPatterns: z.array(z.string().min(1).max(2048)).optional(),
     BasicAuthConfig: BasicAuthConfigSchema.optional(),
@@ -226,7 +226,7 @@ const InputsSchema = z.object({
   IAMServiceRole: z.string().min(1).max(1000).regex(new RegExp(".*", "s"))
     .optional(),
   Name: z.string().min(1).max(255).regex(new RegExp(".+", "s")).optional(),
-  OauthToken: z.string().max(1000).regex(new RegExp(".*", "s")).optional(),
+  OauthToken: z.string().max(4096).regex(new RegExp(".*", "s")).optional(),
   Platform: z.enum(["WEB", "WEB_DYNAMIC", "WEB_COMPUTE"]).optional(),
   Repository: z.string().regex(new RegExp(".*", "s")).optional(),
   Tags: z.array(TagSchema).optional(),
@@ -255,7 +255,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Amplify App. Registered at `@swamp/aws/amplify/app`. */
 export const model = {
   type: "@swamp/aws/amplify/app",
-  version: "2026.08.17.2",
+  version: "2026.08.23.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -304,6 +304,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.23.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

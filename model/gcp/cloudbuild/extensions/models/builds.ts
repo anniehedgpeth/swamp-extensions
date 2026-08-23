@@ -287,6 +287,9 @@ const GlobalArgsSchema = z.object({
       destPath: z.string().describe(
         "Required. Where should the files be placed on the worker.",
       ).optional(),
+      fetchTags: z.boolean().describe(
+        "Optional. True if remote tags should be fetched too (default false). Note: when depth is 1 (default), git fetch only retrieves tags pointing to commits within the shallow boundary. Set depth to -1 to fetch all historical tags.",
+      ).optional(),
       recurseSubmodules: z.boolean().describe(
         "Optional. True if submodules should be fetched too (default false).",
       ).optional(),
@@ -709,6 +712,7 @@ const StateSchema = z.object({
     gitSource: z.object({
       depth: z.string(),
       destPath: z.string(),
+      fetchTags: z.boolean(),
       recurseSubmodules: z.boolean(),
       repository: z.object({
         developerConnect: z.string(),
@@ -1121,6 +1125,9 @@ const InputsSchema = z.object({
       destPath: z.string().describe(
         "Required. Where should the files be placed on the worker.",
       ).optional(),
+      fetchTags: z.boolean().describe(
+        "Optional. True if remote tags should be fetched too (default false). Note: when depth is 1 (default), git fetch only retrieves tags pointing to commits within the shallow boundary. Set depth to -1 to fetch all historical tags.",
+      ).optional(),
       recurseSubmodules: z.boolean().describe(
         "Optional. True if submodules should be fetched too (default false).",
       ).optional(),
@@ -1490,7 +1497,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build Builds. Registered at `@swamp/gcp/cloudbuild/builds`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/builds",
-  version: "2026.08.12.2",
+  version: "2026.08.23.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -1499,6 +1506,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.23.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
