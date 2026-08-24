@@ -59,12 +59,14 @@ jobs:
         chunk: ${{ fromJson(needs.detect-changes.outputs.chunks) }}
     steps:
       - uses: actions/checkout@v6
-      - uses: systeminit/setup-swamp@v0.1.0
+      - name: Install swamp
         timeout-minutes: 3
-        with:
-          api-key: ${{ secrets.SWAMP_API_KEY }}
+        env:
+          SWAMP_NONINTERACTIVE: "1"
+        run: curl -fsSL https://swamp-club.com/install.sh | sh
       - name: Publish extensions
         env:
+          SWAMP_API_KEY: ${{ secrets.SWAMP_API_KEY }}
           CHUNK: ${{ toJson(matrix.chunk) }}
         run: |
           readarray -t DIRS < <(echo "$CHUNK" | python3 -c "import sys,json; [print(d) for d in json.load(sys.stdin)]")
