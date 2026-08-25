@@ -74,6 +74,26 @@ swamp model method run repo status \
   --json
 ```
 
+### Look Up a Remote Ref (Pre-commit Base Check)
+
+```bash
+# Get the current SHA of refs/heads/main on origin
+swamp model method run repo remote_ref \
+  --input ref=refs/heads/main \
+  --json
+
+# Shorthand ref (git ls-remote resolves it)
+swamp model method run repo remote_ref \
+  --input ref=main \
+  --json
+
+# Check a different remote
+swamp model method run repo remote_ref \
+  --input remote=upstream \
+  --input ref=refs/heads/main \
+  --json
+```
+
 ### Check Upstream / Push State
 
 ```bash
@@ -292,6 +312,7 @@ swamp data query repo 'tags.clean == "false"'
 | `clone`  | Clone a repository with configurable depth, branch, and auth token |
 | `diff`   | Show changes between refs — name-only file lists, stat summaries, or full diffs |
 | `status` | Working tree status with structured entries and clean/dirty flag |
+| `remote_ref` | Look up the SHA of a named ref on a remote via git ls-remote (read-only) |
 | `upstream_state` | Tracking-branch state: configured upstream, tracking-ref availability, ahead/behind counts, pushed/synced flags |
 | `log`    | Commit history with structured entries (SHA, author, date, message) |
 | `commit` | Stage files and create a commit |
@@ -310,6 +331,7 @@ swamp data query repo 'tags.clean == "false"'
 | `cloneResult`  | Clone path, URL, depth, branch |
 | `diffResult`   | Changed files array, raw diff, count, base/head refs |
 | `statusResult` | Status entries with path and status code, clean flag, count |
+| `remoteRefResult` | Remote name, resolved ref, and SHA from git ls-remote |
 | `upstreamStateResult` | Branch, upstream, configuredUpstream, trackingRefAvailable, ahead/behind counts (nullable), pushed/synced flags (nullable) |
 | `logResult`    | Structured commit entries (SHA, author, date, message) |
 | `commitResult` | Commit SHA and message |
@@ -325,8 +347,8 @@ swamp data query repo 'tags.clean == "false"'
 
 | Check              | Applies To | Description |
 | ------------------ | ---------- | ----------- |
-| `git-available`    | all 13 methods | Verifies `git` binary is on PATH |
-| `repo-initialized` | all except `clone` | Verifies `repoPath` is inside a git work tree |
+| `git-available`    | all 14 methods | Verifies `git` binary is on PATH |
+| `repo-initialized` | all except `clone` and `remote_ref` | Verifies `repoPath` is inside a git work tree |
 
 ## License
 

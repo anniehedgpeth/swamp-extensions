@@ -23,6 +23,8 @@ import {
   PullResultSchema,
   PushArgsSchema,
   PushResultSchema,
+  RemoteRefArgsSchema,
+  RemoteRefResultSchema,
   StatusArgsSchema,
   StatusResultSchema,
   UpstreamStateArgsSchema,
@@ -40,6 +42,7 @@ import {
   runLog,
   runPull,
   runPush,
+  runRemoteRef,
   runStatus,
   runUpstreamState,
 } from "./_lib/operations.ts";
@@ -55,7 +58,7 @@ import type { GitContext } from "./_lib/types.ts";
 /** Git model — clone, diff, status, log, commit, amend, push, pull, fetch, cherry_pick, branch, config, upstream_state. */
 export const model = {
   type: "@swamp/git",
-  version: "2026.08.20.1",
+  version: "2026.08.25.1",
 
   globalArguments: GlobalArgsSchema,
 
@@ -104,6 +107,14 @@ export const model = {
       toVersion: "2026.08.20.1",
       description:
         "Add amend method for rewriting the most recent commit. Add forceWithLease to push for safer force-pushes. No globalArguments changes.",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ): Record<string, unknown> => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
+      description:
+        "Add remote_ref method for read-only remote ref SHA lookup via git ls-remote. No globalArguments changes.",
       upgradeAttributes: (
         old: Record<string, unknown>,
       ): Record<string, unknown> => old,
@@ -188,6 +199,13 @@ export const model = {
       lifetime: "ephemeral" as const,
       garbageCollection: 5,
     },
+    remoteRefResult: {
+      description:
+        "Remote ref lookup result: remote name, resolved ref, and SHA",
+      schema: RemoteRefResultSchema,
+      lifetime: "ephemeral" as const,
+      garbageCollection: 5,
+    },
     upstreamStateResult: {
       description:
         "Tracking-branch state: branch, upstream, configuredUpstream, trackingRefAvailable, ahead/behind counts (nullable), pushed/synced flags (nullable)",
@@ -216,6 +234,7 @@ export const model = {
         "cherry_pick",
         "branch",
         "config",
+        "remote_ref",
         "upstream_state",
       ],
       execute: checkGitAvailable,
@@ -320,6 +339,15 @@ export const model = {
       arguments: ConfigArgsSchema,
       execute: (args: z.input<typeof ConfigArgsSchema>, ctx: GitContext) =>
         runConfig(ConfigArgsSchema.parse(args), ctx),
+    },
+    remote_ref: {
+      description:
+        "Look up the SHA of a named ref on a remote via git ls-remote (read-only, no worktree mutation)",
+      arguments: RemoteRefArgsSchema,
+      execute: (
+        args: z.input<typeof RemoteRefArgsSchema>,
+        ctx: GitContext,
+      ) => runRemoteRef(RemoteRefArgsSchema.parse(args), ctx),
     },
     upstream_state: {
       description:

@@ -312,6 +312,27 @@ export const ConfigResultSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// remote_ref
+// ---------------------------------------------------------------------------
+
+export const RemoteRefArgsSchema = z.object({
+  remote: safeRefOptional
+    .describe("Remote name (defaults to global remote)"),
+  ref: safeRef
+    .describe(
+      "Ref to look up (e.g. 'refs/heads/main', 'main', 'v1.0.0'). Fully-qualified refs avoid ambiguity.",
+    ),
+});
+
+export type RemoteRefArgs = z.infer<typeof RemoteRefArgsSchema>;
+
+export const RemoteRefResultSchema = z.object({
+  remote: z.string(),
+  ref: z.string(),
+  sha: z.string(),
+});
+
+// ---------------------------------------------------------------------------
 // upstream_state
 // ---------------------------------------------------------------------------
 

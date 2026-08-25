@@ -15,6 +15,7 @@ import type {
   LogArgs,
   PullArgs,
   PushArgs,
+  RemoteRefArgs,
   StatusArgs,
   UpstreamStateArgs,
 } from "./schemas.ts";
@@ -1269,4 +1270,93 @@ export async function runUpstreamState(
       }
     },
   );
+}
+
+// ---------------------------------------------------------------------------
+// remote-ref
+// ---------------------------------------------------------------------------
+
+export async function runRemoteRef(
+  args: RemoteRefArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan("git.remote-ref", async (span) => {
+    try {
+      const globals = resolveGlobalArgs(ctx.globalArgs);
+      const remote = args.remote || globals.remote;
+
+      const argv = ["ls-remote", "--", remote, args.ref];
+
+      const result = await execGit(argv, {
+        cwd: globals.repoPath,
+        signal: ctx.signal,
+      });
+      if (result.exitCode !== 0) {
+        throw new Error(
+          `git ls-remote failed (exit ${result.exitCode}): ${result.stderr}`,
+        );
+      }
+
+      const lines = result.stdout
+        .split("\n")
+        .filter((l) => l.trim().length > 0)
+        .filter((l) => !l.endsWith("^{}"));
+
+      if (lines.length === 0) {
+        throw new Error(
+          `ref not found: '${args.ref}' does not exist on remote '${remote}'`,
+        );
+      }
+
+      if (lines.length > 1) {
+        const refs = lines.map((l) => l.split("\t")[1] || l).join(", ");
+        throw new Error(
+          `ambiguous ref: '${args.ref}' matches multiple refs on remote '${remote}': ${refs}`,
+        );
+      }
+
+      const parts = lines[0].split("\t");
+      if (parts.length < 2) {
+        throw new Error(
+          `unexpected ls-remote output: ${lines[0]}`,
+        );
+      }
+
+      const sha = parts[0].trim();
+      const resolvedRef = parts[1].trim();
+
+      span.setAttribute(Attr.METHOD, "remote-ref");
+      span.setAttribute(Attr.REMOTE, remote);
+      span.setAttribute(Attr.REF, resolvedRef);
+      span.setAttribute(Attr.EXIT_CODE, result.exitCode);
+
+      ctx.logger.info(
+        `${resolvedRef} on ${remote}: ${sha.substring(0, 8)}`,
+      );
+
+      const safeRef = resolvedRef.replace(/\//g, "-");
+      const handle = await ctx.writeResource(
+        "remoteRefResult",
+        `remote-ref-${safeRef}`,
+        {
+          remote,
+          ref: resolvedRef,
+          sha,
+        },
+        {
+          tags: { method: "remote-ref", remote, ref: resolvedRef },
+        },
+      );
+
+      return { dataHandles: [handle] };
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }

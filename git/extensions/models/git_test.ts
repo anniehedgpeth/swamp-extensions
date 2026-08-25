@@ -99,9 +99,9 @@ Deno.test("globalArguments accepts full config", () => {
 // Resource declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 13 resource specs exist", () => {
+Deno.test("all 14 resource specs exist", () => {
   const names = Object.keys(model.resources);
-  assertEquals(names.length, 13);
+  assertEquals(names.length, 14);
   for (
     const name of [
       "cloneResult",
@@ -116,6 +116,7 @@ Deno.test("all 13 resource specs exist", () => {
       "pullResult",
       "fetchResult",
       "cherryPickResult",
+      "remoteRefResult",
       "upstreamStateResult",
     ]
   ) {
@@ -142,9 +143,9 @@ Deno.test("resources have description and schema", () => {
 // Method declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 13 methods exist", () => {
+Deno.test("all 14 methods exist", () => {
   const names = Object.keys(model.methods);
-  assertEquals(names.length, 13);
+  assertEquals(names.length, 14);
   for (
     const name of [
       "clone",
@@ -159,6 +160,7 @@ Deno.test("all 13 methods exist", () => {
       "cherry_pick",
       "branch",
       "config",
+      "remote_ref",
       "upstream_state",
     ]
   ) {
@@ -208,15 +210,23 @@ Deno.test("git-available check exists and covers all methods", () => {
     true,
   );
   assertEquals(
+    model.checks["git-available"].appliesTo.includes("remote_ref"),
+    true,
+  );
+  assertEquals(
     model.checks["git-available"].appliesTo.includes("upstream_state"),
     true,
   );
 });
 
-Deno.test("repo-initialized check exists and excludes clone", () => {
+Deno.test("repo-initialized check exists and excludes clone and remote_ref", () => {
   assertEquals(typeof model.checks["repo-initialized"].execute, "function");
   assertEquals(
     model.checks["repo-initialized"].appliesTo.includes("clone"),
+    false,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("remote_ref"),
     false,
   );
   assertEquals(
@@ -2476,6 +2486,232 @@ Deno.test("push forceWithLease passes --force-with-lease", async () => {
     assertEquals(calls[0].includes("--force"), false);
     assertEquals(writes[0].data.forced, true);
     assertEquals(writes[0].data.forceWithLease, true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// remote_ref schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("RemoteRefArgs requires ref", () => {
+  const result = model.methods.remote_ref.arguments.safeParse({});
+  assertEquals(result.success, false);
+});
+
+Deno.test("RemoteRefArgs accepts ref only (remote defaults)", () => {
+  const result = model.methods.remote_ref.arguments.parse({
+    ref: "refs/heads/main",
+  });
+  assertEquals(result.ref, "refs/heads/main");
+  assertEquals(result.remote, undefined);
+});
+
+Deno.test("RemoteRefArgs accepts ref and remote", () => {
+  const result = model.methods.remote_ref.arguments.parse({
+    remote: "upstream",
+    ref: "refs/heads/main",
+  });
+  assertEquals(result.remote, "upstream");
+  assertEquals(result.ref, "refs/heads/main");
+});
+
+Deno.test("RemoteRefArgs rejects ref starting with dash", () => {
+  const result = model.methods.remote_ref.arguments.safeParse({
+    ref: "--upload-pack",
+  });
+  assertEquals(result.success, false);
+});
+
+Deno.test("RemoteRefArgs rejects remote starting with dash", () => {
+  const result = model.methods.remote_ref.arguments.safeParse({
+    remote: "--upload-pack",
+    ref: "main",
+  });
+  assertEquals(result.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// remote_ref operation
+// ---------------------------------------------------------------------------
+
+Deno.test("remote_ref: single ref found", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("abc1234def5678901234567890abcdef12345678\trefs/heads/main\n");
+  });
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.remote_ref.execute(
+      { ref: "refs/heads/main" },
+      ctx,
+    );
+
+    const argv = calls[0];
+    assertEquals(argv.includes("ls-remote"), true);
+    assertEquals(argv.includes("origin"), true);
+    assertEquals(argv.includes("refs/heads/main"), true);
+    const dashIdx = argv.indexOf("--");
+    assertEquals(
+      dashIdx > 0,
+      true,
+      "ls-remote must use -- before positional args",
+    );
+
+    assertEquals(writes.length, 1);
+    assertEquals(writes[0].specName, "remoteRefResult");
+    assertEquals(writes[0].data.remote, "origin");
+    assertEquals(writes[0].data.ref, "refs/heads/main");
+    assertEquals(
+      writes[0].data.sha,
+      "abc1234def5678901234567890abcdef12345678",
+    );
+    assertEquals(writes[0].name, "remote-ref-refs-heads-main");
+    assertEquals(writes[0].tags?.method, "remote-ref");
+
+    assertEquals(logs.some((l) => l.message.includes("abc1234d")), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remote_ref: shorthand ref resolved", async () => {
+  setCommandExecutor(() =>
+    ok("abc1234def5678901234567890abcdef12345678\trefs/heads/main\n")
+  );
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.remote_ref.execute({ ref: "main" }, ctx);
+
+    assertEquals(writes[0].data.ref, "refs/heads/main");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remote_ref: override remote", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("abc1234def5678901234567890abcdef12345678\trefs/heads/main\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.remote_ref.execute(
+      { remote: "upstream", ref: "main" },
+      ctx,
+    );
+
+    assertEquals(calls[0].includes("upstream"), true);
+    assertEquals(writes[0].data.remote, "upstream");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remote_ref: absent ref throws", async () => {
+  setCommandExecutor(() => ok(""));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.remote_ref.execute({ ref: "nonexistent" }, ctx),
+      Error,
+      "ref not found",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remote_ref: ambiguous ref throws with ref list", async () => {
+  setCommandExecutor(() =>
+    ok(
+      "abc1234def5678901234567890abcdef12345678\trefs/heads/main\n" +
+        "def5678abc1234901234567890abcdef12345678\trefs/tags/main\n",
+    )
+  );
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.remote_ref.execute({ ref: "main" }, ctx),
+      Error,
+      "ambiguous ref",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remote_ref: peeled tag entries filtered out", async () => {
+  setCommandExecutor(() =>
+    ok(
+      "abc1234def5678901234567890abcdef12345678\trefs/tags/v1.0.0\n" +
+        "def5678abc1234901234567890abcdef12345678\trefs/tags/v1.0.0^{}\n",
+    )
+  );
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.remote_ref.execute({ ref: "v1.0.0" }, ctx);
+
+    assertEquals(writes[0].data.ref, "refs/tags/v1.0.0");
+    assertEquals(
+      writes[0].data.sha,
+      "abc1234def5678901234567890abcdef12345678",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remote_ref: git ls-remote failure throws", async () => {
+  setCommandExecutor(() => fail("fatal: could not read from remote"));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.remote_ref.execute({ ref: "refs/heads/main" }, ctx),
+      Error,
+      "git ls-remote failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remote_ref: uses repoPath from globalArgs", async () => {
+  const calls: { argv: string[]; opts?: { cwd?: string } }[] = [];
+  setCommandExecutor((argv, opts) => {
+    calls.push({ argv, opts });
+    return ok("abc1234def5678901234567890abcdef12345678\trefs/heads/main\n");
+  });
+  try {
+    const { ctx } = makeHarness({ repoPath: "/my/repo" });
+    await model.methods.remote_ref.execute(
+      { ref: "refs/heads/main" },
+      ctx,
+    );
+
+    assertEquals(calls[0].opts?.cwd, "/my/repo");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remote_ref: signal passed to executor", async () => {
+  let receivedSignal: AbortSignal | undefined;
+  const ac = new AbortController();
+  setCommandExecutor((_argv, opts) => {
+    receivedSignal = opts?.signal;
+    return ok("abc1234def5678901234567890abcdef12345678\trefs/heads/main\n");
+  });
+  try {
+    const { ctx } = makeHarness({}, { signal: ac.signal });
+    await model.methods.remote_ref.execute(
+      { ref: "refs/heads/main" },
+      ctx,
+    );
+    assertEquals(receivedSignal, ac.signal);
   } finally {
     resetCommandExecutor();
   }

@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/git"
-version: "2026.08.20.1"
+version: "2026.08.25.1"
 description: |
   Git repository operations for swamp workflows. Wraps the git CLI
   and returns structured data (file lists, commit objects, status
@@ -18,6 +18,7 @@ description: |
   | `clone`  | Clone a repository with configurable depth, branch, and auth. |
   | `diff`   | Show changes between refs — name-only file lists, stat summaries, or full diffs. |
   | `status` | Working tree status with structured entries and clean/dirty flag. |
+  | `remote_ref` | Look up the SHA of a named ref on a remote via git ls-remote (read-only). |
   | `upstream_state` | Tracking-branch state: configured upstream, tracking-ref availability, ahead/behind counts, pushed/synced flags. |
   | `log`    | Commit history with structured entries (SHA, author, date, message). |
   | `commit` | Stage files and create a commit. |
