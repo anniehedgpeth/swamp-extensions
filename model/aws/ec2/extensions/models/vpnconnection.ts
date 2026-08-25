@@ -261,7 +261,7 @@ const GlobalArgsSchema = z.object({
     "The ID of the VPN concentrator to associate with the VPN connection.",
   ).optional(),
   PreSharedKeyStorage: z.enum(["Standard", "SecretsManager"]).describe(
-    "Describes the storage location for an instance store-backed AMI.",
+    "Specifies the storage mode for the pre-shared key (PSK). Valid values are Standard (stored in the S2Slong service) or SecretsManager (stored in AWS Secrets Manager).",
   ).optional(),
   TransportTransitGatewayAttachmentId: z.string().describe(
     "The transit gateway attachment ID to use for the VPN tunnel. Required if OutsideIpAddressType is set to PrivateIpv4.",
@@ -344,7 +344,7 @@ const InputsSchema = z.object({
     "The ID of the VPN concentrator to associate with the VPN connection.",
   ).optional(),
   PreSharedKeyStorage: z.enum(["Standard", "SecretsManager"]).describe(
-    "Describes the storage location for an instance store-backed AMI.",
+    "Specifies the storage mode for the pre-shared key (PSK). Valid values are Standard (stored in the S2Slong service) or SecretsManager (stored in AWS Secrets Manager).",
   ).optional(),
   TransportTransitGatewayAttachmentId: z.string().describe(
     "The transit gateway attachment ID to use for the VPN tunnel. Required if OutsideIpAddressType is set to PrivateIpv4.",
@@ -378,7 +378,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EC2 VPNConnection. Registered at `@swamp/aws/ec2/vpnconnection`. */
 export const model = {
   type: "@swamp/aws/ec2/vpnconnection",
-  version: "2026.08.17.2",
+  version: "2026.08.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -432,6 +432,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

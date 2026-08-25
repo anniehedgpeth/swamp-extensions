@@ -22,6 +22,14 @@ export async function enrichState(
   const id = state.DBClusterIdentifier;
   if (!id) return state;
   try {
+    // disableImdsIfOffEc2 inlined — enrichments run at codegen time, not extension runtime
+    if (
+      !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
+      !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
+      !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
+    ) {
+      Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
+    }
     const rdsClient = new RDSClient({
       region: Deno.env.get("AWS_REGION") || "us-east-1",
     });

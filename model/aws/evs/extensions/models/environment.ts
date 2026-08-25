@@ -53,7 +53,7 @@ const InitialVlanInfoSchema = z.object({
 const HostInfoForCreateSchema = z.object({
   HostName: z.string().regex(new RegExp("^([a-zA-Z0-9\\-]*)$")),
   KeyName: z.string().min(1).max(255).regex(new RegExp("^[a-zA-Z0-9_-]+$")),
-  InstanceType: z.enum(["i4i.metal", "i7i.metal-24xl"]),
+  InstanceType: z.enum(["i4i.metal", "i7i.metal-24xl", "i7i.metal-48xl"]),
   PlacementGroupId: z.string().min(1).max(25).regex(
     new RegExp("^pg-[a-f0-9]{8}([a-f0-9]{9})?$"),
   ).optional(),
@@ -312,7 +312,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EVS Environment. Registered at `@swamp/aws/evs/environment`. */
 export const model = {
   type: "@swamp/aws/evs/environment",
-  version: "2026.08.17.2",
+  version: "2026.08.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -371,6 +371,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

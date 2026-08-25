@@ -1,12 +1,17 @@
 // Generates _lib/aws.ts — shared CloudControl helpers for AWS extension models
 
 import { generateCopyrightHeader } from "../shared/licenseGenerator.ts";
+import { generateAwsCredentialSource } from "../shared/awsCredentials.ts";
 
 /**
  * Generates the shared helper file that all AWS extension models import.
  * Contains CloudControl client creation, retry logic, polling, and CRUD operations.
  */
 export function generateAwsLibFile(): string {
+  const credentialSource = generateAwsCredentialSource({
+    exported: false,
+    includePreflight: false,
+  });
   return `${generateCopyrightHeader()}
 
 // Auto-generated shared helper for AWS CloudControl extension models.
@@ -32,6 +37,28 @@ export interface AwsCredentials {
   region?: string;
 }
 
+${credentialSource}
+function parseAwsConfigSections(text: string): Map<string, Map<string, string>> {
+  const sections = new Map<string, Map<string, string>>();
+  let current: Map<string, string> | undefined;
+  for (const line of text.split("\\n")) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      const header = trimmed.slice(1, -1).trim();
+      current = new Map();
+      sections.set(header, current);
+      continue;
+    }
+    if (current && trimmed && !trimmed.startsWith("#")) {
+      const eq = trimmed.indexOf("=");
+      if (eq > 0) {
+        current.set(trimmed.slice(0, eq).trim(), trimmed.slice(eq + 1).trim());
+      }
+    }
+  }
+  return sections;
+}
+
 function resolveRegion(credentials?: AwsCredentials): string {
   if (credentials?.region) return credentials.region;
 
@@ -45,24 +72,27 @@ function resolveRegion(credentials?: AwsCredentials): string {
     const configPath = Deno.env.get("AWS_CONFIG_FILE") ??
       \`\${home}/.aws/config\`;
     const configText = Deno.readTextFileSync(configPath);
+    const sections = parseAwsConfigSections(configText);
 
-    const escaped = profile.replace(/[.*+?^\${}()|[\\]\\\\]/g, "\\\\$&");
-    const sectionHeader = profile === "default"
-      ? /^\\[default\\]/
-      : new RegExp(\`^\\\\[profile \\\\s*\${escaped}\\\\s*\\\\]\`);
+    const visited = new Set<string>();
+    let current = profile;
+    while (current && !visited.has(current)) {
+      visited.add(current);
+      const key = current === "default" ? "default" : \`profile \${current}\`;
+      const section = sections.get(key);
+      if (!section) break;
 
-    let inSection = false;
-    for (const line of configText.split("\\n")) {
-      const trimmed = line.trim();
-      if (sectionHeader.test(trimmed)) {
-        inSection = true;
-        continue;
+      const region = section.get("region");
+      if (region) return region;
+
+      const ssoSession = section.get("sso_session");
+      if (ssoSession) {
+        const sessionSection = sections.get(\`sso-session \${ssoSession}\`);
+        const ssoRegion = sessionSection?.get("sso_region");
+        if (ssoRegion) return ssoRegion;
       }
-      if (inSection && trimmed.startsWith("[")) break;
-      if (inSection) {
-        const match = trimmed.match(/^region\\s*=\\s*(.+)/);
-        if (match) return match[1].trim();
-      }
+
+      current = section.get("source_profile") ?? "";
     }
   } catch {
     // Config file not found or unreadable — fall through to default
@@ -72,6 +102,7 @@ function resolveRegion(credentials?: AwsCredentials): string {
 }
 
 function createClient(credentials?: AwsCredentials): CloudControlClient {
+  disableImdsIfOffEc2();
   const region = resolveRegion(credentials);
   const config: Record<string, unknown> = { region };
 
@@ -140,6 +171,20 @@ async function withRetry<T>(
         );
         await delay(exponentialDelay + jitter);
         continue;
+      }
+      if (error instanceof Error) {
+        const sdkErr = error as Error & {
+          $metadata?: { httpStatusCode?: number };
+          Code?: string;
+        };
+        const code = deriveAwsErrorCode(sdkErr);
+        const kind = classifyAwsCredentialError(code, sdkErr.$metadata?.httpStatusCode);
+        if (kind !== "other") {
+          const hint = formatAwsCredentialHint(kind, Deno.env.get("AWS_PROFILE"), "Model");
+          if (hint) {
+            throw new Error(hint + " " + error.message, { cause: error });
+          }
+        }
       }
       throw error;
     }

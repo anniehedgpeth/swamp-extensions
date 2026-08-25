@@ -311,6 +311,13 @@ async function enrichState(
   const id = state.DBClusterIdentifier;
   if (!id) return state;
   try {
+    if (
+      !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
+      !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
+      !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
+    ) {
+      Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
+    }
     const rdsClient = new RDSClient({
       region: Deno.env.get("AWS_REGION") || "us-east-1",
     });
@@ -364,6 +371,13 @@ async function listClusters(
   filters?: Array<{ Name: string; Values: string[] }>,
   maxPages = 10,
 ): Promise<Record<string, unknown>[]> {
+  if (
+    !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
+    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
+    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
+  ) {
+    Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
+  }
   const rdsClient = new RDSClient({
     region: Deno.env.get("AWS_REGION") || "us-east-1",
   });
@@ -762,7 +776,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for RDS DBCluster. Registered at `@swamp/aws/rds/dbcluster`. */
 export const model = {
   type: "@swamp/aws/rds/dbcluster",
-  version: "2026.08.17.1",
+  version: "2026.08.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -846,6 +860,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -956,7 +975,6 @@ export const model = {
           currentState,
           desiredState,
           [
-            "AvailabilityZones",
             "ClusterScalabilityType",
             "DBClusterIdentifier",
             "DBSubnetGroupName",

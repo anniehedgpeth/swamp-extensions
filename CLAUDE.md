@@ -49,6 +49,15 @@ deno task generate:digitalocean
 
 AWS and GCP support service filtering: `deno task generate:aws ec2 s3 lambda`
 
+```bash
+deno task generate:aws-credentials
+```
+
+Generates shared AWS credential utilities (IMDS skip, error classification,
+preflight check) into hand-written extension directories from the canonical
+source at `codegen/shared/awsCredentials.ts`. Generated files are
+auto-generated — do not hand-edit.
+
 **Note:** AWS and GCP models live under `model/aws/<service>/` and
 `model/gcp/<service>/` (one directory per service, ~249 AWS / ~260 GCP).
 Hetzner and DigitalOcean each have a single directory. Each service directory
@@ -93,6 +102,10 @@ Shared code in `codegen/shared/` handles:
 - `denoConfigGenerator.ts` — generated `deno.json` files
 - `manifestGenerator.ts` — generated `manifest.yaml` files
 - `version.ts` — CalVer versioning with content-based change detection
+- `awsCredentials.ts` — canonical AWS credential utilities (IMDS skip, error
+  classification, preflight check); generated into hand-written extensions via
+  `generate:aws-credentials` and inlined into generated models via
+  `libGenerator.ts`
 
 Design documents explain each provider's schema-to-model mapping decisions:
 

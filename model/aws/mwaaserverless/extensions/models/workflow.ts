@@ -42,6 +42,12 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
+const CodeS3LocationSchema = z.object({
+  Bucket: z.string().min(3).max(63),
+  ObjectKey: z.string().min(1).max(1024),
+  VersionId: z.string().min(1).max(1024).optional(),
+});
+
 const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
@@ -67,6 +73,11 @@ const GlobalArgsSchema = z.object({
     ObjectKey: z.string().min(1),
     VersionId: z.string().optional(),
   }),
+  Code: z.object({
+    S3Location: CodeS3LocationSchema.optional(),
+  }).describe(
+    "The location of code artifacts in Amazon S3 for the workflow. Modeled as a single-member container so it stays extensible to future artifact types (e.g. OCI images).",
+  ).optional(),
   RoleArn: z.string().min(1).max(2048).regex(
     new RegExp(
       "^arn:aws(?:-(?:cn|us-gov|iso|iso-b|iso-e|iso-f))?:iam::[0-9]{12}:role(/[a-zA-Z0-9+=,.@_-]{1,512})*?/[a-zA-Z0-9+=,.@_-]{1,64}$",
@@ -101,6 +112,10 @@ const StateSchema = z.object({
     ObjectKey: z.string(),
     VersionId: z.string(),
   }).optional(),
+  Code: z.object({
+    S3Location: CodeS3LocationSchema,
+  }).optional(),
+  CodeSnapshottedAt: z.string().optional(),
   RoleArn: z.string().optional(),
   EncryptionConfiguration: z.object({
     Type: z.string(),
@@ -141,6 +156,11 @@ const InputsSchema = z.object({
     ObjectKey: z.string().min(1).optional(),
     VersionId: z.string().optional(),
   }).optional(),
+  Code: z.object({
+    S3Location: CodeS3LocationSchema.optional(),
+  }).describe(
+    "The location of code artifacts in Amazon S3 for the workflow. Modeled as a single-member container so it stays extensible to future artifact types (e.g. OCI images).",
+  ).optional(),
   RoleArn: z.string().min(1).max(2048).regex(
     new RegExp(
       "^arn:aws(?:-(?:cn|us-gov|iso|iso-b|iso-e|iso-f))?:iam::[0-9]{12}:role(/[a-zA-Z0-9+=,.@_-]{1,512})*?/[a-zA-Z0-9+=,.@_-]{1,64}$",
@@ -185,7 +205,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for MWAAServerless Workflow. Registered at `@swamp/aws/mwaaserverless/workflow`. */
 export const model = {
   type: "@swamp/aws/mwaaserverless/workflow",
-  version: "2026.08.17.2",
+  version: "2026.08.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -235,6 +255,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.24.1",
+      description: "Added: Code",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -66,13 +66,6 @@ export interface S3ClientConfig {
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 
-/**
- * Timeout for the credential preflight check. Short enough to fail fast
- * when credentials are missing/expired, long enough for legitimate
- * credential chains (env → profile → SSO → container metadata) to resolve.
- */
-export const PREFLIGHT_TIMEOUT_MS = 3_000;
-
 export interface S3ListEntry {
   key: string;
   size: number;
@@ -131,95 +124,21 @@ export class S3OperationError extends Error {
   }
 }
 
-/**
- * Classification of AWS-SDK-surfaced credential failures. `session-expired`
- * means the credential resolver could not produce valid credentials (SSO
- * token expired, STS session aged out). `credentials-rejected` means
- * credentials were sent to AWS and explicitly rejected.
- */
-export type AwsCredentialErrorKind =
-  | "session-expired"
-  | "credentials-rejected"
-  | "other";
-
-/**
- * Classify an SDK error by its normalized `code` and HTTP `status`. Pure
- * function — takes primitives so it can be unit-tested without constructing
- * SDK error shapes. `code` is the value derived inside `wrapError` from
- * `e.Code ?? e.name ?? cause.name` (with leading-underscore strip for
- * minified class names).
- */
-export function classifyAwsCredentialError(
-  code: string | undefined,
-  status: number | undefined,
-): AwsCredentialErrorKind {
-  if (code === "CredentialsProviderError" || code === "ExpiredTokenException") {
-    return "session-expired";
-  }
-  if (
-    code === "InvalidAccessKeyId" ||
-    code === "SignatureDoesNotMatch" ||
-    (status === 403 && code === "AccessDenied")
-  ) {
-    return "credentials-rejected";
-  }
-  return "other";
-}
-
-/**
- * Derive a normalized error `code` string from an AWS SDK error. The SDK
- * surfaces codes in three places:
- *
- * 1. `e.Code` — XML/JSON-coded error from the service (e.g. `InvalidAccessKeyId`).
- * 2. `e.name` — the SDK's class name (e.g. `CredentialsProviderError`,
- *    `TimeoutError`). Generic `"Error"` is treated as no signal.
- * 3. `e.cause.name` — minified SDK builds wrap the real error class behind a
- *    generic outer error, with the underscored class name (e.g.
- *    `_CredentialsProviderError`) on the cause. Strip the leading underscore
- *    so the classifier can match the canonical name.
- *
- * Pure function — takes a structural shape so it can be unit-tested without
- * constructing real SDK errors.
- */
-export function deriveAwsErrorCode(e: {
-  Code?: string;
-  name?: string;
-  cause?: unknown;
-}): string | undefined {
-  if (e.Code) return e.Code;
-  if (e.name && e.name !== "Error") return e.name;
-  if (e.cause instanceof Error && e.cause.name && e.cause.name !== "Error") {
-    return e.cause.name.replace(/^_+/, "");
-  }
-  return undefined;
-}
-
-/**
- * Render a swamp-flavoured remediation hint for the classified credential
- * failure. The hint names the cause in swamp's vocabulary ("datastore session
- * expired") rather than S3's ("putObjectConditional failed") and points at a
- * concrete next action. Returns `undefined` for `kind === "other"` so the
- * caller can fall through to existing generic messaging.
- */
-export function formatAwsCredentialHint(
-  kind: AwsCredentialErrorKind,
-  awsProfile: string | undefined,
-): string | undefined {
-  if (kind === "session-expired") {
-    // Wrap the profile name in double quotes inside the single-quoted
-    // command so the copy-pasted shell command stays valid for profiles
-    // that contain spaces (uncommon but legal in AWS config).
-    const cmd = awsProfile
-      ? `aws sso login --profile "${awsProfile}"`
-      : `aws sso login`;
-    return `Datastore session expired: your AWS profile's SSO session is no longer valid. Run '${cmd}' to refresh, then retry.`;
-  }
-  if (kind === "credentials-rejected") {
-    const who = awsProfile ? `'${awsProfile}'` : `your AWS profile`;
-    return `Datastore credentials rejected by AWS: verify ${who}, environment variables, or credential provider, then retry.`;
-  }
-  return undefined;
-}
+import {
+  classifyAwsCredentialError,
+  deriveAwsErrorCode,
+  disableImdsIfOffEc2,
+  formatAwsCredentialHint,
+  preflightCredentials as runPreflightCredentials,
+} from "./aws_credentials.ts";
+export {
+  type AwsCredentialErrorKind,
+  classifyAwsCredentialError,
+  deriveAwsErrorCode,
+  disableImdsIfOffEc2,
+  formatAwsCredentialHint,
+  PREFLIGHT_TIMEOUT_MS,
+} from "./aws_credentials.ts";
 
 /**
  * Drain a Node Readable into a Uint8Array, capped at `maxBytes`. The AWS
@@ -338,19 +257,7 @@ export class S3Client {
     this.defaultRequestTimeoutMs = envTimeout ??
       config.defaultRequestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
 
-    // When not running in a container environment (ECS/EKS), disable the
-    // SDK's IMDS credential lookup. Off-cloud, the metadata endpoint is
-    // unreachable and the default 1s timeout adds latency to every
-    // credential resolution. The env var is process-wide (the SDK checks
-    // it lazily inside `remoteProvider`), but acceptable because swamp's
-    // datastore is the sole AWS SDK consumer in the process.
-    if (
-      !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
-      !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
-      !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
-    ) {
-      Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
-    }
+    disableImdsIfOffEc2();
 
     this.client = new AwsS3Client({
       region: config.region,
@@ -548,6 +455,7 @@ export class S3Client {
     const credentialHint = formatAwsCredentialHint(
       credentialKind,
       Deno.env.get("AWS_PROFILE"),
+      "Datastore",
     );
 
     const parts: string[] = [];
@@ -598,68 +506,34 @@ export class S3Client {
     );
   }
 
-  /**
-   * Bounded credential preflight: sends a HeadBucket racing against a
-   * `PREFLIGHT_TIMEOUT_MS` timer. Verifies that credentials are
-   * resolvable and the bucket is reachable before the first real
-   * operation. On credential failure the SDK error flows through
-   * `wrapError` → `classifyAwsCredentialError` →
-   * `formatAwsCredentialHint`, so the user sees an actionable message.
-   *
-   * Uses `Promise.race` rather than `AbortSignal.timeout` because the
-   * AWS SDK's NodeHttpHandler does not abort in-flight HTTP requests
-   * when an external signal fires — only the SDK's own `requestTimeout`
-   * terminates a hung connection.
-   */
   async preflightCredentials(signal?: AbortSignal): Promise<void> {
     return await getTracer().startActiveSpan(
       "S3 preflightCredentials",
       async (span) => {
         try {
-          const probe = this.headBucket(signal);
-          probe.catch(() => {});
-
-          let timer: ReturnType<typeof setTimeout>;
-          const timeout = new Promise<never>((_, reject) => {
-            timer = setTimeout(
-              () =>
-                reject(
-                  new S3OperationError(
-                    `Credential preflight timed out after ${PREFLIGHT_TIMEOUT_MS}ms — ` +
-                      `verify that AWS credentials are configured ` +
-                      `(AWS_ACCESS_KEY_ID, AWS_PROFILE, or attached IAM role) ` +
-                      `and that the credential source is responsive`,
-                    {
-                      name: "TimeoutError",
-                      cause: undefined,
-                      httpStatusCode: undefined,
-                      code: undefined,
-                      requestId: undefined,
-                      bodyPreview: undefined,
-                    },
-                  ),
-                ),
-              PREFLIGHT_TIMEOUT_MS,
-            );
-          });
-
-          try {
-            await Promise.race([probe, timeout]);
-          } finally {
-            clearTimeout(timer!);
-          }
+          await runPreflightCredentials(() => this.headBucket(signal));
         } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          const isTimeout = msg.includes("Credential preflight timed out");
+          const wrapped = err instanceof S3OperationError
+            ? err
+            : new S3OperationError(msg, {
+              name: isTimeout
+                ? "TimeoutError"
+                : (err instanceof Error ? err.name : "Error"),
+              cause: err,
+              httpStatusCode: undefined,
+              code: undefined,
+              requestId: undefined,
+              bodyPreview: undefined,
+            });
           span.setStatus({
             code: SpanStatusCode.ERROR,
-            message: err instanceof Error ? err.message : String(err),
+            message: wrapped.message,
           });
-          span.recordException(
-            err instanceof Error ? err : new Error(String(err)),
-          );
-          if (err instanceof Error) {
-            span.setAttribute(Attr.ERROR_TYPE, err.name);
-          }
-          throw err;
+          span.recordException(wrapped);
+          span.setAttribute(Attr.ERROR_TYPE, wrapped.name);
+          throw wrapped;
         } finally {
           span.end();
         }

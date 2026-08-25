@@ -90,7 +90,7 @@ Deno.test("classifyAwsCredentialError: undefined code + 403 → other", () => {
 // --- formatAwsCredentialHint ---
 
 Deno.test("formatAwsCredentialHint: session-expired with profile renders quoted --profile flag", () => {
-  const hint = formatAwsCredentialHint("session-expired", "demo");
+  const hint = formatAwsCredentialHint("session-expired", "demo", "Vault");
   assert(hint !== undefined);
   // Profile is double-quoted so spaces in profile names don't break the
   // copy-pasted shell command.
@@ -99,13 +99,17 @@ Deno.test("formatAwsCredentialHint: session-expired with profile renders quoted 
 });
 
 Deno.test("formatAwsCredentialHint: session-expired with multi-word profile stays valid shell", () => {
-  const hint = formatAwsCredentialHint("session-expired", "my dev profile");
+  const hint = formatAwsCredentialHint(
+    "session-expired",
+    "my dev profile",
+    "Vault",
+  );
   assert(hint !== undefined);
   assert(hint.includes(`aws sso login --profile "my dev profile"`));
 });
 
 Deno.test("formatAwsCredentialHint: session-expired without profile renders generic command", () => {
-  const hint = formatAwsCredentialHint("session-expired", undefined);
+  const hint = formatAwsCredentialHint("session-expired", undefined, "Vault");
   assert(hint !== undefined);
   assert(hint.includes("aws sso login"));
   assert(!hint.includes("--profile"));
@@ -113,21 +117,25 @@ Deno.test("formatAwsCredentialHint: session-expired without profile renders gene
 });
 
 Deno.test("formatAwsCredentialHint: credentials-rejected with profile names it", () => {
-  const hint = formatAwsCredentialHint("credentials-rejected", "demo");
+  const hint = formatAwsCredentialHint("credentials-rejected", "demo", "Vault");
   assert(hint !== undefined);
   assert(hint.includes("'demo'"));
   assert(hint.startsWith("Vault credentials rejected by AWS:"));
 });
 
 Deno.test("formatAwsCredentialHint: credentials-rejected without profile uses generic phrasing", () => {
-  const hint = formatAwsCredentialHint("credentials-rejected", undefined);
+  const hint = formatAwsCredentialHint(
+    "credentials-rejected",
+    undefined,
+    "Vault",
+  );
   assert(hint !== undefined);
   assert(hint.includes("your AWS profile"));
 });
 
 Deno.test("formatAwsCredentialHint: other → undefined (caller falls through)", () => {
   assertEquals(
-    formatAwsCredentialHint("other", "demo"),
+    formatAwsCredentialHint("other", "demo", "Vault"),
     undefined,
   );
 });

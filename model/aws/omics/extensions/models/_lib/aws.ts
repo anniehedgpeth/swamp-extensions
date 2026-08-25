@@ -40,6 +40,102 @@ export interface AwsCredentials {
   region?: string;
 }
 
+type AwsCredentialErrorKind =
+  | "session-expired"
+  | "credentials-rejected"
+  | "other";
+
+function classifyAwsCredentialError(
+  code: string | undefined,
+  status: number | undefined,
+): AwsCredentialErrorKind {
+  if (code === "CredentialsProviderError" || code === "ExpiredTokenException") {
+    return "session-expired";
+  }
+  if (
+    code === "InvalidAccessKeyId" ||
+    code === "SignatureDoesNotMatch" ||
+    (status === 403 && code === "AccessDenied")
+  ) {
+    return "credentials-rejected";
+  }
+  return "other";
+}
+
+function deriveAwsErrorCode(e: {
+  Code?: string;
+  name?: string;
+  cause?: unknown;
+}): string | undefined {
+  if (e.Code) return e.Code;
+  if (e.name && e.name !== "Error") return e.name;
+  if (e.cause instanceof Error && e.cause.name && e.cause.name !== "Error") {
+    return e.cause.name.replace(/^_+/, "");
+  }
+  return undefined;
+}
+
+function formatAwsCredentialHint(
+  kind: AwsCredentialErrorKind,
+  awsProfile: string | undefined,
+  context: string,
+): string | undefined {
+  if (kind === "session-expired") {
+    const cmd = awsProfile
+      ? 'aws sso login --profile "' + awsProfile + '"'
+      : "aws sso login";
+    return (
+      context +
+      " session expired: your AWS profile's SSO session is no longer valid. Run '" +
+      cmd +
+      "' to refresh, then retry."
+    );
+  }
+  if (kind === "credentials-rejected") {
+    const who = awsProfile ? "'" + awsProfile + "'" : "your AWS profile";
+    return (
+      context +
+      " credentials rejected by AWS: verify " +
+      who +
+      ", environment variables, or credential provider, then retry."
+    );
+  }
+  return undefined;
+}
+
+function disableImdsIfOffEc2(): void {
+  if (
+    !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
+    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
+    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
+  ) {
+    Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
+  }
+}
+
+function parseAwsConfigSections(
+  text: string,
+): Map<string, Map<string, string>> {
+  const sections = new Map<string, Map<string, string>>();
+  let current: Map<string, string> | undefined;
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      const header = trimmed.slice(1, -1).trim();
+      current = new Map();
+      sections.set(header, current);
+      continue;
+    }
+    if (current && trimmed && !trimmed.startsWith("#")) {
+      const eq = trimmed.indexOf("=");
+      if (eq > 0) {
+        current.set(trimmed.slice(0, eq).trim(), trimmed.slice(eq + 1).trim());
+      }
+    }
+  }
+  return sections;
+}
+
 function resolveRegion(credentials?: AwsCredentials): string {
   if (credentials?.region) return credentials.region;
 
@@ -54,24 +150,27 @@ function resolveRegion(credentials?: AwsCredentials): string {
     const configPath = Deno.env.get("AWS_CONFIG_FILE") ??
       `${home}/.aws/config`;
     const configText = Deno.readTextFileSync(configPath);
+    const sections = parseAwsConfigSections(configText);
 
-    const escaped = profile.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const sectionHeader = profile === "default"
-      ? /^\[default\]/
-      : new RegExp(`^\\[profile \\s*${escaped}\\s*\\]`);
+    const visited = new Set<string>();
+    let current = profile;
+    while (current && !visited.has(current)) {
+      visited.add(current);
+      const key = current === "default" ? "default" : `profile ${current}`;
+      const section = sections.get(key);
+      if (!section) break;
 
-    let inSection = false;
-    for (const line of configText.split("\n")) {
-      const trimmed = line.trim();
-      if (sectionHeader.test(trimmed)) {
-        inSection = true;
-        continue;
+      const region = section.get("region");
+      if (region) return region;
+
+      const ssoSession = section.get("sso_session");
+      if (ssoSession) {
+        const sessionSection = sections.get(`sso-session ${ssoSession}`);
+        const ssoRegion = sessionSection?.get("sso_region");
+        if (ssoRegion) return ssoRegion;
       }
-      if (inSection && trimmed.startsWith("[")) break;
-      if (inSection) {
-        const match = trimmed.match(/^region\s*=\s*(.+)/);
-        if (match) return match[1].trim();
-      }
+
+      current = section.get("source_profile") ?? "";
     }
   } catch {
     // Config file not found or unreadable — fall through to default
@@ -81,6 +180,7 @@ function resolveRegion(credentials?: AwsCredentials): string {
 }
 
 function createClient(credentials?: AwsCredentials): CloudControlClient {
+  disableImdsIfOffEc2();
   const region = resolveRegion(credentials);
   const config: Record<string, unknown> = { region };
 
@@ -153,6 +253,27 @@ async function withRetry<T>(
         );
         await delay(exponentialDelay + jitter);
         continue;
+      }
+      if (error instanceof Error) {
+        const sdkErr = error as Error & {
+          $metadata?: { httpStatusCode?: number };
+          Code?: string;
+        };
+        const code = deriveAwsErrorCode(sdkErr);
+        const kind = classifyAwsCredentialError(
+          code,
+          sdkErr.$metadata?.httpStatusCode,
+        );
+        if (kind !== "other") {
+          const hint = formatAwsCredentialHint(
+            kind,
+            Deno.env.get("AWS_PROFILE"),
+            "Model",
+          );
+          if (hint) {
+            throw new Error(hint + " " + error.message, { cause: error });
+          }
+        }
       }
       throw error;
     }

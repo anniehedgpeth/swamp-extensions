@@ -206,6 +206,14 @@ const GlobalArgsSchema = z.object({
 });
 
 function createCfnClient(credentials: AwsCredentials): CloudFormationClient {
+  if (
+    !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
+    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
+    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
+  ) {
+    Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
+  }
+
   const region = credentials.region ??
     Deno.env.get("AWS_REGION") ??
     Deno.env.get("AWS_DEFAULT_REGION") ??
@@ -626,7 +634,14 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudFormation StackSet. Registered at `@swamp/aws/cloudformation/stack-set`. */
 export const model = {
   type: "@swamp/aws/cloudformation/stack-set",
-  version: "2026.08.17.1",
+  version: "2026.08.24.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

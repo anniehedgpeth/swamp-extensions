@@ -81,12 +81,70 @@ const KafkaClusterMtlsAuthenticationSchema = z.object({
   ),
 });
 
+const KafkaClusterOAuthClientCredentialsSchema = z.object({
+  TokenRequestSecretArn: z.string().describe(
+    "Secrets Manager ARN of the secret containing the client_id and client_secret used to obtain an OAuth Bearer token via the client_credentials grant.",
+  ),
+});
+
+const KafkaClusterOAuthIamJwtBearerSchema = z.object({
+  Audience: z.string().describe(
+    "The audience (aud claim) set in the STS JWT assertion.",
+  ),
+  SigningAlgorithm: z.enum(["RS256", "ES384"]).describe(
+    "The algorithm used to sign the JWT assertion.",
+  ),
+  TokenRequestSecretArn: z.string().describe(
+    "Optional Secrets Manager ARN for identity providers that require client authentication alongside the JWT Bearer assertion.",
+  ).optional(),
+});
+
+const KafkaClusterOAuthClientCredentialsAssertionSchema = z.object({
+  Audience: z.string().describe(
+    "The audience (aud claim) set in the STS JWT client assertion.",
+  ),
+  SigningAlgorithm: z.enum(["RS256", "ES384"]).describe(
+    "The algorithm used to sign the JWT client assertion.",
+  ),
+  TokenRequestSecretArn: z.string().describe(
+    "Optional Secrets Manager ARN for identity providers that require client_id as a form parameter alongside the JWT client assertion.",
+  ).optional(),
+});
+
+const KafkaClusterSaslOAuthBearerAuthenticationSchema = z.object({
+  TokenEndpointUrl: z.string().describe(
+    "The HTTPS URL of the OAuth token endpoint that vends OAuth Bearer tokens per RFC 6749.",
+  ),
+  ClientCredentials: KafkaClusterOAuthClientCredentialsSchema.describe(
+    "Details for SASL/OAUTHBEARER using standard client_credentials grant. Mutually exclusive with iamJwtBearer and clientCredentialsAssertion.",
+  ).optional(),
+  IamJwtBearer: KafkaClusterOAuthIamJwtBearerSchema.describe(
+    "Details for SASL/OAUTHBEARER using JWT Bearer assertion grant (RFC 7523). Mutually exclusive with clientCredentials and clientCredentialsAssertion.",
+  ).optional(),
+  ClientCredentialsAssertion: KafkaClusterOAuthClientCredentialsAssertionSchema
+    .describe(
+      "Details for SASL/OAUTHBEARER using client credentials grant with JWT client assertion (RFC 7521/7523). Mutually exclusive with clientCredentials and iamJwtBearer.",
+    ).optional(),
+  TokenEndpointAuthenticationMethod: z.enum(["POST", "BASIC", "NONE"]).describe(
+    "How client credentials are sent to the identity provider (POST, BASIC, or NONE).",
+  ),
+  Scope: z.string().describe(
+    "OAuth scope to request. Included in the token request if provided.",
+  ).optional(),
+  TokenEndpointTlsCertificateArn: z.string().describe(
+    "Secrets Manager ARN containing a custom CA certificate for the identity provider. Required only if the identity provider uses a private CA.",
+  ).optional(),
+});
+
 const KafkaClusterClientAuthenticationSchema = z.object({
   SaslScram: KafkaClusterSaslScramAuthenticationSchema.describe(
     "Details for SASL/SCRAM client authentication.",
   ).optional(),
   MTLS: KafkaClusterMtlsAuthenticationSchema.describe(
     "Details for mTLS client authentication.",
+  ).optional(),
+  SaslOAuthBearer: KafkaClusterSaslOAuthBearerAuthenticationSchema.describe(
+    "Details for client authentication using SASL/OAUTHBEARER.",
   ).optional(),
 });
 
@@ -348,7 +406,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for MSK Replicator. Registered at `@swamp/aws/msk/replicator`. */
 export const model = {
   type: "@swamp/aws/msk/replicator",
-  version: "2026.08.17.2",
+  version: "2026.08.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -407,6 +465,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

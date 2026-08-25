@@ -616,6 +616,14 @@ const GlobalArgsSchema = z.object({
 function createClient(
   credentials: AwsCredentials,
 ): BedrockAgentRuntimeClient {
+  if (
+    !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
+    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
+    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
+  ) {
+    Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
+  }
+
   const region = credentials.region ??
     Deno.env.get("AWS_REGION") ??
     Deno.env.get("AWS_DEFAULT_REGION") ??
@@ -891,7 +899,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Bedrock KnowledgeBase. Registered at `@swamp/aws/bedrock/knowledge-base`. */
 export const model = {
   type: "@swamp/aws/bedrock/knowledge-base",
-  version: "2026.08.17.2",
+  version: "2026.08.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -980,6 +988,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.24.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

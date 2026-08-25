@@ -176,6 +176,9 @@ const GlobalArgsSchema = z.object({
     EksClusterArn: z.string(),
     KubernetesNamespace: z.string(),
   }).optional(),
+  EcsSettings: z.object({
+    ContainerInsights: z.enum(["ENABLED", "ENHANCED", "DISABLED"]).optional(),
+  }).optional(),
   Context: z.string().optional(),
 });
 
@@ -218,6 +221,9 @@ const StateSchema = z.object({
   EksConfiguration: z.object({
     EksClusterArn: z.string(),
     KubernetesNamespace: z.string(),
+  }).optional(),
+  EcsSettings: z.object({
+    ContainerInsights: z.string(),
   }).optional(),
   Context: z.string().optional(),
 }).passthrough();
@@ -274,6 +280,9 @@ const InputsSchema = z.object({
     EksClusterArn: z.string().optional(),
     KubernetesNamespace: z.string().optional(),
   }).optional(),
+  EcsSettings: z.object({
+    ContainerInsights: z.enum(["ENABLED", "ENHANCED", "DISABLED"]).optional(),
+  }).optional(),
   Context: z.string().optional(),
 });
 
@@ -296,7 +305,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Batch ComputeEnvironment. Registered at `@swamp/aws/batch/compute-environment`. */
 export const model = {
   type: "@swamp/aws/batch/compute-environment",
-  version: "2026.08.17.2",
+  version: "2026.08.24.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -351,6 +360,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.24.1",
+      description: "Added: EcsSettings",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
