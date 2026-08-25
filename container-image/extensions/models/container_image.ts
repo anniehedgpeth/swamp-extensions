@@ -69,13 +69,19 @@ import {
 
 export const model = {
   type: "@swamp/container-image",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   globalArguments: GlobalArgsSchema,
 
   upgrades: [
     {
       toVersion: "2026.08.25.1",
       description: "Add privileged and extraArgs inputs to the run method.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Fix missing upgradeAttributes that prevented installation.",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
 
