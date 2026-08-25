@@ -3,6 +3,12 @@ name: Publish Extensions
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      extensions:
+        description: 'Space-separated list of extension directories to publish (e.g. "model/aws/ec2 model/aws/s3"). Leave empty to publish all extensions with changed manifests.'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -25,13 +31,26 @@ jobs:
           fetch-depth: 2
       - id: changes
         name: Find changed manifests and chunk for publishing
+        env:
+          MANUAL_EXTENSIONS: ${{ inputs.extensions }}
         run: |
           DIRS=""
-          for manifest in $(git diff --name-only --diff-filter=d HEAD~1 HEAD -- '*/manifest.yaml'); do
-            dir=$(dirname "$manifest")
-            DIRS="${DIRS}${dir}"$'\n'
-            echo "Changed: ${dir}"
-          done
+          if [ -n "$MANUAL_EXTENSIONS" ]; then
+            for dir in $MANUAL_EXTENSIONS; do
+              if [ -f "$dir/manifest.yaml" ]; then
+                DIRS="${DIRS}${dir}"$'\n'
+                echo "Manual: ${dir}"
+              else
+                echo "::warning::No manifest.yaml in ${dir}, skipping"
+              fi
+            done
+          else
+            for manifest in $(git diff --name-only --diff-filter=d HEAD~1 HEAD -- '*/manifest.yaml'); do
+              dir=$(dirname "$manifest")
+              DIRS="${DIRS}${dir}"$'\n'
+              echo "Changed: ${dir}"
+            done
+          fi
 
           CHUNKS=$(echo "$DIRS" | python3 -c "
           import sys, json
@@ -81,7 +100,8 @@ jobs:
 
             NAME=$(grep '^name:' manifest.yaml | sed 's/name: *"\(.*\)"/\1/')
             LOCAL=$(grep '^version:' manifest.yaml | sed 's/version: *"\(.*\)"/\1/')
-            UPSTREAM=$(swamp extension version "$NAME" --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('currentPublished',''))" 2>/dev/null || true)
+            echo "[$NAME] Checking upstream version..."
+            UPSTREAM=$(timeout 30 swamp extension version "$NAME" --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('currentPublished',''))" 2>/dev/null || true)
 
             if [ "$LOCAL" = "$UPSTREAM" ]; then
               echo "skip: $NAME ($LOCAL) already published"
