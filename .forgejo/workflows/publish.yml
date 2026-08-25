@@ -8,7 +8,7 @@ on:
       extensions:
         description: 'Space-separated list of extension directories to publish (e.g. "model/aws/ec2 model/aws/s3"). Leave empty to publish all extensions with changed manifests.'
         required: false
-        default: ''
+        default: ""
 
 permissions:
   contents: read
@@ -59,8 +59,8 @@ jobs:
           if not dirs:
               print('[]')
           else:
-              chunks = [dirs[i:i+50] for i in range(0, len(dirs), 50)]
-              print(f'Chunks: {len(chunks)} (up to 50 extensions each)', file=sys.stderr)
+              chunks = [dirs[i:i+25] for i in range(0, len(dirs), 25)]
+              print(f'Chunks: {len(chunks)} (up to 25 extensions each)', file=sys.stderr)
               print(json.dumps(chunks))
           ")
           echo "chunks=$CHUNKS" >> "$GITHUB_OUTPUT"
