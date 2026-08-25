@@ -162,7 +162,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataflow Jobs.Messages. Registered at `@swamp/gcp/dataflow/jobs-messages`. */
 export const model = {
   type: "@swamp/gcp/dataflow/jobs-messages",
-  version: "2026.08.12.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -279,6 +279,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -303,7 +308,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["jobId"] !== undefined) params["jobId"] = String(g["jobId"]);
         const result = await readViaList(
           baseUrl,
@@ -355,7 +360,7 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
-          const params: Record<string, string> = { project: projectId };
+          const params: Record<string, string> = { projectId: projectId };
           if (g["jobId"] !== undefined) params["jobId"] = String(g["jobId"]);
           else if (existing["jobId"]) {
             params["jobId"] = String(existing["jobId"]);
@@ -420,7 +425,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["jobId"] !== undefined) params["jobId"] = String(g["jobId"]);
         if (args["endTime"] !== undefined) {
           params["endTime"] = String(args["endTime"]);

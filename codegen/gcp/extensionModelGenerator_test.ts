@@ -849,7 +849,7 @@ Deno.test("generateGcpExtensionModel - GET action method uses undefined body", a
 
   // GET action method must pass undefined body, not {}
   assert(
-    output.includes("createResource(BASE_URL,") &&
+    output.includes("createResource(baseUrl,") &&
       output.includes('"httpMethod":"GET"') &&
       !output.match(
         /"httpMethod":"GET"[^;]*,\s*\{\}\s*,\s*undefined,\s*undefined,\s*undefined,\s*credentials/,
@@ -1084,6 +1084,120 @@ Deno.test("generateGcpExtensionModel - does NOT emit _defaultOAuthScopes when oa
   assert(
     !code.includes("const _defaultOAuthScopes"),
     "should NOT emit _defaultOAuthScopes when no scopes declared",
+  );
+});
+
+Deno.test("generateGcpExtensionModel - uses projectId param key when discovery path has {projectId}", () => {
+  const resource = makeResource({
+    resourcePath: ["builds"],
+    service: "cloudbuild",
+    apiTitle: "Cloud Build API",
+    baseUrl: "https://cloudbuild.googleapis.com/",
+    methodConfigs: {
+      insert: makeMethodConfig({
+        id: "cloudbuild.projects.builds.create",
+        path: "v1/projects/{projectId}/builds",
+        httpMethod: "POST",
+        parameterOrder: ["projectId"],
+        parameters: {
+          projectId: { location: "path", required: true },
+        },
+      }),
+      get: makeMethodConfig({
+        id: "cloudbuild.projects.builds.get",
+        path: "v1/projects/{projectId}/builds/{id}",
+        parameterOrder: ["projectId", "id"],
+        parameters: {
+          projectId: { location: "path", required: true },
+          id: { location: "path", required: true },
+        },
+      }),
+      list: makeMethodConfig({
+        id: "cloudbuild.projects.builds.list",
+        path: "v1/projects/{projectId}/builds",
+        parameterOrder: ["projectId"],
+        parameters: {
+          projectId: { location: "path", required: true },
+        },
+      }),
+    },
+    availableScopes: ["projects"],
+    primaryIdentifier: ["id"],
+    domainProperties: {
+      name: { type: "string" },
+    },
+    resourceValueProperties: {
+      id: { type: "string" },
+      name: { type: "string" },
+    },
+    listResponseArrayField: "builds",
+  });
+  const code = generateGcpExtensionModel(makeInput({
+    resource,
+    modelType: "@swamp/gcp/cloudbuild/builds",
+    extensionName: "@swamp/gcp/cloudbuild",
+  }));
+
+  const projectIdMatches = code.match(/\{ projectId: projectId \}/g) || [];
+  const projectMatches = code.match(/\{ project: projectId \}/g) || [];
+  assert(
+    projectIdMatches.length > 0,
+    "should use { projectId: projectId } when discovery path uses {projectId}",
+  );
+  assertEquals(
+    projectMatches.length,
+    0,
+    "should NOT use { project: projectId } when discovery path uses {projectId}",
+  );
+});
+
+Deno.test("generateGcpExtensionModel - uses project param key when discovery path has {project}", () => {
+  const resource = makeResource({
+    resourcePath: ["instances"],
+    methodConfigs: {
+      insert: makeMethodConfig({
+        id: "compute.instances.insert",
+        path: "projects/{project}/zones/{zone}/instances",
+        httpMethod: "POST",
+        parameterOrder: ["project", "zone"],
+        parameters: {
+          project: { location: "path", required: true },
+          zone: { location: "path", required: true },
+        },
+      }),
+      get: makeMethodConfig({
+        id: "compute.instances.get",
+        path: "projects/{project}/zones/{zone}/instances/{instance}",
+        parameterOrder: ["project", "zone", "instance"],
+        parameters: {
+          project: { location: "path", required: true },
+          zone: { location: "path", required: true },
+          instance: { location: "path", required: true },
+        },
+      }),
+    },
+    availableScopes: ["projects"],
+    domainProperties: {
+      name: { type: "string" },
+      zone: { type: "string" },
+    },
+    resourceValueProperties: {
+      name: { type: "string" },
+      zone: { type: "string" },
+    },
+  });
+  const code = generateGcpExtensionModel(makeInput({ resource }));
+
+  const projectMatches = code.match(/\{ project: projectId \}/g) || [];
+  const projectIdMatches = code.match(/\{ projectId: projectId \}/g) || [];
+  assert(
+    projectMatches.length > 0,
+    "should use { project: projectId } when discovery path uses {project}",
+  );
+  assertEquals(
+    projectIdMatches.length,
+    0,
+    "should NOT use { projectId: projectId } when discovery path uses {project}",
   );
 });
 

@@ -60,6 +60,9 @@ const GET_CONFIG = {
     "name",
   ],
   "parameters": {
+    "deletedPrincipalSyntax": {
+      "location": "query",
+    },
     "name": {
       "location": "path",
       "required": true,
@@ -90,6 +93,9 @@ const PATCH_CONFIG = {
     "name",
   ],
   "parameters": {
+    "deletedPrincipalSyntax": {
+      "location": "query",
+    },
     "name": {
       "location": "path",
       "required": true,
@@ -123,6 +129,9 @@ const LIST_CONFIG = {
     "parent",
   ],
   "parameters": {
+    "deletedPrincipalSyntax": {
+      "location": "query",
+    },
     "pageSize": {
       "location": "query",
     },
@@ -827,7 +836,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Access Context Manager AccessPolicies.ServicePerimeters. Registered at `@swamp/gcp/accesscontextmanager/accesspolicies-serviceperimeters`. */
 export const model = {
   type: "@swamp/gcp/accesscontextmanager/accesspolicies-serviceperimeters",
-  version: "2026.08.14.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1011,6 +1020,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.14.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1305,6 +1319,9 @@ export const model = {
     list: {
       description: "List servicePerimeters resources",
       arguments: z.object({
+        deletedPrincipalSyntax: z.string().describe(
+          "Optional. If true, the response will contain the deleted principal syntax for identities that support it.",
+        ).optional(),
         pageSize: z.number().describe(
           "Number of Service Perimeters to include in the list. Default 100.",
         ).optional(),
@@ -1320,6 +1337,11 @@ export const model = {
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
+        if (args["deletedPrincipalSyntax"] !== undefined) {
+          params["deletedPrincipalSyntax"] = String(
+            args["deletedPrincipalSyntax"],
+          );
+        }
         if (args["pageSize"] !== undefined) {
           params["pageSize"] = String(args["pageSize"]);
         }

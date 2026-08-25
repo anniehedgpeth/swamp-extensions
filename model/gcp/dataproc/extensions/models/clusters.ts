@@ -305,7 +305,7 @@ const GlobalArgsSchema = z.object({
     dataprocMetricConfig: z.object({
       metrics: z.array(z.object({
         metricOverrides: z.array(z.unknown()).describe(
-          "Optional. Specify one or more Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) to collect for the metric course (for the SPARK metric source (any Spark metric (https://spark.apache.org/docs/latest/monitoring.html#metrics) can be specified).Provide metrics in the following format:METRIC_SOURCE:INSTANCE:GROUP:METRIC Use camelcase as appropriate.Examples: yarn:ResourceManager:QueueMetrics:AppsCompleted spark:driver:DAGScheduler:job.allJobs sparkHistoryServer:JVM:Memory:NonHeapMemoryUsage.committed hiveserver2:JVM:Memory:NonHeapMemoryUsage.used Notes: Only the specified overridden metrics are collected for the metric source. For example, if one or more spark:executive metrics are listed as metric overrides, other SPARK metrics are not collected. The collection of the metrics for other enabled custom metric sources is unaffected. For example, if both SPARK and YARN metric sources are enabled, and overrides are provided for Spark metrics only, all YARN metrics are collected.",
+          "Optional. Specify one or more Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) to collect for the metric course (for the SPARK metric source (any Spark metric (https://spark.apache.org/docs/latest/monitoring.html#metrics) can be specified).Provide metrics in the following format: METRIC_SOURCE: INSTANCE:GROUP:METRIC Use camelcase as appropriate.Examples: yarn:ResourceManager:QueueMetrics:AppsCompleted spark:driver:DAGScheduler:job.allJobs sparkHistoryServer:JVM:Memory:NonHeapMemoryUsage.committed hiveserver2:JVM:Memory:NonHeapMemoryUsage.used Notes: Only the specified overridden metrics are collected for the metric source. For example, if one or more spark:executive metrics are listed as metric overrides, other SPARK metrics are not collected. The collection of the metrics for other enabled custom metric sources is unaffected. For example, if both SPARK and YARN metric sources are enabled, and overrides are provided for Spark metrics only, all YARN metrics are collected.",
         ).optional(),
         metricSource: z.enum([
           "METRIC_SOURCE_UNSPECIFIED",
@@ -1620,7 +1620,7 @@ const InputsSchema = z.object({
     dataprocMetricConfig: z.object({
       metrics: z.array(z.object({
         metricOverrides: z.array(z.unknown()).describe(
-          "Optional. Specify one or more Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) to collect for the metric course (for the SPARK metric source (any Spark metric (https://spark.apache.org/docs/latest/monitoring.html#metrics) can be specified).Provide metrics in the following format:METRIC_SOURCE:INSTANCE:GROUP:METRIC Use camelcase as appropriate.Examples: yarn:ResourceManager:QueueMetrics:AppsCompleted spark:driver:DAGScheduler:job.allJobs sparkHistoryServer:JVM:Memory:NonHeapMemoryUsage.committed hiveserver2:JVM:Memory:NonHeapMemoryUsage.used Notes: Only the specified overridden metrics are collected for the metric source. For example, if one or more spark:executive metrics are listed as metric overrides, other SPARK metrics are not collected. The collection of the metrics for other enabled custom metric sources is unaffected. For example, if both SPARK and YARN metric sources are enabled, and overrides are provided for Spark metrics only, all YARN metrics are collected.",
+          "Optional. Specify one or more Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) to collect for the metric course (for the SPARK metric source (any Spark metric (https://spark.apache.org/docs/latest/monitoring.html#metrics) can be specified).Provide metrics in the following format: METRIC_SOURCE: INSTANCE:GROUP:METRIC Use camelcase as appropriate.Examples: yarn:ResourceManager:QueueMetrics:AppsCompleted spark:driver:DAGScheduler:job.allJobs sparkHistoryServer:JVM:Memory:NonHeapMemoryUsage.committed hiveserver2:JVM:Memory:NonHeapMemoryUsage.used Notes: Only the specified overridden metrics are collected for the metric source. For example, if one or more spark:executive metrics are listed as metric overrides, other SPARK metrics are not collected. The collection of the metrics for other enabled custom metric sources is unaffected. For example, if both SPARK and YARN metric sources are enabled, and overrides are provided for Spark metrics only, all YARN metrics are collected.",
         ).optional(),
         metricSource: z.enum([
           "METRIC_SOURCE_UNSPECIFIED",
@@ -2497,7 +2497,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Clusters. Registered at `@swamp/gcp/dataproc/clusters`. */
 export const model = {
   type: "@swamp/gcp/dataproc/clusters",
-  version: "2026.08.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2707,6 +2707,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2729,7 +2734,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const body: Record<string, unknown> = {};
         if (g["clusterName"] !== undefined) {
@@ -2782,7 +2787,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         params["clusterName"] = args.identifier;
         const result = await readResource(
@@ -2832,7 +2837,7 @@ export const model = {
           );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         else if (existing["region"]) {
           params["region"] = String(existing["region"]);
@@ -2884,7 +2889,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         params["clusterName"] = args.identifier;
         const { existed } = await deleteResource(
@@ -2936,7 +2941,7 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
-          const params: Record<string, string> = { project: projectId };
+          const params: Record<string, string> = { projectId: projectId };
           if (g["region"] !== undefined) params["region"] = String(g["region"]);
           else if (existing["region"]) {
             params["region"] = String(existing["region"]);
@@ -2991,7 +2996,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         if (args["filter"] !== undefined) {
           params["filter"] = String(args["filter"]);
@@ -3041,7 +3046,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         if (g["clusterName"] !== undefined) {
           params["clusterName"] = String(g["clusterName"]);
@@ -3099,7 +3104,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -3149,7 +3154,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const content = await context.dataRepository.getContent(
           context.modelType,
@@ -3212,7 +3217,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         if (g["clusterName"] !== undefined) {
           params["clusterName"] = String(g["clusterName"]);
@@ -3273,7 +3278,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -3323,7 +3328,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         if (g["clusterName"] !== undefined) {
           params["clusterName"] = String(g["clusterName"]);
@@ -3371,7 +3376,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         if (g["clusterName"] !== undefined) {
           params["clusterName"] = String(g["clusterName"]);
@@ -3418,7 +3423,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,

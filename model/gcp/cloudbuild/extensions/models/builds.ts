@@ -1497,7 +1497,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Build Builds. Registered at `@swamp/gcp/cloudbuild/builds`. */
 export const model = {
   type: "@swamp/gcp/cloudbuild/builds",
-  version: "2026.08.23.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -1511,6 +1511,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.23.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1536,7 +1541,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const body: Record<string, unknown> = {};
         if (g["artifacts"] !== undefined) body["artifacts"] = g["artifacts"];
         if (g["availableSecrets"] !== undefined) {
@@ -1596,7 +1601,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         params["id"] = args.identifier;
         const result = await readResource(
           baseUrl,
@@ -1646,7 +1651,7 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
-          const params: Record<string, string> = { project: projectId };
+          const params: Record<string, string> = { projectId: projectId };
           const identifier = existing.id?.toString() ?? g["id"]?.toString();
           if (!identifier) {
             throw new Error(
@@ -1700,7 +1705,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (args["filter"] !== undefined) {
           params["filter"] = String(args["filter"]);
         }
@@ -1746,7 +1751,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const body: Record<string, unknown> = {};
         if (args["approvalResult"] !== undefined) {
@@ -1784,7 +1789,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -1839,7 +1844,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,

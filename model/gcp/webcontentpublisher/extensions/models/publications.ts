@@ -206,12 +206,6 @@ const GlobalArgsSchema = z.object({
       emailOptIn: z.boolean().describe(
         "Optional. Whether the user opted in to receive product updates and email communications.",
       ).optional(),
-      signer: z.string().describe(
-        "Optional. The name of the person who accepted the TOS.",
-      ).optional(),
-      signerTitle: z.string().describe(
-        "Optional. The job title or role of the signer.",
-      ).optional(),
       userAccepted: z.boolean().describe(
         "Required. Whether the user has accepted the Terms of Service.",
       ).optional(),
@@ -262,8 +256,6 @@ const StateSchema = z.object({
     productTosUrl: z.string(),
     tosAcceptance: z.object({
       emailOptIn: z.boolean(),
-      signer: z.string(),
-      signerTitle: z.string(),
       userAccepted: z.boolean(),
     }),
   }).optional(),
@@ -338,12 +330,6 @@ const InputsSchema = z.object({
       emailOptIn: z.boolean().describe(
         "Optional. Whether the user opted in to receive product updates and email communications.",
       ).optional(),
-      signer: z.string().describe(
-        "Optional. The name of the person who accepted the TOS.",
-      ).optional(),
-      signerTitle: z.string().describe(
-        "Optional. The job title or role of the signer.",
-      ).optional(),
       userAccepted: z.boolean().describe(
         "Required. Whether the user has accepted the Terms of Service.",
       ).optional(),
@@ -390,7 +376,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Content Publisher Publications. Registered at `@swamp/gcp/webcontentpublisher/publications`. */
 export const model = {
   type: "@swamp/gcp/webcontentpublisher/publications",
-  version: "2026.08.12.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -442,6 +428,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

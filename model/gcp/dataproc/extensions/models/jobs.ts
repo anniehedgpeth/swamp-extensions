@@ -581,7 +581,7 @@ const GlobalArgsSchema = z.object({
   }).describe("Optional. Job is a SparkSql job.").optional(),
   status: z.object({
     details: z.string().describe(
-      "Optional. Job state details, such as an error description if the state is ERROR.",
+      "Optional. Output only. Job state details, such as an error description if the state is ERROR.",
     ).optional(),
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -609,7 +609,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   statusHistory: z.array(z.object({
     details: z.string().describe(
-      "Optional. Job state details, such as an error description if the state is ERROR.",
+      "Optional. Output only. Job state details, such as an error description if the state is ERROR.",
     ).optional(),
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -1279,7 +1279,7 @@ const InputsSchema = z.object({
   }).describe("Optional. Job is a SparkSql job.").optional(),
   status: z.object({
     details: z.string().describe(
-      "Optional. Job state details, such as an error description if the state is ERROR.",
+      "Optional. Output only. Job state details, such as an error description if the state is ERROR.",
     ).optional(),
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -1307,7 +1307,7 @@ const InputsSchema = z.object({
   ).optional(),
   statusHistory: z.array(z.object({
     details: z.string().describe(
-      "Optional. Job state details, such as an error description if the state is ERROR.",
+      "Optional. Output only. Job state details, such as an error description if the state is ERROR.",
     ).optional(),
     state: z.enum([
       "STATE_UNSPECIFIED",
@@ -1431,7 +1431,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Jobs. Registered at `@swamp/gcp/dataproc/jobs`. */
 export const model = {
   type: "@swamp/gcp/dataproc/jobs",
-  version: "2026.08.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1563,6 +1563,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1586,7 +1591,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         params["jobId"] = args.identifier;
         const result = await readResource(
@@ -1636,7 +1641,7 @@ export const model = {
           );
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         else if (existing["region"]) {
           params["region"] = String(existing["region"]);
@@ -1717,7 +1722,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         params["jobId"] = args.identifier;
         const { existed } = await deleteResource(
@@ -1769,7 +1774,7 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
-          const params: Record<string, string> = { project: projectId };
+          const params: Record<string, string> = { projectId: projectId };
           if (g["region"] !== undefined) params["region"] = String(g["region"]);
           else if (existing["region"]) {
             params["region"] = String(existing["region"]);
@@ -1830,7 +1835,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         if (args["clusterName"] !== undefined) {
           params["clusterName"] = String(args["clusterName"]);
@@ -1878,7 +1883,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const content = await context.dataRepository.getContent(
           context.modelType,
@@ -1929,7 +1934,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -1978,7 +1983,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,
@@ -2028,7 +2033,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const body: Record<string, unknown> = {};
         if (args["job"] !== undefined) body["job"] = args["job"];
@@ -2069,7 +2074,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (g["region"] !== undefined) params["region"] = String(g["region"]);
         const body: Record<string, unknown> = {};
         if (args["job"] !== undefined) body["job"] = args["job"];
@@ -2110,7 +2115,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const content = await context.dataRepository.getContent(
           context.modelType,
           context.modelId,

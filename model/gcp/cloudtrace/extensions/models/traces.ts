@@ -176,7 +176,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Trace Traces. Registered at `@swamp/gcp/cloudtrace/traces`. */
 export const model = {
   type: "@swamp/gcp/cloudtrace/traces",
-  version: "2026.08.12.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.06.07.1",
@@ -228,6 +228,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -252,7 +257,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         params["traceId"] = args.identifier;
         const result = await readResource(
           baseUrl,
@@ -302,7 +307,7 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         try {
-          const params: Record<string, string> = { project: projectId };
+          const params: Record<string, string> = { projectId: projectId };
           const identifier = existing.name?.toString() ?? g["name"]?.toString();
           if (!identifier) {
             throw new Error(
@@ -365,7 +370,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         if (args["endTime"] !== undefined) {
           params["endTime"] = String(args["endTime"]);
         }

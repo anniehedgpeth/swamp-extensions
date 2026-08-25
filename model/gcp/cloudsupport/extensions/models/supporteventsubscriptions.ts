@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Google Cloud Support SupportEventSubscriptions.
  *
- * A support event subscription.
+ * A support event subscription. You can also manage support event subscriptions using other tools: * [`gcloud support support-event-subscriptions`](/sdk/gcloud/reference/support/support-event-subscriptions) (or [`gcloud beta`](/sdk/gcloud/reference/beta/support/support-event-subscriptions) for beta) * [Terraform `google_cloud_support_support_event_subscription`](https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloud_support_support_event_subscription) (or [google-beta provider](https://registry.terraform.io/providers/hashicorp/google-beta/latest/docs/resources/cloud_support_support_event_subscription) for beta)
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -229,7 +229,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Cloud Support SupportEventSubscriptions. Registered at `@swamp/gcp/cloudsupport/supporteventsubscriptions`. */
 export const model = {
   type: "@swamp/gcp/cloudsupport/supporteventsubscriptions",
-  version: "2026.08.12.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -241,12 +241,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "A support event subscription.",
+      description:
+        "A support event subscription. You can also manage support event subscriptions...",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,

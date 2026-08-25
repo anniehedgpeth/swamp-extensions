@@ -141,6 +141,8 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
   project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
   scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  quotaProject: z.string().describe(\\"GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.\\").optional(),
+  apiEndpoint: z.string().describe(\\"Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.\\").optional(),
   name: z.string().describe(\\"Instance name\\"),
   zone: z.string().describe(\\"Zone\\"),
   machineType: z.string().describe(\\"Machine type\\"),
@@ -161,12 +163,14 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   name: z.string().describe(\\"Instance name\\").optional(),
   zone: z.string().describe(\\"Zone\\").optional(),
   machineType: z.string().describe(\\"Machine type\\").optional(),
 });
 
-const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\",\\"quotaProject\\",\\"apiEndpoint\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
@@ -174,6 +178,7 @@ function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredential
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
     scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -197,6 +202,7 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -205,7 +211,7 @@ export const model = {
         if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
         if (g[\\"machineType\\"] !== undefined) body[\\"machineType\\"] = g[\\"machineType\\"];
         if (g[\\"name\\"] !== undefined) params[\\"instance\\"] = String(g[\\"name\\"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
+        const result = await createResource(baseUrl, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -216,12 +222,13 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         params[\\"instance\\"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+        const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -232,6 +239,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -251,7 +259,7 @@ export const model = {
             body[key] = existing[key];
           }
         }
-        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, undefined, credentials) as StateData;
+        const result = await updateResource(baseUrl, PATCH_CONFIG, params, body, GET_CONFIG, undefined, credentials) as StateData;
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -261,12 +269,13 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         params[\\"instance\\"] = args.identifier;
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
+        const { existed } = await deleteResource(baseUrl, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
@@ -282,6 +291,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -297,7 +307,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
           if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
           params[\\"instance\\"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+          const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -458,6 +468,8 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
   project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
   scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  quotaProject: z.string().describe(\\"GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.\\").optional(),
+  apiEndpoint: z.string().describe(\\"Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.\\").optional(),
   name: z.string().describe(\\"Instance name\\"),
   zone: z.string().describe(\\"Zone\\"),
 });
@@ -475,11 +487,13 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   name: z.string().describe(\\"Instance name\\").optional(),
   zone: z.string().describe(\\"Zone\\").optional(),
 });
 
-const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\",\\"quotaProject\\",\\"apiEndpoint\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
@@ -487,6 +501,7 @@ function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredential
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
     scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -510,6 +525,7 @@ export const model = {
       arguments: z.object({ waitForReady: z.boolean().describe(\\"Wait for the resource to reach a ready state after creation (default: true)\\").optional() }),
       execute: async (args: { waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -517,7 +533,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
         if (g[\\"name\\"] !== undefined) params[\\"instance\\"] = String(g[\\"name\\"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {\\"statusField\\":\\"status\\",\\"readyValues\\":[\\"RUNNING\\"],\\"failedValues\\":[\\"TERMINATED\\",\\"SUSPENDED\\"]} : undefined, undefined, credentials) as StateData;
+        const result = await createResource(baseUrl, INSERT_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {\\"statusField\\":\\"status\\",\\"readyValues\\":[\\"RUNNING\\"],\\"failedValues\\":[\\"TERMINATED\\",\\"SUSPENDED\\"]} : undefined, undefined, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -528,12 +544,13 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         params[\\"instance\\"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+        const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -544,6 +561,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional(), waitForReady: z.boolean().describe(\\"Wait for the resource to reach a ready state after update (default: true)\\").optional() }),
       execute: async (args: { identifier?: string; waitForReady?: boolean }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -563,7 +581,7 @@ export const model = {
             body[key] = existing[key];
           }
         }
-        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {\\"statusField\\":\\"status\\",\\"readyValues\\":[\\"RUNNING\\"],\\"failedValues\\":[\\"TERMINATED\\",\\"SUSPENDED\\"]} : undefined, credentials) as StateData;
+        const result = await updateResource(baseUrl, PATCH_CONFIG, params, body, GET_CONFIG, (args.waitForReady ?? true) ? {\\"statusField\\":\\"status\\",\\"readyValues\\":[\\"RUNNING\\"],\\"failedValues\\":[\\"TERMINATED\\",\\"SUSPENDED\\"]} : undefined, credentials) as StateData;
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -573,12 +591,13 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         params[\\"instance\\"] = args.identifier;
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
+        const { existed } = await deleteResource(baseUrl, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
@@ -594,6 +613,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -609,7 +629,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
           if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
           params[\\"instance\\"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+          const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -705,6 +725,8 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
   project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
   scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  quotaProject: z.string().describe(\\"GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.\\").optional(),
+  apiEndpoint: z.string().describe(\\"Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.\\").optional(),
   name: z.string().describe(\\"Region name\\"),
 });
 
@@ -721,10 +743,12 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   name: z.string().describe(\\"Region name\\").optional(),
 });
 
-const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\",\\"quotaProject\\",\\"apiEndpoint\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
@@ -732,6 +756,7 @@ function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredential
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
     scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -755,12 +780,13 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         const body: Record<string, unknown> = {};
         if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, undefined, undefined, { listConfig: LIST_CONFIG, listParams: { \\"project\\": projectId }, matchField: \\"name\\", matchValue: String(g[\\"name\\"] ?? \\"\\") }, credentials) as StateData;
+        const result = await createResource(baseUrl, INSERT_CONFIG, params, body, undefined, undefined, { listConfig: LIST_CONFIG, listParams: { \\"project\\": projectId }, matchField: \\"name\\", matchValue: String(g[\\"name\\"] ?? \\"\\") }, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -771,10 +797,11 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the regions\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
-        const result = await readViaList(BASE_URL, LIST_CONFIG, params, \\"name\\", args.identifier, credentials) as StateData;
+        const result = await readViaList(baseUrl, LIST_CONFIG, params, \\"name\\", args.identifier, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -785,6 +812,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific regions by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -797,7 +825,7 @@ export const model = {
           const params: Record<string, string> = { project: projectId };
           const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
           if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
-          const result = await readViaList(BASE_URL, LIST_CONFIG, params, \\"name\\", identifier, credentials) as StateData;
+          const result = await readViaList(baseUrl, LIST_CONFIG, params, \\"name\\", identifier, credentials) as StateData;
           const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -913,6 +941,8 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
   project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
   scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  quotaProject: z.string().describe(\\"GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.\\").optional(),
+  apiEndpoint: z.string().describe(\\"Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.\\").optional(),
   name: z.string().describe(\\"Service name\\"),
   parent: z.string().describe(\\"Parent resource\\"),
 });
@@ -929,11 +959,13 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   name: z.string().describe(\\"Service name\\").optional(),
   parent: z.string().describe(\\"Parent resource\\").optional(),
 });
 
-const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\",\\"quotaProject\\",\\"apiEndpoint\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
@@ -941,6 +973,7 @@ function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredential
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
     scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -964,13 +997,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"name\\"] !== undefined) params[\\"name\\"] = String(g[\\"name\\"]);
         const body: Record<string, unknown> = {};
         if (g[\\"parent\\"] !== undefined) body[\\"parent\\"] = g[\\"parent\\"];
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
+        const result = await createResource(baseUrl, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -981,11 +1015,12 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the services\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params[\\"name\\"] = buildResourceName(String(g[\\"parent\\"] ?? \\"\\"), args.identifier);
-        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+        const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -996,11 +1031,12 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the services\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params[\\"name\\"] = buildResourceName(String(g[\\"parent\\"] ?? \\"\\"), args.identifier);
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
+        const { existed } = await deleteResource(baseUrl, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
@@ -1016,6 +1052,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific services by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -1034,7 +1071,7 @@ export const model = {
             if (!shortName) throw new Error(\\"No identifier found\\");
             params[\\"name\\"] = buildResourceName(String(g[\\"parent\\"] ?? \\"\\"), shortName);
           }
-          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+          const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -1170,6 +1207,8 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
   project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
   scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  quotaProject: z.string().describe(\\"GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.\\").optional(),
+  apiEndpoint: z.string().describe(\\"Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.\\").optional(),
   name: z.string().describe(\\"Instance name\\"),
   zone: z.string().describe(\\"Zone\\"),
 });
@@ -1187,11 +1226,13 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   name: z.string().describe(\\"Instance name\\").optional(),
   zone: z.string().describe(\\"Zone\\").optional(),
 });
 
-const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\",\\"quotaProject\\",\\"apiEndpoint\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
@@ -1199,6 +1240,7 @@ function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredential
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
     scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -1222,6 +1264,7 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1229,7 +1272,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
         if (g[\\"name\\"] !== undefined) params[\\"instance\\"] = String(g[\\"name\\"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
+        const result = await createResource(baseUrl, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -1240,12 +1283,13 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         params[\\"instance\\"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+        const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -1256,12 +1300,13 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the instances\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"zone\\"] !== undefined) params[\\"zone\\"] = String(g[\\"zone\\"]);
         params[\\"instance\\"] = args.identifier;
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
+        const { existed } = await deleteResource(baseUrl, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
@@ -1277,6 +1322,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific instances by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -1292,7 +1338,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
           if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
           params[\\"instance\\"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+          const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -1312,6 +1358,7 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1322,7 +1369,7 @@ export const model = {
         if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         params[\\"instance\\"] = existing[\\"name\\"]?.toString() ?? g[\\"name\\"]?.toString() ?? \\"\\";
-        const result = await createResource(BASE_URL, {\\"id\\":\\"compute.instances.start\\",\\"path\\":\\"projects/{project}/zones/{zone}/instances/{instance}/start\\",\\"httpMethod\\":\\"POST\\",\\"parameterOrder\\":[\\"project\\",\\"zone\\",\\"instance\\"],\\"parameters\\":{\\"project\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"zone\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"instance\\":{\\"location\\":\\"path\\",\\"required\\":true}}}, params, {}, undefined, undefined, undefined, credentials);
+        const result = await createResource(baseUrl, {\\"id\\":\\"compute.instances.start\\",\\"path\\":\\"projects/{project}/zones/{zone}/instances/{instance}/start\\",\\"httpMethod\\":\\"POST\\",\\"parameterOrder\\":[\\"project\\",\\"zone\\",\\"instance\\"],\\"parameters\\":{\\"project\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"zone\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"instance\\":{\\"location\\":\\"path\\",\\"required\\":true}}}, params, {}, undefined, undefined, undefined, credentials);
         return { result };
       },
     },
@@ -1331,6 +1378,7 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1341,7 +1389,7 @@ export const model = {
         if (!content) throw new Error(\\"No existing state found - run create or get first\\");
         const existing = JSON.parse(new TextDecoder().decode(content));
         params[\\"instance\\"] = existing[\\"name\\"]?.toString() ?? g[\\"name\\"]?.toString() ?? \\"\\";
-        const result = await createResource(BASE_URL, {\\"id\\":\\"compute.instances.stop\\",\\"path\\":\\"projects/{project}/zones/{zone}/instances/{instance}/stop\\",\\"httpMethod\\":\\"POST\\",\\"parameterOrder\\":[\\"project\\",\\"zone\\",\\"instance\\"],\\"parameters\\":{\\"project\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"zone\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"instance\\":{\\"location\\":\\"path\\",\\"required\\":true}}}, params, {}, undefined, undefined, undefined, credentials);
+        const result = await createResource(baseUrl, {\\"id\\":\\"compute.instances.stop\\",\\"path\\":\\"projects/{project}/zones/{zone}/instances/{instance}/stop\\",\\"httpMethod\\":\\"POST\\",\\"parameterOrder\\":[\\"project\\",\\"zone\\",\\"instance\\"],\\"parameters\\":{\\"project\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"zone\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"instance\\":{\\"location\\":\\"path\\",\\"required\\":true}}}, params, {}, undefined, undefined, undefined, credentials);
         return { result };
       },
     },
@@ -1436,6 +1484,8 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
   project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
   scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  quotaProject: z.string().describe(\\"GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.\\").optional(),
+  apiEndpoint: z.string().describe(\\"Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.\\").optional(),
   spreadsheetId: z.string().describe(\\"Spreadsheet ID\\"),
 });
 
@@ -1450,10 +1500,12 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   spreadsheetId: z.string().describe(\\"Spreadsheet ID\\").optional(),
 });
 
-const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\",\\"quotaProject\\",\\"apiEndpoint\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
@@ -1461,6 +1513,7 @@ function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredential
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
     scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -1484,13 +1537,14 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"spreadsheetId\\"] !== undefined) params[\\"spreadsheetId\\"] = String(g[\\"spreadsheetId\\"]);
         if (g[\\"range\\"] !== undefined) params[\\"range\\"] = String(g[\\"range\\"]);
         const body: Record<string, unknown> = {};
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
+        const result = await createResource(baseUrl, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((g.spreadsheetId ?? result.spreadsheetId)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -1501,12 +1555,13 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The spreadsheetId of the values\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"spreadsheetId\\"] !== undefined) params[\\"spreadsheetId\\"] = String(g[\\"spreadsheetId\\"]);
         params[\\"range\\"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+        const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((g.spreadsheetId ?? result.spreadsheetId)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -1517,6 +1572,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific values by spreadsheetId (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.spreadsheetId?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -1532,7 +1588,7 @@ export const model = {
           const identifier = existing.spreadsheetId?.toString() ?? g[\\"spreadsheetId\\"]?.toString();
           if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
           params[\\"range\\"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+          const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -1552,11 +1608,12 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"spreadsheetId\\"] !== undefined) params[\\"spreadsheetId\\"] = String(g[\\"spreadsheetId\\"]);
-        const result = await createResource(BASE_URL, {\\"id\\":\\"sheets.spreadsheets.values.batchGet\\",\\"path\\":\\"v4/spreadsheets/{spreadsheetId}/values:batchGet\\",\\"httpMethod\\":\\"GET\\",\\"parameterOrder\\":[\\"spreadsheetId\\"],\\"parameters\\":{\\"spreadsheetId\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"ranges\\":{\\"location\\":\\"query\\"}}}, params, undefined, undefined, undefined, undefined, credentials);
+        const result = await createResource(baseUrl, {\\"id\\":\\"sheets.spreadsheets.values.batchGet\\",\\"path\\":\\"v4/spreadsheets/{spreadsheetId}/values:batchGet\\",\\"httpMethod\\":\\"GET\\",\\"parameterOrder\\":[\\"spreadsheetId\\"],\\"parameters\\":{\\"spreadsheetId\\":{\\"location\\":\\"path\\",\\"required\\":true},\\"ranges\\":{\\"location\\":\\"query\\"}}}, params, undefined, undefined, undefined, undefined, credentials);
         return { result };
       },
     },
@@ -1565,11 +1622,12 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         if (g[\\"spreadsheetId\\"] !== undefined) params[\\"spreadsheetId\\"] = String(g[\\"spreadsheetId\\"]);
-        const result = await createResource(BASE_URL, {\\"id\\":\\"sheets.spreadsheets.values.batchUpdate\\",\\"path\\":\\"v4/spreadsheets/{spreadsheetId}/values:batchUpdate\\",\\"httpMethod\\":\\"POST\\",\\"parameterOrder\\":[\\"spreadsheetId\\"],\\"parameters\\":{\\"spreadsheetId\\":{\\"location\\":\\"path\\",\\"required\\":true}}}, params, {}, undefined, undefined, undefined, credentials);
+        const result = await createResource(baseUrl, {\\"id\\":\\"sheets.spreadsheets.values.batchUpdate\\",\\"path\\":\\"v4/spreadsheets/{spreadsheetId}/values:batchUpdate\\",\\"httpMethod\\":\\"POST\\",\\"parameterOrder\\":[\\"spreadsheetId\\"],\\"parameters\\":{\\"spreadsheetId\\":{\\"location\\":\\"path\\",\\"required\\":true}}}, params, {}, undefined, undefined, undefined, credentials);
         return { result };
       },
     },
@@ -1659,6 +1717,8 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
   project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
   scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  quotaProject: z.string().describe(\\"GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.\\").optional(),
+  apiEndpoint: z.string().describe(\\"Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.\\").optional(),
   name: z.string().describe(\\"Snapshot name\\"),
   sourceDisk: z.string().describe(\\"Source disk\\"),
 });
@@ -1677,11 +1737,13 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   name: z.string().describe(\\"Snapshot name\\").optional(),
   sourceDisk: z.string().describe(\\"Source disk\\").optional(),
 });
 
-const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\",\\"quotaProject\\",\\"apiEndpoint\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
@@ -1689,6 +1751,7 @@ function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredential
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
     scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -1712,6 +1775,7 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1719,7 +1783,7 @@ export const model = {
         if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
         if (g[\\"sourceDisk\\"] !== undefined) body[\\"sourceDisk\\"] = g[\\"sourceDisk\\"];
         if (g[\\"name\\"] !== undefined) params[\\"snapshot\\"] = String(g[\\"name\\"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
+        const result = await createResource(baseUrl, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -1730,11 +1794,12 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the snapshots\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params[\\"snapshot\\"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+        const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -1745,6 +1810,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific snapshots by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -1758,7 +1824,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
           if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
           params[\\"snapshot\\"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+          const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {
@@ -1899,6 +1965,8 @@ const GlobalArgsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).describe(\\"GCP service account JSON credentials; overrides GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable. Wire with a vault.get(...) expression to source it from a vault.\\").optional(),
   project: z.string().describe(\\"GCP project ID; overrides GCP_PROJECT / GOOGLE_CLOUD_PROJECT environment variables.\\").optional(),
   scopes: z.string().describe(\\"Comma-separated OAuth scopes to request when minting access tokens via gcloud. Defaults to the API's Discovery Document scopes.\\").optional(),
+  quotaProject: z.string().describe(\\"GCP project ID for quota and billing attribution; sets the x-goog-user-project header. Overrides GOOGLE_CLOUD_QUOTA_PROJECT environment variable. Required for APIs like Cloud Identity when using user credentials.\\").optional(),
+  apiEndpoint: z.string().describe(\\"Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.\\").optional(),
   name: z.string().describe(\\"Firewall name\\"),
   network: z.string().describe(\\"Network\\"),
 });
@@ -1916,11 +1984,13 @@ const InputsSchema = z.object({
   credentialsJson: z.string().meta({ sensitive: true }).optional(),
   project: z.string().optional(),
   scopes: z.string().optional(),
+  quotaProject: z.string().optional(),
+  apiEndpoint: z.string().optional(),
   name: z.string().describe(\\"Firewall name\\").optional(),
   network: z.string().describe(\\"Network\\").optional(),
 });
 
-const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\"]);
+const _credentialKeys = new Set([\\"accessToken\\",\\"credentialsJson\\",\\"project\\",\\"scopes\\",\\"quotaProject\\",\\"apiEndpoint\\"]);
 
 function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredentials {
   return {
@@ -1928,6 +1998,7 @@ function _buildGcpCredentials(g: Record<string, unknown>): ExplicitGcpCredential
     credentialsJson: g.credentialsJson as string | undefined,
     project: g.project as string | undefined,
     scopes: typeof g.scopes === \\"string\\" ? g.scopes.split(\\",\\").map((s: string) => s.trim()) : undefined,
+    quotaProject: g.quotaProject as string | undefined,
   };
 }
 
@@ -1958,6 +2029,7 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
@@ -1965,7 +2037,7 @@ export const model = {
         if (g[\\"name\\"] !== undefined) body[\\"name\\"] = g[\\"name\\"];
         if (g[\\"network\\"] !== undefined) body[\\"network\\"] = g[\\"network\\"];
         if (g[\\"name\\"] !== undefined) params[\\"firewall\\"] = String(g[\\"name\\"]);
-        const result = await createResource(BASE_URL, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
+        const result = await createResource(baseUrl, INSERT_CONFIG, params, body, GET_CONFIG, undefined, undefined, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -1976,11 +2048,12 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the firewalls\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params[\\"firewall\\"] = args.identifier;
-        const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+        const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
         const instanceName = ((g.name ?? result.name)?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
@@ -1991,6 +2064,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific firewalls by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -2008,7 +2082,7 @@ export const model = {
             body[key] = existing[key];
           }
         }
-        const result = await updateResource(BASE_URL, PATCH_CONFIG, params, body, GET_CONFIG, undefined, credentials) as StateData;
+        const result = await updateResource(baseUrl, PATCH_CONFIG, params, body, GET_CONFIG, undefined, credentials) as StateData;
         const handle = await context.writeResource(\\"state\\", instanceName, result);
         return { dataHandles: [handle] };
       },
@@ -2018,11 +2092,12 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"The name of the firewalls\\") }),
       execute: async (args: { identifier: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const params: Record<string, string> = { project: projectId };
         params[\\"firewall\\"] = args.identifier;
-        const { existed } = await deleteResource(BASE_URL, DELETE_CONFIG, params, credentials);
+        const { existed } = await deleteResource(baseUrl, DELETE_CONFIG, params, credentials);
         const instanceName = (g.name?.toString() ?? args.identifier).replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
         const handle = await context.writeResource(\\"state\\", instanceName, {
           identifier: args.identifier,
@@ -2038,6 +2113,7 @@ export const model = {
       arguments: z.object({ identifier: z.string().describe(\\"Target a specific firewalls by name (e.g. one discovered by list)\\").optional() }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
+        const baseUrl = g[\\"apiEndpoint\\"]?.toString() ?? Deno.env.get(\\"GCP_API_ENDPOINT\\")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
         const instanceName = (g.name?.toString() ?? args.identifier ?? \\"current\\").replace(/[\\\\/\\\\\\\\]/g, \\"_\\").replace(/\\\\.\\\\./g, \\"_\\").replace(/\\\\0/g, \\"\\");
@@ -2051,7 +2127,7 @@ export const model = {
           const identifier = existing.name?.toString() ?? g[\\"name\\"]?.toString();
           if (!identifier) throw new Error(\\"No identifier found in existing state or globalArgs\\");
           params[\\"firewall\\"] = identifier;
-          const result = await readResource(BASE_URL, GET_CONFIG, params, credentials) as StateData;
+          const result = await readResource(baseUrl, GET_CONFIG, params, credentials) as StateData;
           const handle = await context.writeResource(\\"state\\", instanceName, result);
           return { dataHandles: [handle] };
         } catch (error: unknown) {

@@ -190,6 +190,20 @@ export function generateGcpExtensionModel(
       : '`projects/${projectId}/locations/${String(g["location"] ?? "")}`'
     : 'String(g["parent"] ?? "")';
 
+  // Determine the correct project path parameter key from method configs.
+  // Most GCP APIs use {project}, but some (e.g., Cloud Build, Dataflow) use {projectId}.
+  const allParamOrders = [
+    resource.methodConfigs.insert?.parameterOrder,
+    resource.methodConfigs.get?.parameterOrder,
+    resource.methodConfigs.update?.parameterOrder,
+    resource.methodConfigs.patch?.parameterOrder,
+    resource.methodConfigs.delete?.parameterOrder,
+    resource.methodConfigs.list?.parameterOrder,
+  ].filter(Boolean).flat();
+  const projectParamKey = allParamOrders.includes("projectId")
+    ? "projectId"
+    : "project";
+
   // Method configs as constants
   lines.push(`const BASE_URL = ${JSON.stringify(resource.baseUrl)};`);
   lines.push("");
@@ -468,7 +482,7 @@ export function generateGcpExtensionModel(
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
-      `        const params: Record<string, string> = { project: projectId };`,
+      `        const params: Record<string, string> = { ${projectParamKey}: projectId };`,
     );
 
     // Add path parameters from globalArgs
@@ -805,7 +819,7 @@ export function generateGcpExtensionModel(
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
-      `        const params: Record<string, string> = { project: projectId };`,
+      `        const params: Record<string, string> = { ${projectParamKey}: projectId };`,
     );
 
     if (resource.listOnly && resource.methodConfigs.list) {
@@ -959,7 +973,7 @@ export function generateGcpExtensionModel(
     }
 
     lines.push(
-      `        const params: Record<string, string> = { project: projectId };`,
+      `        const params: Record<string, string> = { ${projectParamKey}: projectId };`,
     );
     for (const paramName of updateConfig.parameterOrder) {
       if (paramName === "project" || paramName === "projectId") continue;
@@ -1134,7 +1148,7 @@ export function generateGcpExtensionModel(
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
-      `        const params: Record<string, string> = { project: projectId };`,
+      `        const params: Record<string, string> = { ${projectParamKey}: projectId };`,
     );
 
     const deleteConfig = resource.methodConfigs.delete;
@@ -1271,7 +1285,7 @@ export function generateGcpExtensionModel(
 
     if (resource.listOnly && resource.methodConfigs.list) {
       lines.push(
-        `          const params: Record<string, string> = { project: projectId };`,
+        `          const params: Record<string, string> = { ${projectParamKey}: projectId };`,
       );
       const listConfig = resource.methodConfigs.list;
       for (const paramName of listConfig.parameterOrder) {
@@ -1302,7 +1316,7 @@ export function generateGcpExtensionModel(
       );
     } else if (resource.methodConfigs.get) {
       lines.push(
-        `          const params: Record<string, string> = { project: projectId };`,
+        `          const params: Record<string, string> = { ${projectParamKey}: projectId };`,
       );
       const getConfig = resource.methodConfigs.get;
       for (const paramName of getConfig.parameterOrder) {
@@ -1461,7 +1475,7 @@ export function generateGcpExtensionModel(
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
-      `        const params: Record<string, string> = { project: projectId };`,
+      `        const params: Record<string, string> = { ${projectParamKey}: projectId };`,
     );
 
     // Add path parameters from list config's parameterOrder
@@ -1605,7 +1619,7 @@ export function generateGcpExtensionModel(
     lines.push(`        const credentials = _buildGcpCredentials(g);`);
     lines.push(`        const projectId = await getProjectId(credentials);`);
     lines.push(
-      `        const params: Record<string, string> = { project: projectId };`,
+      `        const params: Record<string, string> = { ${projectParamKey}: projectId };`,
     );
 
     // Add path parameters from globalArgs

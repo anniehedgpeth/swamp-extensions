@@ -1305,7 +1305,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     wipeAction: z.object({
       preserveFrp: z.boolean().describe(
-        "Whether the factory-reset protection data is preserved on the device. This setting doesn’t apply to work profiles.",
+        "Whether the factory-reset protection data is preserved on the device. This setting applies to fully managed devices and work profiles on company-owned devices.",
       ).optional(),
       wipeAfterDays: z.number().int().describe(
         "Number of days the policy is non-compliant before the device or work profile is wiped. wipeAfterDays must be greater than blockAfterDays.",
@@ -3118,7 +3118,7 @@ const InputsSchema = z.object({
     ).optional(),
     wipeAction: z.object({
       preserveFrp: z.boolean().describe(
-        "Whether the factory-reset protection data is preserved on the device. This setting doesn’t apply to work profiles.",
+        "Whether the factory-reset protection data is preserved on the device. This setting applies to fully managed devices and work profiles on company-owned devices.",
       ).optional(),
       wipeAfterDays: z.number().int().describe(
         "Number of days the policy is non-compliant before the device or work profile is wiped. wipeAfterDays must be greater than blockAfterDays.",
@@ -3385,7 +3385,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises.Policies. Registered at `@swamp/gcp/androidmanagement/enterprises-policies`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises-policies",
-  version: "2026.08.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3539,6 +3539,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

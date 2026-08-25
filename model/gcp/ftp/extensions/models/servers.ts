@@ -266,6 +266,8 @@ const StateSchema = z.object({
   }).optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
+  satisfiesPzi: z.boolean().optional(),
+  satisfiesPzs: z.boolean().optional(),
   serviceAgent: z.string().optional(),
   state: z.string().optional(),
   updateTime: z.string().optional(),
@@ -367,10 +369,15 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud FTP Servers. Registered at `@swamp/gcp/ftp/servers`. */
 export const model = {
   type: "@swamp/gcp/ftp/servers",
-  version: "2026.08.13.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

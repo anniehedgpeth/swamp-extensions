@@ -128,7 +128,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Storage JSON ServiceAccount. Registered at `@swamp/gcp/storage/serviceaccount`. */
 export const model = {
   type: "@swamp/gcp/storage/serviceaccount",
-  version: "2026.08.12.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -240,6 +240,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -263,7 +268,7 @@ export const model = {
           Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
         const credentials = _buildGcpCredentials(g);
         const projectId = await getProjectId(credentials);
-        const params: Record<string, string> = { project: projectId };
+        const params: Record<string, string> = { projectId: projectId };
         const result = await readResource(
           baseUrl,
           GET_CONFIG,
@@ -301,7 +306,7 @@ export const model = {
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
         try {
-          const params: Record<string, string> = { project: projectId };
+          const params: Record<string, string> = { projectId: projectId };
           const result = await readResource(
             baseUrl,
             GET_CONFIG,
