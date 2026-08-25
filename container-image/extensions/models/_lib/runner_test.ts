@@ -125,6 +125,75 @@ Deno.test("buildRunArgv - container (Apple) uses same subcommand", () => {
   assertEquals(argv, ["container", "run", "--rm", "alpine"]);
 });
 
+Deno.test("buildRunArgv - privileged flag", () => {
+  const argv = buildRunArgv("docker", {
+    image: "alpine",
+    privileged: true,
+  });
+  assertEquals(argv, ["docker", "run", "--rm", "--privileged", "alpine"]);
+});
+
+Deno.test("buildRunArgv - privileged false omits flag", () => {
+  const argv = buildRunArgv("docker", {
+    image: "alpine",
+    privileged: false,
+  });
+  assertEquals(argv, ["docker", "run", "--rm", "alpine"]);
+});
+
+Deno.test("buildRunArgv - extraArgs before image", () => {
+  const argv = buildRunArgv("docker", {
+    image: "alpine",
+    extraArgs: ["--cap-add", "SYS_ADMIN", "--device", "/dev/loop0"],
+  });
+  assertEquals(argv, [
+    "docker",
+    "run",
+    "--rm",
+    "--cap-add",
+    "SYS_ADMIN",
+    "--device",
+    "/dev/loop0",
+    "alpine",
+  ]);
+});
+
+Deno.test("buildRunArgv - privileged and extraArgs together", () => {
+  const argv = buildRunArgv("docker", {
+    image: "builder:latest",
+    privileged: true,
+    extraArgs: ["--device", "/dev/loop0"],
+    command: ["bash", "-c", "losetup /dev/loop0 disk.img"],
+  });
+  assertEquals(argv, [
+    "docker",
+    "run",
+    "--rm",
+    "--privileged",
+    "--device",
+    "/dev/loop0",
+    "builder:latest",
+    "bash",
+    "-c",
+    "losetup /dev/loop0 disk.img",
+  ]);
+});
+
+Deno.test("buildRunArgv - extraArgs with podman", () => {
+  const argv = buildRunArgv("podman", {
+    image: "alpine",
+    extraArgs: ["--security-opt", "label=disable"],
+  });
+  assertEquals(argv, [
+    "podman",
+    "run",
+    "--rm",
+    "--security-opt",
+    "label=disable",
+    "alpine",
+  ]);
+});
+
 // ---------------------------------------------------------------------------
 // Login argv
 // ---------------------------------------------------------------------------

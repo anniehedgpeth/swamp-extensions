@@ -151,6 +151,15 @@ export const RunArgsSchema = z.object({
   entrypoint: safeOptionValue("entrypoint").optional().describe(
     "Override the container entrypoint (--entrypoint).",
   ),
+  privileged: z.boolean().optional().describe(
+    "Run the container in privileged mode (--privileged). " +
+      "Required for operations like losetup/mount inside the container.",
+  ),
+  extraArgs: z.array(safeOptionValue("extraArgs")).optional().describe(
+    "Additional docker/podman/container run flags passed before the " +
+      "image argument. Each element is a single flag or flag=value " +
+      "(e.g. ['--cap-add', 'SYS_ADMIN', '--device', '/dev/loop0']).",
+  ),
 });
 
 export type RunArgs = z.infer<typeof RunArgsSchema>;

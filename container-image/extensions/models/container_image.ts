@@ -69,10 +69,15 @@ import {
 
 export const model = {
   type: "@swamp/container-image",
-  version: "2026.07.20.1",
+  version: "2026.08.25.1",
   globalArguments: GlobalArgsSchema,
 
-  upgrades: [],
+  upgrades: [
+    {
+      toVersion: "2026.08.25.1",
+      description: "Add privileged and extraArgs inputs to the run method.",
+    },
+  ],
 
   resources: {
     validateResult: {

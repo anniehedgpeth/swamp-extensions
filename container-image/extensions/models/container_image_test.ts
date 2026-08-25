@@ -223,6 +223,48 @@ Deno.test("run - throws on non-zero exit", async () => {
   }
 });
 
+Deno.test("run - privileged flag passes through to executor", async () => {
+  const h = makeHarness({ name: "myapp", binary: "docker" });
+  installMockExecutor(h);
+
+  try {
+    await runRun(
+      { image: "alpine", privileged: true },
+      h.ctx,
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+
+  assertEquals(h.execRequests.length, 1);
+  assert(h.execRequests[0].args.includes("--privileged"));
+});
+
+Deno.test("run - extraArgs pass through to executor before image", async () => {
+  const h = makeHarness({ name: "myapp", binary: "docker" });
+  installMockExecutor(h);
+
+  try {
+    await runRun(
+      {
+        image: "builder:latest",
+        extraArgs: ["--cap-add", "SYS_ADMIN"],
+      },
+      h.ctx,
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+
+  assertEquals(h.execRequests.length, 1);
+  const args = h.execRequests[0].args;
+  const capAddIdx = args.indexOf("--cap-add");
+  const imageIdx = args.indexOf("builder:latest");
+  assert(capAddIdx !== -1, "--cap-add should be in args");
+  assert(imageIdx !== -1, "image should be in args");
+  assert(capAddIdx < imageIdx, "--cap-add should come before image");
+});
+
 // ---------------------------------------------------------------------------
 // Login
 // ---------------------------------------------------------------------------

@@ -150,6 +150,7 @@ export function runBuildCommand(
 
 export function buildRunArgv(binary: Binary, args: RunArgs): string[] {
   const argv: string[] = [binary, "run", "--rm"];
+  if (args.privileged) argv.push("--privileged");
   if (args.entrypoint) argv.push("--entrypoint", args.entrypoint);
   if (args.network) argv.push("--network", args.network);
   if (args.env) {
@@ -167,6 +168,7 @@ export function buildRunArgv(binary: Binary, args: RunArgs): string[] {
       argv.push("-p", port);
     }
   }
+  if (args.extraArgs) argv.push(...args.extraArgs);
   argv.push(args.image);
   if (args.command) argv.push(...args.command);
   return argv;

@@ -136,6 +136,8 @@ Run a container with `--rm`. Captures stdout and stderr into the resource.
 | `ports`      | string[]              | No       | Port mappings (`-p host:container`) |
 | `network`    | string                | No       | Network name (`--network`) |
 | `entrypoint` | string                | No       | Override entrypoint (`--entrypoint`) |
+| `privileged` | boolean               | No       | Run in privileged mode (`--privileged`, default: `false`) |
+| `extraArgs`  | string[]              | No       | Additional run flags passed before the image argument |
 
 **Examples:**
 
@@ -151,6 +153,17 @@ swamp model method run myapp run \
   --input env='{"DATABASE_URL":"postgres://localhost/db"}' \
   --input volumes='["/data:/app/data"]' \
   --input ports='["8080:80"]' --json
+
+# Run in privileged mode (e.g. for losetup/mount)
+swamp model method run myapp run \
+  --input image=builder:latest \
+  --input privileged=true \
+  --input command='["bash","-c","losetup /dev/loop0 disk.img && mount /dev/loop0 /mnt"]' --json
+
+# Run with extra flags
+swamp model method run myapp run \
+  --input image=alpine:latest \
+  --input extraArgs='["--cap-add","SYS_ADMIN","--device","/dev/loop0"]' --json
 ```
 
 ### `login`
