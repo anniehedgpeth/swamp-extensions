@@ -30,7 +30,7 @@ all three into one workflow run.
 - AWS credentials available through the default credential chain
   (`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`, an AWS profile, an
   instance/role profile) with permission to:
-  - `s3:CreateBucket`, `s3:HeadBucket`, `s3:PutBucketVersioning`,
+  - `s3:CreateBucket`, `s3:ListBucket` (authorizes HeadBucket), `s3:PutBucketVersioning`,
     `s3:PutEncryptionConfiguration`, `s3:PutBucketPublicAccessBlock`
   - `iam:CreatePolicy`, `iam:GetPolicy`
   - `sts:GetCallerIdentity`

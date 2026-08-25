@@ -26,12 +26,10 @@ in config. Provide them via one of:
 
 The calling principal needs these S3 actions on the target bucket and objects:
 
-- `s3:HeadBucket`
-- `s3:GetObject`
+- `s3:GetObject` (authorizes GetObject, HeadObject)
 - `s3:PutObject`
 - `s3:DeleteObject`
-- `s3:ListBucket`
-- `s3:HeadObject`
+- `s3:ListBucket` (authorizes ListBucket, HeadBucket)
 
 ## Usage
 
