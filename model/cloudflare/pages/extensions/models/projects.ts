@@ -185,7 +185,6 @@ const ResourceSchema = z.object({
     project_id: z.string().optional(),
     project_name: z.string().optional(),
     short_id: z.string().optional(),
-    skip_reason: z.string().optional(),
     source: z.object({
       config: z.object({
         deployments_enabled: z.boolean().optional(),
@@ -310,7 +309,6 @@ const ResourceSchema = z.object({
     project_id: z.string().optional(),
     project_name: z.string().optional(),
     short_id: z.string().optional(),
-    skip_reason: z.string().optional(),
     source: z.object({
       config: z.object({
         deployments_enabled: z.boolean().optional(),
@@ -462,7 +460,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Projects. Registered at `@swamp/cloudflare/pages/projects`. */
 export const model = {
   type: "@swamp/cloudflare/pages/projects",
-  version: "2026.07.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -486,6 +484,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

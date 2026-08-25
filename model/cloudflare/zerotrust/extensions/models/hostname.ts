@@ -67,7 +67,6 @@ const ResourceSchema = z.object({
   deleted_at: z.string().optional(),
   hostname: z.string().optional(),
   id: z.string(),
-  tun_type: z.string().optional(),
   tunnel_id: z.string().optional(),
   tunnel_name: z.string().optional(),
 }).passthrough();
@@ -88,7 +87,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Hostname. Registered at `@swamp/cloudflare/zerotrust/hostname`. */
 export const model = {
   type: "@swamp/cloudflare/zerotrust/hostname",
-  version: "2026.07.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -112,6 +111,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -32,23 +32,13 @@
  */
 
 import { z } from "npm:zod@4.3.6";
-import {
-  create,
-  listAll,
-  read,
-  remove,
-  tryRead,
-  update,
-} from "./_lib/cloudflare.ts";
+import { create, listAll, read, remove, tryRead } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   name: z.string().describe(
     "Instance name for this resource (used as the unique identifier in the factory pattern)",
   ),
-  status: z.enum(["unverified", "verified"]).describe(
-    "Destination address status. Non-admin callers may only set verified addresses back to unverified; setting to verified requires admin privileges.",
-  ).optional(),
   email: z.string().max(90).describe("The contact email address of the user."),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -69,7 +59,6 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   name: z.string().optional(),
-  status: z.enum(["unverified", "verified"]).optional(),
   email: z.string().max(90).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
 });
@@ -77,7 +66,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Addresses. Registered at `@swamp/cloudflare/email/addresses`. */
 export const model = {
   type: "@swamp/cloudflare/email/addresses",
-  version: "2026.07.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -103,6 +92,14 @@ export const model = {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
+      description: "Removed: status",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { status: _status, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -173,7 +170,6 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id +
           "/email/routing/addresses";
         const filters: [string, string][] = [];
-        if (g.status !== undefined) filters.push(["status", String(g.status)]);
         if (g.email !== undefined) filters.push(["email", String(g.email)]);
         if (filters.length === 0) {
           throw new Error(
@@ -237,44 +233,6 @@ export const model = {
             /[\/\\]/g,
             "_",
           ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const handle = await context.writeResource(
-          "state",
-          instanceName,
-          result,
-        );
-        return { dataHandles: [handle] };
-      },
-    },
-    update: {
-      description: "Update Addresses attributes",
-      arguments: z.object({
-        identifier: z.string().describe(
-          "Target a specific Addresses by id (e.g. one discovered by list)",
-        ).optional(),
-      }),
-      execute: async (args: { identifier?: string }, context: any) => {
-        const g = context.globalArgs;
-        const endpoint = "/accounts/" + g.account_id +
-          "/email/routing/addresses";
-        const instanceName =
-          (g.name?.toString() ?? args.identifier ?? "current").replace(
-            /[\/\\]/g,
-            "_",
-          ).replace(/\.\./g, "_").replace(/\0/g, "");
-        const content = await context.dataRepository.getContent(
-          context.modelType,
-          context.modelId,
-          instanceName,
-        );
-        if (!content) {
-          throw new Error("No data found - run create, get, or list first");
-        }
-        const existing = JSON.parse(new TextDecoder().decode(content));
-        const body: Record<string, unknown> = {};
-        if (g.status !== undefined) body.status = g.status;
-        const result = await update(endpoint, existing.id, body, "PATCH", {
-          apiToken: g.apiToken,
-        }) as ResourceData;
         const handle = await context.writeResource(
           "state",
           instanceName,

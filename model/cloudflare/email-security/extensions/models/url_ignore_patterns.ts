@@ -50,7 +50,7 @@ const GlobalArgsSchema = z.object({
     "Optional note describing the reason for the ignore pattern.",
   ).optional(),
   pattern: z.string().min(1).max(1024).describe(
-    "Regular expression identifying URLs to exempt from rewriting.",
+    "Regular expression matching URLs that should not be rewritten.",
   ),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -87,7 +87,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Url Ignore Patterns. Registered at `@swamp/cloudflare/email-security/url-ignore-patterns`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/url-ignore-patterns",
-  version: "2026.07.24.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.06.08.1",
@@ -106,6 +106,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -70,12 +70,12 @@ const ResourceSchema = z.object({
     value: z.string().optional(),
   }).optional(),
   name: z.string().optional(),
-  scope: z.object({
+  scope: z.array(z.object({
     key: z.string().optional(),
     objects: z.array(z.object({
       key: z.string().optional(),
     })).optional(),
-  }).optional(),
+  })).optional(),
 }).passthrough();
 
 type ResourceData = z.infer<typeof ResourceSchema>;
@@ -97,7 +97,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Resource Groups. Registered at `@swamp/cloudflare/iam/resource-groups`. */
 export const model = {
   type: "@swamp/cloudflare/iam/resource-groups",
-  version: "2026.07.24.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -121,6 +121,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

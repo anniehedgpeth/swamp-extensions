@@ -303,8 +303,14 @@ export function generateCloudflareExtensionModel(
   lines.push(
     `        if (filters.length === 0) throw new Error("At least one global argument must be set to filter by");`,
   );
+  if (resource.listEndpointSuffix) {
+    lines.push(
+      `        const listEndpoint = endpoint + "${resource.listEndpointSuffix}";`,
+    );
+  }
+  const listTarget = resource.listEndpointSuffix ? "listEndpoint" : "endpoint";
   lines.push(
-    `        const items = await listAll(endpoint, "${resource.paginationStyle}"${
+    `        const items = await listAll(${listTarget}, "${resource.paginationStyle}"${
       authSuffix ? `, undefined${authSuffix}` : ""
     });`,
   );

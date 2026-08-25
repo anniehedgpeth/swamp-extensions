@@ -138,6 +138,8 @@ export interface CloudflareResource {
   createOnlyProperties: Set<string>;
   /** Pagination style detected from GET list endpoint */
   paginationStyle: "page" | "cursor" | "none";
+  /** Suffix appended to the base endpoint for list operations (e.g. "/list" when the API uses a separate list sub-endpoint) */
+  listEndpointSuffix: string;
 }
 
 export interface CloudflareGeneratedFile {
@@ -1121,8 +1123,14 @@ function buildResource(
     }
   }
 
-  // Detect pagination style from the list GET on basePath
-  const paginationStyle = detectPagination(baseMethods.get);
+  // Detect pagination style and list endpoint. Some Cloudflare APIs route
+  // listing through a /list sub-endpoint instead of GET on the base path.
+  let paginationStyle = detectPagination(baseMethods.get);
+  let listEndpointSuffix = "";
+  if (!baseMethods.get && paths[basePath + "/list"]?.get) {
+    listEndpointSuffix = "/list";
+    paginationStyle = detectPagination(paths[basePath + "/list"].get);
+  }
 
   // Build display name
   const displayName = lastSegment
@@ -1156,6 +1164,7 @@ function buildResource(
     syntheticName,
     createOnlyProperties,
     paginationStyle,
+    listEndpointSuffix,
   };
 }
 

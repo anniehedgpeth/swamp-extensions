@@ -70,7 +70,7 @@ const GlobalArgsSchema = z.object({
     service_id: z.string().optional(),
   }),
   origin_connection_limit: z.number().int().min(5).describe(
-    "The (soft) maximum number of connections the Hyperdrive is allowed to make to the origin database.\n\nMaximum allowed: 20 for free tier accounts, 100 for paid tier accounts.\nIf not specified, defaults to 20 for free tier and 60 for paid tier.\nCertain Cloudflare-managed origins may be permitted a higher limit.\nContact Cloudflare if you need a higher limit.\n",
+    "The (soft) maximum number of connections the Hyperdrive is allowed to make to the origin database.\n\nMaximum allowed: 20 for free tier accounts, 100 for paid tier accounts.\nIf not specified, defaults to 20 for free tier and 60 for paid tier.\nContact Cloudflare if you need a higher limit.\n",
   ).optional(),
   created_on: z.string().describe(
     "Defines the creation time of the Hyperdrive configuration.",
@@ -80,9 +80,6 @@ const GlobalArgsSchema = z.object({
   ),
   modified_on: z.string().describe(
     "Defines the last modified time of the Hyperdrive configuration.",
-  ).optional(),
-  restarted_on: z.string().describe(
-    "Defines the last time the Hyperdrive connection pool was explicitly restarted via the restart endpoint. Omitted if the pool has never been explicitly restarted.",
   ).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -122,7 +119,6 @@ const ResourceSchema = z.object({
     service_id: z.string().optional(),
   }).optional(),
   origin_connection_limit: z.number().optional(),
-  restarted_on: z.string().optional(),
 }).passthrough();
 
 type ResourceData = z.infer<typeof ResourceSchema>;
@@ -155,7 +151,6 @@ const InputsSchema = z.object({
   created_on: z.string().optional(),
   id: z.string().max(32).optional(),
   modified_on: z.string().optional(),
-  restarted_on: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -164,7 +159,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Configs. Registered at `@swamp/cloudflare/hyperdrive/configs`. */
 export const model = {
   type: "@swamp/cloudflare/hyperdrive/configs",
-  version: "2026.08.11.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -201,6 +196,14 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "Removed: restarted_on",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { restarted_on: _restarted_on, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -230,7 +233,6 @@ export const model = {
         if (g.origin_connection_limit !== undefined) {
           body.origin_connection_limit = g.origin_connection_limit;
         }
-        if (g.restarted_on !== undefined) body.restarted_on = g.restarted_on;
         const result = await create(endpoint, body, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -293,15 +295,12 @@ export const model = {
         if (g.modified_on !== undefined) {
           filters.push(["modified_on", String(g.modified_on)]);
         }
-        if (g.restarted_on !== undefined) {
-          filters.push(["restarted_on", String(g.restarted_on)]);
-        }
         if (filters.length === 0) {
           throw new Error(
             "At least one global argument must be set to filter by",
           );
         }
-        const items = await listAll(endpoint, "page", undefined, {
+        const items = await listAll(endpoint, "none", undefined, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
           email: g.email,

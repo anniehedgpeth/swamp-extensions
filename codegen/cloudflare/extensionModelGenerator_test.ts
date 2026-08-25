@@ -32,6 +32,7 @@ function makeResource(
     syntheticName: false,
     createOnlyProperties: new Set<string>(),
     paginationStyle: "page",
+    listEndpointSuffix: "",
     ...overrides,
   };
 }

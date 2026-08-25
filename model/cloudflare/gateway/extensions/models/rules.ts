@@ -119,7 +119,6 @@ const GlobalArgsSchema = z.object({
       duration: z.string().optional(),
       enforce: z.boolean().optional(),
     }).optional(),
-    delete_headers: z.array(z.string()).optional(),
     dns_resolvers: z.object({
       ipv4: z.array(z.object({
         ip: z.string(),
@@ -190,7 +189,6 @@ const GlobalArgsSchema = z.object({
       view_id: z.string().optional(),
     }).optional(),
     resolve_dns_through_cloudflare: z.boolean().optional(),
-    set_headers: z.record(z.string(), z.unknown()).optional(),
     untrusted_cert: z.object({
       action: z.enum(["pass_through", "block", "error"]).optional(),
     }).optional(),
@@ -273,7 +271,6 @@ const ResourceSchema = z.object({
       duration: z.string().optional(),
       enforce: z.boolean().optional(),
     }).optional(),
-    delete_headers: z.array(z.string()).optional(),
     dns_resolvers: z.object({
       ipv4: z.array(z.object({
         ip: z.string().optional(),
@@ -328,7 +325,6 @@ const ResourceSchema = z.object({
       view_id: z.string().optional(),
     }).optional(),
     resolve_dns_through_cloudflare: z.boolean().optional(),
-    set_headers: z.record(z.string(), z.unknown()).optional(),
     untrusted_cert: z.object({
       action: z.string().optional(),
     }).optional(),
@@ -418,7 +414,6 @@ const InputsSchema = z.object({
       duration: z.string().optional(),
       enforce: z.boolean().optional(),
     }).optional(),
-    delete_headers: z.array(z.string()).optional(),
     dns_resolvers: z.object({
       ipv4: z.array(z.object({
         ip: z.string(),
@@ -489,7 +484,6 @@ const InputsSchema = z.object({
       view_id: z.string().optional(),
     }).optional(),
     resolve_dns_through_cloudflare: z.boolean().optional(),
-    set_headers: z.record(z.string(), z.unknown()).optional(),
     untrusted_cert: z.object({
       action: z.enum(["pass_through", "block", "error"]).optional(),
     }).optional(),
@@ -513,7 +507,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Rules. Registered at `@swamp/cloudflare/gateway/rules`. */
 export const model = {
   type: "@swamp/cloudflare/gateway/rules",
-  version: "2026.07.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -537,6 +531,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -64,10 +64,6 @@ const GlobalArgsSchema = z.object({
 });
 
 const ResourceSchema = z.object({
-  capacity: z.object({
-    total: z.number().optional(),
-    used: z.number().optional(),
-  }).optional(),
   comment: z.string().optional(),
   created_at: z.string().optional(),
   deleted_at: z.string().optional(),
@@ -94,7 +90,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Warp. Registered at `@swamp/cloudflare/zerotrust/warp`. */
 export const model = {
   type: "@swamp/cloudflare/zerotrust/warp",
-  version: "2026.07.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -113,6 +109,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

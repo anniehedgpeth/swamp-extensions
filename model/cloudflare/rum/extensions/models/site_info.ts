@@ -111,7 +111,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Site Info. Registered at `@swamp/cloudflare/rum/site-info`. */
 export const model = {
   type: "@swamp/cloudflare/rum/site-info",
-  version: "2026.07.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -130,6 +130,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -221,7 +226,8 @@ export const model = {
             "At least one global argument must be set to filter by",
           );
         }
-        const items = await listAll(endpoint, "none", undefined, {
+        const listEndpoint = endpoint + "/list";
+        const items = await listAll(listEndpoint, "page", undefined, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
           email: g.email,

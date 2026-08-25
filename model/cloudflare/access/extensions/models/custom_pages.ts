@@ -46,14 +46,10 @@ const GlobalArgsSchema = z.object({
   app_count: z.number().int().describe(
     "Number of apps the custom page is assigned to.",
   ).optional(),
-  contract_version: z.number().int().describe(
-    "Contract version of the page's Liquid template. Present (>= 1) marks a sanitized template; absent or 0 marks a legacy page served verbatim.",
-  ).optional(),
   created_at: z.string().optional(),
   custom_html: z.string().describe("Custom page HTML."),
   name: z.string().describe("Custom page name."),
-  type: z.enum(["identity_denied", "forbidden", "login", "interstitial"])
-    .describe("Custom page type."),
+  type: z.enum(["identity_denied", "forbidden"]).describe("Custom page type."),
   uid: z.string().max(36).describe("UUID.").optional(),
   updated_at: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
@@ -69,7 +65,6 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   app_count: z.number().optional(),
-  contract_version: z.number().optional(),
   created_at: z.string().optional(),
   custom_html: z.string().optional(),
   name: z.string().optional(),
@@ -84,12 +79,10 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   app_count: z.number().int().optional(),
-  contract_version: z.number().int().optional(),
   created_at: z.string().optional(),
   custom_html: z.string().optional(),
   name: z.string().optional(),
-  type: z.enum(["identity_denied", "forbidden", "login", "interstitial"])
-    .optional(),
+  type: z.enum(["identity_denied", "forbidden"]).optional(),
   uid: z.string().max(36).optional(),
   updated_at: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -100,7 +93,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Custom Pages. Registered at `@swamp/cloudflare/access/custom-pages`. */
 export const model = {
   type: "@swamp/cloudflare/access/custom-pages",
-  version: "2026.08.15.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -127,6 +120,14 @@ export const model = {
       description: "Added: contract_version",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "Removed: contract_version",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { contract_version: _contract_version, ...rest } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -147,9 +148,6 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id + "/access/custom_pages";
         const body: Record<string, unknown> = {};
         if (g.app_count !== undefined) body.app_count = g.app_count;
-        if (g.contract_version !== undefined) {
-          body.contract_version = g.contract_version;
-        }
         if (g.created_at !== undefined) body.created_at = g.created_at;
         if (g.custom_html !== undefined) body.custom_html = g.custom_html;
         if (g.name !== undefined) body.name = g.name;
@@ -208,9 +206,6 @@ export const model = {
         const filters: [string, string][] = [];
         if (g.app_count !== undefined) {
           filters.push(["app_count", String(g.app_count)]);
-        }
-        if (g.contract_version !== undefined) {
-          filters.push(["contract_version", String(g.contract_version)]);
         }
         if (g.created_at !== undefined) {
           filters.push(["created_at", String(g.created_at)]);
@@ -325,9 +320,6 @@ export const model = {
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
         if (g.app_count !== undefined) body.app_count = g.app_count;
-        if (g.contract_version !== undefined) {
-          body.contract_version = g.contract_version;
-        }
         if (g.created_at !== undefined) body.created_at = g.created_at;
         if (g.custom_html !== undefined) body.custom_html = g.custom_html;
         if (g.name !== undefined) body.name = g.name;

@@ -103,3 +103,59 @@ Deno.test("parseResources accepts valid account-scoped paths", () => {
   assertEquals(resources[0].modelSlug, "workers");
   assertEquals(resources[0].fileName, "workers.ts");
 });
+
+Deno.test("parseResources detects /list sub-endpoint when base has no GET", () => {
+  const spec = {
+    paths: {
+      "/accounts/{account_id}/rum/site_info": {
+        post: jsonBody({ host: { type: "string" } }),
+      },
+      "/accounts/{account_id}/rum/site_info/list": {
+        get: {
+          parameters: [
+            { name: "page", in: "query" },
+            { name: "per_page", in: "query" },
+          ],
+          ...getOp({ id: { type: "string" } }),
+        },
+      },
+      "/accounts/{account_id}/rum/site_info/{site_id}": {
+        get: getOp({ id: { type: "string" }, host: { type: "string" } }),
+        put: jsonBody({ host: { type: "string" } }),
+        delete: {},
+      },
+    },
+  } as OApiSpec;
+
+  const { resources } = parseResources(spec);
+
+  assertEquals(resources.length, 1);
+  assertEquals(resources[0].listEndpointSuffix, "/list");
+  assertEquals(resources[0].paginationStyle, "page");
+});
+
+Deno.test("parseResources uses empty listEndpointSuffix when base has GET", () => {
+  const spec = {
+    paths: {
+      "/accounts/{account_id}/dns_records": {
+        post: jsonBody({ name: { type: "string" } }),
+        get: {
+          parameters: [
+            { name: "page", in: "query" },
+          ],
+        },
+      },
+      "/accounts/{account_id}/dns_records/{dns_record_id}": {
+        get: getOp({ id: { type: "string" }, name: { type: "string" } }),
+        patch: jsonBody({ name: { type: "string" } }),
+        delete: {},
+      },
+    },
+  } as OApiSpec;
+
+  const { resources } = parseResources(spec);
+
+  assertEquals(resources.length, 1);
+  assertEquals(resources[0].listEndpointSuffix, "");
+  assertEquals(resources[0].paginationStyle, "page");
+});

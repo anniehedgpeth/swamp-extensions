@@ -104,9 +104,7 @@ const GlobalArgsSchema = z.object({
   ),
   subdomain: z.object({
     enabled: z.boolean().optional(),
-    preview_url_suffix: z.string().optional(),
     previews_enabled: z.boolean().optional(),
-    url: z.string().optional(),
   }).describe("Subdomain settings for the Worker."),
   tags: z.array(z.string().max(1024).regex(new RegExp("^[^,&]*$"))).describe(
     "Tags associated with the Worker.",
@@ -182,9 +180,7 @@ const ResourceSchema = z.object({
   }).optional(),
   subdomain: z.object({
     enabled: z.boolean().optional(),
-    preview_url_suffix: z.string().optional(),
     previews_enabled: z.boolean().optional(),
-    url: z.string().optional(),
   }).optional(),
   tags: z.array(z.string()).optional(),
   tail_consumers: z.array(z.object({
@@ -252,9 +248,7 @@ const InputsSchema = z.object({
   }).optional(),
   subdomain: z.object({
     enabled: z.boolean().optional(),
-    preview_url_suffix: z.string().optional(),
     previews_enabled: z.boolean().optional(),
-    url: z.string().optional(),
   }).optional(),
   tags: z.array(z.string().max(1024).regex(new RegExp("^[^,&]*$"))).optional(),
   tail_consumers: z.array(z.object({
@@ -269,7 +263,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Workers. Registered at `@swamp/cloudflare/workers/workers`. */
 export const model = {
   type: "@swamp/cloudflare/workers/workers",
-  version: "2026.08.15.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -293,6 +287,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

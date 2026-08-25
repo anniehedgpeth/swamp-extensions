@@ -43,22 +43,12 @@ import {
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
-  auth_credentials: z.string().describe(
-    'Static credential for the upstream MCP server. For auth_type "bearer", either a raw token string (e.g. "sk-abc123"), which is wrapped server-side as `Authorization: Bearer <token>`, or a JSON-encoded object of the form `{"headers":{"Header-Name":"value",...}}` for custom or multiple static headers (e.g. Cloudflare Access service tokens: `{"headers":{"cf-access-client-id":"...","cf-access-client-secret":"..."}}`).',
-  ).optional(),
-  client_secret: z.string().describe(
-    "Pre-registered OAuth client_secret. Write-only - accepted on create/update when auth_credentials.auth_mode is 'manual'. Stored AES-GCM-encrypted in server_oauth_secrets; never returned by read endpoints.",
-  ).optional(),
-  description: z.string().max(512).describe(
-    "Optional description of the MCP server.",
-  ).optional(),
+  auth_credentials: z.string().optional(),
+  description: z.string().max(512).optional(),
   is_shared_oauth_callback_enabled: z.boolean().describe(
-    "When true, the gateway worker uses the shared Cloudflare-owned OAuth callback endpoint as the redirect_uri for upstream on-behalf OAuth, instead of the customer portal hostname. Defaults to false (off); opt in per server by setting true.",
+    "When true, the gateway worker uses the shared Cloudflare-owned OAuth callback endpoint as the redirect_uri for upstream on-behalf OAuth, instead of the customer portal hostname. New servers default to true; existing servers default to false. Effective behavior is gated by the gateway worker's per-env rollout mode KV key.",
   ).optional(),
-  name: z.string().max(350).describe("Display name for the MCP server."),
-  secure_web_gateway: z.boolean().describe(
-    "Route outbound traffic to this MCP server through Zero Trust Secure Web Gateway.",
-  ).optional(),
+  name: z.string().max(350),
   updated_prompts: z.array(z.object({
     alias: z.string().max(40).regex(
       new RegExp("^[a-zA-Z0-9]+([_-][a-zA-Z0-9]+)*$"),
@@ -66,7 +56,7 @@ const GlobalArgsSchema = z.object({
     description: z.string().optional(),
     enabled: z.boolean().optional(),
     name: z.string(),
-  })).describe("Server-wide prompt capability overrides.").optional(),
+  })).optional(),
   updated_tools: z.array(z.object({
     alias: z.string().max(40).regex(
       new RegExp("^[a-zA-Z0-9]+([_-][a-zA-Z0-9]+)*$"),
@@ -74,14 +64,12 @@ const GlobalArgsSchema = z.object({
     description: z.string().optional(),
     enabled: z.boolean().optional(),
     name: z.string(),
-  })).describe("Server-wide tool capability overrides.").optional(),
-  auth_type: z.enum(["oauth", "bearer", "unauthenticated"]).describe(
-    "Authentication method used to connect to the upstream MCP server.",
-  ),
-  hostname: z.string().describe("URL of the upstream MCP endpoint."),
+  })).optional(),
+  auth_type: z.enum(["oauth", "bearer", "unauthenticated"]),
+  hostname: z.string(),
   id: z.string().min(1).max(32).regex(
     new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
-  ).describe("Unique identifier for the MCP server."),
+  ).describe("server id"),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -94,26 +82,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const ResourceSchema = z.object({
-  auth_config_summary: z.object({
-    auth_mode: z.string().optional(),
-    client_secret_version: z.number().optional(),
-    config: z.object({
-      authorization_endpoint: z.string().optional(),
-      issuer: z.string().optional(),
-      resource: z.string().optional(),
-      revocation_endpoint: z.string().optional(),
-      token_endpoint: z.string().optional(),
-    }).optional(),
-    has_client_secret: z.boolean().optional(),
-    registration_info: z.object({
-      client_id: z.string().optional(),
-      redirect_uris: z.array(z.string()).optional(),
-      scope: z.string().optional(),
-      token_endpoint_auth_method: z.string().optional(),
-    }).optional(),
-  }).optional(),
   auth_type: z.string().optional(),
-  authentication_status: z.string().optional(),
   created_at: z.string().optional(),
   created_by: z.string().optional(),
   description: z.string().optional(),
@@ -134,7 +103,6 @@ const ResourceSchema = z.object({
   modified_by: z.string().optional(),
   name: z.string().optional(),
   prompts: z.array(z.record(z.string(), z.unknown())).optional(),
-  secure_web_gateway: z.boolean().optional(),
   status: z.string().optional(),
   tools: z.array(z.record(z.string(), z.unknown())).optional(),
   updated_prompts: z.array(z.object({
@@ -156,11 +124,9 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   auth_credentials: z.string().optional(),
-  client_secret: z.string().optional(),
   description: z.string().max(512).optional(),
   is_shared_oauth_callback_enabled: z.boolean().optional(),
   name: z.string().max(350).optional(),
-  secure_web_gateway: z.boolean().optional(),
   updated_prompts: z.array(z.object({
     alias: z.string().max(40).regex(
       new RegExp("^[a-zA-Z0-9]+([_-][a-zA-Z0-9]+)*$"),
@@ -190,7 +156,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Servers. Registered at `@swamp/cloudflare/access/servers`. */
 export const model = {
   type: "@swamp/cloudflare/access/servers",
-  version: "2026.08.15.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -237,6 +203,18 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.1",
+      description: "Removed: client_secret, secure_web_gateway",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          client_secret: _client_secret,
+          secure_web_gateway: _secure_web_gateway,
+          ...rest
+        } = old;
+        return rest;
+      },
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -261,7 +239,6 @@ export const model = {
           body.auth_credentials = g.auth_credentials;
         }
         if (g.auth_type !== undefined) body.auth_type = g.auth_type;
-        if (g.client_secret !== undefined) body.client_secret = g.client_secret;
         if (g.description !== undefined) body.description = g.description;
         if (g.hostname !== undefined) body.hostname = g.hostname;
         if (g.id !== undefined) body.id = g.id;
@@ -270,9 +247,6 @@ export const model = {
             g.is_shared_oauth_callback_enabled;
         }
         if (g.name !== undefined) body.name = g.name;
-        if (g.secure_web_gateway !== undefined) {
-          body.secure_web_gateway = g.secure_web_gateway;
-        }
         if (g.updated_prompts !== undefined) {
           body.updated_prompts = g.updated_prompts;
         }
@@ -330,9 +304,6 @@ export const model = {
         if (g.auth_credentials !== undefined) {
           filters.push(["auth_credentials", String(g.auth_credentials)]);
         }
-        if (g.client_secret !== undefined) {
-          filters.push(["client_secret", String(g.client_secret)]);
-        }
         if (g.description !== undefined) {
           filters.push(["description", String(g.description)]);
         }
@@ -343,9 +314,6 @@ export const model = {
           ]);
         }
         if (g.name !== undefined) filters.push(["name", String(g.name)]);
-        if (g.secure_web_gateway !== undefined) {
-          filters.push(["secure_web_gateway", String(g.secure_web_gateway)]);
-        }
         if (g.auth_type !== undefined) {
           filters.push(["auth_type", String(g.auth_type)]);
         }
@@ -455,16 +423,12 @@ export const model = {
         if (g.auth_credentials !== undefined) {
           body.auth_credentials = g.auth_credentials;
         }
-        if (g.client_secret !== undefined) body.client_secret = g.client_secret;
         if (g.description !== undefined) body.description = g.description;
         if (g.is_shared_oauth_callback_enabled !== undefined) {
           body.is_shared_oauth_callback_enabled =
             g.is_shared_oauth_callback_enabled;
         }
         if (g.name !== undefined) body.name = g.name;
-        if (g.secure_web_gateway !== undefined) {
-          body.secure_web_gateway = g.secure_web_gateway;
-        }
         if (g.updated_prompts !== undefined) {
           body.updated_prompts = g.updated_prompts;
         }

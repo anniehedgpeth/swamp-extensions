@@ -327,14 +327,26 @@ service independent versioning. Single-resource packages have minimal overhead
 
 ### HTTP method to operation mapping
 
-| HTTP Method | Operation         | Where                     |
-| ----------- | ----------------- | ------------------------- |
-| POST        | Create            | Base path                 |
-| GET         | Read              | ID path (single resource) |
-| PATCH       | Update            | ID path (preferred)       |
-| PUT         | Update (fallback) | ID path, only if no PATCH |
-| DELETE      | Delete            | ID path                   |
-| GET         | List              | Base path                 |
+| HTTP Method | Operation         | Where                                         |
+| ----------- | ----------------- | --------------------------------------------- |
+| POST        | Create            | Base path                                     |
+| GET         | Read              | ID path (single resource)                     |
+| PATCH       | Update            | ID path (preferred)                           |
+| PUT         | Update (fallback) | ID path, only if no PATCH                     |
+| DELETE      | Delete            | ID path                                       |
+| GET         | List              | Base path, or base path + `/list` (see below) |
+
+### `/list` sub-endpoint detection
+
+A small number of Cloudflare APIs route their list operation through a `/list`
+sub-endpoint instead of GET on the base path. When the base path has no GET
+method but `basePath + "/list"` exists with a GET, the pipeline uses the `/list`
+endpoint for listing and detects pagination from its query parameters. The
+resource's `listEndpointSuffix` field stores the suffix (`"/list"` or `""`), and
+the generated `lookup` method appends it to the base endpoint before calling
+`listAll()`.
+
+As of the current spec, only `rum/site_info` uses this pattern.
 
 ### Why PATCH takes precedence over PUT
 
@@ -850,7 +862,9 @@ state.
    (`account_id`, `zone_id`), injected auth fields (`apiToken`, `apiKey`,
    `email`), and synthetic name fields are excluded.
 2. Require at least one filter (error if none set).
-3. Call `listAll(endpoint, paginationStyle, undefined, auth)`.
+3. Call `listAll(endpoint, paginationStyle, undefined, auth)`. When the resource
+   has a `listEndpointSuffix` (e.g. `"/list"`), the endpoint passed to `listAll`
+   is `baseEndpoint + suffix` — see Section 5.
 4. Filter results: for each item, every filter `[key, value]` must match
    `String(item[key]) === value`.
 5. Require exactly 1 match — error on 0 or >1, with the applied filters in the

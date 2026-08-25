@@ -46,7 +46,7 @@ const GlobalArgsSchema = z.object({
   description: z.string().optional(),
   enabled: z.boolean(),
   name: z.string(),
-  topic: z.string().min(2).max(50),
+  topic: z.string().max(50),
   profile_id: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -77,7 +77,7 @@ const InputsSchema = z.object({
   description: z.string().optional(),
   enabled: z.boolean().optional(),
   name: z.string().optional(),
-  topic: z.string().min(2).max(50).optional(),
+  topic: z.string().max(50).optional(),
   profile_id: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
@@ -87,7 +87,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Custom Prompt Topics. Registered at `@swamp/cloudflare/dlp/custom-prompt-topics`. */
 export const model = {
   type: "@swamp/cloudflare/dlp/custom-prompt-topics",
-  version: "2026.07.21.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -106,6 +106,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

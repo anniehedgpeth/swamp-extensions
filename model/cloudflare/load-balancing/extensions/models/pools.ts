@@ -71,9 +71,6 @@ const GlobalArgsSchema = z.object({
   enabled: z.boolean().describe(
     "Whether to enable (the default) or disable this pool. Disabled pools will not receive traffic and are excluded from health checks. Disabling a pool will cause any load balancers using it to failover to the next pool (if any).",
   ).optional(),
-  health_sources: z.array(z.enum(["local", "regional", "global"])).describe(
-    'A list of health sources, ordered from highest to lowest priority, used to evaluate individual origin health and overall pool health. The load balancer uses the first source that has data and falls back to the next. Currently accepted values are null or the exact array ["regional", "global"]; any other combination is rejected. Null (the default) behaves like ["local", "global"]. ["regional", "global"] makes each region steer on its own health, falling back to the global decision when a region has no fresh data. Setting regional requires at least one region in check_regions.',
-  ).optional(),
   latitude: z.number().describe(
     "The latitude of the data center containing the origins used in this pool in decimal degrees. If this is set, longitude must also be set.",
   ).optional(),
@@ -156,7 +153,6 @@ const ResourceSchema = z.object({
   description: z.string().optional(),
   disabled_at: z.string().optional(),
   enabled: z.boolean().optional(),
-  health_sources: z.array(z.string()).optional(),
   id: z.string(),
   latitude: z.number().optional(),
   load_shedding: z.object({
@@ -226,7 +222,6 @@ const InputsSchema = z.object({
   description: z.string().optional(),
   disabled_at: z.string().optional(),
   enabled: z.boolean().optional(),
-  health_sources: z.array(z.enum(["local", "regional", "global"])).optional(),
   latitude: z.number().optional(),
   load_shedding: z.object({
     default_percent: z.number().min(0).max(100).optional(),
@@ -279,7 +274,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Pools. Registered at `@swamp/cloudflare/load-balancing/pools`. */
 export const model = {
   type: "@swamp/cloudflare/load-balancing/pools",
-  version: "2026.08.15.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -305,6 +300,14 @@ export const model = {
       toVersion: "2026.08.15.1",
       description: "Added: health_sources",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
+      description: "Removed: health_sources",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const { health_sources: _health_sources, ...rest } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -523,9 +526,6 @@ export const model = {
         if (g.description !== undefined) body.description = g.description;
         if (g.disabled_at !== undefined) body.disabled_at = g.disabled_at;
         if (g.enabled !== undefined) body.enabled = g.enabled;
-        if (g.health_sources !== undefined) {
-          body.health_sources = g.health_sources;
-        }
         if (g.latitude !== undefined) body.latitude = g.latitude;
         if (g.load_shedding !== undefined) body.load_shedding = g.load_shedding;
         if (g.longitude !== undefined) body.longitude = g.longitude;

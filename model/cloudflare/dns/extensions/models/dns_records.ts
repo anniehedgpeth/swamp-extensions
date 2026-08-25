@@ -110,12 +110,7 @@ const ResourceSchema = z.object({
   comment_modified_on: z.string().optional(),
   created_on: z.string().optional(),
   id: z.string(),
-  meta: z.object({
-    dead_glue: z.boolean().optional(),
-    is_glue: z.boolean().optional(),
-    shadowed_by: z.array(z.string()).optional(),
-    shadowed_records_count: z.number().optional(),
-  }).optional(),
+  meta: z.record(z.string(), z.unknown()).optional(),
   modified_on: z.string().optional(),
   proxiable: z.boolean().optional(),
   tags_modified_on: z.string().optional(),
@@ -173,7 +168,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Dns Records. Registered at `@swamp/cloudflare/dns/dns-records`. */
 export const model = {
   type: "@swamp/cloudflare/dns/dns-records",
-  version: "2026.08.11.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -207,6 +202,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.11.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

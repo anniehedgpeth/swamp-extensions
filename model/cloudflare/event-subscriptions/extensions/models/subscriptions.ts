@@ -62,12 +62,10 @@ const GlobalArgsSchema = z.object({
       "vectorize",
       "workersAi.model",
       "workersBuilds.worker",
-      "workers.script",
       "workflows.workflow",
     ]).optional(),
     model_name: z.string().optional(),
     worker_name: z.string().optional(),
-    script_tag: z.string().optional(),
     workflow_name: z.string().optional(),
   }).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
@@ -96,7 +94,6 @@ const ResourceSchema = z.object({
     type: z.string().optional(),
     model_name: z.string().optional(),
     worker_name: z.string().optional(),
-    script_tag: z.string().optional(),
     workflow_name: z.string().optional(),
   }).optional(),
 }).passthrough();
@@ -121,12 +118,10 @@ const InputsSchema = z.object({
       "vectorize",
       "workersAi.model",
       "workersBuilds.worker",
-      "workers.script",
       "workflows.workflow",
     ]).optional(),
     model_name: z.string().optional(),
     worker_name: z.string().optional(),
-    script_tag: z.string().optional(),
     workflow_name: z.string().optional(),
   }).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -137,7 +132,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Subscriptions. Registered at `@swamp/cloudflare/event-subscriptions/subscriptions`. */
 export const model = {
   type: "@swamp/cloudflare/event-subscriptions/subscriptions",
-  version: "2026.08.15.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -166,6 +161,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.15.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -16,8 +16,9 @@ that reflect the live state in Cloudflare. Available methods:
 - **delete** — remove the resource from Cloudflare
 - **sync** — refresh all resource properties from the API
 
-Use `swamp model type describe @swamp/cloudflare/email-security/bulk` to see the
-full list of configurable properties and available methods for this model.
+Use `swamp model type describe @swamp/cloudflare/email-security/allow-policies`
+to see the full list of configurable properties and available methods for this
+model.
 
 ## Authentication
 
@@ -60,17 +61,17 @@ environment variables for the legacy path, while `apiToken` remains available.
 ## Usage
 
 ```bash
-# Create a new bulk model
-swamp model create @swamp/cloudflare/email-security/bulk my-bulk
+# Create a new allow-policies model
+swamp model create @swamp/cloudflare/email-security/allow-policies my-allow-policies
 
 # Edit the model to configure its properties
-swamp model edit my-bulk
+swamp model edit my-allow-policies
 
 # Create the resource in Cloudflare
-swamp model method run my-bulk create
+swamp model method run my-allow-policies create
 
 # Sync current state from Cloudflare
-swamp model method run my-bulk sync
+swamp model method run my-allow-policies sync
 ```
 
 ## License

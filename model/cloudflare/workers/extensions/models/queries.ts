@@ -51,9 +51,8 @@ const GlobalArgsSchema = z.object({
       key: z.string().optional(),
       keyType: z.enum(["string", "number", "boolean"]).optional(),
       operator: z.enum([
-        "count",
-        "COUNT",
         "uniq",
+        "count",
         "max",
         "min",
         "sum",
@@ -72,6 +71,7 @@ const GlobalArgsSchema = z.object({
         "stddev",
         "variance",
         "COUNT_DISTINCT",
+        "COUNT",
         "MAX",
         "MIN",
         "SUM",
@@ -225,9 +225,8 @@ const InputsSchema = z.object({
       key: z.string().optional(),
       keyType: z.enum(["string", "number", "boolean"]).optional(),
       operator: z.enum([
-        "count",
-        "COUNT",
         "uniq",
+        "count",
         "max",
         "min",
         "sum",
@@ -246,6 +245,7 @@ const InputsSchema = z.object({
         "stddev",
         "variance",
         "COUNT_DISTINCT",
+        "COUNT",
         "MAX",
         "MIN",
         "SUM",
@@ -335,7 +335,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Queries. Registered at `@swamp/cloudflare/workers/queries`. */
 export const model = {
   type: "@swamp/cloudflare/workers/queries",
-  version: "2026.08.11.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -364,6 +364,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.11.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

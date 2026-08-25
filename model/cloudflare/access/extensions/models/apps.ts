@@ -98,15 +98,7 @@ const GlobalArgsSchema = z.object({
     "The custom pages that will be displayed when applicable for this application",
   ).optional(),
   destinations: z.array(z.object({
-    type: z.enum([
-      "public",
-      "private",
-      "via_mcp_server_portal",
-      "worker",
-      "preview_worker",
-      "all_workers",
-      "all_preview_workers",
-    ]),
+    type: z.enum(["public", "private", "via_mcp_server_portal"]).optional(),
     uri: z.string().optional(),
     cidr: z.string().optional(),
     hostname: z.string().optional(),
@@ -114,15 +106,11 @@ const GlobalArgsSchema = z.object({
     port_range: z.string().optional(),
     vnet_id: z.string().optional(),
     mcp_server_id: z.string().optional(),
-    worker_id: z.string().optional(),
   })).describe(
     "List of destinations secured by Access. This supersedes `self_hosted_domains` to allow for more flexibility in defining different types of domains. If `destinations` are provided, then `self_hosted_domains` will be ignored.\n",
   ).optional(),
   domain: z.string().describe(
     "The primary hostname and path secured by Access. This domain will be displayed if the app is visible in the App Launcher.",
-  ).optional(),
-  eager_redirect_cookie_setting: z.boolean().describe(
-    "Preemptively sets the Access session cookie on every hostname in a multi-hostname self-hosted application during the initial redirect chain, rather than setting it lazily on first visit. Defaults to true. Set to false to disable the eager redirect cookie behavior.",
   ).optional(),
   enable_binding_cookie: z.boolean().describe(
     "Enables the binding cookie, which increases security against compromised authorization tokens and CSRF attacks.",
@@ -225,7 +213,6 @@ const GlobalArgsSchema = z.object({
     "Determines if users can access this application via a clientless browser isolation URL.\nThis allows users to access private domains without connecting to Gateway. The option requires\nClientless Browser Isolation to be set up with policies that allow users of this application.\n",
   ).optional(),
   policies: z.array(z.object({
-    account_id: z.string().max(32).optional(),
     id: z.string().max(36).optional(),
     precedence: z.number().int().optional(),
     decision: z.enum(["allow", "deny", "non_identity", "bypass"]),
@@ -648,10 +635,8 @@ const ResourceSchema = z.object({
       port_range: z.string().optional(),
       vnet_id: z.string().optional(),
       mcp_server_id: z.string().optional(),
-      worker_id: z.string().optional(),
     })).optional(),
     domain: z.string().optional(),
-    eager_redirect_cookie_setting: z.boolean().optional(),
     enable_binding_cookie: z.boolean().optional(),
     http_only_cookie_attribute: z.boolean().optional(),
     logo_url: z.string().optional(),
@@ -978,7 +963,6 @@ const ResourceSchema = z.object({
         }).optional(),
       })).optional(),
       updated_at: z.string().optional(),
-      account_id: z.string().optional(),
       precedence: z.number().optional(),
     })).optional(),
     saas_app: z.object({
@@ -1094,15 +1078,7 @@ const InputsSchema = z.object({
   custom_non_identity_deny_url: z.string().optional(),
   custom_pages: z.array(z.string()).optional(),
   destinations: z.array(z.object({
-    type: z.enum([
-      "public",
-      "private",
-      "via_mcp_server_portal",
-      "worker",
-      "preview_worker",
-      "all_workers",
-      "all_preview_workers",
-    ]),
+    type: z.enum(["public", "private", "via_mcp_server_portal"]).optional(),
     uri: z.string().optional(),
     cidr: z.string().optional(),
     hostname: z.string().optional(),
@@ -1110,10 +1086,8 @@ const InputsSchema = z.object({
     port_range: z.string().optional(),
     vnet_id: z.string().optional(),
     mcp_server_id: z.string().optional(),
-    worker_id: z.string().optional(),
   })).optional(),
   domain: z.string().optional(),
-  eager_redirect_cookie_setting: z.boolean().optional(),
   enable_binding_cookie: z.boolean().optional(),
   http_only_cookie_attribute: z.boolean().optional(),
   logo_url: z.string().optional(),
@@ -1184,7 +1158,6 @@ const InputsSchema = z.object({
   type: z.string().optional(),
   use_clientless_isolation_app_launcher_url: z.boolean().optional(),
   policies: z.array(z.object({
-    account_id: z.string().max(32).optional(),
     id: z.string().max(36).optional(),
     precedence: z.number().int().optional(),
     decision: z.enum(["allow", "deny", "non_identity", "bypass"]),
@@ -1541,7 +1514,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Apps. Registered at `@swamp/cloudflare/access/apps`. */
 export const model = {
   type: "@swamp/cloudflare/access/apps",
-  version: "2026.08.11.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -1582,6 +1555,17 @@ export const model = {
       toVersion: "2026.08.11.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
+      description: "Removed: eager_redirect_cookie_setting",
+      upgradeAttributes: (old: Record<string, unknown>) => {
+        const {
+          eager_redirect_cookie_setting: _eager_redirect_cookie_setting,
+          ...rest
+        } = old;
+        return rest;
+      },
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -1634,9 +1618,6 @@ export const model = {
         if (g.custom_pages !== undefined) body.custom_pages = g.custom_pages;
         if (g.destinations !== undefined) body.destinations = g.destinations;
         if (g.domain !== undefined) body.domain = g.domain;
-        if (g.eager_redirect_cookie_setting !== undefined) {
-          body.eager_redirect_cookie_setting = g.eager_redirect_cookie_setting;
-        }
         if (g.enable_binding_cookie !== undefined) {
           body.enable_binding_cookie = g.enable_binding_cookie;
         }
@@ -1798,12 +1779,6 @@ export const model = {
           ]);
         }
         if (g.domain !== undefined) filters.push(["domain", String(g.domain)]);
-        if (g.eager_redirect_cookie_setting !== undefined) {
-          filters.push([
-            "eager_redirect_cookie_setting",
-            String(g.eager_redirect_cookie_setting),
-          ]);
-        }
         if (g.enable_binding_cookie !== undefined) {
           filters.push([
             "enable_binding_cookie",
@@ -2018,9 +1993,6 @@ export const model = {
         if (g.custom_pages !== undefined) body.custom_pages = g.custom_pages;
         if (g.destinations !== undefined) body.destinations = g.destinations;
         if (g.domain !== undefined) body.domain = g.domain;
-        if (g.eager_redirect_cookie_setting !== undefined) {
-          body.eager_redirect_cookie_setting = g.eager_redirect_cookie_setting;
-        }
         if (g.enable_binding_cookie !== undefined) {
           body.enable_binding_cookie = g.enable_binding_cookie;
         }
