@@ -42,6 +42,19 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
+const PreRollVastResponseSchema = z.object({
+  AdSequencingMode: z.enum(["FOLLOW_AD_SEQUENCE", "IGNORE_AD_SEQUENCE"])
+    .describe(
+      "Determines how MediaTailor sequences ads returned in the pre-roll VAST response.",
+    ).optional(),
+});
+
+const PreRollAdDecisionServerConfigurationSchema = z.object({
+  VastResponse: PreRollVastResponseSchema.describe(
+    "The configuration for how MediaTailor processes the VAST response returned by the pre-roll Ad Decision Server.",
+  ).optional(),
+});
+
 const AdMarkerPassthroughSchema = z.object({
   Enabled: z.boolean().describe(
     "Enables ad marker passthrough for your configuration.",
@@ -80,6 +93,17 @@ const HttpRequestSchema = z.object({
   ).optional(),
   CompressRequest: z.enum(["NONE", "GZIP"]).describe(
     "The compression type of the request sent to the Ad Decision Server URL. Only the POST HTTP Method permits compression other than NONE.",
+  ).optional(),
+});
+
+const VastResponseSchema = z.object({
+  AdSequencingMode: z.enum([
+    "FOLLOW_AD_SEQUENCE",
+    "IGNORE_AD_SEQUENCE",
+    "FOLLOW_AD_SEQUENCE_ONLY_LIVE",
+    "FOLLOW_AD_SEQUENCE_ONLY_VOD",
+  ]).describe(
+    "Determines how MediaTailor sequences ads returned in the VAST response from the Ad Decision Server.",
   ).optional(),
 });
 
@@ -152,6 +176,10 @@ const GlobalArgsSchema = z.object({
     MaxDurationSeconds: z.number().int().describe(
       "The maximum allowed duration for the pre-roll ad avail. AWS Elemental MediaTailor won't play pre-roll ads to exceed this duration, regardless of the total duration of ads that the ADS returns.",
     ).optional(),
+    AdDecisionServerConfiguration: PreRollAdDecisionServerConfigurationSchema
+      .describe(
+        "The configuration for the request to the pre-roll Ad Decision Server.",
+      ).optional(),
   }).describe("The configuration for pre-roll ad insertion.").optional(),
   ManifestProcessingRules: z.object({
     AdMarkerPassthrough: AdMarkerPassthroughSchema.describe(
@@ -197,6 +225,9 @@ const GlobalArgsSchema = z.object({
     HttpRequest: HttpRequestSchema.describe(
       "The configuration for the request to the Ad Decision Server URL.",
     ),
+    VastResponse: VastResponseSchema.describe(
+      "The configuration for how MediaTailor processes the VAST response returned by the Ad Decision Server.",
+    ).optional(),
   }).describe(
     "The configuration for the request to the specified Ad Decision Server URL.",
   ).optional(),
@@ -262,6 +293,7 @@ const StateSchema = z.object({
   LivePreRollConfiguration: z.object({
     AdDecisionServerUrl: z.string(),
     MaxDurationSeconds: z.number(),
+    AdDecisionServerConfiguration: PreRollAdDecisionServerConfigurationSchema,
   }).optional(),
   ManifestProcessingRules: z.object({
     AdMarkerPassthrough: AdMarkerPassthroughSchema,
@@ -286,6 +318,7 @@ const StateSchema = z.object({
   VideoContentSourceUrl: z.string().optional(),
   AdDecisionServerConfiguration: z.object({
     HttpRequest: HttpRequestSchema,
+    VastResponse: VastResponseSchema,
   }).optional(),
   FunctionMapping: z.record(z.string(), z.unknown()).optional(),
   AdsPersonalizationTimeouts: z.object({
@@ -364,6 +397,10 @@ const InputsSchema = z.object({
     MaxDurationSeconds: z.number().int().describe(
       "The maximum allowed duration for the pre-roll ad avail. AWS Elemental MediaTailor won't play pre-roll ads to exceed this duration, regardless of the total duration of ads that the ADS returns.",
     ).optional(),
+    AdDecisionServerConfiguration: PreRollAdDecisionServerConfigurationSchema
+      .describe(
+        "The configuration for the request to the pre-roll Ad Decision Server.",
+      ).optional(),
   }).describe("The configuration for pre-roll ad insertion.").optional(),
   ManifestProcessingRules: z.object({
     AdMarkerPassthrough: AdMarkerPassthroughSchema.describe(
@@ -408,6 +445,9 @@ const InputsSchema = z.object({
   AdDecisionServerConfiguration: z.object({
     HttpRequest: HttpRequestSchema.describe(
       "The configuration for the request to the Ad Decision Server URL.",
+    ).optional(),
+    VastResponse: VastResponseSchema.describe(
+      "The configuration for how MediaTailor processes the VAST response returned by the Ad Decision Server.",
     ).optional(),
   }).describe(
     "The configuration for the request to the specified Ad Decision Server URL.",
@@ -466,7 +506,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for MediaTailor PlaybackConfiguration. Registered at `@swamp/aws/mediatailor/playback-configuration`. */
 export const model = {
   type: "@swamp/aws/mediatailor/playback-configuration",
-  version: "2026.08.17.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -521,6 +561,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

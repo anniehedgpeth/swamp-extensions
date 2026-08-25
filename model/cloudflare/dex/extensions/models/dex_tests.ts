@@ -43,6 +43,8 @@ import {
 
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
+  created: z.string().describe("Date the test was created, in RFC 3339 format.")
+    .optional(),
   data: z.object({
     host: z.string(),
     kind: z.enum(["http", "traceroute"]),
@@ -57,14 +59,15 @@ const GlobalArgsSchema = z.object({
   ),
   interval: z.string().describe("How often the test will run."),
   name: z.string().describe("The name of the DEX test. Must be unique."),
-  target_policies: z.array(z.object({
-    default: z.boolean().optional(),
-    id: z.string().max(36),
-    name: z.string().optional(),
-  })).describe("DEX rules targeted by this test").optional(),
+  target_policies: z.array(z.unknown()).describe(
+    "DEX rules targeted by this test",
+  ).optional(),
   targeted: z.boolean().optional(),
   test_id: z.string().max(32).describe("The unique identifier for the test.")
     .optional(),
+  updated: z.string().describe(
+    "Date the test was last updated, in RFC 3339 format.",
+  ).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -77,6 +80,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const ResourceSchema = z.object({
+  created: z.string().optional(),
   data: z.object({
     host: z.string().optional(),
     kind: z.string().optional(),
@@ -86,13 +90,10 @@ const ResourceSchema = z.object({
   enabled: z.boolean().optional(),
   interval: z.string().optional(),
   name: z.string().optional(),
-  target_policies: z.array(z.object({
-    default: z.boolean().optional(),
-    id: z.string().optional(),
-    name: z.string().optional(),
-  })).optional(),
+  target_policies: z.array(z.unknown()).optional(),
   targeted: z.boolean().optional(),
   test_id: z.string().optional(),
+  updated: z.string().optional(),
   id: z.string(),
 }).passthrough();
 
@@ -100,6 +101,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 
 const InputsSchema = z.object({
   account_id: z.string().optional(),
+  created: z.string().optional(),
   data: z.object({
     host: z.string(),
     kind: z.enum(["http", "traceroute"]),
@@ -109,13 +111,10 @@ const InputsSchema = z.object({
   enabled: z.boolean().optional(),
   interval: z.string().optional(),
   name: z.string().optional(),
-  target_policies: z.array(z.object({
-    default: z.boolean().optional(),
-    id: z.string().max(36),
-    name: z.string().optional(),
-  })).optional(),
+  target_policies: z.array(z.unknown()).optional(),
   targeted: z.boolean().optional(),
   test_id: z.string().max(32).optional(),
+  updated: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -124,7 +123,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Dex Tests. Registered at `@swamp/cloudflare/dex/dex-tests`. */
 export const model = {
   type: "@swamp/cloudflare/dex/dex-tests",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -164,6 +163,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: created, updated",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -183,6 +187,7 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/dex/devices/dex_tests";
         const body: Record<string, unknown> = {};
+        if (g.created !== undefined) body.created = g.created;
         if (g.data !== undefined) body.data = g.data;
         if (g.description !== undefined) body.description = g.description;
         if (g.enabled !== undefined) body.enabled = g.enabled;
@@ -193,6 +198,7 @@ export const model = {
         }
         if (g.targeted !== undefined) body.targeted = g.targeted;
         if (g.test_id !== undefined) body.test_id = g.test_id;
+        if (g.updated !== undefined) body.updated = g.updated;
         const result = await create(endpoint, body, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -243,6 +249,9 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/dex/devices/dex_tests";
         const filters: [string, string][] = [];
+        if (g.created !== undefined) {
+          filters.push(["created", String(g.created)]);
+        }
         if (g.description !== undefined) {
           filters.push(["description", String(g.description)]);
         }
@@ -258,6 +267,9 @@ export const model = {
         }
         if (g.test_id !== undefined) {
           filters.push(["test_id", String(g.test_id)]);
+        }
+        if (g.updated !== undefined) {
+          filters.push(["updated", String(g.updated)]);
         }
         if (filters.length === 0) {
           throw new Error(
@@ -357,6 +369,7 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
+        if (g.created !== undefined) body.created = g.created;
         if (g.data !== undefined) body.data = g.data;
         if (g.description !== undefined) body.description = g.description;
         if (g.enabled !== undefined) body.enabled = g.enabled;
@@ -367,6 +380,7 @@ export const model = {
         }
         if (g.targeted !== undefined) body.targeted = g.targeted;
         if (g.test_id !== undefined) body.test_id = g.test_id;
+        if (g.updated !== undefined) body.updated = g.updated;
         const result = await update(endpoint, existing.id, body, "PUT", {
           apiToken: g.apiToken,
           apiKey: g.apiKey,

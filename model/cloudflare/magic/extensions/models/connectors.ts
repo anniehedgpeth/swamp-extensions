@@ -66,6 +66,8 @@ const GlobalArgsSchema = z.object({
     .optional(),
   interrupt_window_hour_of_day: z.number().optional(),
   notes: z.string().optional(),
+  primary: z.boolean().optional(),
+  site_id: z.string().optional(),
   timezone: z.string().optional(),
   provision_license: z.boolean().describe(
     "When true, regenerate license key for the connector.",
@@ -105,6 +107,8 @@ const ResourceSchema = z.object({
   last_updated: z.string().optional(),
   license_key: z.string().optional(),
   notes: z.string().optional(),
+  primary: z.boolean().optional(),
+  site_id: z.string().optional(),
   timezone: z.string().optional(),
 }).passthrough();
 
@@ -131,6 +135,8 @@ const InputsSchema = z.object({
   ).optional(),
   interrupt_window_hour_of_day: z.number().optional(),
   notes: z.string().optional(),
+  primary: z.boolean().optional(),
+  site_id: z.string().optional(),
   timezone: z.string().optional(),
   provision_license: z.boolean().optional(),
   device: z.object({
@@ -146,7 +152,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Connectors. Registered at `@swamp/cloudflare/magic/connectors`. */
 export const model = {
   type: "@swamp/cloudflare/magic/connectors",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -180,6 +186,11 @@ export const model = {
         const { primary: _primary, site_id: _site_id, ...rest } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: primary, site_id",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -217,6 +228,8 @@ export const model = {
           body.interrupt_window_hour_of_day = g.interrupt_window_hour_of_day;
         }
         if (g.notes !== undefined) body.notes = g.notes;
+        if (g.primary !== undefined) body.primary = g.primary;
+        if (g.site_id !== undefined) body.site_id = g.site_id;
         if (g.timezone !== undefined) body.timezone = g.timezone;
         const result = await create(endpoint, body, {
           apiToken: g.apiToken,
@@ -284,6 +297,12 @@ export const model = {
           ]);
         }
         if (g.notes !== undefined) filters.push(["notes", String(g.notes)]);
+        if (g.primary !== undefined) {
+          filters.push(["primary", String(g.primary)]);
+        }
+        if (g.site_id !== undefined) {
+          filters.push(["site_id", String(g.site_id)]);
+        }
         if (g.timezone !== undefined) {
           filters.push(["timezone", String(g.timezone)]);
         }
@@ -406,6 +425,8 @@ export const model = {
           body.interrupt_window_hour_of_day = g.interrupt_window_hour_of_day;
         }
         if (g.notes !== undefined) body.notes = g.notes;
+        if (g.primary !== undefined) body.primary = g.primary;
+        if (g.site_id !== undefined) body.site_id = g.site_id;
         if (g.timezone !== undefined) body.timezone = g.timezone;
         if (g.provision_license !== undefined) {
           body.provision_license = g.provision_license;

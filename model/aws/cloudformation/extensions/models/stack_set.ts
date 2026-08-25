@@ -206,6 +206,7 @@ const GlobalArgsSchema = z.object({
 });
 
 function createCfnClient(credentials: AwsCredentials): CloudFormationClient {
+  // disableImdsIfOffEc2 inlined — enrichments run at codegen time, not extension runtime
   if (
     !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
     !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
@@ -634,10 +635,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudFormation StackSet. Registered at `@swamp/aws/cloudformation/stack-set`. */
 export const model = {
   type: "@swamp/aws/cloudformation/stack-set",
-  version: "2026.08.24.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.08.24.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

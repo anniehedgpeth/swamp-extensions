@@ -190,10 +190,13 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     cloudRunRevision: z.object({
       serviceUri: z.string().describe(
-        "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}",
+        "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}. Mutually exclusive with worker_pool_uri.",
       ).optional(),
       uri: z.string().describe(
         "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) URI. The format is: projects/{project}/locations/{location}/revisions/{revision}",
+      ).optional(),
+      workerPoolUri: z.string().describe(
+        "Output only. The URI of the worker pool that the revision belongs to. The format is: projects/{project}/locations/{location}/workerPools/{workerPool}. Mutually exclusive with service_uri.",
       ).optional(),
     }).describe(
       "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) Applicable only to source endpoint.",
@@ -308,10 +311,13 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     cloudRunRevision: z.object({
       serviceUri: z.string().describe(
-        "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}",
+        "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}. Mutually exclusive with worker_pool_uri.",
       ).optional(),
       uri: z.string().describe(
         "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) URI. The format is: projects/{project}/locations/{location}/revisions/{revision}",
+      ).optional(),
+      workerPoolUri: z.string().describe(
+        "Output only. The URI of the worker pool that the revision belongs to. The format is: projects/{project}/locations/{location}/workerPools/{workerPool}. Mutually exclusive with service_uri.",
       ).optional(),
     }).describe(
       "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) Applicable only to source endpoint.",
@@ -417,6 +423,7 @@ const StateSchema = z.object({
     cloudRunRevision: z.object({
       serviceUri: z.string(),
       uri: z.string(),
+      workerPoolUri: z.string(),
     }),
     cloudSqlInstance: z.string(),
     dmsPrivateConnection: z.string(),
@@ -633,6 +640,7 @@ const StateSchema = z.object({
     cloudRunRevision: z.object({
       serviceUri: z.string(),
       uri: z.string(),
+      workerPoolUri: z.string(),
     }),
     cloudSqlInstance: z.string(),
     dmsPrivateConnection: z.string(),
@@ -690,10 +698,13 @@ const InputsSchema = z.object({
     ).optional(),
     cloudRunRevision: z.object({
       serviceUri: z.string().describe(
-        "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}",
+        "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}. Mutually exclusive with worker_pool_uri.",
       ).optional(),
       uri: z.string().describe(
         "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) URI. The format is: projects/{project}/locations/{location}/revisions/{revision}",
+      ).optional(),
+      workerPoolUri: z.string().describe(
+        "Output only. The URI of the worker pool that the revision belongs to. The format is: projects/{project}/locations/{location}/workerPools/{workerPool}. Mutually exclusive with service_uri.",
       ).optional(),
     }).describe(
       "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) Applicable only to source endpoint.",
@@ -808,10 +819,13 @@ const InputsSchema = z.object({
     ).optional(),
     cloudRunRevision: z.object({
       serviceUri: z.string().describe(
-        "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}",
+        "Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}. Mutually exclusive with worker_pool_uri.",
       ).optional(),
       uri: z.string().describe(
         "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) URI. The format is: projects/{project}/locations/{location}/revisions/{revision}",
+      ).optional(),
+      workerPoolUri: z.string().describe(
+        "Output only. The URI of the worker pool that the revision belongs to. The format is: projects/{project}/locations/{location}/workerPools/{workerPool}. Mutually exclusive with service_uri.",
       ).optional(),
     }).describe(
       "A [Cloud Run](https://cloud.google.com/run) [revision](https://cloud.google.com/run/docs/reference/rest/v1/namespaces.revisions/get) Applicable only to source endpoint.",
@@ -928,7 +942,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Management Global.ConnectivityTests. Registered at `@swamp/gcp/networkmanagement/global-connectivitytests`. */
 export const model = {
   type: "@swamp/gcp/networkmanagement/global-connectivitytests",
-  version: "2026.08.18.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1121,6 +1135,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

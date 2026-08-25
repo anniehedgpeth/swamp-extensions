@@ -85,8 +85,10 @@ const ResourceSchema = z.object({
   bot_fight_mode: z.boolean().optional(),
   clearance_level: z.string().optional(),
   created_on: z.string().optional(),
+  deployed_via: z.string().optional(),
   domains: z.array(z.string()).optional(),
   ephemeral_id: z.boolean().optional(),
+  last_modified_via: z.string().optional(),
   mode: z.string().optional(),
   modified_on: z.string().optional(),
   name: z.string().optional(),
@@ -122,7 +124,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Widgets. Registered at `@swamp/cloudflare/challenges/widgets`. */
 export const model = {
   type: "@swamp/cloudflare/challenges/widgets",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -151,6 +153,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

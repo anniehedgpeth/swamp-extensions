@@ -46,8 +46,9 @@ const GlobalArgsSchema = z.object({
   slug: z.string().optional().describe(
     "Vercel team slug (alternative to teamId)",
   ),
-  avatar: z.string().describe("The hash value of an uploaded image.")
-    .optional(),
+  avatar: z.string().max(40).regex(new RegExp("^[0-9a-f]+$")).describe(
+    "The hash value of an uploaded image, or `null` to clear the avatar.",
+  ).optional(),
   description: z.string().max(140).describe(
     "A short text that describes the team.",
   ).optional(),
@@ -439,7 +440,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   teamId: z.string().optional(),
   slug: z.string().optional(),
-  avatar: z.string().optional(),
+  avatar: z.string().max(40).regex(new RegExp("^[0-9a-f]+$")).optional(),
   description: z.string().max(140).optional(),
   emailDomain: z.string().optional(),
   name: z.string().max(256).optional(),
@@ -606,7 +607,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Teams. Registered at `@swamp/vercel/teams/teams`. */
 export const model = {
   type: "@swamp/vercel/teams/teams",
-  version: "2026.08.11.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -651,6 +652,11 @@ export const model = {
     {
       toVersion: "2026.08.11.1",
       description: "Added: disjunctiveProductionSecretPolicy",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

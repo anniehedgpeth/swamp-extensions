@@ -48,7 +48,7 @@ const GlobalArgsSchema = z.object({
   ),
   comments: z.string().max(1024).optional(),
   created_at: z.string().optional(),
-  id: z.string().describe("Trusted domain identifier").optional(),
+  id: z.string().describe("Trusted domain identifier.").optional(),
   is_recent: z.boolean().describe(
     "Select to prevent recently registered domains from triggering a Suspicious or Malicious disposition.",
   ).optional(),
@@ -104,7 +104,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Trusted Domains. Registered at `@swamp/cloudflare/email-security/trusted-domains`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/trusted-domains",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -133,6 +133,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

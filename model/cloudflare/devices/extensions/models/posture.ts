@@ -173,6 +173,7 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   description: z.string().optional(),
+  enabled: z.boolean().optional(),
   expiration: z.string().optional(),
   id: z.string(),
   input: z.object({
@@ -353,7 +354,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Posture. Registered at `@swamp/cloudflare/devices/posture`. */
 export const model = {
   type: "@swamp/cloudflare/devices/posture",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -387,6 +388,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

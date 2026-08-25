@@ -208,7 +208,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Custom Hostnames. Registered at `@swamp/cloudflare/custom-hostnames/custom-hostnames`. */
 export const model = {
   type: "@swamp/cloudflare/custom-hostnames/custom-hostnames",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -240,6 +240,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -261,6 +266,12 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g.custom_metadata !== undefined) {
           body.custom_metadata = g.custom_metadata;
+        }
+        if (g.custom_origin_server !== undefined) {
+          body.custom_origin_server = g.custom_origin_server;
+        }
+        if (g.custom_origin_sni !== undefined) {
+          body.custom_origin_sni = g.custom_origin_sni;
         }
         if (g.hostname !== undefined) body.hostname = g.hostname;
         if (g.ssl !== undefined) body.ssl = g.ssl;

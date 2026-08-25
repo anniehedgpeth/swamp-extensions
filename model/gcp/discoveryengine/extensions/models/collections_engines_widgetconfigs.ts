@@ -235,7 +235,7 @@ const GlobalArgsSchema = z.object({
       "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID. For synthetic placeholder entries (see message-level comment) this is a synthetic placeholder id, not a real collection_id.",
     ).optional(),
     isFirstParty: z.boolean().describe(
-      "Output only. Whether this is a first-party (Google-owned) connector, as opposed to a third-party connector. Used by the frontend to group 1P vs 3P connectors. Sourced from `ConnectorSource.is_first_party` once that field is universally populated (b/534727761); until then derived from `ConnectorSource.connector_type == FIRST_PARTY`.",
+      "Output only. Whether this is a first-party (Google-owned) connector, as opposed to a third-party connector. Used by the frontend to group 1P vs 3P connectors.",
     ).optional(),
     metadata: z.object({
       author: z.string().describe(
@@ -606,6 +606,9 @@ const GlobalArgsSchema = z.object({
         ).optional(),
         modelId: z.string().describe(
           'Output only. Unique identifier of the model (e.g. `gemini-2.5-flash`, `gemini-3.1-pro-preview`). This is the same identifier that clients pass back to the assistant service to select this model. Virtual / "pseudo" models (e.g. `gemini-fast`) are also valid values here; they are resolved to the underlying concrete model on the backend.',
+        ).optional(),
+        promoted: z.boolean().describe(
+          "Output only. Whether this model should be promoted in the GE chat homepage banner.",
         ).optional(),
       })).describe(
         "Output only. The list of models that are available to the end-user in the model selector, in the order in which they should be displayed.",
@@ -839,6 +842,7 @@ const StateSchema = z.object({
         isPreview: z.boolean(),
         label: z.string(),
         modelId: z.string(),
+        promoted: z.boolean(),
       })),
     }),
     modelConfigs: z.record(z.string(), z.unknown()),
@@ -983,7 +987,7 @@ const InputsSchema = z.object({
       "Output only. the identifier of the collection, used for widget service. For now it refers to collection_id, in the future we will migrate the field to encrypted collection name UUID. For synthetic placeholder entries (see message-level comment) this is a synthetic placeholder id, not a real collection_id.",
     ).optional(),
     isFirstParty: z.boolean().describe(
-      "Output only. Whether this is a first-party (Google-owned) connector, as opposed to a third-party connector. Used by the frontend to group 1P vs 3P connectors. Sourced from `ConnectorSource.is_first_party` once that field is universally populated (b/534727761); until then derived from `ConnectorSource.connector_type == FIRST_PARTY`.",
+      "Output only. Whether this is a first-party (Google-owned) connector, as opposed to a third-party connector. Used by the frontend to group 1P vs 3P connectors.",
     ).optional(),
     metadata: z.object({
       author: z.string().describe(
@@ -1355,6 +1359,9 @@ const InputsSchema = z.object({
         modelId: z.string().describe(
           'Output only. Unique identifier of the model (e.g. `gemini-2.5-flash`, `gemini-3.1-pro-preview`). This is the same identifier that clients pass back to the assistant service to select this model. Virtual / "pseudo" models (e.g. `gemini-fast`) are also valid values here; they are resolved to the underlying concrete model on the backend.',
         ).optional(),
+        promoted: z.boolean().describe(
+          "Output only. Whether this model should be promoted in the GE chat homepage banner.",
+        ).optional(),
       })).describe(
         "Output only. The list of models that are available to the end-user in the model selector, in the order in which they should be displayed.",
       ).optional(),
@@ -1414,7 +1421,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.WidgetConfigs. Registered at `@swamp/gcp/discoveryengine/collections-engines-widgetconfigs`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-widgetconfigs",
-  version: "2026.08.16.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1643,6 +1650,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.16.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

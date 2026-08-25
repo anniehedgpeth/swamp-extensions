@@ -54,7 +54,7 @@ const GlobalArgsSchema = z.object({
   logo: z.string().optional(),
   name: z.string(),
   position: z.number().int().optional(),
-  slug: z.string(),
+  slug: z.string().regex(new RegExp("^[a-zA-Z0-9_-]+$")),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -99,7 +99,7 @@ const InputsSchema = z.object({
   logo: z.string().optional(),
   name: z.string().optional(),
   position: z.number().int().optional(),
-  slug: z.string().optional(),
+  slug: z.string().regex(new RegExp("^[a-zA-Z0-9_-]+$")).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -108,7 +108,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Custom-providers. Registered at `@swamp/cloudflare/ai-gateway/custom-providers`. */
 export const model = {
   type: "@swamp/cloudflare/ai-gateway/custom-providers",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -137,6 +137,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -52,7 +52,10 @@ const GlobalArgsSchema = z.object({
     "A version number identifying the current `client_secret` associated with the service token. Incrementing it triggers a rotation; the previous secret will still be accepted until the time indicated by `previous_client_secret_expires_at`.",
   ).optional(),
   duration: z.string().describe(
-    "The duration for how long the service token will be valid. Must be in the format `300ms` or `2h45m`. Valid time units are: ns, us (or µs), ms, s, m, h. The default is 1 year in hours (8760h).",
+    "The duration for how long the service token will be valid. Must be in the format `300ms` or `2h45m`, or the special value `forever` for non-expiring tokens. Valid time units are: ns, us (or µs), ms, s, m, h. The default is 1 year in hours (8760h).",
+  ).optional(),
+  enabled: z.boolean().describe(
+    "Whether the service token is enabled. A disabled service token cannot be used to authenticate; both its current and previous `client_secret` stop being accepted, but the token itself is preserved and can be re-enabled at any time. Defaults to enabled when omitted on create.",
   ).optional(),
   name: z.string().describe("The name of the service token."),
   previous_client_secret_expires_at: z.string().describe(
@@ -73,6 +76,7 @@ const ResourceSchema = z.object({
   client_id: z.string().optional(),
   created_at: z.string().optional(),
   duration: z.string().optional(),
+  enabled: z.boolean().optional(),
   expires_at: z.string().optional(),
   id: z.string(),
   last_seen_at: z.string().optional(),
@@ -87,6 +91,7 @@ const InputsSchema = z.object({
   zone_id: z.string().optional(),
   client_secret_version: z.number().optional(),
   duration: z.string().optional(),
+  enabled: z.boolean().optional(),
   name: z.string().optional(),
   previous_client_secret_expires_at: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -97,7 +102,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Service Tokens. Registered at `@swamp/cloudflare/access/service-tokens`. */
 export const model = {
   type: "@swamp/cloudflare/access/service-tokens",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -137,6 +142,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: enabled",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -168,6 +178,7 @@ export const model = {
           body.client_secret_version = g.client_secret_version;
         }
         if (g.duration !== undefined) body.duration = g.duration;
+        if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.name !== undefined) body.name = g.name;
         if (g.previous_client_secret_expires_at !== undefined) {
           body.previous_client_secret_expires_at =
@@ -247,6 +258,9 @@ export const model = {
         }
         if (g.duration !== undefined) {
           filters.push(["duration", String(g.duration)]);
+        }
+        if (g.enabled !== undefined) {
+          filters.push(["enabled", String(g.enabled)]);
         }
         if (g.name !== undefined) filters.push(["name", String(g.name)]);
         if (g.previous_client_secret_expires_at !== undefined) {
@@ -375,6 +389,7 @@ export const model = {
           body.client_secret_version = g.client_secret_version;
         }
         if (g.duration !== undefined) body.duration = g.duration;
+        if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.name !== undefined) body.name = g.name;
         if (g.previous_client_secret_expires_at !== undefined) {
           body.previous_client_secret_expires_at =

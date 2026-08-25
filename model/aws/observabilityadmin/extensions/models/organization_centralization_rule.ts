@@ -90,10 +90,22 @@ const LogGroupNameConfigurationSchema = z.object({
   ),
 });
 
+const TagPropagationConfigurationSchema = z.object({
+  DestinationRoleArn: z.string().min(20).max(2048).regex(
+    new RegExp("^arn:aws[a-zA-Z-]*:iam::\\d{12}:role/[\\w+=,.@/-]+$"),
+  ).describe(
+    "The ARN of the destination account IAM role used for tag propagation.",
+  ),
+  TagConflictResolutionStrategy: z.enum(["IN_SYNC", "ADD_ONLY", "UPDATE_SYNC"])
+    .describe("The strategy to resolve tag conflicts during propagation.")
+    .optional(),
+});
+
 const DestinationLogsConfigurationSchema = z.object({
   LogsEncryptionConfiguration: LogsEncryptionConfigurationSchema.optional(),
   BackupConfiguration: LogsBackupConfigurationSchema.optional(),
   LogGroupNameConfiguration: LogGroupNameConfigurationSchema.optional(),
+  TagPropagationConfiguration: TagPropagationConfigurationSchema.optional(),
 });
 
 const MetricsBackupConfigurationSchema = z.object({
@@ -196,10 +208,15 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ObservabilityAdmin OrganizationCentralizationRule. Registered at `@swamp/aws/observabilityadmin/organization-centralization-rule`. */
 export const model = {
   type: "@swamp/aws/observabilityadmin/organization-centralization-rule",
-  version: "2026.08.20.1",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.08.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

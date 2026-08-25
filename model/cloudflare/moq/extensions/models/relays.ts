@@ -44,18 +44,14 @@ import {
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   config: z.object({
-    lingering_subscribe: z.object({
+    upstreams: z.object({
       enabled: z.boolean().optional(),
-      max_timeout_ms: z.number().int().min(0).max(300000).optional(),
+      upstreams: z.array(z.object({
+        url: z.string(),
+      })).optional(),
     }).optional(),
-    origin_fallback: z.object({
-      enabled: z.boolean().optional(),
-      urls: z.array(z.string()).optional(),
-    }).optional(),
-  }).describe(
-    "origin_fallback and lingering_subscribe are mutually exclusive.\n",
-  ).optional(),
-  name: z.string().describe("Human-readable name for the relay."),
+  }).optional(),
+  name: z.string().min(1).describe("Human-readable name for the relay."),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -69,13 +65,11 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   config: z.object({
-    lingering_subscribe: z.object({
+    upstreams: z.object({
       enabled: z.boolean().optional(),
-      max_timeout_ms: z.number().optional(),
-    }).optional(),
-    origin_fallback: z.object({
-      enabled: z.boolean().optional(),
-      urls: z.array(z.string()).optional(),
+      upstreams: z.array(z.object({
+        url: z.string().optional(),
+      })).optional(),
     }).optional(),
   }).optional(),
   created: z.string().optional(),
@@ -91,16 +85,14 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   config: z.object({
-    lingering_subscribe: z.object({
+    upstreams: z.object({
       enabled: z.boolean().optional(),
-      max_timeout_ms: z.number().int().min(0).max(300000).optional(),
-    }).optional(),
-    origin_fallback: z.object({
-      enabled: z.boolean().optional(),
-      urls: z.array(z.string()).optional(),
+      upstreams: z.array(z.object({
+        url: z.string(),
+      })).optional(),
     }).optional(),
   }).optional(),
-  name: z.string().optional(),
+  name: z.string().min(1).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -109,7 +101,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Relays. Registered at `@swamp/cloudflare/moq/relays`. */
 export const model = {
   type: "@swamp/cloudflare/moq/relays",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -148,6 +140,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

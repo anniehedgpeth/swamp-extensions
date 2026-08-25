@@ -420,7 +420,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Discovery Engine Collections.Engines.Assistants. Registered at `@swamp/gcp/discoveryengine/collections-engines-assistants`. */
 export const model = {
   type: "@swamp/gcp/discoveryengine/collections-engines-assistants",
-  version: "2026.08.12.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -579,6 +579,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -941,6 +946,7 @@ export const model = {
     stream_assist: {
       description: "stream assist",
       arguments: z.object({
+        agentsSpec: z.any().optional(),
         generationSpec: z.any().optional(),
         query: z.any().optional(),
         session: z.any().optional(),
@@ -961,6 +967,9 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (args["agentsSpec"] !== undefined) {
+          body["agentsSpec"] = args["agentsSpec"];
+        }
         if (args["generationSpec"] !== undefined) {
           body["generationSpec"] = args["generationSpec"];
         }

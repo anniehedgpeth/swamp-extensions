@@ -127,8 +127,10 @@ const GlobalArgsSchema = z.object({
     "sinkhole_http_logs",
     "spectrum_events",
     "ssh_logs",
+    "turnstile_events",
     "warp_config_changes",
     "warp_toggle_changes",
+    "websocket_analytics",
     "workers_trace_events",
     "zaraz_events",
     "zero_trust_network_sessions",
@@ -246,8 +248,10 @@ const InputsSchema = z.object({
     "sinkhole_http_logs",
     "spectrum_events",
     "ssh_logs",
+    "turnstile_events",
     "warp_config_changes",
     "warp_toggle_changes",
+    "websocket_analytics",
     "workers_trace_events",
     "zaraz_events",
     "zero_trust_network_sessions",
@@ -260,7 +264,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Jobs. Registered at `@swamp/cloudflare/logpush/jobs`. */
 export const model = {
   type: "@swamp/cloudflare/logpush/jobs",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -299,6 +303,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

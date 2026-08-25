@@ -81,7 +81,9 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   bgp: z.object({
     customer_asn: z.number().int().min(0),
+    export_filter_id: z.string().optional(),
     extra_prefixes: z.array(z.string()).optional(),
+    import_filter_id: z.string().optional(),
     md5_key: z.string().optional(),
   }).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
@@ -100,7 +102,9 @@ const ResourceSchema = z.object({
     automatic_return_routing: z.boolean().optional(),
     bgp: z.object({
       customer_asn: z.number().optional(),
+      export_filter_id: z.string().optional(),
       extra_prefixes: z.array(z.string()).optional(),
+      import_filter_id: z.string().optional(),
       md5_key: z.string().optional(),
     }).optional(),
     bgp_status: z.object({
@@ -163,7 +167,9 @@ const InputsSchema = z.object({
   ttl: z.number().int().optional(),
   bgp: z.object({
     customer_asn: z.number().int().min(0),
+    export_filter_id: z.string().optional(),
     extra_prefixes: z.array(z.string()).optional(),
+    import_filter_id: z.string().optional(),
     md5_key: z.string().optional(),
   }).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -174,7 +180,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Gre Tunnels. Registered at `@swamp/cloudflare/magic/gre-tunnels`. */
 export const model = {
   type: "@swamp/cloudflare/magic/gre-tunnels",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -203,6 +209,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

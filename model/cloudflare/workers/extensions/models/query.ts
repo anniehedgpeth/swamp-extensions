@@ -42,6 +42,14 @@ const GlobalArgsSchema = z.object({
   chart: z.boolean().describe(
     "When true, includes time-series data in the response.",
   ).optional(),
+  chartType: z.enum([
+    "timeseries_and_aggregate",
+    "timeseries",
+    "aggregate",
+    "distribution",
+  ]).describe(
+    "Controls the SQL shape and response payload for the 'calculations' view. Omitted or 'timeseries_and_aggregate': current behaviour — both the time-series and aggregate queries. 'timeseries': time-series only. 'aggregate': aggregate only. 'distribution': a bucketed 2D histogram (time × value buckets) returned in 'distribution' instead of 'calculations'. 'distribution' is not compatible with 'compare' — combining them returns a 400.",
+  ).optional(),
   compare: z.boolean().describe(
     "When true, includes a comparison dataset from the previous time period of equal length.",
   ).optional(),
@@ -58,7 +66,7 @@ const GlobalArgsSchema = z.object({
     "Maximum number of events to return when view is 'events'. Also controls the number of group-by rows when view is 'calculations'.",
   ).optional(),
   offset: z.string().describe(
-    "Cursor for pagination in event, trace, and invocation views. Pass the $metadata.id of the last returned item to fetch the next page.",
+    "Cursor for pagination in event, trace, invocation, and agent views. Pass the $metadata.id of the last event, the trace cursor, or AgentRun.id to fetch the next page.",
   ).optional(),
   offsetBy: z.number().describe(
     "Numeric offset for paginating grouped/pattern results (top-N lists). Use together with limit. Not used by cursor-based pagination.",
@@ -72,8 +80,9 @@ const GlobalArgsSchema = z.object({
       key: z.string().optional(),
       keyType: z.enum(["string", "number", "boolean"]).optional(),
       operator: z.enum([
-        "uniq",
         "count",
+        "COUNT",
+        "uniq",
         "max",
         "min",
         "sum",
@@ -92,7 +101,6 @@ const GlobalArgsSchema = z.object({
         "stddev",
         "variance",
         "COUNT_DISTINCT",
-        "COUNT",
         "MAX",
         "MIN",
         "SUM",
@@ -154,7 +162,7 @@ const GlobalArgsSchema = z.object({
     "requests",
     "agents",
   ]).describe(
-    "Controls the shape of the response. 'events': individual log lines matching the query. 'calculations': aggregated metrics (count, avg, p99, etc.) with optional group-by breakdowns and time-series. 'invocations': events grouped by request ID. 'traces': distributed trace summaries. 'agents': Durable Object agent summaries.",
+    "Controls the shape of the response. 'events': individual log lines matching the query. 'calculations': aggregated metrics (count, avg, p99, etc.) with optional group-by breakdowns and time-series. 'invocations': events grouped by request ID. 'traces': distributed trace summaries. 'agents': agent-specific trace summaries.",
   ).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -169,14 +177,22 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   agents: z.array(z.object({
-    agentClass: z.string().optional(),
-    eventTypeCounts: z.record(z.string(), z.unknown()).optional(),
-    firstEventMs: z.number().optional(),
-    hasErrors: z.boolean().optional(),
-    lastEventMs: z.number().optional(),
-    namespace: z.string().optional(),
-    service: z.string().optional(),
-    totalEvents: z.number().optional(),
+    agentId: z.string().optional(),
+    agentName: z.string().optional(),
+    conversationId: z.string().optional(),
+    errors: z.array(z.string()).optional(),
+    id: z.string().optional(),
+    inputTokens: z.number().optional(),
+    models: z.array(z.string()).optional(),
+    outputTokens: z.number().optional(),
+    providers: z.array(z.string()).optional(),
+    services: z.array(z.string()).optional(),
+    spans: z.number().optional(),
+    status: z.string().optional(),
+    traceDurationMs: z.number().optional(),
+    traceEndMs: z.number().optional(),
+    traceId: z.string().optional(),
+    traceStartMs: z.number().optional(),
   })).optional(),
   calculations: z.array(z.object({
     aggregates: z.array(z.object({
@@ -236,6 +252,13 @@ const ResourceSchema = z.object({
       time: z.string().optional(),
     })).optional(),
   })).optional(),
+  distribution: z.object({
+    bins: z.array(z.string()).optional(),
+    bucketBoundaries: z.array(z.number()).optional(),
+    bucketMode: z.string().optional(),
+    buckets: z.array(z.string()).optional(),
+    matrix: z.array(z.array(z.number())).optional(),
+  }).optional(),
   events: z.object({
     count: z.number().optional(),
     events: z.array(z.object({
@@ -258,6 +281,7 @@ const ResourceSchema = z.object({
         origin: z.string().optional(),
         parentSpanId: z.string().optional(),
         provider: z.string().optional(),
+        rayId: z.string().optional(),
         region: z.string().optional(),
         requestId: z.string().optional(),
         service: z.string().optional(),
@@ -425,6 +449,12 @@ const InputsSchema = z.object({
   account_id: z.string().optional(),
   name: z.string().optional(),
   chart: z.boolean().optional(),
+  chartType: z.enum([
+    "timeseries_and_aggregate",
+    "timeseries",
+    "aggregate",
+    "distribution",
+  ]).optional(),
   compare: z.boolean().optional(),
   dry: z.boolean().optional(),
   granularity: z.number().optional(),
@@ -439,8 +469,9 @@ const InputsSchema = z.object({
       key: z.string().optional(),
       keyType: z.enum(["string", "number", "boolean"]).optional(),
       operator: z.enum([
-        "uniq",
         "count",
+        "COUNT",
+        "uniq",
         "max",
         "min",
         "sum",
@@ -459,7 +490,6 @@ const InputsSchema = z.object({
         "stddev",
         "variance",
         "COUNT_DISTINCT",
-        "COUNT",
         "MAX",
         "MIN",
         "SUM",
@@ -523,7 +553,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Query. Registered at `@swamp/cloudflare/workers/query`. */
 export const model = {
   type: "@swamp/cloudflare/workers/query",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -568,6 +598,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: chartType",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -589,6 +624,7 @@ export const model = {
           "/workers/observability/shared/query";
         const body: Record<string, unknown> = {};
         if (g.chart !== undefined) body.chart = g.chart;
+        if (g.chartType !== undefined) body.chartType = g.chartType;
         if (g.compare !== undefined) body.compare = g.compare;
         if (g.dry !== undefined) body.dry = g.dry;
         if (g.granularity !== undefined) body.granularity = g.granularity;
@@ -654,6 +690,9 @@ export const model = {
           "/workers/observability/shared/query";
         const filters: [string, string][] = [];
         if (g.chart !== undefined) filters.push(["chart", String(g.chart)]);
+        if (g.chartType !== undefined) {
+          filters.push(["chartType", String(g.chartType)]);
+        }
         if (g.compare !== undefined) {
           filters.push(["compare", String(g.compare)]);
         }

@@ -50,7 +50,7 @@ const GlobalArgsSchema = z.object({
   id: z.string().describe("Identifier."),
   modified_on: z.string().describe("When the Application was last modified."),
   argo_smart_routing: z.boolean().describe(
-    'Enables Argo Smart Routing for this application.\nNotes: Only available for TCP applications with traffic_type set to "direct".',
+    'Enables Argo Smart Routing for this application.\nNotes: Only available for TCP or UDP applications with traffic_type set to "direct".',
   ).optional(),
   dns: z.object({
     name: z.string().optional(),
@@ -188,7 +188,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Apps. Registered at `@swamp/cloudflare/spectrum/apps`. */
 export const model = {
   type: "@swamp/cloudflare/spectrum/apps",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -222,6 +222,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

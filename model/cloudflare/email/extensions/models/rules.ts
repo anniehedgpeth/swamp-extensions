@@ -54,8 +54,14 @@ const GlobalArgsSchema = z.object({
     value: z.string().max(90).optional(),
   })).describe("Matching patterns to forward to your actions."),
   name: z.string().max(256).describe("Routing rule name.").optional(),
+  owner_worker_tag: z.string().max(32).describe(
+    "Public tag (script_tag) of the Worker that owns this rule. Required when\n`source` is `wrangler`.\n",
+  ).optional(),
   priority: z.number().min(0).describe("Priority of the routing rule.")
     .optional(),
+  source: z.enum(["api", "wrangler"]).describe(
+    "Who manages the rule. `api` covers dashboard, generic API, and Terraform;\n`wrangler` means the rule is managed by a Worker's wrangler.jsonc. Defaults\nto `api` when omitted on write.\n",
+  ).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -81,6 +87,7 @@ const ResourceSchema = z.object({
   })).optional(),
   name: z.string().optional(),
   priority: z.number().optional(),
+  source: z.string().optional(),
   tag: z.string().optional(),
 }).passthrough();
 
@@ -99,7 +106,9 @@ const InputsSchema = z.object({
     value: z.string().max(90).optional(),
   })).optional(),
   name: z.string().max(256).optional(),
+  owner_worker_tag: z.string().max(32).optional(),
   priority: z.number().min(0).optional(),
+  source: z.enum(["api", "wrangler"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -108,7 +117,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Rules. Registered at `@swamp/cloudflare/email/rules`. */
 export const model = {
   type: "@swamp/cloudflare/email/rules",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -147,6 +156,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: owner_worker_tag, source",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -170,7 +184,11 @@ export const model = {
         if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.matchers !== undefined) body.matchers = g.matchers;
         if (g.name !== undefined) body.name = g.name;
+        if (g.owner_worker_tag !== undefined) {
+          body.owner_worker_tag = g.owner_worker_tag;
+        }
         if (g.priority !== undefined) body.priority = g.priority;
+        if (g.source !== undefined) body.source = g.source;
         const result = await create(endpoint, body, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -223,9 +241,13 @@ export const model = {
           filters.push(["enabled", String(g.enabled)]);
         }
         if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.owner_worker_tag !== undefined) {
+          filters.push(["owner_worker_tag", String(g.owner_worker_tag)]);
+        }
         if (g.priority !== undefined) {
           filters.push(["priority", String(g.priority)]);
         }
+        if (g.source !== undefined) filters.push(["source", String(g.source)]);
         if (filters.length === 0) {
           throw new Error(
             "At least one global argument must be set to filter by",
@@ -327,7 +349,11 @@ export const model = {
         if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.matchers !== undefined) body.matchers = g.matchers;
         if (g.name !== undefined) body.name = g.name;
+        if (g.owner_worker_tag !== undefined) {
+          body.owner_worker_tag = g.owner_worker_tag;
+        }
         if (g.priority !== undefined) body.priority = g.priority;
+        if (g.source !== undefined) body.source = g.source;
         const result = await update(endpoint, existing.id, body, "PUT", {
           apiToken: g.apiToken,
           apiKey: g.apiKey,

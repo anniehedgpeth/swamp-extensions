@@ -44,21 +44,25 @@ import {
 const GlobalArgsSchema = z.object({
   account_id: z.string().describe("Cloudflare account ID"),
   allow_code_mode: z.boolean().describe(
-    "Allow remote code execution in Dynamic Workers (beta)",
+    "Deprecated: use `code_mode` for new integrations. `true` maps to any non-off Code Mode policy; `false` maps to `code_mode: off`. If both fields are sent, they must be consistent or the request returns a 400.",
   ).optional(),
-  description: z.string().max(512).optional(),
+  code_mode: z.enum(["off", "opt_in", "default_on", "enforced"]).describe(
+    "Code Mode policy for this portal. `off`: Code Mode is unavailable; query parameters are ignored. `opt_in`: Code Mode is off by default; clients turn it on with `?codemode=search_and_execute`. `default_on`: Code Mode is on by default; clients can opt out with `?codemode=off`. `enforced`: Code Mode is always on; query parameters are ignored. Defaults to `opt_in` when omitted on create. If both `code_mode` and `allow_code_mode` are sent, they must be consistent or the request returns a 400.",
+  ).optional(),
+  description: z.string().max(512).describe(
+    "Optional description of the MCP portal.",
+  ).optional(),
   hostname: z.string().regex(
     new RegExp(
       "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])$",
     ),
-  ),
-  name: z.string().max(350),
+  ).describe("Hostname where the MCP portal is available."),
+  name: z.string().max(350).describe("Display name for the MCP portal."),
   secure_web_gateway: z.boolean().describe(
-    "Route outbound MCP traffic through Zero Trust Secure Web Gateway",
+    "Route outbound MCP traffic through Zero Trust Secure Web Gateway.",
   ).optional(),
   servers: z.array(z.object({
     default_disabled: z.boolean().optional(),
-    is_shared_oauth_callback_enabled: z.boolean().optional(),
     on_behalf: z.boolean().optional(),
     server_id: z.string().min(1).max(32).regex(
       new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
@@ -79,10 +83,12 @@ const GlobalArgsSchema = z.object({
       enabled: z.boolean().optional(),
       name: z.string(),
     })).optional(),
-  })).optional(),
+  })).describe(
+    "MCP servers attached to the portal and their portal-specific settings.",
+  ).optional(),
   id: z.string().min(1).max(32).regex(
     new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
-  ).describe("portal id"),
+  ).describe("Unique identifier for the MCP portal."),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -96,6 +102,7 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   allow_code_mode: z.boolean().optional(),
+  code_mode: z.string().optional(),
   created_at: z.string().optional(),
   created_by: z.string().optional(),
   description: z.string().optional(),
@@ -106,7 +113,26 @@ const ResourceSchema = z.object({
   name: z.string().optional(),
   secure_web_gateway: z.boolean().optional(),
   servers: z.array(z.object({
+    auth_config_summary: z.object({
+      auth_mode: z.string().optional(),
+      client_secret_version: z.number().optional(),
+      config: z.object({
+        authorization_endpoint: z.string().optional(),
+        issuer: z.string().optional(),
+        resource: z.string().optional(),
+        revocation_endpoint: z.string().optional(),
+        token_endpoint: z.string().optional(),
+      }).optional(),
+      has_client_secret: z.boolean().optional(),
+      registration_info: z.object({
+        client_id: z.string().optional(),
+        redirect_uris: z.array(z.string()).optional(),
+        scope: z.string().optional(),
+        token_endpoint_auth_method: z.string().optional(),
+      }).optional(),
+    }).optional(),
     auth_type: z.string().optional(),
+    authentication_status: z.string().optional(),
     created_at: z.string().optional(),
     created_by: z.string().optional(),
     default_disabled: z.boolean().optional(),
@@ -129,6 +155,8 @@ const ResourceSchema = z.object({
     name: z.string().optional(),
     on_behalf: z.boolean().optional(),
     prompts: z.array(z.record(z.string(), z.unknown())).optional(),
+    secure_web_gateway: z.boolean().optional(),
+    server_id: z.string().optional(),
     status: z.string().optional(),
     tools: z.array(z.record(z.string(), z.unknown())).optional(),
     updated_prompts: z.array(z.object({
@@ -155,6 +183,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 const InputsSchema = z.object({
   account_id: z.string().optional(),
   allow_code_mode: z.boolean().optional(),
+  code_mode: z.enum(["off", "opt_in", "default_on", "enforced"]).optional(),
   description: z.string().max(512).optional(),
   hostname: z.string().regex(
     new RegExp(
@@ -165,7 +194,6 @@ const InputsSchema = z.object({
   secure_web_gateway: z.boolean().optional(),
   servers: z.array(z.object({
     default_disabled: z.boolean().optional(),
-    is_shared_oauth_callback_enabled: z.boolean().optional(),
     on_behalf: z.boolean().optional(),
     server_id: z.string().min(1).max(32).regex(
       new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
@@ -198,7 +226,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Portals. Registered at `@swamp/cloudflare/access/portals`. */
 export const model = {
   type: "@swamp/cloudflare/access/portals",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -263,6 +291,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: code_mode",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -286,6 +319,7 @@ export const model = {
         if (g.allow_code_mode !== undefined) {
           body.allow_code_mode = g.allow_code_mode;
         }
+        if (g.code_mode !== undefined) body.code_mode = g.code_mode;
         if (g.description !== undefined) body.description = g.description;
         if (g.hostname !== undefined) body.hostname = g.hostname;
         if (g.id !== undefined) body.id = g.id;
@@ -346,6 +380,9 @@ export const model = {
         const filters: [string, string][] = [];
         if (g.allow_code_mode !== undefined) {
           filters.push(["allow_code_mode", String(g.allow_code_mode)]);
+        }
+        if (g.code_mode !== undefined) {
+          filters.push(["code_mode", String(g.code_mode)]);
         }
         if (g.description !== undefined) {
           filters.push(["description", String(g.description)]);
@@ -460,6 +497,7 @@ export const model = {
         if (g.allow_code_mode !== undefined) {
           body.allow_code_mode = g.allow_code_mode;
         }
+        if (g.code_mode !== undefined) body.code_mode = g.code_mode;
         if (g.description !== undefined) body.description = g.description;
         if (g.hostname !== undefined) body.hostname = g.hostname;
         if (g.name !== undefined) body.name = g.name;

@@ -204,6 +204,8 @@ const _defaultOAuthScopes: string[] = [
   "https://www.googleapis.com/auth/chat.messages.readonly",
   "https://www.googleapis.com/auth/chat.spaces",
   "https://www.googleapis.com/auth/chat.spaces.create",
+  "https://www.googleapis.com/auth/chat.spaces.pins",
+  "https://www.googleapis.com/auth/chat.spaces.pins.readonly",
   "https://www.googleapis.com/auth/chat.spaces.readonly",
   "https://www.googleapis.com/auth/chat.users.availability",
   "https://www.googleapis.com/auth/chat.users.availability.readonly",
@@ -1766,7 +1768,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Google Chat Spaces.Messages. Registered at `@swamp/gcp/chat/spaces-messages`. */
 export const model = {
   type: "@swamp/gcp/chat/spaces-messages",
-  version: "2026.08.12.2",
+  version: "2026.08.25.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1937,6 +1939,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

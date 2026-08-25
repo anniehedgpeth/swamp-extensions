@@ -96,11 +96,13 @@ const GlobalArgsSchema = z.object({
   })).optional(),
   embedding_model: z.enum([
     "@cf/qwen/qwen3-embedding-0.6b",
+    "@cf/qwen/qwen3-vl-embedding-2b",
     "@cf/baai/bge-m3",
     "@cf/baai/bge-large-en-v1.5",
     "@cf/google/embeddinggemma-300m",
     "google-ai-studio/gemini-embedding-001",
     "google-ai-studio/gemini-embedding-2-preview",
+    "google-ai-studio/gemini-embedding-2",
     "openai/text-embedding-3-small",
     "openai/text-embedding-3-large",
     "",
@@ -126,6 +128,8 @@ const GlobalArgsSchema = z.object({
     chat_completions_endpoint: z.object({
       disabled: z.boolean().optional(),
     }).optional(),
+    custom_domains: z.array(z.string().min(1).max(253)).optional(),
+    default_domain_enabled: z.boolean().optional(),
     enabled: z.boolean().optional(),
     mcp: z.object({
       description: z.string().optional(),
@@ -183,20 +187,22 @@ const GlobalArgsSchema = z.object({
   ]).optional(),
   rewrite_query: z.boolean().optional(),
   score_threshold: z.number().min(0).max(1).optional(),
+  source: z.string().optional(),
   source_params: z.object({
     exclude_items: z.array(
-      z.string().regex(new RegExp("^[*/\\\\]?[\\w\\-/.\\\\?*:=&%]+$")),
+      z.string().max(500).regex(new RegExp("^[*/\\\\]?[\\w\\-/.\\\\?*:=&%]+$")),
     ).optional(),
     include_items: z.array(
-      z.string().regex(new RegExp("^[*/\\\\]?[\\w\\-/.\\\\?*:=&%]+$")),
+      z.string().max(500).regex(new RegExp("^[*/\\\\]?[\\w\\-/.\\\\?*:=&%]+$")),
     ).optional(),
     prefix: z.string().optional(),
     r2_jurisdiction: z.string().optional(),
     web_crawler: z.object({
-      crawl_options: z.object({
+      discover_options: z.object({
         depth: z.number().min(1).max(100000).optional(),
         include_external_links: z.boolean().optional(),
         include_subdomains: z.boolean().optional(),
+        limit: z.number().min(1).max(100000).optional(),
         max_age: z.number().min(0).max(604800).optional(),
         source: z.enum(["all", "sitemaps", "links"]).optional(),
       }).optional(),
@@ -210,12 +216,7 @@ const GlobalArgsSchema = z.object({
         specific_sitemaps: z.array(z.string()).optional(),
         use_browser_rendering: z.boolean().optional(),
       }).optional(),
-      parse_type: z.enum(["sitemap", "feed-rss", "crawl"]).optional(),
-      store_options: z.object({
-        r2_jurisdiction: z.string().optional(),
-        storage_id: z.string(),
-        storage_type: z.enum(["r2"]).optional(),
-      }).optional(),
+      parse_type: z.enum(["sitemap", "discover"]).optional(),
     }).optional(),
   }).optional(),
   summarization: z.boolean().optional(),
@@ -264,7 +265,6 @@ const GlobalArgsSchema = z.object({
   ).describe(
     "AI Search instance ID. Lowercase alphanumeric, hyphens, and underscores.",
   ),
-  source: z.string().optional(),
   type: z.enum(["r2", "web-crawler"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -320,6 +320,8 @@ const ResourceSchema = z.object({
     chat_completions_endpoint: z.object({
       disabled: z.boolean().optional(),
     }).optional(),
+    custom_domains: z.array(z.string()).optional(),
+    default_domain_enabled: z.boolean().optional(),
     enabled: z.boolean().optional(),
     mcp: z.object({
       description: z.string().optional(),
@@ -353,10 +355,11 @@ const ResourceSchema = z.object({
     prefix: z.string().optional(),
     r2_jurisdiction: z.string().optional(),
     web_crawler: z.object({
-      crawl_options: z.object({
+      discover_options: z.object({
         depth: z.number().optional(),
         include_external_links: z.boolean().optional(),
         include_subdomains: z.boolean().optional(),
+        limit: z.number().optional(),
         max_age: z.number().optional(),
         source: z.string().optional(),
       }).optional(),
@@ -371,11 +374,6 @@ const ResourceSchema = z.object({
         use_browser_rendering: z.boolean().optional(),
       }).optional(),
       parse_type: z.string().optional(),
-      store_options: z.object({
-        r2_jurisdiction: z.string().optional(),
-        storage_id: z.string().optional(),
-        storage_type: z.string().optional(),
-      }).optional(),
     }).optional(),
   }).optional(),
   status: z.string().optional(),
@@ -439,11 +437,13 @@ const InputsSchema = z.object({
   })).optional(),
   embedding_model: z.enum([
     "@cf/qwen/qwen3-embedding-0.6b",
+    "@cf/qwen/qwen3-vl-embedding-2b",
     "@cf/baai/bge-m3",
     "@cf/baai/bge-large-en-v1.5",
     "@cf/google/embeddinggemma-300m",
     "google-ai-studio/gemini-embedding-001",
     "google-ai-studio/gemini-embedding-2-preview",
+    "google-ai-studio/gemini-embedding-2",
     "openai/text-embedding-3-small",
     "openai/text-embedding-3-large",
     "",
@@ -467,6 +467,8 @@ const InputsSchema = z.object({
     chat_completions_endpoint: z.object({
       disabled: z.boolean().optional(),
     }).optional(),
+    custom_domains: z.array(z.string().min(1).max(253)).optional(),
+    default_domain_enabled: z.boolean().optional(),
     enabled: z.boolean().optional(),
     mcp: z.object({
       description: z.string().optional(),
@@ -524,20 +526,22 @@ const InputsSchema = z.object({
   ]).optional(),
   rewrite_query: z.boolean().optional(),
   score_threshold: z.number().min(0).max(1).optional(),
+  source: z.string().optional(),
   source_params: z.object({
     exclude_items: z.array(
-      z.string().regex(new RegExp("^[*/\\\\]?[\\w\\-/.\\\\?*:=&%]+$")),
+      z.string().max(500).regex(new RegExp("^[*/\\\\]?[\\w\\-/.\\\\?*:=&%]+$")),
     ).optional(),
     include_items: z.array(
-      z.string().regex(new RegExp("^[*/\\\\]?[\\w\\-/.\\\\?*:=&%]+$")),
+      z.string().max(500).regex(new RegExp("^[*/\\\\]?[\\w\\-/.\\\\?*:=&%]+$")),
     ).optional(),
     prefix: z.string().optional(),
     r2_jurisdiction: z.string().optional(),
     web_crawler: z.object({
-      crawl_options: z.object({
+      discover_options: z.object({
         depth: z.number().min(1).max(100000).optional(),
         include_external_links: z.boolean().optional(),
         include_subdomains: z.boolean().optional(),
+        limit: z.number().min(1).max(100000).optional(),
         max_age: z.number().min(0).max(604800).optional(),
         source: z.enum(["all", "sitemaps", "links"]).optional(),
       }).optional(),
@@ -551,12 +555,7 @@ const InputsSchema = z.object({
         specific_sitemaps: z.array(z.string()).optional(),
         use_browser_rendering: z.boolean().optional(),
       }).optional(),
-      parse_type: z.enum(["sitemap", "feed-rss", "crawl"]).optional(),
-      store_options: z.object({
-        r2_jurisdiction: z.string().optional(),
-        storage_id: z.string(),
-        storage_type: z.enum(["r2"]).optional(),
-      }).optional(),
+      parse_type: z.enum(["sitemap", "discover"]).optional(),
     }).optional(),
   }).optional(),
   summarization: z.boolean().optional(),
@@ -601,7 +600,6 @@ const InputsSchema = z.object({
   id: z.string().min(1).max(64).regex(
     new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
   ).optional(),
-  source: z.string().optional(),
   type: z.enum(["r2", "web-crawler"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
@@ -611,7 +609,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Instances. Registered at `@swamp/cloudflare/ai-search/instances`. */
 export const model = {
   type: "@swamp/cloudflare/ai-search/instances",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -660,6 +658,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -828,6 +831,7 @@ export const model = {
         if (g.score_threshold !== undefined) {
           filters.push(["score_threshold", String(g.score_threshold)]);
         }
+        if (g.source !== undefined) filters.push(["source", String(g.source)]);
         if (g.summarization !== undefined) {
           filters.push(["summarization", String(g.summarization)]);
         }
@@ -865,7 +869,6 @@ export const model = {
           ]);
         }
         if (g.id !== undefined) filters.push(["id", String(g.id)]);
-        if (g.source !== undefined) filters.push(["source", String(g.source)]);
         if (g.type !== undefined) filters.push(["type", String(g.type)]);
         if (filters.length === 0) {
           throw new Error(
@@ -1008,6 +1011,7 @@ export const model = {
         if (g.score_threshold !== undefined) {
           body.score_threshold = g.score_threshold;
         }
+        if (g.source !== undefined) body.source = g.source;
         if (g.source_params !== undefined) body.source_params = g.source_params;
         if (g.summarization !== undefined) body.summarization = g.summarization;
         if (g.summarization_model !== undefined) {

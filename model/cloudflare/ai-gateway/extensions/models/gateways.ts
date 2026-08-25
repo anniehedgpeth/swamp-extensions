@@ -96,13 +96,14 @@ const GlobalArgsSchema = z.object({
       S9: z.enum(["FLAG", "BLOCK"]).optional(),
     }),
   }).optional(),
+  log_classification: z.boolean().optional(),
   log_management: z.number().int().min(10000).max(10000000).optional(),
   log_management_strategy: z.enum(["STOP_INSERTING", "DELETE_OLDEST"])
     .optional(),
   logpush: z.boolean().optional(),
   logpush_public_key: z.string().min(16).max(1024).optional(),
   otel: z.array(z.object({
-    authorization: z.string().max(256),
+    authorization: z.string().max(256).optional(),
     content_type: z.enum(["json", "protobuf"]).optional(),
     headers: z.record(z.string(), z.unknown()),
     url: z.string().max(2048),
@@ -119,6 +120,26 @@ const GlobalArgsSchema = z.object({
   retry_max_attempts: z.number().int().min(1).max(5).describe(
     "Maximum number of retry attempts for failed requests (1-5)",
   ).optional(),
+  spend_limits: z.object({
+    enabled: z.boolean().optional(),
+    rules: z.array(z.object({
+      enabled: z.boolean().optional(),
+      id: z.string().min(1).regex(new RegExp("^[a-zA-Z0-9_-]+$")).optional(),
+      limit: z.number().min(0),
+      limitType: z.enum(["cost"]),
+      metadata: z.record(z.string(), z.unknown()).optional(),
+      model: z.object({
+        mode: z.enum(["filter"]),
+        values: z.array(z.string()),
+      }).optional(),
+      provider: z.object({
+        mode: z.enum(["filter"]),
+        values: z.array(z.string()),
+      }).optional(),
+      technique: z.enum(["fixed", "sliding"]).optional(),
+      window: z.number().int().min(0),
+    })).optional(),
+  }).optional(),
   store_id: z.string().optional(),
   stripe: z.object({
     authorization: z.string(),
@@ -126,8 +147,8 @@ const GlobalArgsSchema = z.object({
       payload: z.string(),
     })),
   }).optional(),
-  workers_ai_billing_mode: z.enum(["postpaid"]).describe(
-    "Controls how Workers AI inference calls routed through this gateway are billed. Only 'postpaid' is currently supported.",
+  workers_ai_billing_mode: z.enum(["postpaid", "unified"]).describe(
+    "Controls how Workers AI inference calls routed through this gateway are billed. 'postpaid' bills the account directly through Workers AI; 'unified' deducts credits via AI Gateway using neuron-based pricing and delegates billing to AI Gateway.",
   ).optional(),
   zdr: z.boolean().optional(),
   id: z.string().min(1).max(64).regex(
@@ -198,6 +219,7 @@ const ResourceSchema = z.object({
   }).optional(),
   id: z.string(),
   is_default: z.boolean().optional(),
+  log_classification: z.boolean().optional(),
   log_management: z.number().optional(),
   log_management_strategy: z.string().optional(),
   logpush: z.boolean().optional(),
@@ -215,6 +237,26 @@ const ResourceSchema = z.object({
   retry_backoff: z.string().optional(),
   retry_delay: z.number().optional(),
   retry_max_attempts: z.number().optional(),
+  spend_limits: z.object({
+    enabled: z.boolean().optional(),
+    rules: z.array(z.object({
+      enabled: z.boolean().optional(),
+      id: z.string().optional(),
+      limit: z.number().optional(),
+      limitType: z.string().optional(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
+      model: z.object({
+        mode: z.string().optional(),
+        values: z.array(z.string()).optional(),
+      }).optional(),
+      provider: z.object({
+        mode: z.string().optional(),
+        values: z.array(z.string()).optional(),
+      }).optional(),
+      technique: z.string().optional(),
+      window: z.number().optional(),
+    })).optional(),
+  }).optional(),
   store_id: z.string().optional(),
   stripe: z.object({
     authorization: z.string().optional(),
@@ -281,13 +323,14 @@ const InputsSchema = z.object({
       S9: z.enum(["FLAG", "BLOCK"]).optional(),
     }),
   }).optional(),
+  log_classification: z.boolean().optional(),
   log_management: z.number().int().min(10000).max(10000000).optional(),
   log_management_strategy: z.enum(["STOP_INSERTING", "DELETE_OLDEST"])
     .optional(),
   logpush: z.boolean().optional(),
   logpush_public_key: z.string().min(16).max(1024).optional(),
   otel: z.array(z.object({
-    authorization: z.string().max(256),
+    authorization: z.string().max(256).optional(),
     content_type: z.enum(["json", "protobuf"]).optional(),
     headers: z.record(z.string(), z.unknown()),
     url: z.string().max(2048),
@@ -298,6 +341,26 @@ const InputsSchema = z.object({
   retry_backoff: z.enum(["constant", "linear", "exponential"]).optional(),
   retry_delay: z.number().int().min(0).max(5000).optional(),
   retry_max_attempts: z.number().int().min(1).max(5).optional(),
+  spend_limits: z.object({
+    enabled: z.boolean().optional(),
+    rules: z.array(z.object({
+      enabled: z.boolean().optional(),
+      id: z.string().min(1).regex(new RegExp("^[a-zA-Z0-9_-]+$")).optional(),
+      limit: z.number().min(0),
+      limitType: z.enum(["cost"]),
+      metadata: z.record(z.string(), z.unknown()).optional(),
+      model: z.object({
+        mode: z.enum(["filter"]),
+        values: z.array(z.string()),
+      }).optional(),
+      provider: z.object({
+        mode: z.enum(["filter"]),
+        values: z.array(z.string()),
+      }).optional(),
+      technique: z.enum(["fixed", "sliding"]).optional(),
+      window: z.number().int().min(0),
+    })).optional(),
+  }).optional(),
   store_id: z.string().optional(),
   stripe: z.object({
     authorization: z.string(),
@@ -305,7 +368,7 @@ const InputsSchema = z.object({
       payload: z.string(),
     })),
   }).optional(),
-  workers_ai_billing_mode: z.enum(["postpaid"]).optional(),
+  workers_ai_billing_mode: z.enum(["postpaid", "unified"]).optional(),
   zdr: z.boolean().optional(),
   id: z.string().min(1).max(64).regex(
     new RegExp("^[a-z0-9_]+(?:-[a-z0-9_]+)*$"),
@@ -318,7 +381,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Gateways. Registered at `@swamp/cloudflare/ai-gateway/gateways`. */
 export const model = {
   type: "@swamp/cloudflare/ai-gateway/gateways",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -372,6 +435,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: log_classification, spend_limits",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -424,6 +492,7 @@ export const model = {
         if (g.retry_max_attempts !== undefined) {
           body.retry_max_attempts = g.retry_max_attempts;
         }
+        if (g.store_id !== undefined) body.store_id = g.store_id;
         if (g.workers_ai_billing_mode !== undefined) {
           body.workers_ai_billing_mode = g.workers_ai_billing_mode;
         }
@@ -492,6 +561,9 @@ export const model = {
         }
         if (g.collect_logs !== undefined) {
           filters.push(["collect_logs", String(g.collect_logs)]);
+        }
+        if (g.log_classification !== undefined) {
+          filters.push(["log_classification", String(g.log_classification)]);
         }
         if (g.log_management !== undefined) {
           filters.push(["log_management", String(g.log_management)]);
@@ -651,6 +723,9 @@ export const model = {
         if (g.collect_logs !== undefined) body.collect_logs = g.collect_logs;
         if (g.dlp !== undefined) body.dlp = g.dlp;
         if (g.guardrails !== undefined) body.guardrails = g.guardrails;
+        if (g.log_classification !== undefined) {
+          body.log_classification = g.log_classification;
+        }
         if (g.log_management !== undefined) {
           body.log_management = g.log_management;
         }
@@ -676,6 +751,7 @@ export const model = {
         if (g.retry_max_attempts !== undefined) {
           body.retry_max_attempts = g.retry_max_attempts;
         }
+        if (g.spend_limits !== undefined) body.spend_limits = g.spend_limits;
         if (g.store_id !== undefined) body.store_id = g.store_id;
         if (g.stripe !== undefined) body.stripe = g.stripe;
         if (g.workers_ai_billing_mode !== undefined) {

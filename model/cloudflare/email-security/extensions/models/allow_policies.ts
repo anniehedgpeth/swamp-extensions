@@ -48,12 +48,12 @@ const GlobalArgsSchema = z.object({
   ),
   comments: z.string().max(1024).optional(),
   created_at: z.string(),
-  id: z.string().describe("Allow policy identifier"),
+  id: z.string().describe("Allow policy identifier."),
   is_acceptable_sender: z.boolean().describe(
-    "Messages from this sender will be exempted from Spam, Spoof and Bulk dispositions. Note - This will not exempt messages with Malicious or Suspicious dispositions.",
+    "Exempts messages from this sender from Spam, Spoof and Bulk dispositions only; Malicious and Suspicious dispositions still apply.",
   ).optional(),
   is_exempt_recipient: z.boolean().describe(
-    "Messages to this recipient will bypass all detections",
+    "Bypasses all detections for messages to this recipient.",
   ).optional(),
   is_recipient: z.boolean().describe(
     "Deprecated as of July 1, 2025. Use `is_exempt_recipient` instead. End of life: July 1, 2026.",
@@ -66,13 +66,15 @@ const GlobalArgsSchema = z.object({
     "Deprecated as of July 1, 2025. Use `is_acceptable_sender` instead. End of life: July 1, 2026.",
   ).optional(),
   is_trusted_sender: z.boolean().describe(
-    "Messages from this sender will bypass all detections and link following",
+    "Bypasses all detections and link following for messages from this sender.",
   ).optional(),
   last_modified: z.string(),
   modified_at: z.string().optional(),
-  pattern: z.string().min(1).max(1024).optional(),
+  pattern: z.string().min(1).max(1024).describe(
+    "The pattern value to match. The format depends on `pattern_type`: a valid email address for EMAIL (e.g. `user@example.com`), a valid domain name for DOMAIN (e.g. `example.com`), or a plain IPv4 address or IPv4 CIDR block for IP (e.g. `1.2.3.4` or `1.2.3.0/24`); the API accepts only globally reachable IP addresses and rejects private, loopback, link-local, and unspecified addresses.",
+  ).optional(),
   pattern_type: z.enum(["EMAIL", "DOMAIN", "IP", "UNKNOWN"]).describe(
-    "Type of pattern matching.\nNote: UNKNOWN is deprecated and cannot be used when creating or updating policies, but may be returned for existing entries.\n",
+    "Type of pattern matching.\n- EMAIL: matches a full email address (e.g. `user@example.com`)\n- DOMAIN: matches a domain name (e.g. `example.com`)\n- IP: matches a plain IPv4 address (e.g. `1.2.3.4`) or an IPv4 CIDR block (e.g. `1.2.3.0/24`). The API accepts only globally reachable addresses.\n- UNKNOWN: deprecated; you cannot use this when creating or updating policies, but it may appear on existing entries.\n",
   ).optional(),
   verify_sender: z.boolean().describe(
     "Enforce DMARC, SPF or DKIM authentication. When on, Email Security only honors policies that pass authentication.",
@@ -134,7 +136,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Allow Policies. Registered at `@swamp/cloudflare/email-security/allow-policies`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/allow-policies",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -168,6 +170,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.25.2",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

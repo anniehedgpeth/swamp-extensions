@@ -42,7 +42,12 @@ import {
 } from "./_lib/cloudflare.ts";
 
 const GlobalArgsSchema = z.object({
-  zone_id: z.string().describe("Cloudflare zone ID"),
+  account_id: z.string().optional().describe(
+    "Cloudflare account ID (provide account_id or zone_id)",
+  ),
+  zone_id: z.string().optional().describe(
+    "Cloudflare zone ID (provide account_id or zone_id)",
+  ),
   adaptive_routing: z.object({
     failover_across_pools: z.boolean().optional(),
   }).describe(
@@ -70,6 +75,9 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "The DNS hostname to associate with your Load Balancer. If this hostname already exists as a DNS record in Cloudflare's DNS, the Load Balancer will take precedence and the DNS record will not be used.",
   ),
+  networks: z.array(z.string()).describe(
+    "List of networks where Load Balancer or Pool is enabled.",
+  ).optional(),
   pop_pools: z.record(z.string(), z.unknown()).describe(
     "Enterprise only: A mapping of Cloudflare PoP identifiers to a list of pool IDs (ordered by their failover priority) for the PoP (datacenter). Any PoPs not explicitly defined will fall back to using the corresponding country_pool, then region_pool mapping if it exists else to default_pools.",
   ).optional(),
@@ -106,6 +114,9 @@ const GlobalArgsSchema = z.object({
         mode: z.enum(["pop", "resolver_ip"]).optional(),
         prefer_ecs: z.enum(["always", "never", "proximity", "geo"]).optional(),
       }).optional(),
+      pool_default_weight: z.number().min(0).max(1).optional(),
+      pool_weights: z.record(z.string(), z.unknown()).optional(),
+      pools: z.array(z.string()).optional(),
       pop_pools: z.record(z.string(), z.unknown()).optional(),
       random_steering: z.object({
         default_weight: z.number().min(0).max(1).optional(),
@@ -174,9 +185,6 @@ const GlobalArgsSchema = z.object({
   ttl: z.number().describe(
     "Time to live (TTL) of the DNS entry for the IP address returned by this load balancer. This only applies to gray-clouded (unproxied) load balancers.",
   ).optional(),
-  networks: z.array(z.string()).describe(
-    "List of networks where Load Balancer or Pool is enabled.",
-  ).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -206,6 +214,31 @@ const ResourceSchema = z.object({
   modified_on: z.string().optional(),
   name: z.string().optional(),
   networks: z.array(z.string()).optional(),
+  pool_sets: z.array(z.object({
+    disabled: z.boolean().optional(),
+    fixed_response: z.object({
+      content_type: z.string().optional(),
+      location: z.string().optional(),
+      message_body: z.string().optional(),
+      status_code: z.number().optional(),
+    }).optional(),
+    match: z.object({
+      default: z.boolean().optional(),
+      topology: z.object({
+        countries: z.array(z.string()).optional(),
+        pops: z.array(z.string()).optional(),
+        regions: z.array(z.string()).optional(),
+      }).optional(),
+    }).optional(),
+    name: z.string().optional(),
+    overrides: z.object({
+      fallback_pool: z.string().optional(),
+      pool_default_weight: z.number().optional(),
+      pool_weights: z.record(z.string(), z.unknown()).optional(),
+      pools: z.array(z.string()).optional(),
+      steering_policy: z.string().optional(),
+    }).optional(),
+  })).optional(),
   pop_pools: z.record(z.string(), z.unknown()).optional(),
   proxied: z.boolean().optional(),
   random_steering: z.object({
@@ -234,6 +267,9 @@ const ResourceSchema = z.object({
         mode: z.string().optional(),
         prefer_ecs: z.string().optional(),
       }).optional(),
+      pool_default_weight: z.number().optional(),
+      pool_weights: z.record(z.string(), z.unknown()).optional(),
+      pools: z.array(z.string()).optional(),
       pop_pools: z.record(z.string(), z.unknown()).optional(),
       random_steering: z.object({
         default_weight: z.number().optional(),
@@ -274,6 +310,7 @@ const ResourceSchema = z.object({
 type ResourceData = z.infer<typeof ResourceSchema>;
 
 const InputsSchema = z.object({
+  account_id: z.string().optional(),
   zone_id: z.string().optional(),
   adaptive_routing: z.object({
     failover_across_pools: z.boolean().optional(),
@@ -288,6 +325,7 @@ const InputsSchema = z.object({
     prefer_ecs: z.enum(["always", "never", "proximity", "geo"]).optional(),
   }).optional(),
   name: z.string().optional(),
+  networks: z.array(z.string()).optional(),
   pop_pools: z.record(z.string(), z.unknown()).optional(),
   proxied: z.boolean().optional(),
   random_steering: z.object({
@@ -316,6 +354,9 @@ const InputsSchema = z.object({
         mode: z.enum(["pop", "resolver_ip"]).optional(),
         prefer_ecs: z.enum(["always", "never", "proximity", "geo"]).optional(),
       }).optional(),
+      pool_default_weight: z.number().min(0).max(1).optional(),
+      pool_weights: z.record(z.string(), z.unknown()).optional(),
+      pools: z.array(z.string()).optional(),
       pop_pools: z.record(z.string(), z.unknown()).optional(),
       random_steering: z.object({
         default_weight: z.number().min(0).max(1).optional(),
@@ -375,7 +416,6 @@ const InputsSchema = z.object({
     "",
   ]).optional(),
   ttl: z.number().optional(),
-  networks: z.array(z.string()).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -384,7 +424,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Load Balancers. Registered at `@swamp/cloudflare/load-balancing/load-balancers`. */
 export const model = {
   type: "@swamp/cloudflare/load-balancing/load-balancers",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -429,6 +469,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: account_id",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -446,7 +491,15 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const endpoint = "/zones/" + g.zone_id + "/load_balancers";
+        if ((g.account_id == null) === (g.zone_id == null)) {
+          throw new Error(
+            "Exactly one of account_id or zone_id must be provided",
+          );
+        }
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/load_balancers";
         const body: Record<string, unknown> = {};
         if (g.adaptive_routing !== undefined) {
           body.adaptive_routing = g.adaptive_routing;
@@ -454,6 +507,7 @@ export const model = {
         if (g.country_pools !== undefined) body.country_pools = g.country_pools;
         if (g.default_pools !== undefined) body.default_pools = g.default_pools;
         if (g.description !== undefined) body.description = g.description;
+        if (g.enabled !== undefined) body.enabled = g.enabled;
         if (g.fallback_pool !== undefined) body.fallback_pool = g.fallback_pool;
         if (g.location_strategy !== undefined) {
           body.location_strategy = g.location_strategy;
@@ -504,7 +558,15 @@ export const model = {
       }),
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
-        const endpoint = "/zones/" + g.zone_id + "/load_balancers";
+        if ((g.account_id == null) === (g.zone_id == null)) {
+          throw new Error(
+            "Exactly one of account_id or zone_id must be provided",
+          );
+        }
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/load_balancers";
         const result = await read(endpoint, args.id, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -528,7 +590,15 @@ export const model = {
       arguments: z.object({}),
       execute: async (_args: Record<string, never>, context: any) => {
         const g = context.globalArgs;
-        const endpoint = "/zones/" + g.zone_id + "/load_balancers";
+        if ((g.account_id == null) === (g.zone_id == null)) {
+          throw new Error(
+            "Exactly one of account_id or zone_id must be provided",
+          );
+        }
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/load_balancers";
         const filters: [string, string][] = [];
         if (g.description !== undefined) {
           filters.push(["description", String(g.description)]);
@@ -612,7 +682,15 @@ export const model = {
       }),
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
-        const endpoint = "/zones/" + g.zone_id + "/load_balancers";
+        if ((g.account_id == null) === (g.zone_id == null)) {
+          throw new Error(
+            "Exactly one of account_id or zone_id must be provided",
+          );
+        }
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/load_balancers";
         const result = await read(endpoint, args.id, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -640,7 +718,15 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
-        const endpoint = "/zones/" + g.zone_id + "/load_balancers";
+        if ((g.account_id == null) === (g.zone_id == null)) {
+          throw new Error(
+            "Exactly one of account_id or zone_id must be provided",
+          );
+        }
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/load_balancers";
         const instanceName =
           (g.name?.toString() ?? args.identifier ?? "current").replace(
             /[\/\\]/g,
@@ -668,6 +754,7 @@ export const model = {
           body.location_strategy = g.location_strategy;
         }
         if (g.name !== undefined) body.name = g.name;
+        if (g.networks !== undefined) body.networks = g.networks;
         if (g.pop_pools !== undefined) body.pop_pools = g.pop_pools;
         if (g.proxied !== undefined) body.proxied = g.proxied;
         if (g.random_steering !== undefined) {
@@ -708,7 +795,15 @@ export const model = {
       }),
       execute: async (args: { id: string }, context: any) => {
         const g = context.globalArgs;
-        const endpoint = "/zones/" + g.zone_id + "/load_balancers";
+        if ((g.account_id == null) === (g.zone_id == null)) {
+          throw new Error(
+            "Exactly one of account_id or zone_id must be provided",
+          );
+        }
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/load_balancers";
         const { existed } = await remove(endpoint, args.id, {
           apiToken: g.apiToken,
           apiKey: g.apiKey,
@@ -734,7 +829,15 @@ export const model = {
       }),
       execute: async (args: { identifier?: string }, context: any) => {
         const g = context.globalArgs;
-        const endpoint = "/zones/" + g.zone_id + "/load_balancers";
+        if ((g.account_id == null) === (g.zone_id == null)) {
+          throw new Error(
+            "Exactly one of account_id or zone_id must be provided",
+          );
+        }
+        const scopePrefix = g.account_id
+          ? "/accounts/" + g.account_id
+          : "/zones/" + g.zone_id;
+        const endpoint = scopePrefix + "/load_balancers";
         const instanceName =
           (g.name?.toString() ?? args.identifier ?? "current").replace(
             /[\/\\]/g,

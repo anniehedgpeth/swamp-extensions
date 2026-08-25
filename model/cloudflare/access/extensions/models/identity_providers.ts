@@ -62,6 +62,9 @@ const GlobalArgsSchema = z.object({
   name: z.string().describe(
     "The name of the identity provider, shown to users on the login page.",
   ),
+  read_only: z.boolean().describe(
+    "Indicates that the identity provider is immutable and cannot be updated or deleted via the API.\n",
+  ).optional(),
   saml_certificate_set: z.object({
     created_at: z.string(),
     current_certificate: z.object({
@@ -151,6 +154,7 @@ const ResourceSchema = z.object({
     }).optional(),
     id: z.string().optional(),
     name: z.string().optional(),
+    read_only: z.boolean().optional(),
     saml_certificate_set: z.object({
       created_at: z.string().optional(),
       current_certificate: z.object({
@@ -194,6 +198,7 @@ const InputsSchema = z.object({
   }).optional(),
   id: z.string().max(36).optional(),
   name: z.string().optional(),
+  read_only: z.boolean().optional(),
   saml_certificate_set: z.object({
     created_at: z.string(),
     current_certificate: z.object({
@@ -241,7 +246,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Identity Providers. Registered at `@swamp/cloudflare/access/identity-providers`. */
 export const model = {
   type: "@swamp/cloudflare/access/identity-providers",
-  version: "2026.08.25.1",
+  version: "2026.08.25.2",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -281,6 +286,11 @@ export const model = {
         return rest;
       },
     },
+    {
+      toVersion: "2026.08.25.2",
+      description: "Added: read_only",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -311,6 +321,7 @@ export const model = {
         if (g.config !== undefined) body.config = g.config;
         if (g.id !== undefined) body.id = g.id;
         if (g.name !== undefined) body.name = g.name;
+        if (g.read_only !== undefined) body.read_only = g.read_only;
         if (g.saml_certificate_set !== undefined) {
           body.saml_certificate_set = g.saml_certificate_set;
         }
@@ -387,6 +398,9 @@ export const model = {
         const filters: [string, string][] = [];
         if (g.id !== undefined) filters.push(["id", String(g.id)]);
         if (g.name !== undefined) filters.push(["name", String(g.name)]);
+        if (g.read_only !== undefined) {
+          filters.push(["read_only", String(g.read_only)]);
+        }
         if (g.saml_certificate_set_id !== undefined) {
           filters.push([
             "saml_certificate_set_id",
@@ -513,6 +527,7 @@ export const model = {
         if (g.config !== undefined) body.config = g.config;
         if (g.id !== undefined) body.id = g.id;
         if (g.name !== undefined) body.name = g.name;
+        if (g.read_only !== undefined) body.read_only = g.read_only;
         if (g.saml_certificate_set !== undefined) {
           body.saml_certificate_set = g.saml_certificate_set;
         }
