@@ -102,7 +102,6 @@ function resolveRegion(credentials?: AwsCredentials): string {
 }
 
 function createClient(credentials?: AwsCredentials): CloudControlClient {
-  disableImdsIfOffEc2();
   const region = resolveRegion(credentials);
   const config: Record<string, unknown> = { region };
 

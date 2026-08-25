@@ -127,7 +127,6 @@ export class S3OperationError extends Error {
 import {
   classifyAwsCredentialError,
   deriveAwsErrorCode,
-  disableImdsIfOffEc2,
   formatAwsCredentialHint,
   preflightCredentials as runPreflightCredentials,
 } from "./aws_credentials.ts";
@@ -135,7 +134,6 @@ export {
   type AwsCredentialErrorKind,
   classifyAwsCredentialError,
   deriveAwsErrorCode,
-  disableImdsIfOffEc2,
   formatAwsCredentialHint,
   PREFLIGHT_TIMEOUT_MS,
 } from "./aws_credentials.ts";
@@ -256,8 +254,6 @@ export class S3Client {
     const envTimeout = S3Client.parseEnvTimeout();
     this.defaultRequestTimeoutMs = envTimeout ??
       config.defaultRequestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
-
-    disableImdsIfOffEc2();
 
     this.client = new AwsS3Client({
       region: config.region,

@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/assert@1.0.19": "1.0.19",
     "jsr:@std/fs@1": "1.0.23",
     "jsr:@std/internal@^1.0.12": "1.0.13",
@@ -39,7 +40,7 @@
     "@systeminit/swamp-testing@0.20260331.5": {
       "integrity": "7f336df3a10433f2218c998b1b9757cba134585f44d53776ed82420b12b04df7",
       "dependencies": [
-        "jsr:@std/assert"
+        "jsr:@std/assert@1.0.19"
       ]
     }
   },

@@ -84,16 +84,6 @@ export function formatAwsCredentialHint(
   return undefined;
 }
 
-export function disableImdsIfOffEc2(): void {
-  if (
-    !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
-    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
-    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
-  ) {
-    Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
-  }
-}
-
 export const PREFLIGHT_TIMEOUT_MS = 3_000;
 
 export async function preflightCredentials(

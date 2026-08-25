@@ -24,7 +24,6 @@ import {
   type StateData,
   StateSchema,
 } from "./_lib/provisioner_impl.ts";
-import { disableImdsIfOffEc2 } from "./_lib/aws_credentials.ts";
 
 /**
  * Swamp extension model export. Declares the provisioner type, its argument
@@ -80,7 +79,6 @@ export const model = {
         const g = context.globalArgs;
         const policyName = resolvePolicyName(g.bucket_name, g.policy_name);
 
-        disableImdsIfOffEc2();
         const s3 = new S3Client({ region: g.region });
         const iam = new IAMClient({ region: g.region });
         const sts = new STSClient({ region: g.region });

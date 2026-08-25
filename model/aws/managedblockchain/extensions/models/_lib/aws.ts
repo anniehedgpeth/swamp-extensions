@@ -103,16 +103,6 @@ function formatAwsCredentialHint(
   return undefined;
 }
 
-function disableImdsIfOffEc2(): void {
-  if (
-    !Deno.env.get("AWS_EC2_METADATA_DISABLED") &&
-    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") &&
-    !Deno.env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI")
-  ) {
-    Deno.env.set("AWS_EC2_METADATA_DISABLED", "true");
-  }
-}
-
 function parseAwsConfigSections(
   text: string,
 ): Map<string, Map<string, string>> {
@@ -180,7 +170,6 @@ function resolveRegion(credentials?: AwsCredentials): string {
 }
 
 function createClient(credentials?: AwsCredentials): CloudControlClient {
-  disableImdsIfOffEc2();
   const region = resolveRegion(credentials);
   const config: Record<string, unknown> = { region };
 

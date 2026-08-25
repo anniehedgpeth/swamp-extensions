@@ -42,7 +42,6 @@ import {
 } from "npm:@aws-sdk/client-secrets-manager@3.1090.0";
 import { SpanStatusCode } from "npm:@opentelemetry/api@1.9.0";
 import { AwsSmOperationError, wrapAwsSmError } from "./aws_sm_errors.ts";
-import { disableImdsIfOffEc2 } from "./_lib/aws_credentials.ts";
 import { Attr, getTracer } from "./_lib/tracing.ts";
 
 /**
@@ -262,7 +261,6 @@ class AwsSmVaultProvider
 
   constructor(name: string, config: { region: string }) {
     this.name = name;
-    disableImdsIfOffEc2();
     this.client = new SecretsManagerClient({ region: config.region });
   }
 
