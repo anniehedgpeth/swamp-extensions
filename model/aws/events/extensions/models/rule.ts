@@ -238,6 +238,7 @@ const StateSchema = z.object({
   Targets: z.array(TargetSchema).optional(),
   Arn: z.string(),
   RoleArn: z.string().optional(),
+  RuleName: z.string().optional(),
   Tags: z.array(TagSchema).optional(),
   Name: z.string().optional(),
 }).passthrough();
@@ -295,7 +296,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Events Rule. Registered at `@swamp/aws/events/rule`. */
 export const model = {
   type: "@swamp/aws/events/rule",
-  version: "2026.08.17.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -354,6 +355,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

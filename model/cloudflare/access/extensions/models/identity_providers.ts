@@ -279,14 +279,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: read_only",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { read_only: _read_only, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: read_only",
       upgradeAttributes: (old: Record<string, unknown>) => old,

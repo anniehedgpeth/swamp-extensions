@@ -49,10 +49,6 @@ const GlobalArgsSchema = z.object({
       public_key: z.string(),
     })).optional(),
     command: z.array(z.string()).optional(),
-    disk: z.object({
-      size: z.string().optional(),
-      size_mb: z.number().int().optional(),
-    }).optional(),
     dns: z.object({
       searches: z.array(z.string()).optional(),
       servers: z.array(z.string()).optional(),
@@ -62,7 +58,6 @@ const GlobalArgsSchema = z.object({
       name: z.string(),
       value: z.string(),
     })).optional(),
-    experimental_flags: z.array(z.string()).optional(),
     image: z.string(),
     instance_type: z.enum([
       "lite",
@@ -72,15 +67,6 @@ const GlobalArgsSchema = z.object({
       "standard-3",
       "standard-4",
     ]).optional(),
-    labels: z.array(z.object({
-      name: z.string(),
-      value: z.string(),
-    })).optional(),
-    lifecycle: z.object({
-      max_termination_duration: z.string().optional(),
-    }).optional(),
-    memory: z.string().optional(),
-    memory_mib: z.number().int().optional(),
     observability: z.object({
       logs: z.object({
         enabled: z.boolean().optional(),
@@ -90,7 +76,6 @@ const GlobalArgsSchema = z.object({
       name: z.string().optional(),
       public_key: z.string(),
     })).optional(),
-    vcpu: z.number().optional(),
     wrangler_ssh: z.object({
       enabled: z.boolean().optional(),
       port: z.number().int().min(1).max(65535).optional(),
@@ -100,11 +85,8 @@ const GlobalArgsSchema = z.object({
     jurisdiction: z.string().optional(),
     regions: z.array(z.string()).optional(),
   }).optional(),
-  instances: z.number().int().min(0).describe(
-    "Number of deployments to create.",
-  ),
   max_instances: z.number().int().min(0).describe(
-    "Maximum number of instances the application allows. This is relevant for applications that auto-scale.",
+    "Maximum number of instances that the application will allow.",
   ).optional(),
   observability: z.object({
     logs: z.object({
@@ -120,9 +102,12 @@ const GlobalArgsSchema = z.object({
   durable_objects: z.string().describe(
     "Set of properties to configure a Durable Object-backed application.",
   ).optional(),
-  name: z.string().describe("The name for this application."),
-  scheduling_policy: z.enum(["default"]).describe(
-    "The scheduling policy to use for an application.",
+  instances: z.number().int().min(0).describe(
+    "Number of deployments to create",
+  ),
+  name: z.string().describe("The name for this application"),
+  scheduling_policy: z.enum(["default", "instance"]).describe(
+    "The scheduling policy to use for a scheduler-backed application.",
   ),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -144,10 +129,6 @@ const ResourceSchema = z.object({
       public_key: z.string().optional(),
     })).optional(),
     command: z.array(z.string()).optional(),
-    disk: z.object({
-      size: z.string().optional(),
-      size_mb: z.number().optional(),
-    }).optional(),
     dns: z.object({
       searches: z.array(z.string()).optional(),
       servers: z.array(z.string()).optional(),
@@ -157,18 +138,8 @@ const ResourceSchema = z.object({
       name: z.string().optional(),
       value: z.string().optional(),
     })).optional(),
-    experimental_flags: z.array(z.string()).optional(),
     image: z.string().optional(),
     instance_type: z.string().optional(),
-    labels: z.array(z.object({
-      name: z.string().optional(),
-      value: z.string().optional(),
-    })).optional(),
-    lifecycle: z.object({
-      max_termination_duration: z.string().optional(),
-    }).optional(),
-    memory: z.string().optional(),
-    memory_mib: z.number().optional(),
     observability: z.object({
       logs: z.object({
         enabled: z.boolean().optional(),
@@ -178,7 +149,6 @@ const ResourceSchema = z.object({
       name: z.string().optional(),
       public_key: z.string().optional(),
     })).optional(),
-    vcpu: z.number().optional(),
     wrangler_ssh: z.object({
       enabled: z.boolean().optional(),
       port: z.number().optional(),
@@ -238,10 +208,6 @@ const InputsSchema = z.object({
       public_key: z.string(),
     })).optional(),
     command: z.array(z.string()).optional(),
-    disk: z.object({
-      size: z.string().optional(),
-      size_mb: z.number().int().optional(),
-    }).optional(),
     dns: z.object({
       searches: z.array(z.string()).optional(),
       servers: z.array(z.string()).optional(),
@@ -251,7 +217,6 @@ const InputsSchema = z.object({
       name: z.string(),
       value: z.string(),
     })).optional(),
-    experimental_flags: z.array(z.string()).optional(),
     image: z.string(),
     instance_type: z.enum([
       "lite",
@@ -261,15 +226,6 @@ const InputsSchema = z.object({
       "standard-3",
       "standard-4",
     ]).optional(),
-    labels: z.array(z.object({
-      name: z.string(),
-      value: z.string(),
-    })).optional(),
-    lifecycle: z.object({
-      max_termination_duration: z.string().optional(),
-    }).optional(),
-    memory: z.string().optional(),
-    memory_mib: z.number().int().optional(),
     observability: z.object({
       logs: z.object({
         enabled: z.boolean().optional(),
@@ -279,7 +235,6 @@ const InputsSchema = z.object({
       name: z.string().optional(),
       public_key: z.string(),
     })).optional(),
-    vcpu: z.number().optional(),
     wrangler_ssh: z.object({
       enabled: z.boolean().optional(),
       port: z.number().int().min(1).max(65535).optional(),
@@ -289,7 +244,6 @@ const InputsSchema = z.object({
     jurisdiction: z.string().optional(),
     regions: z.array(z.string()).optional(),
   }).optional(),
-  instances: z.number().int().min(0).optional(),
   max_instances: z.number().int().min(0).optional(),
   observability: z.object({
     logs: z.object({
@@ -300,8 +254,9 @@ const InputsSchema = z.object({
   }).optional(),
   rollout_active_grace_period: z.number().int().min(0).max(604800).optional(),
   durable_objects: z.string().optional(),
+  instances: z.number().int().min(0).optional(),
   name: z.string().optional(),
-  scheduling_policy: z.enum(["default"]).optional(),
+  scheduling_policy: z.enum(["default", "instance"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -310,7 +265,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Applications. Registered at `@swamp/cloudflare/containers/applications`. */
 export const model = {
   type: "@swamp/cloudflare/containers/applications",
-  version: "2026.08.25.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.06.08.2",
@@ -364,6 +319,11 @@ export const model = {
         } = old;
         return rest;
       },
+    },
+    {
+      toVersion: "2026.08.26.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
   globalArguments: GlobalArgsSchema,
@@ -452,9 +412,6 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id +
           "/containers/applications";
         const filters: [string, string][] = [];
-        if (g.instances !== undefined) {
-          filters.push(["instances", String(g.instances)]);
-        }
         if (g.max_instances !== undefined) {
           filters.push(["max_instances", String(g.max_instances)]);
         }
@@ -466,6 +423,9 @@ export const model = {
         }
         if (g.durable_objects !== undefined) {
           filters.push(["durable_objects", String(g.durable_objects)]);
+        }
+        if (g.instances !== undefined) {
+          filters.push(["instances", String(g.instances)]);
         }
         if (g.name !== undefined) filters.push(["name", String(g.name)]);
         if (g.scheduling_policy !== undefined) {
@@ -575,7 +535,6 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g.configuration !== undefined) body.configuration = g.configuration;
         if (g.constraints !== undefined) body.constraints = g.constraints;
-        if (g.instances !== undefined) body.instances = g.instances;
         if (g.max_instances !== undefined) body.max_instances = g.max_instances;
         if (g.observability !== undefined) body.observability = g.observability;
         if (g.rollout_active_grace_period !== undefined) {

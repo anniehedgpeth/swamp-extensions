@@ -100,6 +100,7 @@ const GlobalArgsSchema = z.object({
     .optional(),
   dataset: z.enum([
     "access_requests",
+    "account_abuse_protection_events",
     "audit_logs",
     "audit_logs_v2",
     "biso_user_actions",
@@ -118,6 +119,7 @@ const GlobalArgsSchema = z.object({
     "gateway_network",
     "http_requests",
     "ipsec_logs",
+    "magic_bgp_logs",
     "magic_ids_detections",
     "mcp_portal_logs",
     "mnm_flow_logs",
@@ -221,6 +223,7 @@ const InputsSchema = z.object({
   ).optional(),
   dataset: z.enum([
     "access_requests",
+    "account_abuse_protection_events",
     "audit_logs",
     "audit_logs_v2",
     "biso_user_actions",
@@ -239,6 +242,7 @@ const InputsSchema = z.object({
     "gateway_network",
     "http_requests",
     "ipsec_logs",
+    "magic_bgp_logs",
     "magic_ids_detections",
     "mcp_portal_logs",
     "mnm_flow_logs",
@@ -264,7 +268,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Jobs. Registered at `@swamp/cloudflare/logpush/jobs`. */
 export const model = {
   type: "@swamp/cloudflare/logpush/jobs",
-  version: "2026.08.25.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -308,6 +312,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

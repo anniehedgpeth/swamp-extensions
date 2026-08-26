@@ -135,14 +135,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: block_any_queries",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { block_any_queries: _block_any_queries, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: block_any_queries",
       upgradeAttributes: (old: Record<string, unknown>) => old,

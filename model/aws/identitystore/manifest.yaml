@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/identitystore"
-version: "2026.08.25.6"
+version: "2026.08.26.1"
 description: "AWS IDENTITYSTORE infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,9 +9,12 @@ labels:
   - identitystore
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: user
 models:
   - group.ts
   - group_membership.ts
+  - user.ts
 additionalFiles:
   - LICENSE.txt
   - README.md

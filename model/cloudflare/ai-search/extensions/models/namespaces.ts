@@ -183,15 +183,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: public_endpoint_params",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { public_endpoint_params: _public_endpoint_params, ...rest } =
-          old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: public_endpoint_params",
       upgradeAttributes: (old: Record<string, unknown>) => old,

@@ -62,6 +62,7 @@ const GlobalArgsSchema = z.object({
       invocation_logs: z.boolean().optional(),
       persist: z.boolean().optional(),
     }).optional(),
+    redact_query_string: z.boolean().optional(),
     traces: z.object({
       destinations: z.array(z.string()).optional(),
       enabled: z.boolean().optional(),
@@ -142,6 +143,7 @@ const ResourceSchema = z.object({
       invocation_logs: z.boolean().optional(),
       persist: z.boolean().optional(),
     }).optional(),
+    redact_query_string: z.boolean().optional(),
     traces: z.object({
       destinations: z.array(z.string()).optional(),
       enabled: z.boolean().optional(),
@@ -212,6 +214,7 @@ const InputsSchema = z.object({
       invocation_logs: z.boolean().optional(),
       persist: z.boolean().optional(),
     }).optional(),
+    redact_query_string: z.boolean().optional(),
     traces: z.object({
       destinations: z.array(z.string()).optional(),
       enabled: z.boolean().optional(),
@@ -269,7 +272,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Workers. Registered at `@swamp/cloudflare/workers/workers`. */
 export const model = {
   type: "@swamp/cloudflare/workers/workers",
-  version: "2026.08.25.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -303,6 +306,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

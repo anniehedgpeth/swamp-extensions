@@ -158,14 +158,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: dns_firewall_ip_count",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { dns_firewall_ip_count: _dns_firewall_ip_count, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: dns_firewall_ip_count",
       upgradeAttributes: (old: Record<string, unknown>) => old,

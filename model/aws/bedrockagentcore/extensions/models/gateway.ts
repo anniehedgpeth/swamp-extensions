@@ -204,6 +204,9 @@ const GlobalArgsSchema = z.object({
     z.string(),
     z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$")),
   ).optional(),
+  WafConfiguration: z.object({
+    FailureMode: z.enum(["FAIL_CLOSE", "FAIL_OPEN"]).optional(),
+  }).optional(),
   WorkloadIdentityDetails: z.object({
     WorkloadIdentityArn: z.string().min(1).max(1024),
   }).optional(),
@@ -236,6 +239,10 @@ const StateSchema = z.object({
   StatusReasons: z.array(z.string()).optional(),
   Tags: z.record(z.string(), z.unknown()).optional(),
   UpdatedAt: z.string().optional(),
+  WafConfiguration: z.object({
+    FailureMode: z.string(),
+  }).optional(),
+  WebAclArn: z.string().optional(),
   WorkloadIdentityDetails: z.object({
     WorkloadIdentityArn: z.string(),
   }).optional(),
@@ -282,6 +289,9 @@ const InputsSchema = z.object({
     z.string(),
     z.string().min(0).max(256).regex(new RegExp("^[a-zA-Z0-9\\s._:/=+@-]*$")),
   ).optional(),
+  WafConfiguration: z.object({
+    FailureMode: z.enum(["FAIL_CLOSE", "FAIL_OPEN"]).optional(),
+  }).optional(),
   WorkloadIdentityDetails: z.object({
     WorkloadIdentityArn: z.string().min(1).max(1024).optional(),
   }).optional(),
@@ -306,7 +316,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore Gateway. Registered at `@swamp/aws/bedrockagentcore/gateway`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/gateway",
-  version: "2026.08.17.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -389,6 +399,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
+      description: "Added: WafConfiguration",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

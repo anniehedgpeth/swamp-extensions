@@ -300,14 +300,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: global_acceleration",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { global_acceleration: _global_acceleration, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: global_acceleration",
       upgradeAttributes: (old: Record<string, unknown>) => old,

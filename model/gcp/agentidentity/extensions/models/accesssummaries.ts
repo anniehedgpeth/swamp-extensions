@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Agent Identity AccessSummaries.
  *
- * Message describing AccessSummary object
+ * Represents an access summary.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -173,7 +173,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Identity AccessSummaries. Registered at `@swamp/gcp/agentidentity/accesssummaries`. */
 export const model = {
   type: "@swamp/gcp/agentidentity/accesssummaries",
-  version: "2026.08.12.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -185,12 +185,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.26.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Message describing AccessSummary object",
+      description: "Represents an access summary.",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -307,7 +312,7 @@ export const model = {
           "Optional. This field is currently ignored. Defaults to ordering by (auth_provider_id, user_id) in ascending order.",
         ).optional(),
         pageSize: z.number().describe(
-          "Optional. Requested page size. Server may return fewer items than requested. If unspecified, server will pick an appropriate default.",
+          "Optional. Requested page size. Server may return fewer items than requested. If unspecified, server will pick an appropriate default. The maximum page size is 1000.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

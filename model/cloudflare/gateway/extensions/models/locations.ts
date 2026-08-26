@@ -222,11 +222,8 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
-      description: "Added: max_ttl_secs. Removed: max_ttl",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { max_ttl: _max_ttl, ...rest } = old;
-        return rest;
-      },
+      description: "Added: max_ttl_secs",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
       toVersion: "2026.08.25.2",

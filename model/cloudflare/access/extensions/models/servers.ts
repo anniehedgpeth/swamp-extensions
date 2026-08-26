@@ -238,18 +238,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: client_secret, secure_web_gateway",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          client_secret: _client_secret,
-          secure_web_gateway: _secure_web_gateway,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: client_secret, secure_web_gateway",
       upgradeAttributes: (old: Record<string, unknown>) => old,

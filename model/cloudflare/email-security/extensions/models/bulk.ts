@@ -71,6 +71,7 @@ const GlobalArgsSchema = z.object({
       "deferred",
       "bounced",
       "queued",
+      "move_failed",
     ]).optional(),
     detections_only: z.boolean().optional(),
     domain: z.string().optional(),
@@ -187,6 +188,7 @@ const InputsSchema = z.object({
       "deferred",
       "bounced",
       "queued",
+      "move_failed",
     ]).optional(),
     detections_only: z.boolean().optional(),
     domain: z.string().optional(),
@@ -223,7 +225,14 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Bulk. Registered at `@swamp/cloudflare/email-security/bulk`. */
 export const model = {
   type: "@swamp/cloudflare/email-security/bulk",
-  version: "2026.08.25.1",
+  version: "2026.08.26.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.26.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

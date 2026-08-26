@@ -161,6 +161,7 @@ const StateSchema = z.object({
   Target: z.string().optional(),
   FailOnWarnings: z.boolean().optional(),
   ApiEndpoint: z.string().optional(),
+  ExecuteApiArn: z.string().optional(),
   Description: z.string().optional(),
   DisableExecuteApiEndpoint: z.boolean().optional(),
   DisableSchemaValidation: z.boolean().optional(),
@@ -280,7 +281,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ApiGatewayV2 Api. Registered at `@swamp/aws/apigatewayv2/api`. */
 export const model = {
   type: "@swamp/aws/apigatewayv2/api",
-  version: "2026.08.17.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -339,6 +340,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -194,19 +194,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: commit_message, meta, path",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          commit_message: _commit_message,
-          meta: _meta,
-          path: _path,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: commit_message, meta, path",
       upgradeAttributes: (old: Record<string, unknown>) => old,

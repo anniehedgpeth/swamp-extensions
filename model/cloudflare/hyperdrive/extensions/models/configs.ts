@@ -202,14 +202,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: restarted_on",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { restarted_on: _restarted_on, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: restarted_on",
       upgradeAttributes: (old: Record<string, unknown>) => old,

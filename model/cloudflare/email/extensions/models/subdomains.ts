@@ -43,6 +43,9 @@ import {
 
 const GlobalArgsSchema = z.object({
   zone_id: z.string().describe("Cloudflare zone ID"),
+  drop_suppressed_recipients: z.boolean().describe(
+    "Whether a send request that includes a recipient suppressed on\nthis subdomain drops that recipient and still delivers to the\nrest, instead of failing the entire request.\n",
+  ).optional(),
   preview_enabled: z.boolean().describe(
     "Whether sent messages from this subdomain can be previewed in the activity log.",
   ).optional(),
@@ -63,6 +66,7 @@ const GlobalArgsSchema = z.object({
 const ResourceSchema = z.object({
   created: z.string().optional(),
   dkim_selector: z.string().optional(),
+  drop_suppressed_recipients: z.boolean().optional(),
   enabled: z.boolean().optional(),
   modified: z.string().optional(),
   name: z.string().optional(),
@@ -76,6 +80,7 @@ type ResourceData = z.infer<typeof ResourceSchema>;
 
 const InputsSchema = z.object({
   zone_id: z.string().optional(),
+  drop_suppressed_recipients: z.boolean().optional(),
   preview_enabled: z.boolean().optional(),
   name: z.string().optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -86,7 +91,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Subdomains. Registered at `@swamp/cloudflare/email/subdomains`. */
 export const model = {
   type: "@swamp/cloudflare/email/subdomains",
-  version: "2026.08.25.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -129,6 +134,11 @@ export const model = {
     {
       toVersion: "2026.08.25.2",
       description: "Added: preview_enabled",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
+      description: "Added: drop_suppressed_recipients",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -201,6 +211,12 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/zones/" + g.zone_id + "/email/sending/subdomains";
         const filters: [string, string][] = [];
+        if (g.drop_suppressed_recipients !== undefined) {
+          filters.push([
+            "drop_suppressed_recipients",
+            String(g.drop_suppressed_recipients),
+          ]);
+        }
         if (g.preview_enabled !== undefined) {
           filters.push(["preview_enabled", String(g.preview_enabled)]);
         }
@@ -305,6 +321,9 @@ export const model = {
         }
         const existing = JSON.parse(new TextDecoder().decode(content));
         const body: Record<string, unknown> = {};
+        if (g.drop_suppressed_recipients !== undefined) {
+          body.drop_suppressed_recipients = g.drop_suppressed_recipients;
+        }
         if (g.preview_enabled !== undefined) {
           body.preview_enabled = g.preview_enabled;
         }

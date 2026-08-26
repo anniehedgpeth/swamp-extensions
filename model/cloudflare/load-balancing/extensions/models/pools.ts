@@ -58,6 +58,7 @@ const GlobalArgsSchema = z.object({
       "SAS",
       "SEAS",
       "NEAS",
+      "CHINA",
       "ALL_REGIONS",
     ]),
   ).describe(
@@ -220,6 +221,7 @@ const InputsSchema = z.object({
       "SAS",
       "SEAS",
       "NEAS",
+      "CHINA",
       "ALL_REGIONS",
     ]),
   ).optional(),
@@ -279,7 +281,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Pools. Registered at `@swamp/cloudflare/load-balancing/pools`. */
 export const model = {
   type: "@swamp/cloudflare/load-balancing/pools",
-  version: "2026.08.25.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -317,6 +319,11 @@ export const model = {
     {
       toVersion: "2026.08.25.2",
       description: "Added: health_sources",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

@@ -53,6 +53,9 @@ const GlobalArgsSchema = z.object({
   compare: z.boolean().describe(
     "When true, includes a comparison dataset from the previous time period of equal length.",
   ).optional(),
+  distributionScale: z.enum(["log", "linear"]).describe(
+    "Value-axis bucketing for chartType 'distribution'. Omitted or 'log': geometric buckets, best for heavy-tailed latency. 'linear': fixed-width buckets, clearer for narrow or additive ranges. Ignored for other chartTypes. The response echoes the scheme used in distribution.bucketMode.",
+  ).optional(),
   dry: z.boolean().describe(
     "When true, executes the query without persisting the results. Useful for validation or previewing.",
   ).optional(),
@@ -149,10 +152,10 @@ const GlobalArgsSchema = z.object({
     "Identifier for the query. When parameters are omitted, this ID is used to load a previously saved query's parameters. When providing parameters inline, pass any identifier (e.g. an ad-hoc ID).",
   ),
   timeframe: z.object({
-    from: z.number(),
-    to: z.number(),
+    from: z.number().int().min(0).max(253402300799999),
+    to: z.number().int().min(0).max(253402300799999),
   }).describe(
-    "Timeframe for the query using Unix timestamps in milliseconds. Narrower timeframes produce faster responses and more specific results.",
+    "Timeframe for the query using Unix timestamps in milliseconds. 'from' must be earlier than 'to'. Narrower timeframes produce faster responses and more specific results.",
   ),
   view: z.enum([
     "traces",
@@ -456,6 +459,7 @@ const InputsSchema = z.object({
     "distribution",
   ]).optional(),
   compare: z.boolean().optional(),
+  distributionScale: z.enum(["log", "linear"]).optional(),
   dry: z.boolean().optional(),
   granularity: z.number().optional(),
   ignoreSeries: z.boolean().optional(),
@@ -534,8 +538,8 @@ const InputsSchema = z.object({
   }).optional(),
   queryId: z.string().optional(),
   timeframe: z.object({
-    from: z.number(),
-    to: z.number(),
+    from: z.number().int().min(0).max(253402300799999),
+    to: z.number().int().min(0).max(253402300799999),
   }).optional(),
   view: z.enum([
     "traces",
@@ -553,7 +557,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Query. Registered at `@swamp/cloudflare/workers/query`. */
 export const model = {
   type: "@swamp/cloudflare/workers/query",
-  version: "2026.08.25.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -603,6 +607,11 @@ export const model = {
       description: "Added: chartType",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.26.1",
+      description: "Added: distributionScale",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -626,6 +635,9 @@ export const model = {
         if (g.chart !== undefined) body.chart = g.chart;
         if (g.chartType !== undefined) body.chartType = g.chartType;
         if (g.compare !== undefined) body.compare = g.compare;
+        if (g.distributionScale !== undefined) {
+          body.distributionScale = g.distributionScale;
+        }
         if (g.dry !== undefined) body.dry = g.dry;
         if (g.granularity !== undefined) body.granularity = g.granularity;
         if (g.ignoreSeries !== undefined) body.ignoreSeries = g.ignoreSeries;
@@ -695,6 +707,9 @@ export const model = {
         }
         if (g.compare !== undefined) {
           filters.push(["compare", String(g.compare)]);
+        }
+        if (g.distributionScale !== undefined) {
+          filters.push(["distributionScale", String(g.distributionScale)]);
         }
         if (g.dry !== undefined) filters.push(["dry", String(g.dry)]);
         if (g.granularity !== undefined) {

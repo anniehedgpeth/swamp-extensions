@@ -1584,17 +1584,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: eager_redirect_cookie_setting",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          eager_redirect_cookie_setting: _eager_redirect_cookie_setting,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: eager_redirect_cookie_setting",
       upgradeAttributes: (old: Record<string, unknown>) => old,

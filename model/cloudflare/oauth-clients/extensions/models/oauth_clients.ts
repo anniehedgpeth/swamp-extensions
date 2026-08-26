@@ -57,6 +57,9 @@ const GlobalArgsSchema = z.object({
       "Array of OAuth grant types the client is allowed to use. `authorization_code` is required; `refresh_token` may be included optionally.",
     ),
   logo_uri: z.string().describe("URL of the client's logo.").optional(),
+  optional_scopes: z.array(z.string()).describe(
+    "Scopes that the authorizing user may decline during consent. Each value must also appear in `scopes`. The scopes `openid`, `offline`, and `offline_access` cannot be optional.",
+  ).optional(),
   policy_uri: z.string().describe(
     "URL that points to a privacy policy document.",
   ).optional(),
@@ -102,6 +105,7 @@ const ResourceSchema = z.object({
   client_uri: z.string().optional(),
   grant_types: z.array(z.string()).optional(),
   logo_uri: z.string().optional(),
+  optional_scopes: z.array(z.string()).optional(),
   policy_uri: z.string().optional(),
   post_logout_redirect_uris: z.array(z.string()).optional(),
   redirect_uris: z.array(z.string()).optional(),
@@ -133,6 +137,7 @@ const InputsSchema = z.object({
   grant_types: z.array(z.enum(["authorization_code", "refresh_token"]))
     .optional(),
   logo_uri: z.string().optional(),
+  optional_scopes: z.array(z.string()).optional(),
   policy_uri: z.string().optional(),
   post_logout_redirect_uris: z.array(z.string()).optional(),
   redirect_uris: z.array(z.string()).optional(),
@@ -153,7 +158,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Oauth Clients. Registered at `@swamp/cloudflare/oauth-clients/oauth-clients`. */
 export const model = {
   type: "@swamp/cloudflare/oauth-clients/oauth-clients",
-  version: "2026.07.21.1",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.06.08.2",
@@ -168,6 +173,11 @@ export const model = {
     {
       toVersion: "2026.07.21.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
+      description: "Added: optional_scopes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -196,6 +206,9 @@ export const model = {
         if (g.client_uri !== undefined) body.client_uri = g.client_uri;
         if (g.grant_types !== undefined) body.grant_types = g.grant_types;
         if (g.logo_uri !== undefined) body.logo_uri = g.logo_uri;
+        if (g.optional_scopes !== undefined) {
+          body.optional_scopes = g.optional_scopes;
+        }
         if (g.policy_uri !== undefined) body.policy_uri = g.policy_uri;
         if (g.post_logout_redirect_uris !== undefined) {
           body.post_logout_redirect_uris = g.post_logout_redirect_uris;
@@ -390,6 +403,9 @@ export const model = {
         if (g.client_uri !== undefined) body.client_uri = g.client_uri;
         if (g.grant_types !== undefined) body.grant_types = g.grant_types;
         if (g.logo_uri !== undefined) body.logo_uri = g.logo_uri;
+        if (g.optional_scopes !== undefined) {
+          body.optional_scopes = g.optional_scopes;
+        }
         if (g.policy_uri !== undefined) body.policy_uri = g.policy_uri;
         if (g.post_logout_redirect_uris !== undefined) {
           body.post_logout_redirect_uris = g.post_logout_redirect_uris;

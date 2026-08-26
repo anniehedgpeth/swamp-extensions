@@ -59,6 +59,9 @@ const GlobalArgsSchema = z.object({
   zone: z.boolean().describe(
     "Specifies whether this is a DNS zone that intends to use Vercel's nameservers.",
   ).optional(),
+  echMode: z.enum(["auto", "enabled", "disabled"]).describe(
+    "Encrypted Client Hello enrollment. 'auto' leaves it to Vercel, 'enabled' always enrolls, 'disabled' never enrolls and opts out of automatic enrollment.",
+  ).optional(),
   destination: z.string().describe("User or team to move domain to").optional(),
   method: z.string().describe(
     "The domain operation to perform. It can be either `add` or `move-in`.",
@@ -83,6 +86,7 @@ const ResourceSchema = z.object({
       isDomainReseller: z.boolean().optional(),
       id: z.string().optional(),
     }).optional(),
+    echMode: z.string().optional(),
     name: z.string().optional(),
     teamId: z.string().optional(),
     boughtAt: z.number().optional(),
@@ -107,6 +111,7 @@ const InputsSchema = z.object({
   renew: z.boolean().optional(),
   customNameservers: z.array(z.string()).optional(),
   zone: z.boolean().optional(),
+  echMode: z.enum(["auto", "enabled", "disabled"]).optional(),
   destination: z.string().optional(),
   method: z.string().optional(),
   token: z.string().meta({ sensitive: true }).optional(),
@@ -125,7 +130,7 @@ function unwrapResponse(
 /** Swamp extension model for Vercel Domains. Registered at `@swamp/vercel/domains/domains`. */
 export const model = {
   type: "@swamp/vercel/domains/domains",
-  version: "2026.08.03.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -155,6 +160,11 @@ export const model = {
     {
       toVersion: "2026.08.03.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
+      description: "Added: echMode",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -231,6 +241,9 @@ export const model = {
         if (g.op !== undefined) filters.push(["op", String(g.op)]);
         if (g.renew !== undefined) filters.push(["renew", String(g.renew)]);
         if (g.zone !== undefined) filters.push(["zone", String(g.zone)]);
+        if (g.echMode !== undefined) {
+          filters.push(["echMode", String(g.echMode)]);
+        }
         if (g.destination !== undefined) {
           filters.push(["destination", String(g.destination)]);
         }
@@ -344,6 +357,7 @@ export const model = {
           body.customNameservers = g.customNameservers;
         }
         if (g.zone !== undefined) body.zone = g.zone;
+        if (g.echMode !== undefined) body.echMode = g.echMode;
         if (g.destination !== undefined) body.destination = g.destination;
         const rawResult = await update(endpoint, existing.name, body, "PATCH", {
           token: g.token,

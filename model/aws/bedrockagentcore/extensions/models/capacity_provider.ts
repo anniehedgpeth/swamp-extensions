@@ -126,12 +126,9 @@ const CapacityReservationSpecificationSchema = z.object({
 });
 
 const LaunchParametersSchema = z.object({
-  OperatingSystem: z.enum([
-    "LINUX_X86_64",
-    "LINUX_ARM64",
-    "MAC_ARM64",
-    "WINDOWS_X86_64",
-  ]).describe("The operating system and CPU architecture for the instances."),
+  OperatingSystem: z.enum(["LINUX_X86_64", "LINUX_ARM64"]).describe(
+    "The operating system and CPU architecture for the instances.",
+  ),
   InstanceRequirements: InstanceRequirementsSchema.describe(
     "Requirements for EC2 instance types.",
   ),
@@ -386,7 +383,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for BedrockAgentCore CapacityProvider. Registered at `@swamp/aws/bedrockagentcore/capacity-provider`. */
 export const model = {
   type: "@swamp/aws/bedrockagentcore/capacity-provider",
-  version: "2026.08.17.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.08.17.1",
@@ -395,6 +392,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -154,14 +154,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: bgp_mode",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { bgp_mode: _bgp_mode, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: bgp_mode",
       upgradeAttributes: (old: Record<string, unknown>) => old,

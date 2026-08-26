@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/aws/ec2"
-version: "2026.08.25.6"
+version: "2026.08.26.1"
 description: "AWS EC2 infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -9,6 +9,8 @@ labels:
   - ec2
   - cloud
   - infrastructure
+releaseNotes: |
+  - Added: fpga_image
 models:
   - capacity_manager_data_export.ts
   - capacity_reservation.ts
@@ -22,6 +24,7 @@ models:
   - eipassociation.ts
   - enclave_certificate_iam_role_association.ts
   - flow_log.ts
+  - fpga_image.ts
   - gateway_route_table_association.ts
   - host.ts
   - instance.ts

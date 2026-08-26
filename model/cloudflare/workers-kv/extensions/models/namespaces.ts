@@ -49,6 +49,9 @@ const GlobalArgsSchema = z.object({
   title: z.string().max(512).describe(
     "A human-readable string name for a Namespace.",
   ),
+  jurisdiction: z.enum(["eu", "fedramp", "us"]).describe(
+    "Specify the jurisdiction to restrict the KV namespace to durably store data within. Can only be set at namespace creation time.",
+  ).optional(),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
   ).optional(),
@@ -62,6 +65,7 @@ const GlobalArgsSchema = z.object({
 
 const ResourceSchema = z.object({
   id: z.string(),
+  jurisdiction: z.string().optional(),
   supports_url_encoding: z.boolean().optional(),
   title: z.string().optional(),
 }).passthrough();
@@ -72,6 +76,7 @@ const InputsSchema = z.object({
   account_id: z.string().optional(),
   name: z.string().optional(),
   title: z.string().max(512).optional(),
+  jurisdiction: z.enum(["eu", "fedramp", "us"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -80,7 +85,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Namespaces. Registered at `@swamp/cloudflare/workers-kv/namespaces`. */
 export const model = {
   type: "@swamp/cloudflare/workers-kv/namespaces",
-  version: "2026.07.21.1",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -102,6 +107,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.26.1",
+      description: "Added: jurisdiction",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -121,6 +131,7 @@ export const model = {
         const g = context.globalArgs;
         const endpoint = "/accounts/" + g.account_id + "/storage/kv/namespaces";
         const body: Record<string, unknown> = {};
+        if (g.jurisdiction !== undefined) body.jurisdiction = g.jurisdiction;
         if (g.title !== undefined) body.title = g.title;
         const result = await create(endpoint, body, {
           apiToken: g.apiToken,
@@ -173,6 +184,9 @@ export const model = {
         const endpoint = "/accounts/" + g.account_id + "/storage/kv/namespaces";
         const filters: [string, string][] = [];
         if (g.title !== undefined) filters.push(["title", String(g.title)]);
+        if (g.jurisdiction !== undefined) {
+          filters.push(["jurisdiction", String(g.jurisdiction)]);
+        }
         if (filters.length === 0) {
           throw new Error(
             "At least one global argument must be set to filter by",

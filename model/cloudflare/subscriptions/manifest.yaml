@@ -1,0 +1,19 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/cloudflare/subscriptions"
+version: "2026.08.26.1"
+description: "Cloudflare subscriptions infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - cloudflare
+  - subscriptions
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added: subscriptions
+models:
+  - subscriptions.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

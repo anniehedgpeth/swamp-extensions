@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Agent Identity AuthProviders.
  *
- * Message describing AuthProvider object
+ * Represents an auth provider.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -177,20 +177,20 @@ const GlobalArgsSchema = z.object({
     "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
   ).optional(),
   allowedScopes: z.array(z.string()).describe(
-    "Optional. List of scopes that are allowed to be requested for this auth_provider. If this list is non-empty, only scopes within this list may be requested. If this list is empty, all scopes may be requested. Scopes appearing in `blocked_scopes` are disallowed even if they appear in `allowed_scopes`. The number of allowed scopes is limited to 200.",
+    "Optional. List of scopes that are allowed to be requested for this auth provider. If this list is non-empty, only scopes within this list may be requested. If this list is empty, all scopes may be requested. Scopes appearing in `blocked_scopes` are disallowed even if they appear in `allowed_scopes`. The number of allowed scopes is limited to 200.",
   ).optional(),
   authProviderTypeParams: z.object({
     apiKey: z.object({
       apiKey: z.string().describe(
-        "Optional. Input only. The API key for this auth_provider.",
+        "Optional. Input only. The API key for this auth provider.",
       ).optional(),
-    }).describe("ApiKey AuthProvider type parameters.").optional(),
+    }).describe("Parameters for API key authentication.").optional(),
     geAuthProvider: z.object({}).describe(
-      "GeminiEnterprise auth_provider type parameters.",
+      "Parameters for Gemini Enterprise authentication.",
     ).optional(),
     threeLeggedOauth: z.object({
       authorizationUrl: z.string().describe(
-        'Optional. The authorization endpoint to send users to for consenting to delegate to the agent. eg. "https://auth.atlassian.com/authorize"',
+        'Optional. The authorization endpoint to send users to for consenting to delegate to the agent. For example, "https://auth.atlassian.com/authorize".',
       ).optional(),
       clientId: z.string().describe(
         "Optional. The client ID of the OAuth client.",
@@ -199,18 +199,19 @@ const GlobalArgsSchema = z.object({
         "Optional. Input only. The client secret of the OAuth client.",
       ).optional(),
       defaultContinueUri: z.string().describe(
-        "Optional. The default continue URI for 3LO flow and it will be used when no continue URI is provided in the RetrieveCredentials request.",
+        "Optional. The default continue URI for the 3LO flow, used when no continue URI is provided in the RetrieveCredentials request.",
       ).optional(),
       enablePkce: z.boolean().describe(
         "Optional. Enables Proof Key for Code Exchange (PKCE) for the OAuth flow to prevent authorization code interception attacks.",
       ).optional(),
       redirectUrl: z.string().describe(
-        "Output only. The redirect URL this auth_provider uses for the OAuth exchange. This is deterministic based on the name of the auth_provider.",
+        "Output only. The redirect URL this auth provider uses for the OAuth exchange. This is deterministic based on the name of the auth provider.",
       ).optional(),
       tokenUrl: z.string().describe(
-        'Optional. The token endpoint for requesting tokens on behalf of an end user. eg. "https://auth.atlassian.com/oauth/token"',
+        'Optional. The token endpoint for requesting tokens on behalf of an end user. For example, "https://auth.atlassian.com/oauth/token".',
       ).optional(),
-    }).describe("ThreeLeggedOAuth AuthProvider type parameters.").optional(),
+    }).describe("Parameters for 3-legged OAuth (3LO) authentication.")
+      .optional(),
     twoLeggedOauth: z.object({
       clientId: z.string().describe(
         "Optional. The client ID of the OAuth client.",
@@ -221,25 +222,27 @@ const GlobalArgsSchema = z.object({
       tokenUrl: z.string().describe(
         "Optional. The token endpoint of the OAuth client.",
       ).optional(),
-    }).describe("TwoLeggedOAuth AuthProvider type parameters.").optional(),
-  }).describe("Required. AuthProvider type specific parameters.").optional(),
+    }).describe("Parameters for 2-legged OAuth (2LO) authentication.")
+      .optional(),
+  }).describe("Required. Parameters specific to the auth provider type.")
+    .optional(),
   blockedScopes: z.array(z.string()).describe(
-    "Optional. List of scopes that are blocked from being requested for this auth_provider. If a scope appears in this list, it will not be requested, even if it also appears in `allowed_scopes`. `blocked_scopes` takes precedence over `allowed_scopes`. The number of blocked scopes is limited to 200.",
+    "Optional. List of scopes that are blocked from being requested for this auth provider. If a scope appears in this list, it will not be requested, even if it also appears in `allowed_scopes`. `blocked_scopes` takes precedence over `allowed_scopes`. The number of blocked scopes is limited to 200.",
   ).optional(),
   description: z.string().describe(
     "Optional. Description of the resource. Must be less than 256 characters.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
-    "Optional. Labels as key value pairs",
+    "Optional. Labels as key-value pairs.",
   ).optional(),
   name: z.string().describe(
-    "Identifier. The full resource name of the auth_provider. Format: projects/{project}/locations/{location}/authProviders/{auth_provider}",
+    "Identifier. The full resource name of the auth provider. Format: projects/{project}/locations/{location}/authProviders/{auth_provider}",
   ).optional(),
   workloadIds: z.array(z.string()).describe(
-    "Optional. Input only. Represents the workload identity in IAM `principal://` format of the agent(s) that will use this AuthProvider. Example: `principal://agents.global.org-${ORG_ID}.system.id.goog/resources/aiplatform/projects/{PROJECT_ID}/locations/{LOCATIONS}/reasoningEngines/{ID}`",
+    "Optional. Input only. Identifiers for the agents that will use this auth provider, starting with `principal://`. For example: `principal://agents.global.org-${ORG_ID}.system.id.goog/resources/aiplatform/projects/{PROJECT_ID}/locations/{LOCATIONS}/reasoningEngines/{ID}`",
   ).optional(),
   authProviderId: z.string().describe(
-    "Required. The ID to use for the AuthProvider, which will become the final segment of the AuthProvider's resource name. This value should be 1-63 characters, and valid characters are /a-z-/. The first character must be a lowercase letter, and the last character must be a lowercase letter or a number.",
+    "Required. The ID to use for the auth provider, which will become the final segment of the auth provider's resource name. This value should be 1-63 characters, and valid characters are /a-z-/. The first character must be a lowercase letter, and the last character must be a lowercase letter or a number.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -293,20 +296,20 @@ const InputsSchema = z.object({
   quotaProject: z.string().optional(),
   apiEndpoint: z.string().optional(),
   allowedScopes: z.array(z.string()).describe(
-    "Optional. List of scopes that are allowed to be requested for this auth_provider. If this list is non-empty, only scopes within this list may be requested. If this list is empty, all scopes may be requested. Scopes appearing in `blocked_scopes` are disallowed even if they appear in `allowed_scopes`. The number of allowed scopes is limited to 200.",
+    "Optional. List of scopes that are allowed to be requested for this auth provider. If this list is non-empty, only scopes within this list may be requested. If this list is empty, all scopes may be requested. Scopes appearing in `blocked_scopes` are disallowed even if they appear in `allowed_scopes`. The number of allowed scopes is limited to 200.",
   ).optional(),
   authProviderTypeParams: z.object({
     apiKey: z.object({
       apiKey: z.string().describe(
-        "Optional. Input only. The API key for this auth_provider.",
+        "Optional. Input only. The API key for this auth provider.",
       ).optional(),
-    }).describe("ApiKey AuthProvider type parameters.").optional(),
+    }).describe("Parameters for API key authentication.").optional(),
     geAuthProvider: z.object({}).describe(
-      "GeminiEnterprise auth_provider type parameters.",
+      "Parameters for Gemini Enterprise authentication.",
     ).optional(),
     threeLeggedOauth: z.object({
       authorizationUrl: z.string().describe(
-        'Optional. The authorization endpoint to send users to for consenting to delegate to the agent. eg. "https://auth.atlassian.com/authorize"',
+        'Optional. The authorization endpoint to send users to for consenting to delegate to the agent. For example, "https://auth.atlassian.com/authorize".',
       ).optional(),
       clientId: z.string().describe(
         "Optional. The client ID of the OAuth client.",
@@ -315,18 +318,19 @@ const InputsSchema = z.object({
         "Optional. Input only. The client secret of the OAuth client.",
       ).optional(),
       defaultContinueUri: z.string().describe(
-        "Optional. The default continue URI for 3LO flow and it will be used when no continue URI is provided in the RetrieveCredentials request.",
+        "Optional. The default continue URI for the 3LO flow, used when no continue URI is provided in the RetrieveCredentials request.",
       ).optional(),
       enablePkce: z.boolean().describe(
         "Optional. Enables Proof Key for Code Exchange (PKCE) for the OAuth flow to prevent authorization code interception attacks.",
       ).optional(),
       redirectUrl: z.string().describe(
-        "Output only. The redirect URL this auth_provider uses for the OAuth exchange. This is deterministic based on the name of the auth_provider.",
+        "Output only. The redirect URL this auth provider uses for the OAuth exchange. This is deterministic based on the name of the auth provider.",
       ).optional(),
       tokenUrl: z.string().describe(
-        'Optional. The token endpoint for requesting tokens on behalf of an end user. eg. "https://auth.atlassian.com/oauth/token"',
+        'Optional. The token endpoint for requesting tokens on behalf of an end user. For example, "https://auth.atlassian.com/oauth/token".',
       ).optional(),
-    }).describe("ThreeLeggedOAuth AuthProvider type parameters.").optional(),
+    }).describe("Parameters for 3-legged OAuth (3LO) authentication.")
+      .optional(),
     twoLeggedOauth: z.object({
       clientId: z.string().describe(
         "Optional. The client ID of the OAuth client.",
@@ -337,25 +341,27 @@ const InputsSchema = z.object({
       tokenUrl: z.string().describe(
         "Optional. The token endpoint of the OAuth client.",
       ).optional(),
-    }).describe("TwoLeggedOAuth AuthProvider type parameters.").optional(),
-  }).describe("Required. AuthProvider type specific parameters.").optional(),
+    }).describe("Parameters for 2-legged OAuth (2LO) authentication.")
+      .optional(),
+  }).describe("Required. Parameters specific to the auth provider type.")
+    .optional(),
   blockedScopes: z.array(z.string()).describe(
-    "Optional. List of scopes that are blocked from being requested for this auth_provider. If a scope appears in this list, it will not be requested, even if it also appears in `allowed_scopes`. `blocked_scopes` takes precedence over `allowed_scopes`. The number of blocked scopes is limited to 200.",
+    "Optional. List of scopes that are blocked from being requested for this auth provider. If a scope appears in this list, it will not be requested, even if it also appears in `allowed_scopes`. `blocked_scopes` takes precedence over `allowed_scopes`. The number of blocked scopes is limited to 200.",
   ).optional(),
   description: z.string().describe(
     "Optional. Description of the resource. Must be less than 256 characters.",
   ).optional(),
   labels: z.record(z.string(), z.string()).describe(
-    "Optional. Labels as key value pairs",
+    "Optional. Labels as key-value pairs.",
   ).optional(),
   name: z.string().describe(
-    "Identifier. The full resource name of the auth_provider. Format: projects/{project}/locations/{location}/authProviders/{auth_provider}",
+    "Identifier. The full resource name of the auth provider. Format: projects/{project}/locations/{location}/authProviders/{auth_provider}",
   ).optional(),
   workloadIds: z.array(z.string()).describe(
-    "Optional. Input only. Represents the workload identity in IAM `principal://` format of the agent(s) that will use this AuthProvider. Example: `principal://agents.global.org-${ORG_ID}.system.id.goog/resources/aiplatform/projects/{PROJECT_ID}/locations/{LOCATIONS}/reasoningEngines/{ID}`",
+    "Optional. Input only. Identifiers for the agents that will use this auth provider, starting with `principal://`. For example: `principal://agents.global.org-${ORG_ID}.system.id.goog/resources/aiplatform/projects/{PROJECT_ID}/locations/{LOCATIONS}/reasoningEngines/{ID}`",
   ).optional(),
   authProviderId: z.string().describe(
-    "Required. The ID to use for the AuthProvider, which will become the final segment of the AuthProvider's resource name. This value should be 1-63 characters, and valid characters are /a-z-/. The first character must be a lowercase letter, and the last character must be a lowercase letter or a number.",
+    "Required. The ID to use for the auth provider, which will become the final segment of the auth provider's resource name. This value should be 1-63 characters, and valid characters are /a-z-/. The first character must be a lowercase letter, and the last character must be a lowercase letter or a number.",
   ).optional(),
   requestId: z.string().describe(
     "Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).",
@@ -391,7 +397,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Identity AuthProviders. Registered at `@swamp/gcp/agentidentity/authproviders`. */
 export const model = {
   type: "@swamp/gcp/agentidentity/authproviders",
-  version: "2026.08.12.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -403,12 +409,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.26.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Message describing AuthProvider object",
+      description: "Represents an auth provider.",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -740,10 +751,10 @@ export const model = {
           "Optional. Currently ignored. Defaults to ordering by auth_provider_id in ascending order.",
         ).optional(),
         pageSize: z.number().describe(
-          "Optional. Requested page size. Server may return fewer items than requested. If unspecified, server will pick an appropriate default.",
+          "Optional. Requested page size. Server may return fewer items than requested. If unspecified, server will pick an appropriate default. The maximum page size is 1000.",
         ).optional(),
         showDeleted: z.boolean().describe(
-          "Optional. Deleted auth_providers will be kept with a soft-delete for 30 days before being purged. If this field is set to true, deleted auth_providers will also be returned.",
+          "Optional. Deleted auth providers will be kept with a soft-delete for 30 days before being purged. If this field is set to `true`, deleted auth providers will also be returned.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

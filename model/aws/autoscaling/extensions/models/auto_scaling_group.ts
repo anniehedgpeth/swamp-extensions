@@ -79,6 +79,17 @@ const RetentionTriggersSchema = z.object({
   ).optional(),
 });
 
+const DistributionSegmentSchema = z.object({
+  TargetCapacityTypes: z.array(
+    z.enum([
+      "on-demand-capacity-reservation",
+      "capacity-block",
+      "interruptible-capacity-reservation",
+      "on-demand",
+    ]),
+  ),
+});
+
 const InstancesDistributionSchema = z.object({
   OnDemandAllocationStrategy: z.string().describe(
     "The allocation strategy to apply to your On-Demand Instances when they are launched. Possible instance types are determined by the launch template overrides that you specify. The following lists the valid values: lowest-price Uses price to determine which instance types are the highest priority, launching the lowest priced instance types within an Availability Zone first. This is the default value for Auto Scaling groups that specify InstanceRequirements. + prioritized You set the order of instance types for the launch template overrides from highest to lowest priority (from first to last in the list). Amazon EC2 Auto Scaling launches your highest priority instance types first. If all your On-Demand capacity cannot be fulfilled using your highest priority instance type, then Amazon EC2 Auto Scaling launches the remaining capacity using the second priority instance type, and so on. This is the default value for Auto Scaling groups that don't specify InstanceRequirements and cannot be used for groups that do.",
@@ -86,6 +97,7 @@ const InstancesDistributionSchema = z.object({
   OnDemandBaseCapacity: z.number().int().describe(
     "The minimum amount of the Auto Scaling group's capacity that must be fulfilled by On-Demand Instances. This base portion is launched first as your group scales. This number has the same unit of measurement as the group's desired capacity. If you change the default unit of measurement (number of instances) by specifying weighted capacity values in your launch template overrides list, or by changing the default desired capacity type setting of the group, you must specify this number using the same unit of measurement. Default: 0 An update to this setting means a gradual replacement of instances to adjust the current On-Demand Instance levels. When replacing instances, Amazon EC2 Auto Scaling launches new instances before terminating the previous ones.",
   ).optional(),
+  DistributionSegments: z.array(DistributionSegmentSchema).optional(),
   OnDemandPercentageAboveBaseCapacity: z.number().int().describe(
     "Controls the percentages of On-Demand Instances and Spot Instances for your additional capacity beyond OnDemandBaseCapacity. Expressed as a number (for example, 20 specifies 20% On-Demand Instances, 80% Spot Instances). If set to 100, only On-Demand Instances are used. Default: 100 An update to this setting means a gradual replacement of instances to adjust the current On-Demand and Spot Instance levels for your additional capacity higher than the base capacity. When replacing instances, Amazon EC2 Auto Scaling launches new instances before terminating the previous ones.",
   ).optional(),
@@ -764,7 +776,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for AutoScaling AutoScalingGroup. Registered at `@swamp/aws/autoscaling/auto-scaling-group`. */
 export const model = {
   type: "@swamp/aws/autoscaling/auto-scaling-group",
-  version: "2026.08.17.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.03.27.1",
@@ -838,6 +850,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -157,18 +157,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: deletion_protection, filter",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          deletion_protection: _deletion_protection,
-          filter: _filter,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: deletion_protection, filter",
       upgradeAttributes: (old: Record<string, unknown>) => old,

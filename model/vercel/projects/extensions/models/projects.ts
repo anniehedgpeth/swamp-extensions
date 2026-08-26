@@ -406,6 +406,7 @@ const ResourceSchema = z.object({
       type: z.string().optional(),
       app: z.object({
         id: z.string().optional(),
+        clientId: z.string().optional(),
       }).optional(),
     }).optional(),
     user: z.object({
@@ -1058,7 +1059,6 @@ const ResourceSchema = z.object({
     webAnalyticsPlan: z.array(z.string()).optional(),
     webhook: z.array(z.string()).optional(),
     "webhook-event": z.array(z.string()).optional(),
-    workflowRunData: z.array(z.string()).optional(),
     aliasProject: z.array(z.string()).optional(),
     aliasProtectionBypass: z.array(z.string()).optional(),
     bulkRedirects: z.array(z.string()).optional(),
@@ -1141,6 +1141,7 @@ const ResourceSchema = z.object({
     vercelAuth: z.array(z.string()).optional(),
     vercelRun: z.array(z.string()).optional(),
     webAnalytics: z.array(z.string()).optional(),
+    workflowRunData: z.array(z.string()).optional(),
   }).nullable().optional(),
   lastRollbackTarget: z.record(z.string(), z.unknown()).nullable().optional(),
   lastAliasRequest: z.object({
@@ -1625,7 +1626,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/projects/projects`. */
 export const model = {
   type: "@swamp/vercel/projects/projects",
-  version: "2026.08.22.1",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -1705,6 +1706,11 @@ export const model = {
     {
       toVersion: "2026.08.22.1",
       description: "Added: sandbox",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.26.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

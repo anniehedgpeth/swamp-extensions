@@ -25,7 +25,7 @@
 /**
  * Swamp extension model for Google Cloud Agent Identity AuthProviders.Authorizations.
  *
- * Message describing Authorization object
+ * Represents an authorization.
  *
  * Wraps the GCP resource as a swamp model so create, get, update,
  * delete, and sync can be driven through `swamp model`.
@@ -193,7 +193,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Identity AuthProviders.Authorizations. Registered at `@swamp/gcp/agentidentity/authproviders-authorizations`. */
 export const model = {
   type: "@swamp/gcp/agentidentity/authproviders-authorizations",
-  version: "2026.08.12.2",
+  version: "2026.08.26.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -205,12 +205,17 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.26.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {
     state: {
-      description: "Message describing Authorization object",
+      description: "Represents an authorization.",
       schema: StateSchema,
       lifetime: "infinite",
       garbageCollection: 10,
@@ -362,7 +367,7 @@ export const model = {
           "Optional. This field is currently ignored. Defaults to ordering by authorization_id in ascending order.",
         ).optional(),
         pageSize: z.number().describe(
-          "Optional. Requested page size. Server may return fewer items than requested. If unspecified, server will pick an appropriate default.",
+          "Optional. Requested page size. Server may return fewer items than requested. If unspecified, server will pick an appropriate default. The maximum page size is 1000.",
         ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",

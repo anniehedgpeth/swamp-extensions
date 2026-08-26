@@ -424,18 +424,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: log_classification, spend_limits",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          log_classification: _log_classification,
-          spend_limits: _spend_limits,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: log_classification, spend_limits",
       upgradeAttributes: (old: Record<string, unknown>) => old,
