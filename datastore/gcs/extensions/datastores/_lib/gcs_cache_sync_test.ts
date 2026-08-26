@@ -4448,6 +4448,13 @@ Deno.test("capabilities advertises namespacedSync", () => {
   assertEquals(caps.lazyHydration, true);
 });
 
+Deno.test("capabilities advertises configRefresh", () => {
+  const gcs = createMockGcsClient();
+  const svc = new GcsCacheSyncService(gcs, "/tmp/unused");
+  const caps = svc.capabilities();
+  assertEquals(caps.configRefresh, true);
+});
+
 // -- pullChanged: dangling index entries (GCS object missing) are pruned -----
 
 Deno.test("pullChanged: prunes dangling index entries whose GCS object is missing", async () => {
@@ -4796,6 +4803,7 @@ Deno.test("partitionKeyFromPath: single-shard directories", () => {
       "telemetry",
       "logs",
       "files",
+      "config",
     ]
   ) {
     assertEquals(

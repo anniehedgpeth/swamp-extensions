@@ -4612,6 +4612,13 @@ Deno.test("capabilities advertises namespacedSync", () => {
   assertEquals(caps.lazyHydration, true);
 });
 
+Deno.test("capabilities advertises configRefresh", () => {
+  const s3 = createMockS3Client();
+  const svc = new S3CacheSyncService(s3, "/tmp/unused");
+  const caps = svc.capabilities();
+  assertEquals(caps.configRefresh, true);
+});
+
 // --- pushChanged absence-on-disk deletion (swamp-club#797) ---
 
 Deno.test("pushChanged scoped walk deletes S3 objects for locally-absent files", async () => {
@@ -5125,7 +5132,14 @@ Deno.test("partitionKeyFromPath: empty string returns undefined", () => {
 
 Deno.test("partitionKeyFromPath: single-shard directories", () => {
   for (
-    const dir of ["auto-definitions", "audit", "telemetry", "logs", "files"]
+    const dir of [
+      "auto-definitions",
+      "audit",
+      "telemetry",
+      "logs",
+      "files",
+      "config",
+    ]
   ) {
     assertEquals(
       S3CacheSyncService.partitionKeyFromPath(`${dir}/some/file`),

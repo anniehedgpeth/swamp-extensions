@@ -102,6 +102,7 @@ export interface SyncCapabilities {
   namespacedSync?: boolean;
   twoPhaseSync?: boolean;
   controlPlane?: boolean;
+  configRefresh?: boolean;
 }
 
 /** Direct key-value store for small control-plane records. */

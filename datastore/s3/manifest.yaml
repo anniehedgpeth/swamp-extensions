@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/s3-datastore"
-version: "2026.08.25.2"
+version: "2026.08.26.1"
 description: |
   Store data in an Amazon S3 bucket with local cache synchronization.
   Provides distributed locking via S3 conditional writes and bidirectional
@@ -13,7 +13,8 @@ description: |
   commitSeq-based zero-diff fast path, two-phase sync to narrow the
   global-lock critical section, SHA-256 content hashing, per-path dirty
   tracking, namespace-scoped sync for multi-repo shared datastores,
-  configurable transfer concurrency, and configurable per-request timeout.
+  configurable transfer concurrency, configurable per-request timeout,
+  and managed config refresh for pulling config partitions from the datastore.
 
   ## Authentication
 

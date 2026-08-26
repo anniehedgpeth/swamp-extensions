@@ -2938,6 +2938,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       case "telemetry":
       case "logs":
       case "files":
+      case "config":
         return subdir;
       default:
         return undefined;
@@ -3092,6 +3093,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       namespacedSync: true,
       twoPhaseSync: true,
       controlPlane: true,
+      configRefresh: true,
     };
   }
 
