@@ -62,7 +62,7 @@ const GlobalArgsSchema = z.object({
     ),
     value: z.string().max(10000),
   })).describe(
-    "Additional YARA meta entries appended to the rule's meta block (and stored in rule_meta alongside meta parsed from the content). Keys must be valid YARA identifiers and must not be 'name', 'enabled', or 'description'. Duplicate keys are allowed.",
+    "Adds YARA meta entries to the rule's meta block and stores them in rule_meta alongside content metadata. Use valid YARA identifiers for keys; exclude 'name', 'enabled', and 'description'. You may repeat keys.",
   ).optional(),
   name: z.string().min(1).max(255),
   namespaces: z.array(z.string().min(1).max(255)).describe(
@@ -111,6 +111,12 @@ const ResourceSchema = z.object({
   namespaces: z.array(z.string()).optional(),
   path: z.string().optional(),
   pending_approval_id: z.number().optional(),
+  pending_change: z.object({
+    approval_id: z.number().optional(),
+    requested_at: z.number().optional(),
+    requested_by: z.string().optional(),
+    type: z.string().optional(),
+  }).optional(),
   structured_source: z.string().optional(),
   updated_at: z.number().optional(),
   updated_by: z.string().optional(),
@@ -156,7 +162,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Rules. Registered at `@swamp/cloudflare/cloudforce-one/rules`. */
 export const model = {
   type: "@swamp/cloudflare/cloudforce-one/rules",
-  version: "2026.08.25.2",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -196,6 +202,11 @@ export const model = {
     {
       toVersion: "2026.08.25.2",
       description: "Added: commit_message, meta, path",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

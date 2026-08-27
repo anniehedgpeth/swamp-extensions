@@ -260,18 +260,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: acknowledgements, contact_extensions",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const {
-          acknowledgements: _acknowledgements,
-          contact_extensions: _contact_extensions,
-          ...rest
-        } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: acknowledgements, contact_extensions",
       upgradeAttributes: (old: Record<string, unknown>) => old,

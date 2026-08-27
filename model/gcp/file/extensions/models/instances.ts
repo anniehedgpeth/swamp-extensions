@@ -269,6 +269,9 @@ const GlobalArgsSchema = z.object({
       endpointProject: z.string().describe(
         "Optional. Consumer service project in which the Private Service Connect endpoint would be set up. This is optional, and only relevant in case the network is a shared VPC. If this is not specified, the endpoint would be setup in the VPC host project.",
       ).optional(),
+      requestedIpAddress: z.string().describe(
+        "Optional. Immutable. Optional: The desired IP address for the instance. If not specified, an IP will be automatically allocated. The IP must be from the subnetwork range configured in the Service Connection Policy. This effective ip address is set in the ip_addresses field. use 3 instead of 2 to avoid conflict with the reserved_ip_range field.",
+      ).optional(),
     }).describe(
       "Optional. Private Service Connect configuration. Should only be set when connect_mode is PRIVATE_SERVICE_CONNECT.",
     ).optional(),
@@ -399,6 +402,7 @@ const StateSchema = z.object({
     network: z.string(),
     pscConfig: z.object({
       endpointProject: z.string(),
+      requestedIpAddress: z.string(),
     }),
     reservedIpRange: z.string(),
   })).optional(),
@@ -546,6 +550,9 @@ const InputsSchema = z.object({
       endpointProject: z.string().describe(
         "Optional. Consumer service project in which the Private Service Connect endpoint would be set up. This is optional, and only relevant in case the network is a shared VPC. If this is not specified, the endpoint would be setup in the VPC host project.",
       ).optional(),
+      requestedIpAddress: z.string().describe(
+        "Optional. Immutable. Optional: The desired IP address for the instance. If not specified, an IP will be automatically allocated. The IP must be from the subnetwork range configured in the Service Connection Policy. This effective ip address is set in the ip_addresses field. use 3 instead of 2 to avoid conflict with the reserved_ip_range field.",
+      ).optional(),
     }).describe(
       "Optional. Private Service Connect configuration. Should only be set when connect_mode is PRIVATE_SERVICE_CONNECT.",
     ).optional(),
@@ -660,7 +667,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Filestore Instances. Registered at `@swamp/gcp/file/instances`. */
 export const model = {
   type: "@swamp/gcp/file/instances",
-  version: "2026.08.12.2",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -797,6 +804,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -80,7 +80,7 @@ const GlobalArgsSchema = z.object({
       enabled: z.boolean().optional(),
       port: z.number().int().min(1).max(65535).optional(),
     }).optional(),
-  }).describe("User-specified container configuration."),
+  }).describe("User-specified container configuration.").optional(),
   constraints: z.object({
     jurisdiction: z.string().optional(),
     regions: z.array(z.string()).optional(),
@@ -102,11 +102,10 @@ const GlobalArgsSchema = z.object({
   durable_objects: z.string().describe(
     "Set of properties to configure a Durable Object-backed application.",
   ).optional(),
-  instances: z.number().int().min(0).describe(
-    "Number of deployments to create",
-  ),
+  instances: z.number().int().min(0).describe("Number of deployments to create")
+    .optional(),
   name: z.string().describe("The name for this application"),
-  scheduling_policy: z.enum(["default", "instance"]).describe(
+  scheduling_policy: z.enum(["default", "durable_object"]).describe(
     "The scheduling policy to use for a scheduler-backed application.",
   ),
   apiToken: z.string().meta({ sensitive: true }).describe(
@@ -121,81 +120,101 @@ const GlobalArgsSchema = z.object({
 });
 
 const ResourceSchema = z.object({
-  account_id: z.string().optional(),
-  active_rollout_id: z.string().optional(),
-  configuration: z.object({
-    authorized_keys: z.array(z.object({
-      name: z.string().optional(),
-      public_key: z.string().optional(),
-    })).optional(),
-    command: z.array(z.string()).optional(),
-    dns: z.object({
-      searches: z.array(z.string()).optional(),
-      servers: z.array(z.string()).optional(),
+  errors: z.array(z.object({
+    code: z.number().optional(),
+    documentation_url: z.string().optional(),
+    message: z.string().optional(),
+    source: z.object({
+      pointer: z.string().optional(),
     }).optional(),
-    entrypoint: z.array(z.string()).optional(),
-    environment_variables: z.array(z.object({
-      name: z.string().optional(),
-      value: z.string().optional(),
-    })).optional(),
-    image: z.string().optional(),
-    instance_type: z.string().optional(),
+  })).optional(),
+  messages: z.array(z.object({
+    code: z.number().optional(),
+    documentation_url: z.string().optional(),
+    message: z.string().optional(),
+    source: z.object({
+      pointer: z.string().optional(),
+    }).optional(),
+  })).optional(),
+  success: z.boolean().optional(),
+  result: z.object({
+    account_id: z.string().optional(),
+    active_rollout_id: z.string().optional(),
+    configuration: z.object({
+      authorized_keys: z.array(z.object({
+        name: z.string().optional(),
+        public_key: z.string().optional(),
+      })).optional(),
+      command: z.array(z.string()).optional(),
+      dns: z.object({
+        searches: z.array(z.string()).optional(),
+        servers: z.array(z.string()).optional(),
+      }).optional(),
+      entrypoint: z.array(z.string()).optional(),
+      environment_variables: z.array(z.object({
+        name: z.string().optional(),
+        value: z.string().optional(),
+      })).optional(),
+      image: z.string().optional(),
+      instance_type: z.string().optional(),
+      observability: z.object({
+        logs: z.object({
+          enabled: z.boolean().optional(),
+        }).optional(),
+      }).optional(),
+      trusted_user_ca_keys: z.array(z.object({
+        name: z.string().optional(),
+        public_key: z.string().optional(),
+      })).optional(),
+      wrangler_ssh: z.object({
+        enabled: z.boolean().optional(),
+        port: z.number().optional(),
+      }).optional(),
+    }).optional(),
+    constraints: z.object({
+      jurisdiction: z.string().optional(),
+      regions: z.array(z.string()).optional(),
+    }).optional(),
+    created_at: z.string().optional(),
+    durable_objects: z.object({
+      namespace_id: z.string().optional(),
+    }).optional(),
+    health: z.object({
+      errors: z.array(z.object({
+        event: z.object({
+          details: z.record(z.string(), z.unknown()).optional(),
+          id: z.string().optional(),
+          message: z.string().optional(),
+          name: z.string().optional(),
+          statusChange: z.record(z.string(), z.unknown()).optional(),
+          time: z.string().optional(),
+          type: z.string().optional(),
+        }).optional(),
+        instance_id: z.string().optional(),
+      })).optional(),
+      instances: z.object({
+        active: z.number().optional(),
+        assigned: z.number().optional(),
+      }).optional(),
+      summary: z.string().optional(),
+    }).optional(),
+    id: z.string().optional(),
+    instances: z.number().optional(),
+    max_instances: z.number().optional(),
+    name: z.string().optional(),
     observability: z.object({
       logs: z.object({
         enabled: z.boolean().optional(),
       }).optional(),
+      target_instance_count: z.number().optional(),
+      target_instance_percentage: z.number().optional(),
     }).optional(),
-    trusted_user_ca_keys: z.array(z.object({
-      name: z.string().optional(),
-      public_key: z.string().optional(),
-    })).optional(),
-    wrangler_ssh: z.object({
-      enabled: z.boolean().optional(),
-      port: z.number().optional(),
-    }).optional(),
-  }).optional(),
-  constraints: z.object({
-    jurisdiction: z.string().optional(),
-    regions: z.array(z.string()).optional(),
-  }).optional(),
-  created_at: z.string().optional(),
-  durable_objects: z.object({
-    namespace_id: z.string().optional(),
-  }).optional(),
-  health: z.object({
-    errors: z.array(z.object({
-      event: z.object({
-        details: z.record(z.string(), z.unknown()).optional(),
-        id: z.string().optional(),
-        message: z.string().optional(),
-        name: z.string().optional(),
-        statusChange: z.record(z.string(), z.unknown()).optional(),
-        time: z.string().optional(),
-        type: z.string().optional(),
-      }).optional(),
-      instance_id: z.string().optional(),
-    })).optional(),
-    instances: z.object({
-      active: z.number().optional(),
-      assigned: z.number().optional(),
-    }).optional(),
-    summary: z.string().optional(),
+    rollout_active_grace_period: z.number().optional(),
+    scheduling_policy: z.string().optional(),
+    updated_at: z.string().optional(),
+    version: z.number().optional(),
   }).optional(),
   id: z.string(),
-  instances: z.number().optional(),
-  max_instances: z.number().optional(),
-  name: z.string().optional(),
-  observability: z.object({
-    logs: z.object({
-      enabled: z.boolean().optional(),
-    }).optional(),
-    target_instance_count: z.number().optional(),
-    target_instance_percentage: z.number().optional(),
-  }).optional(),
-  rollout_active_grace_period: z.number().optional(),
-  scheduling_policy: z.string().optional(),
-  updated_at: z.string().optional(),
-  version: z.number().optional(),
 }).passthrough();
 
 type ResourceData = z.infer<typeof ResourceSchema>;
@@ -256,7 +275,7 @@ const InputsSchema = z.object({
   durable_objects: z.string().optional(),
   instances: z.number().int().min(0).optional(),
   name: z.string().optional(),
-  scheduling_policy: z.enum(["default", "instance"]).optional(),
+  scheduling_policy: z.enum(["default", "durable_object"]).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
   apiKey: z.string().meta({ sensitive: true }).optional(),
   email: z.string().meta({ sensitive: true }).optional(),
@@ -265,7 +284,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Applications. Registered at `@swamp/cloudflare/containers/applications`. */
 export const model = {
   type: "@swamp/cloudflare/containers/applications",
-  version: "2026.08.26.1",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.06.08.2",
@@ -322,6 +341,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.26.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

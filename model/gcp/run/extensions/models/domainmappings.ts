@@ -272,7 +272,7 @@ const GlobalArgsSchema = z.object({
     ).optional(),
     resourceRecords: z.array(z.object({
       name: z.string().describe(
-        "Relative name of the object affected by this record. Only applicable for `CNAME` records. Example: 'www'.",
+        "Name of the resource record relative to its apex domain, e.g. `www` for `www.example.com`. Omitted for apex records.",
       ).optional(),
       rrdata: z.string().describe(
         "Data for this record. Values vary by record type, as defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1).",
@@ -459,7 +459,7 @@ const InputsSchema = z.object({
     ).optional(),
     resourceRecords: z.array(z.object({
       name: z.string().describe(
-        "Relative name of the object affected by this record. Only applicable for `CNAME` records. Example: 'www'.",
+        "Name of the resource record relative to its apex domain, e.g. `www` for `www.example.com`. Omitted for apex records.",
       ).optional(),
       rrdata: z.string().describe(
         "Data for this record. Values vary by record type, as defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1).",
@@ -507,7 +507,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Run Admin Domainmappings. Registered at `@swamp/gcp/run/domainmappings`. */
 export const model = {
   type: "@swamp/gcp/run/domainmappings",
-  version: "2026.08.13.1",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -521,6 +521,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

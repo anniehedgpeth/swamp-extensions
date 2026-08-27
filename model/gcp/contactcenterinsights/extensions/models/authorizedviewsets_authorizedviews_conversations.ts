@@ -402,6 +402,19 @@ const StateSchema = z.object({
       }),
       languageCode: z.string(),
       messageTime: z.string(),
+      parts: z.array(z.object({
+        citation: z.unknown(),
+        customPayload: z.unknown(),
+        image: z.unknown(),
+        link: z.unknown(),
+        list: z.unknown(),
+        productCollection: z.unknown(),
+        suggestionChips: z.unknown(),
+        table: z.unknown(),
+        text: z.unknown(),
+        thought: z.unknown(),
+        video: z.unknown(),
+      })),
       segmentParticipant: z.object({
         dialogflowParticipant: z.string(),
         dialogflowParticipantName: z.string(),
@@ -476,7 +489,7 @@ function _buildGcpCredentials(
 export const model = {
   type:
     "@swamp/gcp/contactcenterinsights/authorizedviewsets-authorizedviews-conversations",
-  version: "2026.08.19.1",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -640,6 +653,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.19.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

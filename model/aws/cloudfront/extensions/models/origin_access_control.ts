@@ -73,7 +73,7 @@ const GlobalArgsSchema = z.object({
     ).describe(
       "Specifies which requests CloudFront signs (adds authentication information to). Specify always for the most common use case. For more information, see [origin access control advanced settings](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html#oac-advanced-settings) in the *Amazon CloudFront Developer Guide*. This field can have one of the following values: always – CloudFront signs all origin requests, overwriting the Authorization header from the viewer request if one exists. never – CloudFront doesn't sign any origin requests. This value turns off origin access control for all origins in all distributions that use this origin access control. no-override – If the viewer request doesn't contain the Authorization header, then CloudFront signs the origin request. If the viewer request contains the Authorization header, then CloudFront doesn't sign the origin request and instead passes along the Authorization header from the viewer request. *WARNING: To pass along the Authorization header from the viewer request, you must add the Authorization header to a cache policy for all cache behaviors that use origins associated with this origin access control.*",
     ),
-    SigningProtocol: z.string().regex(new RegExp("^(sigv4)$")).describe(
+    SigningProtocol: z.string().regex(new RegExp("^(sigv4|sigv4a)$")).describe(
       "The signing protocol of the origin access control, which determines how CloudFront signs (authenticates) requests. The only valid value is sigv4.",
     ),
   }).describe("The origin access control."),
@@ -114,7 +114,7 @@ const InputsSchema = z.object({
     ).describe(
       "Specifies which requests CloudFront signs (adds authentication information to). Specify always for the most common use case. For more information, see [origin access control advanced settings](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html#oac-advanced-settings) in the *Amazon CloudFront Developer Guide*. This field can have one of the following values: always – CloudFront signs all origin requests, overwriting the Authorization header from the viewer request if one exists. never – CloudFront doesn't sign any origin requests. This value turns off origin access control for all origins in all distributions that use this origin access control. no-override – If the viewer request doesn't contain the Authorization header, then CloudFront signs the origin request. If the viewer request contains the Authorization header, then CloudFront doesn't sign the origin request and instead passes along the Authorization header from the viewer request. *WARNING: To pass along the Authorization header from the viewer request, you must add the Authorization header to a cache policy for all cache behaviors that use origins associated with this origin access control.*",
     ).optional(),
-    SigningProtocol: z.string().regex(new RegExp("^(sigv4)$")).describe(
+    SigningProtocol: z.string().regex(new RegExp("^(sigv4|sigv4a)$")).describe(
       "The signing protocol of the origin access control, which determines how CloudFront signs (authenticates) requests. The only valid value is sigv4.",
     ).optional(),
   }).describe("The origin access control.").optional(),
@@ -139,7 +139,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for CloudFront OriginAccessControl. Registered at `@swamp/aws/cloudfront/origin-access-control`. */
 export const model = {
   type: "@swamp/aws/cloudfront/origin-access-control",
-  version: "2026.08.17.2",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -188,6 +188,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

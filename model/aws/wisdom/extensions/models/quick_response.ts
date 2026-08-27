@@ -43,7 +43,7 @@ import {
 import type { AwsCredentials } from "./_lib/aws.ts";
 
 const QuickResponseContentProviderSchema = z.object({
-  Content: z.string().min(1).max(1024).describe(
+  Content: z.string().min(1).max(4000).describe(
     "The content of the quick response.",
   ).optional(),
 });
@@ -90,7 +90,7 @@ const GlobalArgsSchema = z.object({
     "The Amazon Connect contact channels this quick response applies to.",
   ).optional(),
   Content: z.object({
-    Content: z.string().min(1).max(1024).describe(
+    Content: z.string().min(1).max(4000).describe(
       "The content of the quick response.",
     ).optional(),
   }).describe("The container of quick response content."),
@@ -179,7 +179,7 @@ const InputsSchema = z.object({
     "The Amazon Connect contact channels this quick response applies to.",
   ).optional(),
   Content: z.object({
-    Content: z.string().min(1).max(1024).describe(
+    Content: z.string().min(1).max(4000).describe(
       "The content of the quick response.",
     ).optional(),
   }).describe("The container of quick response content.").optional(),
@@ -238,7 +238,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Wisdom QuickResponse. Registered at `@swamp/aws/wisdom/quick-response`. */
 export const model = {
   type: "@swamp/aws/wisdom/quick-response",
-  version: "2026.08.17.2",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -287,6 +287,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

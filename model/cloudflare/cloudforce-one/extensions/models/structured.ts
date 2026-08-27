@@ -126,6 +126,12 @@ const ResourceSchema = z.object({
   namespaces: z.array(z.string()).optional(),
   path: z.string().optional(),
   pending_approval_id: z.number().optional(),
+  pending_change: z.object({
+    approval_id: z.number().optional(),
+    requested_at: z.number().optional(),
+    requested_by: z.string().optional(),
+    type: z.string().optional(),
+  }).optional(),
   structured_source: z.string().optional(),
   updated_at: z.number().optional(),
   updated_by: z.string().optional(),
@@ -198,7 +204,14 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Structured. Registered at `@swamp/cloudflare/cloudforce-one/structured`. */
 export const model = {
   type: "@swamp/cloudflare/cloudforce-one/structured",
-  version: "2026.08.25.1",
+  version: "2026.08.27.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.27.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

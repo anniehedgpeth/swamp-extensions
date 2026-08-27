@@ -42,6 +42,21 @@ import {
 } from "./_lib/aws.ts";
 import type { AwsCredentials } from "./_lib/aws.ts";
 
+const TemplateGroupSchema = z.object({
+  Name: z.string().regex(
+    new RegExp("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,126}[a-zA-Z0-9])?$"),
+  ),
+  TemplateUris: z.array(
+    z.string().min(10).max(255).regex(
+      new RegExp("^s3://[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]/.+$"),
+    ),
+  ),
+});
+
+const CroppingConfigSchema = z.object({
+  TemplateGroups: z.array(TemplateGroupSchema).optional(),
+});
+
 const DataSourceConfigurationSchema = z.object({
   FixtureId: z.string().min(1).max(128),
 });
@@ -81,7 +96,7 @@ const GetOutputSchema = z.object({
     new RegExp("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,126}[a-zA-Z0-9])?$"),
   ),
   OutputConfig: z.object({
-    Cropping: z.record(z.string(), z.unknown()).optional(),
+    Cropping: CroppingConfigSchema.optional(),
     Clipping: ClippingConfigSchema.optional(),
     Subtitling: SubtitlingConfigSchema.optional(),
   }),
@@ -106,6 +121,9 @@ const GlobalArgsSchema = z.object({
   region: z.string().describe(
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
+  AccessRoleArn: z.string().min(32).max(255).regex(
+    new RegExp("^arn:aws[a-z\\-]*:iam::[0-9]{12}:role/.+$"),
+  ).optional(),
   Name: z.string().regex(
     new RegExp("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,126}[a-zA-Z0-9])?$"),
   ),
@@ -114,6 +132,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  AccessRoleArn: z.string().optional(),
   Arn: z.string().optional(),
   DataEndpoints: z.array(z.string()).optional(),
   Id: z.string(),
@@ -130,6 +149,9 @@ const InputsSchema = z.object({
   secretAccessKey: z.string().meta({ sensitive: true }).optional(),
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
+  AccessRoleArn: z.string().min(32).max(255).regex(
+    new RegExp("^arn:aws[a-z\\-]*:iam::[0-9]{12}:role/.+$"),
+  ).optional(),
   Name: z.string().regex(
     new RegExp("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,126}[a-zA-Z0-9])?$"),
   ).optional(),
@@ -156,7 +178,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ElementalInference Feed. Registered at `@swamp/aws/elementalinference/feed`. */
 export const model = {
   type: "@swamp/aws/elementalinference/feed",
-  version: "2026.08.20.1",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -216,6 +238,11 @@ export const model = {
     {
       toVersion: "2026.08.20.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
+      description: "Added: AccessRoleArn",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

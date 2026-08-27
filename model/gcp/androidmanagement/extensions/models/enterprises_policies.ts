@@ -837,14 +837,14 @@ const GlobalArgsSchema = z.object({
       "AIRPLANE_MODE_USER_CHOICE",
       "AIRPLANE_MODE_DISABLED",
     ]).describe(
-      "Controls whether airplane mode can be toggled by the user or not.",
+      "Optional. Controls whether airplane mode can be toggled by the user or not.",
     ).optional(),
     cellularTwoGState: z.enum([
       "CELLULAR_TWO_G_STATE_UNSPECIFIED",
       "CELLULAR_TWO_G_USER_CHOICE",
       "CELLULAR_TWO_G_DISABLED",
     ]).describe(
-      "Controls whether cellular 2G setting can be toggled by the user or not.",
+      "Optional. Controls whether cellular 2G setting can be toggled by the user or not.",
     ).optional(),
     minimumWifiSecurityLevel: z.enum([
       "MINIMUM_WIFI_SECURITY_LEVEL_UNSPECIFIED",
@@ -853,14 +853,14 @@ const GlobalArgsSchema = z.object({
       "ENTERPRISE_NETWORK_SECURITY",
       "ENTERPRISE_BIT192_NETWORK_SECURITY",
     ]).describe(
-      "The minimum required security level of Wi-Fi networks that the device can connect to.",
+      "Optional. The minimum required security level of Wi-Fi networks that the device can connect to.",
     ).optional(),
     ultraWidebandState: z.enum([
       "ULTRA_WIDEBAND_STATE_UNSPECIFIED",
       "ULTRA_WIDEBAND_USER_CHOICE",
       "ULTRA_WIDEBAND_DISABLED",
     ]).describe(
-      "Controls the state of the ultra wideband setting and whether the user can toggle it on or off.",
+      "Optional. Controls the state of the ultra wideband setting and whether the user can toggle it on or off.",
     ).optional(),
     userInitiatedAddEsimSettings: z.enum([
       "USER_INITIATED_ADD_ESIM_SETTINGS_UNSPECIFIED",
@@ -875,10 +875,10 @@ const GlobalArgsSchema = z.object({
       "WIFI_ENABLED",
       "WIFI_DISABLED",
     ]).describe(
-      "Controls current state of Wi-Fi and if user can change its state.",
+      "Optional. Controls current state of Wi-Fi and if user can change its state.",
     ).optional(),
   }).describe(
-    "Covers controls for radio state such as Wi-Fi, bluetooth, and more.",
+    "Optional. Covers controls for radio state such as Wi-Fi, bluetooth, and more.",
   ).optional(),
   displaySettings: z.object({
     screenBrightnessSettings: z.object({
@@ -2650,14 +2650,14 @@ const InputsSchema = z.object({
       "AIRPLANE_MODE_USER_CHOICE",
       "AIRPLANE_MODE_DISABLED",
     ]).describe(
-      "Controls whether airplane mode can be toggled by the user or not.",
+      "Optional. Controls whether airplane mode can be toggled by the user or not.",
     ).optional(),
     cellularTwoGState: z.enum([
       "CELLULAR_TWO_G_STATE_UNSPECIFIED",
       "CELLULAR_TWO_G_USER_CHOICE",
       "CELLULAR_TWO_G_DISABLED",
     ]).describe(
-      "Controls whether cellular 2G setting can be toggled by the user or not.",
+      "Optional. Controls whether cellular 2G setting can be toggled by the user or not.",
     ).optional(),
     minimumWifiSecurityLevel: z.enum([
       "MINIMUM_WIFI_SECURITY_LEVEL_UNSPECIFIED",
@@ -2666,14 +2666,14 @@ const InputsSchema = z.object({
       "ENTERPRISE_NETWORK_SECURITY",
       "ENTERPRISE_BIT192_NETWORK_SECURITY",
     ]).describe(
-      "The minimum required security level of Wi-Fi networks that the device can connect to.",
+      "Optional. The minimum required security level of Wi-Fi networks that the device can connect to.",
     ).optional(),
     ultraWidebandState: z.enum([
       "ULTRA_WIDEBAND_STATE_UNSPECIFIED",
       "ULTRA_WIDEBAND_USER_CHOICE",
       "ULTRA_WIDEBAND_DISABLED",
     ]).describe(
-      "Controls the state of the ultra wideband setting and whether the user can toggle it on or off.",
+      "Optional. Controls the state of the ultra wideband setting and whether the user can toggle it on or off.",
     ).optional(),
     userInitiatedAddEsimSettings: z.enum([
       "USER_INITIATED_ADD_ESIM_SETTINGS_UNSPECIFIED",
@@ -2688,10 +2688,10 @@ const InputsSchema = z.object({
       "WIFI_ENABLED",
       "WIFI_DISABLED",
     ]).describe(
-      "Controls current state of Wi-Fi and if user can change its state.",
+      "Optional. Controls current state of Wi-Fi and if user can change its state.",
     ).optional(),
   }).describe(
-    "Covers controls for radio state such as Wi-Fi, bluetooth, and more.",
+    "Optional. Covers controls for radio state such as Wi-Fi, bluetooth, and more.",
   ).optional(),
   displaySettings: z.object({
     screenBrightnessSettings: z.object({
@@ -3385,7 +3385,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Android Management Enterprises.Policies. Registered at `@swamp/gcp/androidmanagement/enterprises-policies`. */
 export const model = {
   type: "@swamp/gcp/androidmanagement/enterprises-policies",
-  version: "2026.08.25.1",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -3544,6 +3544,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -60,6 +60,7 @@ const GlobalArgsSchema = z.object({
       "gateway-block-page-settings",
       "gateway-extended-email-matching",
       "idp-federation-grant",
+      "trust-grant",
     ]),
   })),
   apiToken: z.string().meta({ sensitive: true }).describe(
@@ -112,6 +113,7 @@ const InputsSchema = z.object({
       "gateway-block-page-settings",
       "gateway-extended-email-matching",
       "idp-federation-grant",
+      "trust-grant",
     ]),
   })).optional(),
   apiToken: z.string().meta({ sensitive: true }).optional(),
@@ -122,7 +124,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Shares. Registered at `@swamp/cloudflare/shares/shares`. */
 export const model = {
   type: "@swamp/cloudflare/shares/shares",
-  version: "2026.07.21.1",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.05.29.1",
@@ -141,6 +143,11 @@ export const model = {
     },
     {
       toVersion: "2026.07.21.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

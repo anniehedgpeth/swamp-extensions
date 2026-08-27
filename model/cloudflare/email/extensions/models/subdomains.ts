@@ -124,14 +124,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: preview_enabled",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { preview_enabled: _preview_enabled, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: preview_enabled",
       upgradeAttributes: (old: Record<string, unknown>) => old,

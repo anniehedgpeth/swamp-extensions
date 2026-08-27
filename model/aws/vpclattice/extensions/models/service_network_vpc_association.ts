@@ -162,7 +162,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for VpcLattice ServiceNetworkVpcAssociation. Registered at `@swamp/aws/vpclattice/service-network-vpc-association`. */
 export const model = {
   type: "@swamp/aws/vpclattice/service-network-vpc-association",
-  version: "2026.08.17.2",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -211,6 +211,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -321,14 +326,7 @@ export const model = {
           identifier,
           currentState,
           desiredState,
-          [
-            "ServiceNetworkIdentifier",
-            "VpcIdentifier",
-            "PrivateDnsEnabled",
-            "DnsOptions",
-            "PrivateDnsPreference",
-            "PrivateDnsSpecifiedDomains",
-          ],
+          ["ServiceNetworkIdentifier", "VpcIdentifier"],
           credentials,
         );
         const handle = await context.writeResource(

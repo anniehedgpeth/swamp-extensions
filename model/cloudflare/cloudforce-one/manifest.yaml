@@ -1,7 +1,7 @@
 # Auto-generated manifest. Re-generate with the appropriate deno task.
 manifestVersion: 1
 name: "@swamp/cloudflare/cloudforce-one"
-version: "2026.08.25.2"
+version: "2026.08.27.1"
 description: "Cloudflare cloudforce-one infrastructure models"
 repository: "https://github.com/swamp-club/swamp-extensions"
 labels:
@@ -11,7 +11,7 @@ labels:
   - infrastructure
 releaseNotes: |
   - Updated: rules
-  - Added: structured
+  - Updated: structured
 models:
   - collections.ts
   - groups.ts

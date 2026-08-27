@@ -595,14 +595,6 @@ export const model = {
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
     {
-      toVersion: "2026.08.25.1",
-      description: "Removed: chartType",
-      upgradeAttributes: (old: Record<string, unknown>) => {
-        const { chartType: _chartType, ...rest } = old;
-        return rest;
-      },
-    },
-    {
       toVersion: "2026.08.25.2",
       description: "Added: chartType",
       upgradeAttributes: (old: Record<string, unknown>) => old,

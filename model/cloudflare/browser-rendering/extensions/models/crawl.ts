@@ -69,6 +69,7 @@ const GlobalArgsSchema = z.object({
   bestAttempt: z.boolean().describe(
     "Attempt to proceed when 'awaited' events fail or timeout.",
   ).optional(),
+  contentUse: z.enum(["reference"]).optional(),
   cookies: z.array(z.object({
     domain: z.string().optional(),
     expires: z.number().optional(),
@@ -220,6 +221,7 @@ const InputsSchema = z.object({
     username: z.string().min(1),
   }).optional(),
   bestAttempt: z.boolean().optional(),
+  contentUse: z.enum(["reference"]).optional(),
   cookies: z.array(z.object({
     domain: z.string().optional(),
     expires: z.number().optional(),
@@ -296,11 +298,16 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Crawl. Registered at `@swamp/cloudflare/browser-rendering/crawl`. */
 export const model = {
   type: "@swamp/cloudflare/browser-rendering/crawl",
-  version: "2026.08.15.1",
+  version: "2026.08.27.1",
   upgrades: [
     {
       toVersion: "2026.08.15.1",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.27.1",
+      description: "Added: contentUse",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -334,6 +341,7 @@ export const model = {
         }
         if (g.authenticate !== undefined) body.authenticate = g.authenticate;
         if (g.bestAttempt !== undefined) body.bestAttempt = g.bestAttempt;
+        if (g.contentUse !== undefined) body.contentUse = g.contentUse;
         if (g.cookies !== undefined) body.cookies = g.cookies;
         if (g.crawlPurposes !== undefined) body.crawlPurposes = g.crawlPurposes;
         if (g.depth !== undefined) body.depth = g.depth;
@@ -424,6 +432,9 @@ export const model = {
         }
         if (g.bestAttempt !== undefined) {
           filters.push(["bestAttempt", String(g.bestAttempt)]);
+        }
+        if (g.contentUse !== undefined) {
+          filters.push(["contentUse", String(g.contentUse)]);
         }
         if (g.depth !== undefined) filters.push(["depth", String(g.depth)]);
         if (g.emulateMediaType !== undefined) {
