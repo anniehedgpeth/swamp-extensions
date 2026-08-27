@@ -2908,6 +2908,9 @@ export class GcsCacheSyncService implements DatastoreSyncService {
    * Single-shard (workflows-evaluated, auto-definitions, audit, telemetry, logs, files):
    *   `{subdir}`
    *
+   * Unknown/legacy prefixes (bundles, vault-bundles, report-bundles, etc.):
+   *   `{subdir}`
+   *
    * Root-level files (single segment, no subdirectory):
    *   `_root`
    */
@@ -2941,7 +2944,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       case "config":
         return subdir;
       default:
-        return undefined;
+        return subdir;
     }
   }
 

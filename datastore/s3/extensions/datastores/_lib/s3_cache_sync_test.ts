@@ -5149,10 +5149,33 @@ Deno.test("partitionKeyFromPath: single-shard directories", () => {
   }
 });
 
-Deno.test("partitionKeyFromPath: unknown directory returns undefined", () => {
+Deno.test("partitionKeyFromPath: unknown directory returns subdir as single-shard key", () => {
   assertEquals(
     S3CacheSyncService.partitionKeyFromPath("unknown/dir/file"),
-    undefined,
+    "unknown",
+  );
+});
+
+Deno.test("partitionKeyFromPath: legacy bundles/ prefix returns single-shard key", () => {
+  assertEquals(
+    S3CacheSyncService.partitionKeyFromPath("bundles/1bca5430/model.js"),
+    "bundles",
+  );
+});
+
+Deno.test("partitionKeyFromPath: legacy vault-bundles/ prefix returns single-shard key", () => {
+  assertEquals(
+    S3CacheSyncService.partitionKeyFromPath("vault-bundles/7c811b12/vault.js"),
+    "vault-bundles",
+  );
+});
+
+Deno.test("partitionKeyFromPath: legacy report-bundles/ prefix returns single-shard key", () => {
+  assertEquals(
+    S3CacheSyncService.partitionKeyFromPath(
+      "report-bundles/037f1885/report.js",
+    ),
+    "report-bundles",
   );
 });
 
@@ -5419,6 +5442,96 @@ Deno.test("migrateMonolithToShards: partitions monolith into shards", async () =
       "data--t1--m1 shard should exist",
     );
     assert(mock.storage.has("_index/audit.json"), "audit shard should exist");
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("migrateMonolithToShards: partitions legacy bundle entries into own shards", async () => {
+  const cachePath = await Deno.makeTempDir({
+    prefix: "s3sync-migrate-bundles-",
+  });
+  try {
+    const mock = createMockS3Client();
+
+    const index = {
+      version: 1,
+      lastPulled: "2026-01-01T00:00:00Z",
+      entries: {
+        "data/t1/m1/d1/1/raw": {
+          key: "data/t1/m1/d1/1/raw",
+          size: 4,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+        "bundles/1bca5430/model.js": {
+          key: "bundles/1bca5430/model.js",
+          size: 1200,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+        "vault-bundles/7c811b12/vault.js": {
+          key: "vault-bundles/7c811b12/vault.js",
+          size: 800,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+        "report-bundles/037f1885/report.js": {
+          key: "report-bundles/037f1885/report.js",
+          size: 950,
+          lastModified: "2026-01-01T00:00:00Z",
+        },
+      },
+    };
+    mock.storage.set(
+      ".datastore-index.json",
+      new TextEncoder().encode(JSON.stringify(index)),
+    );
+    mock.storage.set("data/t1/m1/d1/1/raw", new TextEncoder().encode("aaa\n"));
+    mock.storage.set(
+      "bundles/1bca5430/model.js",
+      new TextEncoder().encode("console.log(1);"),
+    );
+    mock.storage.set(
+      "vault-bundles/7c811b12/vault.js",
+      new TextEncoder().encode("console.log(2);"),
+    );
+    mock.storage.set(
+      "report-bundles/037f1885/report.js",
+      new TextEncoder().encode("console.log(3);"),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    await service.migrateMonolithToShards();
+
+    const meta = decodeMeta(mock.storage.get("_index/_meta.json")!);
+    assertEquals(meta.version, 2, "should be version 2 after migration");
+    assert(
+      meta.partitions.includes("data--t1--m1"),
+      "should have data partition",
+    );
+    assert(
+      meta.partitions.includes("bundles"),
+      "should have bundles partition",
+    );
+    assert(
+      meta.partitions.includes("vault-bundles"),
+      "should have vault-bundles partition",
+    );
+    assert(
+      meta.partitions.includes("report-bundles"),
+      "should have report-bundles partition",
+    );
+
+    assert(
+      mock.storage.has("_index/bundles.json"),
+      "bundles shard should exist",
+    );
+    assert(
+      mock.storage.has("_index/vault-bundles.json"),
+      "vault-bundles shard should exist",
+    );
+    assert(
+      mock.storage.has("_index/report-bundles.json"),
+      "report-bundles shard should exist",
+    );
   } finally {
     await Deno.remove(cachePath, { recursive: true });
   }

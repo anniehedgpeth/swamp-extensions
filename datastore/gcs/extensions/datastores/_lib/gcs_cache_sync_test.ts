@@ -4814,10 +4814,33 @@ Deno.test("partitionKeyFromPath: single-shard directories", () => {
   }
 });
 
-Deno.test("partitionKeyFromPath: unknown directory returns undefined", () => {
+Deno.test("partitionKeyFromPath: unknown directory returns subdir as single-shard key", () => {
   assertEquals(
     GcsCacheSyncService.partitionKeyFromPath("unknown/dir/file"),
-    undefined,
+    "unknown",
+  );
+});
+
+Deno.test("partitionKeyFromPath: legacy bundles/ prefix returns single-shard key", () => {
+  assertEquals(
+    GcsCacheSyncService.partitionKeyFromPath("bundles/1bca5430/model.js"),
+    "bundles",
+  );
+});
+
+Deno.test("partitionKeyFromPath: legacy vault-bundles/ prefix returns single-shard key", () => {
+  assertEquals(
+    GcsCacheSyncService.partitionKeyFromPath("vault-bundles/7c811b12/vault.js"),
+    "vault-bundles",
+  );
+});
+
+Deno.test("partitionKeyFromPath: legacy report-bundles/ prefix returns single-shard key", () => {
+  assertEquals(
+    GcsCacheSyncService.partitionKeyFromPath(
+      "report-bundles/037f1885/report.js",
+    ),
+    "report-bundles",
   );
 });
 
