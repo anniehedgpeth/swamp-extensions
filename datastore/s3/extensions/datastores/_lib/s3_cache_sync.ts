@@ -1098,6 +1098,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       dirtyPathsOverflowed: this.dirtyPathsOverflowed,
       lastCatalogHash: this.lastCatalogHash ?? undefined,
       dataKeyMigrated: v2Current?.dataKeyMigrated,
+      commitSeq: v2Current?.commitSeq,
     };
   }
 
@@ -2993,8 +2994,20 @@ export class S3CacheSyncService implements DatastoreSyncService {
           this.localRelPath(rel),
         );
         const stat = await Deno.stat(localPath);
-        if (stat.size !== entry.size) return false;
+        if (stat.size !== entry.size) {
+          if (traceEnabled()) {
+            console.debug(
+              `[s3-sync] localHasAllRemoteEntries: size mismatch for ${rel} (local=${stat.size}, index=${entry.size})`,
+            );
+          }
+          return false;
+        }
       } catch {
+        if (traceEnabled()) {
+          console.debug(
+            `[s3-sync] localHasAllRemoteEntries: missing locally: ${rel}`,
+          );
+        }
         return false;
       }
     }

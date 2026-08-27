@@ -1037,6 +1037,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       dirtyPathsOverflowed: this.dirtyPathsOverflowed,
       lastCatalogHash: this.lastCatalogHash ?? undefined,
       dataKeyMigrated: v2Current?.dataKeyMigrated,
+      commitSeq: v2Current?.commitSeq,
     };
   }
 
@@ -2842,8 +2843,20 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       const localPath = assertSafePath(this.cachePath, this.localRelPath(rel));
       try {
         const stat = await Deno.stat(localPath);
-        if (stat.size !== entry.size) return false;
+        if (stat.size !== entry.size) {
+          if (traceEnabled()) {
+            console.debug(
+              `[gcs-sync] localHasAllRemoteEntries: size mismatch for ${rel} (local=${stat.size}, index=${entry.size})`,
+            );
+          }
+          return false;
+        }
       } catch {
+        if (traceEnabled()) {
+          console.debug(
+            `[gcs-sync] localHasAllRemoteEntries: missing locally: ${rel}`,
+          );
+        }
         return false;
       }
     }

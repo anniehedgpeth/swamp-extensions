@@ -6982,3 +6982,53 @@ Deno.test("swamp-club#1556: commitPush marks sidecar clean in namespaced mode wh
     await Deno.remove(cachePath, { recursive: true });
   }
 });
+
+// -- markDirty must preserve commitSeq (swamp-club#1877) ------------------
+
+Deno.test("markDirty: preserves commitSeq through buildV2State rebuild", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-commitseq-" });
+  try {
+    const mock = createMockGcsClient();
+    await mock.putObject(".datastore-index.json", encodeIndex({}));
+
+    // Plant a v2 sidecar with commitSeq already armed, simulating a
+    // prior run that completed the full sync cycle.
+    await seedFile(
+      cachePath,
+      ".datastore-sync-state.json",
+      JSON.stringify({
+        version: 2,
+        remoteIndexGeneration: "",
+        lastVerifiedAt: new Date().toISOString(),
+        localDirty: false,
+        dirtyPaths: [],
+        bulkInvalidated: false,
+        lazyPullActive: false,
+        commitSeq: 5,
+      }),
+    );
+
+    const sidecarPath = join(cachePath, ".datastore-sync-state.json");
+    const sidecarBefore = JSON.parse(await Deno.readTextFile(sidecarPath));
+    assertEquals(sidecarBefore.commitSeq, 5, "precondition: commitSeq armed");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+
+    // Simulate a local write that triggers markDirty.
+    await service.markDirty({ relPath: "data/@org/m/id" });
+
+    const sidecarAfter = JSON.parse(await Deno.readTextFile(sidecarPath));
+    assertEquals(
+      sidecarAfter.localDirty,
+      true,
+      "markDirty must set localDirty",
+    );
+    assertEquals(
+      sidecarAfter.commitSeq,
+      5,
+      "markDirty must preserve commitSeq (swamp-club#1877)",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
