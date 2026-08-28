@@ -365,6 +365,7 @@ const StateSchema = z.object({
   requestedLinkCount: z.number().optional(),
   satisfiesPzs: z.boolean().optional(),
   selfLink: z.string().optional(),
+  selfLinkWithId: z.string().optional(),
   state: z.string().optional(),
   subzone: z.string().optional(),
   wireGroups: z.array(z.string()).optional(),
@@ -521,7 +522,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Interconnects. Registered at `@swamp/gcp/compute/interconnects`. */
 export const model = {
   type: "@swamp/gcp/compute/interconnects",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -665,6 +666,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

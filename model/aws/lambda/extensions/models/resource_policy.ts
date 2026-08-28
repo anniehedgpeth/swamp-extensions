@@ -55,13 +55,15 @@ const GlobalArgsSchema = z.object({
     "AWS region; overrides AWS_REGION / AWS_DEFAULT_REGION environment variables and ~/.aws/config profile region. Defaults to us-east-1.",
   ).optional(),
   PolicyDocument: z.record(z.string(), z.unknown()).describe(
-    "The resource policy of your Lambda resource",
+    "The policy document you want to add to your LAM resource. This is formatted as a JSON string. For more information, see [Working with resource-based policies in](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html) in the *Developer Guide*.",
   ),
   ResourceArn: z.string().min(12).max(1024).regex(
     new RegExp(
       "^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_]+))?$",
     ),
-  ).describe("The resource arn of your Lambda resource"),
+  ).describe(
+    "The Amazon Resource Name (ARN) of the LAM resource you want to add the policy to. For a function, you can use a qualified or an unqualified ARN. The value must be a complete ARN, and the operation does not accept wildcard characters.",
+  ),
 });
 
 const StateSchema = z.object({
@@ -77,13 +79,15 @@ const InputsSchema = z.object({
   sessionToken: z.string().meta({ sensitive: true }).optional(),
   region: z.string().optional(),
   PolicyDocument: z.record(z.string(), z.unknown()).describe(
-    "The resource policy of your Lambda resource",
+    "The policy document you want to add to your LAM resource. This is formatted as a JSON string. For more information, see [Working with resource-based policies in](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html) in the *Developer Guide*.",
   ).optional(),
   ResourceArn: z.string().min(12).max(1024).regex(
     new RegExp(
       "^(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_]+))?$",
     ),
-  ).describe("The resource arn of your Lambda resource").optional(),
+  ).describe(
+    "The Amazon Resource Name (ARN) of the LAM resource you want to add the policy to. For a function, you can use a qualified or an unqualified ARN. The value must be a complete ARN, and the operation does not accept wildcard characters.",
+  ).optional(),
 });
 
 const _credentialKeys = new Set([
@@ -105,7 +109,14 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for Lambda ResourcePolicy. Registered at `@swamp/aws/lambda/resource-policy`. */
 export const model = {
   type: "@swamp/aws/lambda/resource-policy",
-  version: "2026.08.21.1",
+  version: "2026.08.28.1",
+  upgrades: [
+    {
+      toVersion: "2026.08.28.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+  ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
   resources: {

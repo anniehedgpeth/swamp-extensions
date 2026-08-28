@@ -241,6 +241,13 @@ const GlobalArgsSchema = z.object({
     ).optional(),
   }).describe("Optional. The default client certificate settings for the app.")
     .optional(),
+  dashboardSettings: z.object({
+    defaultDashboard: z.string().describe(
+      "Optional. The resource name of the default Contact Center Insights dashboard associated with the app. This is the dashboard that will be displayed when users navigate to the Monitoring view for the app. Format: `projects/{project}/locations/{location}/dashboards/{dashboard}`",
+    ).optional(),
+  }).describe(
+    "Optional. App-specific dashboard settings for linking and configuring Contact Center Insights dashboards.",
+  ).optional(),
   dataStoreSettings: z.object({
     engines: z.array(z.object({
       name: z.string().describe(
@@ -693,6 +700,9 @@ const StateSchema = z.object({
     tlsCertificate: z.string(),
   }).optional(),
   createTime: z.string().optional(),
+  dashboardSettings: z.object({
+    defaultDashboard: z.string(),
+  }).optional(),
   dataStoreSettings: z.object({
     engines: z.array(z.object({
       name: z.string(),
@@ -966,6 +976,13 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe("Optional. The default client certificate settings for the app.")
     .optional(),
+  dashboardSettings: z.object({
+    defaultDashboard: z.string().describe(
+      "Optional. The resource name of the default Contact Center Insights dashboard associated with the app. This is the dashboard that will be displayed when users navigate to the Monitoring view for the app. Format: `projects/{project}/locations/{location}/dashboards/{dashboard}`",
+    ).optional(),
+  }).describe(
+    "Optional. App-specific dashboard settings for linking and configuring Contact Center Insights dashboards.",
+  ).optional(),
   dataStoreSettings: z.object({
     engines: z.array(z.object({
       name: z.string().describe(
@@ -1423,7 +1440,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps. Registered at `@swamp/gcp/ces/apps`. */
 export const model = {
   type: "@swamp/gcp/ces/apps",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1590,6 +1607,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.28.1",
+      description: "Added: dashboardSettings",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1622,6 +1644,9 @@ export const model = {
         }
         if (g["clientCertificateSettings"] !== undefined) {
           body["clientCertificateSettings"] = g["clientCertificateSettings"];
+        }
+        if (g["dashboardSettings"] !== undefined) {
+          body["dashboardSettings"] = g["dashboardSettings"];
         }
         if (g["dataStoreSettings"] !== undefined) {
           body["dataStoreSettings"] = g["dataStoreSettings"];
@@ -1788,6 +1813,9 @@ export const model = {
         }
         if (g["clientCertificateSettings"] !== undefined) {
           body["clientCertificateSettings"] = g["clientCertificateSettings"];
+        }
+        if (g["dashboardSettings"] !== undefined) {
+          body["dashboardSettings"] = g["dashboardSettings"];
         }
         if (g["dataStoreSettings"] !== undefined) {
           body["dataStoreSettings"] = g["dataStoreSettings"];
@@ -2182,6 +2210,8 @@ export const model = {
         gcsUri: z.any().optional(),
         ignoreAppLock: z.any().optional(),
         importOptions: z.any().optional(),
+        jsonPatchContent: z.any().optional(),
+        jsonPatchGcsUri: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
@@ -2207,6 +2237,12 @@ export const model = {
         }
         if (args["importOptions"] !== undefined) {
           body["importOptions"] = args["importOptions"];
+        }
+        if (args["jsonPatchContent"] !== undefined) {
+          body["jsonPatchContent"] = args["jsonPatchContent"];
+        }
+        if (args["jsonPatchGcsUri"] !== undefined) {
+          body["jsonPatchGcsUri"] = args["jsonPatchGcsUri"];
         }
         const result = await createResource(
           baseUrl,

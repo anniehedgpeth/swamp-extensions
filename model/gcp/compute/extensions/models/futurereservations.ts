@@ -288,6 +288,7 @@ const GlobalArgsSchema = z.object({
     "If not present, then FR will not deliver a new commitment or update an existing commitment.",
   ).optional(),
   confidentialComputeType: z.enum([
+    "CONFIDENTIAL_COMPUTE_TYPE_BMSAI",
     "CONFIDENTIAL_COMPUTE_TYPE_TDX",
     "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED",
   ]).optional(),
@@ -687,6 +688,7 @@ const InputsSchema = z.object({
     "If not present, then FR will not deliver a new commitment or update an existing commitment.",
   ).optional(),
   confidentialComputeType: z.enum([
+    "CONFIDENTIAL_COMPUTE_TYPE_BMSAI",
     "CONFIDENTIAL_COMPUTE_TYPE_TDX",
     "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED",
   ]).optional(),
@@ -870,7 +872,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine FutureReservations. Registered at `@swamp/gcp/compute/futurereservations`. */
 export const model = {
   type: "@swamp/gcp/compute/futurereservations",
-  version: "2026.08.16.1",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1020,6 +1022,11 @@ export const model = {
     {
       toVersion: "2026.08.16.1",
       description: "Added: resourceName, storagePoolProperties",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

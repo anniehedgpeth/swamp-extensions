@@ -16,7 +16,7 @@ that reflect the live state in Cloudflare. Available methods:
 - **delete** — remove the resource from Cloudflare
 - **sync** — refresh all resource properties from the API
 
-Use `swamp model type describe @swamp/cloudflare/data-security/webhooks` to see
+Use `swamp model type describe @swamp/cloudflare/data-security/policies` to see
 the full list of configurable properties and available methods for this model.
 
 ## Authentication
@@ -60,17 +60,17 @@ environment variables for the legacy path, while `apiToken` remains available.
 ## Usage
 
 ```bash
-# Create a new webhooks model
-swamp model create @swamp/cloudflare/data-security/webhooks my-webhooks
+# Create a new policies model
+swamp model create @swamp/cloudflare/data-security/policies my-policies
 
 # Edit the model to configure its properties
-swamp model edit my-webhooks
+swamp model edit my-policies
 
 # Create the resource in Cloudflare
-swamp model method run my-webhooks create
+swamp model method run my-policies create
 
 # Sync current state from Cloudflare
-swamp model method run my-webhooks sync
+swamp model method run my-policies sync
 ```
 
 ## License

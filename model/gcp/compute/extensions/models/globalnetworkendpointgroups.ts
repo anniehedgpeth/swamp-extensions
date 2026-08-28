@@ -211,6 +211,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   networkEndpointType: z.enum([
     "GCE_VM_IP",
+    "GCE_VM_IP_DEDICATED_BACKEND",
     "GCE_VM_IP_PORT",
     "GCE_VM_IP_PORTMAP",
     "INTERNET_FQDN_PORT",
@@ -355,6 +356,7 @@ const InputsSchema = z.object({
   ).optional(),
   networkEndpointType: z.enum([
     "GCE_VM_IP",
+    "GCE_VM_IP_DEDICATED_BACKEND",
     "GCE_VM_IP_PORT",
     "GCE_VM_IP_PORTMAP",
     "INTERNET_FQDN_PORT",
@@ -425,7 +427,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine GlobalNetworkEndpointGroups. Registered at `@swamp/gcp/compute/globalnetworkendpointgroups`. */
 export const model = {
   type: "@swamp/gcp/compute/globalnetworkendpointgroups",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -589,6 +591,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

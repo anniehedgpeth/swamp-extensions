@@ -272,6 +272,7 @@ const GlobalArgsSchema = z.object({
       "Output only. [Output Only] Full or partial URL to a parent commitment. This field displays for reservations that are tied to a commitment.",
     ).optional(),
     confidentialComputeType: z.enum([
+      "CONFIDENTIAL_COMPUTE_TYPE_BMSAI",
       "CONFIDENTIAL_COMPUTE_TYPE_TDX",
       "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED",
     ]).optional(),
@@ -810,6 +811,7 @@ const InputsSchema = z.object({
       "Output only. [Output Only] Full or partial URL to a parent commitment. This field displays for reservations that are tied to a commitment.",
     ).optional(),
     confidentialComputeType: z.enum([
+      "CONFIDENTIAL_COMPUTE_TYPE_BMSAI",
       "CONFIDENTIAL_COMPUTE_TYPE_TDX",
       "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED",
     ]).optional(),
@@ -1140,7 +1142,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine RegionCommitments. Registered at `@swamp/gcp/compute/regioncommitments`. */
 export const model = {
   type: "@swamp/gcp/compute/regioncommitments",
-  version: "2026.08.16.1",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1319,6 +1321,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.16.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

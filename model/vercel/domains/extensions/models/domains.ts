@@ -59,8 +59,8 @@ const GlobalArgsSchema = z.object({
   zone: z.boolean().describe(
     "Specifies whether this is a DNS zone that intends to use Vercel's nameservers.",
   ).optional(),
-  echMode: z.enum(["auto", "enabled", "disabled"]).describe(
-    "Encrypted Client Hello enrollment. 'auto' leaves it to Vercel, 'enabled' always enrolls, 'disabled' never enrolls and opts out of automatic enrollment.",
+  echMode: z.enum(["auto", "disabled"]).describe(
+    "Encrypted Client Hello enrollment. 'auto' leaves it to Vercel, 'disabled' never enrolls and opts out of automatic enrollment.",
   ).optional(),
   destination: z.string().describe("User or team to move domain to").optional(),
   method: z.string().describe(
@@ -111,7 +111,7 @@ const InputsSchema = z.object({
   renew: z.boolean().optional(),
   customNameservers: z.array(z.string()).optional(),
   zone: z.boolean().optional(),
-  echMode: z.enum(["auto", "enabled", "disabled"]).optional(),
+  echMode: z.enum(["auto", "disabled"]).optional(),
   destination: z.string().optional(),
   method: z.string().optional(),
   token: z.string().meta({ sensitive: true }).optional(),
@@ -130,7 +130,7 @@ function unwrapResponse(
 /** Swamp extension model for Vercel Domains. Registered at `@swamp/vercel/domains/domains`. */
 export const model = {
   type: "@swamp/vercel/domains/domains",
-  version: "2026.08.26.1",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -165,6 +165,11 @@ export const model = {
     {
       toVersion: "2026.08.26.1",
       description: "Added: echMode",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

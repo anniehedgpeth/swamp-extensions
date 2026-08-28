@@ -314,9 +314,13 @@ const GlobalArgsSchema = z.object({
   reservedInternalRange: z.string().describe(
     "The URL of the reserved internal range.",
   ).optional(),
-  resolveSubnetMask: z.enum(["ARP_ALL_RANGES", "ARP_PRIMARY_RANGE"]).describe(
-    "Configures subnet mask resolution for this subnetwork.",
-  ).optional(),
+  resolveSubnetMask: z.enum([
+    "ARP_ALL_RANGES",
+    "ARP_BROADCAST_PRIMARY_RANGE",
+    "ARP_BROADCAST_PRIMARY_RANGE_WITH_LEARNING",
+    "ARP_PRIMARY_RANGE",
+  ]).describe("Configures subnet mask resolution for this subnetwork.")
+    .optional(),
   role: z.enum(["ACTIVE", "BACKUP"]).describe(
     "The role of subnetwork. Currently, this field is only used when purpose is set to GLOBAL_MANAGED_PROXY orREGIONAL_MANAGED_PROXY. The value can be set toACTIVE or BACKUP. An ACTIVE subnetwork is one that is currently being used for Envoy-based load balancers in a region. A BACKUP subnetwork is one that is ready to be promoted to ACTIVE or is currently draining. This field can be updated with a patch request.",
   ).optional(),
@@ -541,9 +545,13 @@ const InputsSchema = z.object({
   reservedInternalRange: z.string().describe(
     "The URL of the reserved internal range.",
   ).optional(),
-  resolveSubnetMask: z.enum(["ARP_ALL_RANGES", "ARP_PRIMARY_RANGE"]).describe(
-    "Configures subnet mask resolution for this subnetwork.",
-  ).optional(),
+  resolveSubnetMask: z.enum([
+    "ARP_ALL_RANGES",
+    "ARP_BROADCAST_PRIMARY_RANGE",
+    "ARP_BROADCAST_PRIMARY_RANGE_WITH_LEARNING",
+    "ARP_PRIMARY_RANGE",
+  ]).describe("Configures subnet mask resolution for this subnetwork.")
+    .optional(),
   role: z.enum(["ACTIVE", "BACKUP"]).describe(
     "The role of subnetwork. Currently, this field is only used when purpose is set to GLOBAL_MANAGED_PROXY orREGIONAL_MANAGED_PROXY. The value can be set toACTIVE or BACKUP. An ACTIVE subnetwork is one that is currently being used for Envoy-based load balancers in a region. A BACKUP subnetwork is one that is ready to be promoted to ACTIVE or is currently draining. This field can be updated with a patch request.",
   ).optional(),
@@ -598,7 +606,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Subnetworks. Registered at `@swamp/gcp/compute/subnetworks`. */
 export const model = {
   type: "@swamp/gcp/compute/subnetworks",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -740,6 +748,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

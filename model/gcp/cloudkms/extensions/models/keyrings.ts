@@ -36,6 +36,7 @@
 import { z } from "npm:zod@4.3.6";
 import {
   createResource,
+  deleteResource,
   type ExplicitGcpCredentials,
   getProjectId,
   isResourceNotFoundError,
@@ -77,6 +78,21 @@ const INSERT_CONFIG = {
       "location": "query",
     },
     "parent": {
+      "location": "path",
+      "required": true,
+    },
+  },
+} as const;
+
+const DELETE_CONFIG = {
+  "id": "cloudkms.projects.locations.keyRings.delete",
+  "path": "v1/{+name}",
+  "httpMethod": "DELETE",
+  "parameterOrder": [
+    "name",
+  ],
+  "parameters": {
+    "name": {
       "location": "path",
       "required": true,
     },
@@ -189,7 +205,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Key Management Service (KMS) KeyRings. Registered at `@swamp/gcp/cloudkms/keyrings`. */
 export const model = {
   type: "@swamp/gcp/cloudkms/keyrings",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -316,6 +332,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.28.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -404,6 +425,41 @@ export const model = {
           instanceName,
           result,
         );
+        return { dataHandles: [handle] };
+      },
+    },
+    delete: {
+      description: "Delete the keyRings",
+      arguments: z.object({
+        identifier: z.string().describe("The name of the keyRings"),
+      }),
+      execute: async (args: { identifier: string }, context: any) => {
+        const g = context.globalArgs;
+        const baseUrl = g["apiEndpoint"]?.toString() ??
+          Deno.env.get("GCP_API_ENDPOINT")?.trim() ?? BASE_URL;
+        const credentials = _buildGcpCredentials(g);
+        const projectId = await getProjectId(credentials);
+        const params: Record<string, string> = { project: projectId };
+        params["name"] = buildResourceName(
+          `projects/${projectId}/locations/${String(g["location"] ?? "")}`,
+          args.identifier,
+        );
+        const { existed } = await deleteResource(
+          baseUrl,
+          DELETE_CONFIG,
+          params,
+          credentials,
+        );
+        const instanceName = (g.name?.toString() ?? args.identifier).replace(
+          /[\/\\]/g,
+          "_",
+        ).replace(/\.\./g, "_").replace(/\0/g, "");
+        const handle = await context.writeResource("state", instanceName, {
+          identifier: args.identifier,
+          existed,
+          status: existed ? "deleted" : "not_found",
+          deletedAt: new Date().toISOString(),
+        });
         return { dataHandles: [handle] };
       },
     },

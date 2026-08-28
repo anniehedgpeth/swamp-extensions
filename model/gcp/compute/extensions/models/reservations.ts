@@ -267,6 +267,7 @@ const GlobalArgsSchema = z.object({
     "Reservation for aggregated resources, providing shape flexibility.",
   ).optional(),
   confidentialComputeType: z.enum([
+    "CONFIDENTIAL_COMPUTE_TYPE_BMSAI",
     "CONFIDENTIAL_COMPUTE_TYPE_TDX",
     "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED",
   ]).optional(),
@@ -581,6 +582,7 @@ const InputsSchema = z.object({
     "Reservation for aggregated resources, providing shape flexibility.",
   ).optional(),
   confidentialComputeType: z.enum([
+    "CONFIDENTIAL_COMPUTE_TYPE_BMSAI",
     "CONFIDENTIAL_COMPUTE_TYPE_TDX",
     "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED",
   ]).optional(),
@@ -746,7 +748,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Reservations. Registered at `@swamp/gcp/compute/reservations`. */
 export const model = {
   type: "@swamp/gcp/compute/reservations",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -890,6 +892,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

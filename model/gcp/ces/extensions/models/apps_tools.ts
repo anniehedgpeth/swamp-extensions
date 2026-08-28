@@ -495,6 +495,9 @@ const GlobalArgsSchema = z.object({
         enableSnippets: z.boolean().describe(
           "Optional. Whether snippets are enabled.",
         ).optional(),
+        maxSnippets: z.number().int().describe(
+          "Optional. Number of snippets to return per query. If unset, returns all snippets from the service by default.",
+        ).optional(),
       }).describe("Optional. The snippets configuration.").optional(),
       summarizationConfig: z.object({
         disabled: z.boolean().describe(
@@ -939,6 +942,58 @@ const GlobalArgsSchema = z.object({
     }).describe(
       "Required. The agent card of the remote agent that this tool invokes.",
     ).optional(),
+    apiAuthentication: z.object({
+      apiKeyConfig: z.object({
+        apiKeySecretVersion: z.string().describe(
+          "Required. The name of the SecretManager secret version resource storing the API key. Format: `projects/{project}/secrets/{secret}/versions/{version}` Note: You should grant `roles/secretmanager.secretAccessor` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+        ).optional(),
+        keyName: z.string().describe(
+          'Required. The parameter name or the header name of the API key. E.g., If the API request is "https://example.com/act?X-Api-Key=", "X-Api-Key" would be the parameter name.',
+        ).optional(),
+        requestLocation: z.enum([
+          "REQUEST_LOCATION_UNSPECIFIED",
+          "HEADER",
+          "QUERY_STRING",
+        ]).describe("Required. Key location in the request.").optional(),
+      }).describe("Optional. Config for API key auth.").optional(),
+      bearerTokenConfig: z.object({
+        token: z.string().describe(
+          "Required. The bearer token. Must be in the format `$context.variables.`.",
+        ).optional(),
+      }).describe("Optional. Config for bearer token auth.").optional(),
+      oauthConfig: z.object({
+        clientId: z.string().describe(
+          "Required. The client ID from the OAuth provider.",
+        ).optional(),
+        clientSecretVersion: z.string().describe(
+          "Required. The name of the SecretManager secret version resource storing the client secret. Format: `projects/{project}/secrets/{secret}/versions/{version}` Note: You should grant `roles/secretmanager.secretAccessor` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+        ).optional(),
+        oauthGrantType: z.enum([
+          "OAUTH_GRANT_TYPE_UNSPECIFIED",
+          "CLIENT_CREDENTIAL",
+        ]).describe("Required. OAuth grant types.").optional(),
+        scopes: z.array(z.string()).describe(
+          "Optional. The OAuth scopes to grant.",
+        ).optional(),
+        tokenEndpoint: z.string().describe(
+          "Required. The token endpoint in the OAuth provider to exchange for an access token.",
+        ).optional(),
+      }).describe("Optional. Config for OAuth.").optional(),
+      serviceAccountAuthConfig: z.object({
+        scopes: z.array(z.string()).describe(
+          "Optional. The OAuth scopes to grant. If not specified, the default scope `https://www.googleapis.com/auth/cloud-platform` is used.",
+        ).optional(),
+        serviceAccount: z.string().describe(
+          "Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the `Authorization` header of the request. The service account must have the `roles/iam.serviceAccountTokenCreator` role granted to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+        ).optional(),
+      }).describe("Optional. Config for service account authentication.")
+        .optional(),
+      serviceAgentIdTokenAuthConfig: z.object({}).describe(
+        "Optional. Config for ID token auth generated from CES service agent.",
+      ).optional(),
+    }).describe(
+      "Optional. Authentication configuration for calling the remote agent.",
+    ).optional(),
     description: z.string().describe("Required. The description of the tool.")
       .optional(),
     name: z.string().describe("Required. The name of the tool.").optional(),
@@ -1244,6 +1299,7 @@ const StateSchema = z.object({
       }),
       snippetsConfig: z.object({
         enableSnippets: z.boolean(),
+        maxSnippets: z.number(),
       }),
       summarizationConfig: z.object({
         disabled: z.boolean(),
@@ -1425,6 +1481,28 @@ const StateSchema = z.object({
         url: z.string(),
       })),
       version: z.string(),
+    }),
+    apiAuthentication: z.object({
+      apiKeyConfig: z.object({
+        apiKeySecretVersion: z.string(),
+        keyName: z.string(),
+        requestLocation: z.string(),
+      }),
+      bearerTokenConfig: z.object({
+        token: z.string(),
+      }),
+      oauthConfig: z.object({
+        clientId: z.string(),
+        clientSecretVersion: z.string(),
+        oauthGrantType: z.string(),
+        scopes: z.array(z.string()),
+        tokenEndpoint: z.string(),
+      }),
+      serviceAccountAuthConfig: z.object({
+        scopes: z.array(z.string()),
+        serviceAccount: z.string(),
+      }),
+      serviceAgentIdTokenAuthConfig: z.object({}),
     }),
     description: z.string(),
     name: z.string(),
@@ -1823,6 +1901,9 @@ const InputsSchema = z.object({
         enableSnippets: z.boolean().describe(
           "Optional. Whether snippets are enabled.",
         ).optional(),
+        maxSnippets: z.number().int().describe(
+          "Optional. Number of snippets to return per query. If unset, returns all snippets from the service by default.",
+        ).optional(),
       }).describe("Optional. The snippets configuration.").optional(),
       summarizationConfig: z.object({
         disabled: z.boolean().describe(
@@ -2267,6 +2348,58 @@ const InputsSchema = z.object({
     }).describe(
       "Required. The agent card of the remote agent that this tool invokes.",
     ).optional(),
+    apiAuthentication: z.object({
+      apiKeyConfig: z.object({
+        apiKeySecretVersion: z.string().describe(
+          "Required. The name of the SecretManager secret version resource storing the API key. Format: `projects/{project}/secrets/{secret}/versions/{version}` Note: You should grant `roles/secretmanager.secretAccessor` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+        ).optional(),
+        keyName: z.string().describe(
+          'Required. The parameter name or the header name of the API key. E.g., If the API request is "https://example.com/act?X-Api-Key=", "X-Api-Key" would be the parameter name.',
+        ).optional(),
+        requestLocation: z.enum([
+          "REQUEST_LOCATION_UNSPECIFIED",
+          "HEADER",
+          "QUERY_STRING",
+        ]).describe("Required. Key location in the request.").optional(),
+      }).describe("Optional. Config for API key auth.").optional(),
+      bearerTokenConfig: z.object({
+        token: z.string().describe(
+          "Required. The bearer token. Must be in the format `$context.variables.`.",
+        ).optional(),
+      }).describe("Optional. Config for bearer token auth.").optional(),
+      oauthConfig: z.object({
+        clientId: z.string().describe(
+          "Required. The client ID from the OAuth provider.",
+        ).optional(),
+        clientSecretVersion: z.string().describe(
+          "Required. The name of the SecretManager secret version resource storing the client secret. Format: `projects/{project}/secrets/{secret}/versions/{version}` Note: You should grant `roles/secretmanager.secretAccessor` role to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+        ).optional(),
+        oauthGrantType: z.enum([
+          "OAUTH_GRANT_TYPE_UNSPECIFIED",
+          "CLIENT_CREDENTIAL",
+        ]).describe("Required. OAuth grant types.").optional(),
+        scopes: z.array(z.string()).describe(
+          "Optional. The OAuth scopes to grant.",
+        ).optional(),
+        tokenEndpoint: z.string().describe(
+          "Required. The token endpoint in the OAuth provider to exchange for an access token.",
+        ).optional(),
+      }).describe("Optional. Config for OAuth.").optional(),
+      serviceAccountAuthConfig: z.object({
+        scopes: z.array(z.string()).describe(
+          "Optional. The OAuth scopes to grant. If not specified, the default scope `https://www.googleapis.com/auth/cloud-platform` is used.",
+        ).optional(),
+        serviceAccount: z.string().describe(
+          "Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the `Authorization` header of the request. The service account must have the `roles/iam.serviceAccountTokenCreator` role granted to the CES service agent `service-@gcp-sa-ces.iam.gserviceaccount.com`.",
+        ).optional(),
+      }).describe("Optional. Config for service account authentication.")
+        .optional(),
+      serviceAgentIdTokenAuthConfig: z.object({}).describe(
+        "Optional. Config for ID token auth generated from CES service agent.",
+      ).optional(),
+    }).describe(
+      "Optional. Authentication configuration for calling the remote agent.",
+    ).optional(),
     description: z.string().describe("Required. The description of the tool.")
       .optional(),
     name: z.string().describe("Required. The name of the tool.").optional(),
@@ -2466,7 +2599,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Tools. Registered at `@swamp/gcp/ces/apps-tools`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-tools",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -2650,6 +2783,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

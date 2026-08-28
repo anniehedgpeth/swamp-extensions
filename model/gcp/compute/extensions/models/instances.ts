@@ -253,6 +253,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   confidentialInstanceConfig: z.object({
     confidentialInstanceType: z.enum([
+      "BMSAI",
       "CCA",
       "CONFIDENTIAL_INSTANCE_TYPE_UNSPECIFIED",
       "SEV",
@@ -322,12 +323,13 @@ const GlobalArgsSchema = z.object({
         "SEV_LIVE_MIGRATABLE_V2",
         "SEV_SNP_CAPABLE",
         "SNP_SVSM_CAPABLE",
+        "SUSPEND_SAFE_FPR",
         "TDX_CAPABLE",
         "UEFI_COMPATIBLE",
         "VIRTIO_SCSI_MULTIQUEUE",
         "WINDOWS",
       ]).describe(
-        "The ID of a supported feature. To add multiple values, use commas to separate values. Set to one or more of the following values: - VIRTIO_SCSI_MULTIQUEUE - WINDOWS - MULTI_IP_SUBNET - UEFI_COMPATIBLE - GVNIC - SEV_CAPABLE - SUSPEND_RESUME_COMPATIBLE - SEV_LIVE_MIGRATABLE_V2 - SEV_SNP_CAPABLE - TDX_CAPABLE - IDPF - SNP_SVSM_CAPABLE - CCA_CAPABLE For more information, see Enabling guest operating system features.",
+        "The ID of a supported feature. To add multiple values, use commas to separate values. Set to one or more of the following values: - VIRTIO_SCSI_MULTIQUEUE - WINDOWS - MULTI_IP_SUBNET - UEFI_COMPATIBLE - GVNIC - SEV_CAPABLE - SUSPEND_RESUME_COMPATIBLE - SEV_LIVE_MIGRATABLE_V2 - SEV_SNP_CAPABLE - TDX_CAPABLE - IDPF - SNP_SVSM_CAPABLE - CCA_CAPABLE - SUSPEND_SAFE_FPR For more information, see Enabling guest operating system features.",
       ).optional(),
     })).describe(
       "A list of features to enable on the guest operating system. Applicable only for bootable images. Read Enabling guest operating system features to see a list of available options.",
@@ -1333,6 +1335,7 @@ const InputsSchema = z.object({
   ).optional(),
   confidentialInstanceConfig: z.object({
     confidentialInstanceType: z.enum([
+      "BMSAI",
       "CCA",
       "CONFIDENTIAL_INSTANCE_TYPE_UNSPECIFIED",
       "SEV",
@@ -1402,12 +1405,13 @@ const InputsSchema = z.object({
         "SEV_LIVE_MIGRATABLE_V2",
         "SEV_SNP_CAPABLE",
         "SNP_SVSM_CAPABLE",
+        "SUSPEND_SAFE_FPR",
         "TDX_CAPABLE",
         "UEFI_COMPATIBLE",
         "VIRTIO_SCSI_MULTIQUEUE",
         "WINDOWS",
       ]).describe(
-        "The ID of a supported feature. To add multiple values, use commas to separate values. Set to one or more of the following values: - VIRTIO_SCSI_MULTIQUEUE - WINDOWS - MULTI_IP_SUBNET - UEFI_COMPATIBLE - GVNIC - SEV_CAPABLE - SUSPEND_RESUME_COMPATIBLE - SEV_LIVE_MIGRATABLE_V2 - SEV_SNP_CAPABLE - TDX_CAPABLE - IDPF - SNP_SVSM_CAPABLE - CCA_CAPABLE For more information, see Enabling guest operating system features.",
+        "The ID of a supported feature. To add multiple values, use commas to separate values. Set to one or more of the following values: - VIRTIO_SCSI_MULTIQUEUE - WINDOWS - MULTI_IP_SUBNET - UEFI_COMPATIBLE - GVNIC - SEV_CAPABLE - SUSPEND_RESUME_COMPATIBLE - SEV_LIVE_MIGRATABLE_V2 - SEV_SNP_CAPABLE - TDX_CAPABLE - IDPF - SNP_SVSM_CAPABLE - CCA_CAPABLE - SUSPEND_SAFE_FPR For more information, see Enabling guest operating system features.",
       ).optional(),
     })).describe(
       "A list of features to enable on the guest operating system. Applicable only for bootable images. Read Enabling guest operating system features to see a list of available options.",
@@ -2071,7 +2075,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Compute Engine Instances. Registered at `@swamp/gcp/compute/instances`. */
 export const model = {
   type: "@swamp/gcp/compute/instances",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.03.31.1",
@@ -2293,6 +2297,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -97,6 +97,7 @@ const GlobalArgsSchema = z.object({
   Name: z.string().describe(
     "The name of the RestApi. A name is required if the REST API is not based on an OpenAPI specification.",
   ).optional(),
+  Version: z.string().optional(),
   SecurityPolicy: z.string().optional(),
   ApiKeySourceType: z.string().optional(),
   EndpointConfiguration: z.object({
@@ -133,6 +134,7 @@ const StateSchema = z.object({
   BinaryMediaTypes: z.array(z.string()).optional(),
   Name: z.string().optional(),
   RootResourceId: z.string().optional(),
+  Version: z.string().optional(),
   SecurityPolicy: z.string().optional(),
   ApiKeySourceType: z.string().optional(),
   EndpointConfiguration: z.object({
@@ -185,6 +187,7 @@ const InputsSchema = z.object({
   Name: z.string().describe(
     "The name of the RestApi. A name is required if the REST API is not based on an OpenAPI specification.",
   ).optional(),
+  Version: z.string().optional(),
   SecurityPolicy: z.string().optional(),
   ApiKeySourceType: z.string().optional(),
   EndpointConfiguration: z.object({
@@ -220,7 +223,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for ApiGateway RestApi. Registered at `@swamp/aws/apigateway/rest-api`. */
 export const model = {
   type: "@swamp/aws/apigateway/rest-api",
-  version: "2026.08.17.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -280,6 +283,11 @@ export const model = {
     {
       toVersion: "2026.08.17.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
+      description: "Added: Version",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

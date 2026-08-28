@@ -375,6 +375,8 @@ const GlobalArgsSchema = z.object({
         "HARM_CATEGORY_DANGEROUS_CONTENT",
         "HARM_CATEGORY_HARASSMENT",
         "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "HARM_CATEGORY_PROFANITY",
+        "HARM_CATEGORY_TOXIC",
       ]).describe("Required. The harm category.").optional(),
       threshold: z.enum([
         "HARM_BLOCK_THRESHOLD_UNSPECIFIED",
@@ -707,6 +709,8 @@ const InputsSchema = z.object({
         "HARM_CATEGORY_DANGEROUS_CONTENT",
         "HARM_CATEGORY_HARASSMENT",
         "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "HARM_CATEGORY_PROFANITY",
+        "HARM_CATEGORY_TOXIC",
       ]).describe("Required. The harm category.").optional(),
       threshold: z.enum([
         "HARM_BLOCK_THRESHOLD_UNSPECIFIED",
@@ -760,7 +764,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Guardrails. Registered at `@swamp/gcp/ces/apps-guardrails`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-guardrails",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -889,6 +893,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

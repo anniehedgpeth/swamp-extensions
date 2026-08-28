@@ -273,6 +273,21 @@ const GlobalArgsSchema = z.object({
         "AUDIO_ENCODING_ALAW",
       ]).optional(),
       enableWordInfo: z.boolean().optional(),
+      geminiAsrConfig: z.object({
+        endOfSpeechSensitivity: z.enum([
+          "END_SENSITIVITY_UNSPECIFIED",
+          "END_SENSITIVITY_HIGH",
+          "END_SENSITIVITY_LOW",
+        ]).optional(),
+        modelId: z.string().optional(),
+        prefixPaddingMs: z.number().int().optional(),
+        silenceDurationMs: z.number().int().optional(),
+        startOfSpeechSensitivity: z.enum([
+          "START_SENSITIVITY_UNSPECIFIED",
+          "START_SENSITIVITY_HIGH",
+          "START_SENSITIVITY_LOW",
+        ]).optional(),
+      }).optional(),
       languageCode: z.string().optional(),
       model: z.string().optional(),
       phraseSets: z.array(z.string()).optional(),
@@ -283,6 +298,7 @@ const GlobalArgsSchema = z.object({
         "USE_STANDARD",
         "USE_ENHANCED",
       ]).optional(),
+      useGeminiAsr: z.boolean().optional(),
       useTimeoutBasedEndpointing: z.boolean().optional(),
     }).optional(),
     timeZone: z.string().optional(),
@@ -468,11 +484,19 @@ const StateSchema = z.object({
     sttConfig: z.object({
       audioEncoding: z.string(),
       enableWordInfo: z.boolean(),
+      geminiAsrConfig: z.object({
+        endOfSpeechSensitivity: z.string(),
+        modelId: z.string(),
+        prefixPaddingMs: z.number(),
+        silenceDurationMs: z.number(),
+        startOfSpeechSensitivity: z.string(),
+      }),
       languageCode: z.string(),
       model: z.string(),
       phraseSets: z.array(z.string()),
       sampleRateHertz: z.number(),
       speechModelVariant: z.string(),
+      useGeminiAsr: z.boolean(),
       useTimeoutBasedEndpointing: z.boolean(),
     }),
     timeZone: z.string(),
@@ -671,6 +695,21 @@ const InputsSchema = z.object({
         "AUDIO_ENCODING_ALAW",
       ]).optional(),
       enableWordInfo: z.boolean().optional(),
+      geminiAsrConfig: z.object({
+        endOfSpeechSensitivity: z.enum([
+          "END_SENSITIVITY_UNSPECIFIED",
+          "END_SENSITIVITY_HIGH",
+          "END_SENSITIVITY_LOW",
+        ]).optional(),
+        modelId: z.string().optional(),
+        prefixPaddingMs: z.number().int().optional(),
+        silenceDurationMs: z.number().int().optional(),
+        startOfSpeechSensitivity: z.enum([
+          "START_SENSITIVITY_UNSPECIFIED",
+          "START_SENSITIVITY_HIGH",
+          "START_SENSITIVITY_LOW",
+        ]).optional(),
+      }).optional(),
       languageCode: z.string().optional(),
       model: z.string().optional(),
       phraseSets: z.array(z.string()).optional(),
@@ -681,6 +720,7 @@ const InputsSchema = z.object({
         "USE_STANDARD",
         "USE_ENHANCED",
       ]).optional(),
+      useGeminiAsr: z.boolean().optional(),
       useTimeoutBasedEndpointing: z.boolean().optional(),
     }).optional(),
     timeZone: z.string().optional(),
@@ -780,7 +820,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dialogflow Conversations. Registered at `@swamp/gcp/dialogflow/conversations`. */
 export const model = {
   type: "@swamp/gcp/dialogflow/conversations",
-  version: "2026.08.18.1",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.07.29.1",
@@ -794,6 +834,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.18.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

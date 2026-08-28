@@ -207,6 +207,9 @@ const GlobalArgsSchema = z.object({
       ).optional(),
       text: z.string().describe("Optional. Text data.").optional(),
       toolCall: z.object({
+        agentName: z.unknown().describe(
+          'Output only. Human-readable name of the agent that issued this call, e.g. "Contract Architect". Empty when the root agent issued it.',
+        ).optional(),
         args: z.unknown().describe(
           "Optional. The input parameters and values for the tool in JSON object format.",
         ).optional(),
@@ -216,6 +219,9 @@ const GlobalArgsSchema = z.object({
         id: z.unknown().describe(
           "Optional. The unique identifier of the tool call. If populated, the client should return the execution result with the matching ID in ToolResponse.",
         ).optional(),
+        parentToolCallId: z.unknown().describe(
+          "Output only. The id of the tool call that caused this one, when it was issued by a sub-agent working on behalf of a parent call. Empty for top-level calls. Lets a client group a sub-agent's work under the call that started it instead of rendering every step as a sibling.",
+        ).optional(),
         tool: z.unknown().describe(
           "Optional. The name of the tool to execute. Format: `projects/{project}/locations/{location}/apps/{app}/tools/{tool}`",
         ).optional(),
@@ -224,11 +230,17 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       }).describe("Optional. Tool execution request.").optional(),
       toolResponse: z.object({
+        agentName: z.unknown().describe(
+          'Output only. Human-readable name of the agent that issued this call, e.g. "Contract Architect". Empty when the root agent issued it.',
+        ).optional(),
         displayName: z.unknown().describe(
           "Output only. Display name of the tool.",
         ).optional(),
         id: z.unknown().describe(
           "Optional. The matching ID of the tool call the response is for.",
+        ).optional(),
+        parentToolCallId: z.unknown().describe(
+          "Output only. The id of the tool call that caused this one, when it was issued by a sub-agent working on behalf of a parent call. Empty for top-level calls. Lets a client group a sub-agent's work under the call that started it instead of rendering every step as a sibling.",
         ).optional(),
         response: z.unknown().describe(
           'Required. The tool execution result in JSON object format. Use "output" key to specify tool response and "error" key to specify error details (if any). If "output" and "error" keys are not specified, then whole "response" is treated as tool execution result.',
@@ -296,15 +308,19 @@ const StateSchema = z.object({
       payload: z.record(z.string(), z.unknown()),
       text: z.string(),
       toolCall: z.object({
+        agentName: z.unknown(),
         args: z.unknown(),
         displayName: z.unknown(),
         id: z.unknown(),
+        parentToolCallId: z.unknown(),
         tool: z.unknown(),
         toolsetTool: z.unknown(),
       }),
       toolResponse: z.object({
+        agentName: z.unknown(),
         displayName: z.unknown(),
         id: z.unknown(),
+        parentToolCallId: z.unknown(),
         response: z.unknown(),
         tool: z.unknown(),
         toolsetTool: z.unknown(),
@@ -368,6 +384,9 @@ const InputsSchema = z.object({
       ).optional(),
       text: z.string().describe("Optional. Text data.").optional(),
       toolCall: z.object({
+        agentName: z.unknown().describe(
+          'Output only. Human-readable name of the agent that issued this call, e.g. "Contract Architect". Empty when the root agent issued it.',
+        ).optional(),
         args: z.unknown().describe(
           "Optional. The input parameters and values for the tool in JSON object format.",
         ).optional(),
@@ -377,6 +396,9 @@ const InputsSchema = z.object({
         id: z.unknown().describe(
           "Optional. The unique identifier of the tool call. If populated, the client should return the execution result with the matching ID in ToolResponse.",
         ).optional(),
+        parentToolCallId: z.unknown().describe(
+          "Output only. The id of the tool call that caused this one, when it was issued by a sub-agent working on behalf of a parent call. Empty for top-level calls. Lets a client group a sub-agent's work under the call that started it instead of rendering every step as a sibling.",
+        ).optional(),
         tool: z.unknown().describe(
           "Optional. The name of the tool to execute. Format: `projects/{project}/locations/{location}/apps/{app}/tools/{tool}`",
         ).optional(),
@@ -385,11 +407,17 @@ const InputsSchema = z.object({
         ).optional(),
       }).describe("Optional. Tool execution request.").optional(),
       toolResponse: z.object({
+        agentName: z.unknown().describe(
+          'Output only. Human-readable name of the agent that issued this call, e.g. "Contract Architect". Empty when the root agent issued it.',
+        ).optional(),
         displayName: z.unknown().describe(
           "Output only. Display name of the tool.",
         ).optional(),
         id: z.unknown().describe(
           "Optional. The matching ID of the tool call the response is for.",
+        ).optional(),
+        parentToolCallId: z.unknown().describe(
+          "Output only. The id of the tool call that caused this one, when it was issued by a sub-agent working on behalf of a parent call. Empty for top-level calls. Lets a client group a sub-agent's work under the call that started it instead of rendering every step as a sibling.",
         ).optional(),
         response: z.unknown().describe(
           'Required. The tool execution result in JSON object format. Use "output" key to specify tool response and "error" key to specify error details (if any). If "output" and "error" keys are not specified, then whole "response" is treated as tool execution result.',
@@ -458,7 +486,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Gemini Enterprise for Customer Experience Apps.Examples. Registered at `@swamp/gcp/ces/apps-examples`. */
 export const model = {
   type: "@swamp/gcp/ces/apps-examples",
-  version: "2026.08.12.2",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -592,6 +620,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

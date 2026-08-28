@@ -49,10 +49,6 @@ const GlobalArgsSchema = z.object({
       public_key: z.string(),
     })).optional(),
     command: z.array(z.string()).optional(),
-    dns: z.object({
-      searches: z.array(z.string()).optional(),
-      servers: z.array(z.string()).optional(),
-    }).optional(),
     entrypoint: z.array(z.string()).optional(),
     environment_variables: z.array(z.object({
       name: z.string(),
@@ -72,28 +68,18 @@ const GlobalArgsSchema = z.object({
         enabled: z.boolean().optional(),
       }).optional(),
     }).optional(),
-    trusted_user_ca_keys: z.array(z.object({
-      name: z.string().optional(),
-      public_key: z.string(),
-    })).optional(),
-    wrangler_ssh: z.object({
-      enabled: z.boolean().optional(),
-      port: z.number().int().min(1).max(65535).optional(),
-    }).optional(),
   }).describe("User-specified container configuration.").optional(),
   constraints: z.object({
     jurisdiction: z.string().optional(),
     regions: z.array(z.string()).optional(),
   }).optional(),
   max_instances: z.number().int().min(0).describe(
-    "Maximum number of instances that the application will allow.",
+    "Sets the maximum number of instances that the application can run.",
   ).optional(),
   observability: z.object({
     logs: z.object({
       enabled: z.boolean().optional(),
     }).optional(),
-    target_instance_count: z.number().int().min(1).optional(),
-    target_instance_percentage: z.number().int().min(1).max(99).optional(),
   }).describe("Settings for application observability such as logging.")
     .optional(),
   rollout_active_grace_period: z.number().int().min(0).max(604800).describe(
@@ -102,11 +88,12 @@ const GlobalArgsSchema = z.object({
   durable_objects: z.string().describe(
     "Set of properties to configure a Durable Object-backed application.",
   ).optional(),
-  instances: z.number().int().min(0).describe("Number of deployments to create")
-    .optional(),
-  name: z.string().describe("The name for this application"),
+  instances: z.number().int().min(0).describe(
+    "The initial number of deployments to create.",
+  ).optional(),
+  name: z.string().describe("The name for this application."),
   scheduling_policy: z.enum(["default", "durable_object"]).describe(
-    "The scheduling policy to use for a scheduler-backed application.",
+    "Selects a scheduler-backed application. Use `default` when the Containers\nscheduler should maintain the requested number of instances and manage deployment\nconfiguration, placement, scaling, versions, and rollouts.\n",
   ),
   apiToken: z.string().meta({ sensitive: true }).describe(
     "Cloudflare API token; overrides the CLOUDFLARE_API_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -146,10 +133,6 @@ const ResourceSchema = z.object({
         public_key: z.string().optional(),
       })).optional(),
       command: z.array(z.string()).optional(),
-      dns: z.object({
-        searches: z.array(z.string()).optional(),
-        servers: z.array(z.string()).optional(),
-      }).optional(),
       entrypoint: z.array(z.string()).optional(),
       environment_variables: z.array(z.object({
         name: z.string().optional(),
@@ -161,14 +144,6 @@ const ResourceSchema = z.object({
         logs: z.object({
           enabled: z.boolean().optional(),
         }).optional(),
-      }).optional(),
-      trusted_user_ca_keys: z.array(z.object({
-        name: z.string().optional(),
-        public_key: z.string().optional(),
-      })).optional(),
-      wrangler_ssh: z.object({
-        enabled: z.boolean().optional(),
-        port: z.number().optional(),
       }).optional(),
     }).optional(),
     constraints: z.object({
@@ -206,8 +181,6 @@ const ResourceSchema = z.object({
       logs: z.object({
         enabled: z.boolean().optional(),
       }).optional(),
-      target_instance_count: z.number().optional(),
-      target_instance_percentage: z.number().optional(),
     }).optional(),
     rollout_active_grace_period: z.number().optional(),
     scheduling_policy: z.string().optional(),
@@ -227,10 +200,6 @@ const InputsSchema = z.object({
       public_key: z.string(),
     })).optional(),
     command: z.array(z.string()).optional(),
-    dns: z.object({
-      searches: z.array(z.string()).optional(),
-      servers: z.array(z.string()).optional(),
-    }).optional(),
     entrypoint: z.array(z.string()).optional(),
     environment_variables: z.array(z.object({
       name: z.string(),
@@ -250,14 +219,6 @@ const InputsSchema = z.object({
         enabled: z.boolean().optional(),
       }).optional(),
     }).optional(),
-    trusted_user_ca_keys: z.array(z.object({
-      name: z.string().optional(),
-      public_key: z.string(),
-    })).optional(),
-    wrangler_ssh: z.object({
-      enabled: z.boolean().optional(),
-      port: z.number().int().min(1).max(65535).optional(),
-    }).optional(),
   }).optional(),
   constraints: z.object({
     jurisdiction: z.string().optional(),
@@ -268,8 +229,6 @@ const InputsSchema = z.object({
     logs: z.object({
       enabled: z.boolean().optional(),
     }).optional(),
-    target_instance_count: z.number().int().min(1).optional(),
-    target_instance_percentage: z.number().int().min(1).max(99).optional(),
   }).optional(),
   rollout_active_grace_period: z.number().int().min(0).max(604800).optional(),
   durable_objects: z.string().optional(),
@@ -284,7 +243,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Cloudflare Applications. Registered at `@swamp/cloudflare/containers/applications`. */
 export const model = {
   type: "@swamp/cloudflare/containers/applications",
-  version: "2026.08.27.1",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.06.08.2",
@@ -346,6 +305,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.27.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

@@ -131,6 +131,11 @@ const StateSchema = z.object({
     customThreatScenario: z.object({
       compiledLuceneQuery: z.string(),
       documentCondition: z.string(),
+      documentQuery: z.object({
+        dataModel: z.string(),
+        query: z.string(),
+        queryType: z.string(),
+      }),
       legacyMonitorMetadata: z.object({
         aggregationEnabled: z.boolean(),
         aggregationSimilarity: z.number(),
@@ -253,6 +258,15 @@ const StateSchema = z.object({
       })),
     }),
     detailType: z.string(),
+    domainConfiguration: z.object({
+      domainSettings: z.array(z.object({
+        domain: z.string(),
+        domainMonitoringConfig: z.object({
+          disabled: z.unknown(),
+        }),
+        state: z.string(),
+      })),
+    }),
     technologyWatchlist: z.object({
       alertThreshold: z.object({
         cvssScoreMinimum: z.number(),
@@ -313,7 +327,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Threat Intelligence Configurations. Registered at `@swamp/gcp/threatintelligence/configurations`. */
 export const model = {
   type: "@swamp/gcp/threatintelligence/configurations",
-  version: "2026.08.20.1",
+  version: "2026.08.28.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -462,6 +476,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.20.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
