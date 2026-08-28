@@ -7600,3 +7600,254 @@ Deno.test("markDirty: preserves commitSeq through buildV2State rebuild", async (
     await Deno.remove(cachePath, { recursive: true });
   }
 });
+
+// ---------------------------------------------------------------------------
+// Helper: compute SHA-256 hex string matching the production code's format.
+// ---------------------------------------------------------------------------
+async function sha256Hex(content: string): Promise<string> {
+  const data = new TextEncoder().encode(content);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// ---------------------------------------------------------------------------
+// #1771: pullChanged must detect same-size content changes via sha256
+// ---------------------------------------------------------------------------
+
+Deno.test("pullChanged: re-downloads same-size file when sha256 differs (swamp-club#1771)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-1771-a-" });
+  try {
+    const mock = createMockS3Client();
+
+    const oldContent = "AAAA";
+    const newContent = "BBBB";
+    const newHash = await sha256Hex(newContent);
+
+    // Remote index says the file has content "BBBB" (new sha256).
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/m/rec/raw": {
+          key: "data/m/rec/raw",
+          size: 4,
+          lastModified: new Date().toISOString(),
+          sha256: newHash,
+        },
+      }),
+    );
+    // Remote has the new content.
+    mock.storage.set("data/m/rec/raw", new TextEncoder().encode(newContent));
+
+    // Local has old content — same size, different bytes.
+    await seedFile(cachePath, "data/m/rec/raw", oldContent);
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    await service.pullChanged();
+
+    // The local file must now contain the new content.
+    const result = await Deno.readTextFile(join(cachePath, "data/m/rec/raw"));
+    assertEquals(
+      result,
+      newContent,
+      "pullChanged must re-download when sha256 differs",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pullChanged: skips download when sha256 matches (swamp-club#1771)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-1771-b-" });
+  try {
+    const mock = createMockS3Client();
+
+    const content = "AAAA";
+    const hash = await sha256Hex(content);
+
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/m/rec/raw": {
+          key: "data/m/rec/raw",
+          size: 4,
+          lastModified: new Date().toISOString(),
+          sha256: hash,
+        },
+      }),
+    );
+    mock.storage.set("data/m/rec/raw", new TextEncoder().encode(content));
+
+    // Local has identical content.
+    await seedFile(cachePath, "data/m/rec/raw", content);
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    mock.gets.length = 0;
+    await service.pullChanged();
+
+    // Should NOT have fetched the data file (only the index).
+    const dataGets = mock.gets.filter((k) => k === "data/m/rec/raw");
+    assertEquals(
+      dataGets.length,
+      0,
+      "pullChanged must skip download when sha256 matches",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pullChanged: falls back to size-only when index has no sha256 (swamp-club#1771)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-1771-c-" });
+  try {
+    const mock = createMockS3Client();
+
+    // Index entry without sha256 (old-style).
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/m/rec/raw": {
+          key: "data/m/rec/raw",
+          size: 4,
+          lastModified: new Date().toISOString(),
+        },
+      }),
+    );
+    mock.storage.set("data/m/rec/raw", new TextEncoder().encode("BBBB"));
+
+    // Local has same-size but different content. Without sha256 in the
+    // index, pullChanged should skip (preserving old behavior).
+    await seedFile(cachePath, "data/m/rec/raw", "AAAA");
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    mock.gets.length = 0;
+    await service.pullChanged();
+
+    const dataGets = mock.gets.filter((k) => k === "data/m/rec/raw");
+    assertEquals(
+      dataGets.length,
+      0,
+      "no sha256 in index → size-only, no download",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// #1747: isRetryableError must treat 409 as retryable
+// ---------------------------------------------------------------------------
+
+Deno.test("isRetryableError: 409 ConditionalRequestConflict is retryable (swamp-club#1747)", () => {
+  const err = new S3OperationError("conflict", {
+    name: "ConditionalRequestConflict",
+    cause: new Error("conflict"),
+    httpStatusCode: 409,
+    code: "ConditionalRequestConflict",
+    requestId: undefined,
+    bodyPreview: undefined,
+  });
+  assertEquals(isRetryableError(err), true, "409 must be retryable");
+});
+
+Deno.test("retryWithBackoff: retries on 409 and succeeds (swamp-club#1747)", async () => {
+  let attempts = 0;
+  const result = await retryWithBackoff(
+    () => {
+      attempts++;
+      if (attempts < 3) {
+        throw new S3OperationError("conflict", {
+          name: "ConditionalRequestConflict",
+          cause: new Error("conflict"),
+          httpStatusCode: 409,
+          code: "ConditionalRequestConflict",
+          requestId: undefined,
+          bodyPreview: undefined,
+        });
+      }
+      return Promise.resolve("ok");
+    },
+    { baseDelayMs: 1, maxAttempts: 5 },
+  );
+  assertEquals(result, "ok");
+  assertEquals(attempts, 3, "should have retried twice before succeeding");
+});
+
+// ---------------------------------------------------------------------------
+// #1760: pullChanged sha256 check prevents the stale-pointer rollback
+// scenario end-to-end. The root cause of #1760 is that pullChanged's
+// size-only check missed same-size `latest` pointer updates, leaving the
+// stale value in place for pushChanged to overwrite the remote.
+// With the sha256 check (#1771), pullChanged corrects the local pointer
+// before pushChanged runs, eliminating the rollback.
+// ---------------------------------------------------------------------------
+
+Deno.test("pullChanged + pushChanged: stale latest pointer is corrected, not pushed (swamp-club#1760)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-1760-" });
+  try {
+    const mock = createMockS3Client();
+
+    const newHash = await sha256Hex("8");
+
+    // Remote state: Machine A pushed version 8.
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/type/model/rec/latest": {
+          key: "data/type/model/rec/latest",
+          size: 1,
+          lastModified: new Date().toISOString(),
+          sha256: newHash,
+        },
+      }),
+    );
+    mock.storage.set(
+      "data/type/model/rec/latest",
+      new TextEncoder().encode("8"),
+    );
+
+    // Machine B: stale local latest = "6" (same 1-byte size as "8").
+    await seedFile(cachePath, "data/type/model/rec/latest", "6");
+
+    const service = new S3CacheSyncService(mock, cachePath);
+
+    // Sync = pullChanged then pushChanged (same as `swamp datastore sync`).
+    await service.pullChanged();
+
+    // pullChanged must have detected the sha256 mismatch and downloaded "8".
+    const localAfterPull = await Deno.readTextFile(
+      join(cachePath, "data/type/model/rec/latest"),
+    );
+    assertEquals(
+      localAfterPull,
+      "8",
+      "pullChanged must re-download when sha256 differs (was '6', remote is '8')",
+    );
+
+    // pushChanged should now see no difference and push nothing.
+    mock.puts.length = 0;
+    await service.pushChanged();
+
+    const latestPuts = mock.puts.filter((p) =>
+      p.key === "data/type/model/rec/latest"
+    );
+    assertEquals(
+      latestPuts.length,
+      0,
+      "pushChanged must not re-push the pointer after pullChanged corrected it",
+    );
+
+    // Remote must still be "8".
+    const remoteAfterSync = new TextDecoder().decode(
+      mock.storage.get("data/type/model/rec/latest"),
+    );
+    assertEquals(
+      remoteAfterSync,
+      "8",
+      "remote pointer must not be rolled back",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});

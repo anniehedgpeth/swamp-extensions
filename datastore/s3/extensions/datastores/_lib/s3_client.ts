@@ -684,7 +684,8 @@ export class S3Client {
           if (
             error instanceof Error &&
             (error.name === "PreconditionFailed" ||
-              error.name === "ConditionalCheckFailed")
+              error.name === "ConditionalCheckFailed" ||
+              error.name === "ConditionalRequestConflict")
           ) {
             return false;
           }

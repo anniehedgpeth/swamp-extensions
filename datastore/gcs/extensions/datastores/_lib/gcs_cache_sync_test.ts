@@ -254,6 +254,7 @@ function encodeIndex(
     size: number;
     lastModified: string;
     localMtime?: string;
+    sha256?: string;
   }>,
 ): Uint8Array {
   return new TextEncoder().encode(
@@ -7027,6 +7028,227 @@ Deno.test("markDirty: preserves commitSeq through buildV2State rebuild", async (
       sidecarAfter.commitSeq,
       5,
       "markDirty must preserve commitSeq (swamp-club#1877)",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Helper: compute SHA-256 hex string matching the production code's format.
+// ---------------------------------------------------------------------------
+async function sha256Hex(content: string): Promise<string> {
+  const data = new TextEncoder().encode(content);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// ---------------------------------------------------------------------------
+// #1771: pullChanged must detect same-size content changes via sha256
+// ---------------------------------------------------------------------------
+
+Deno.test("pullChanged: re-downloads same-size file when sha256 differs (swamp-club#1771)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1771-a-" });
+  try {
+    const mock = createMockGcsClient();
+
+    const oldContent = "AAAA";
+    const newContent = "BBBB";
+    const newHash = await sha256Hex(newContent);
+
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/m/rec/raw": {
+          key: "data/m/rec/raw",
+          size: 4,
+          lastModified: new Date().toISOString(),
+          sha256: newHash,
+        },
+      }),
+    );
+    mock.storage.set("data/m/rec/raw", new TextEncoder().encode(newContent));
+
+    await seedFile(cachePath, "data/m/rec/raw", oldContent);
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pullChanged();
+
+    const result = await Deno.readTextFile(join(cachePath, "data/m/rec/raw"));
+    assertEquals(
+      result,
+      newContent,
+      "pullChanged must re-download when sha256 differs",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pullChanged: skips download when sha256 matches (swamp-club#1771)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1771-b-" });
+  try {
+    const mock = createMockGcsClient();
+
+    const content = "AAAA";
+    const hash = await sha256Hex(content);
+
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/m/rec/raw": {
+          key: "data/m/rec/raw",
+          size: 4,
+          lastModified: new Date().toISOString(),
+          sha256: hash,
+        },
+      }),
+    );
+    mock.storage.set("data/m/rec/raw", new TextEncoder().encode(content));
+
+    await seedFile(cachePath, "data/m/rec/raw", content);
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    mock.gets.length = 0;
+    await service.pullChanged();
+
+    const dataGets = mock.gets.filter((k) => k === "data/m/rec/raw");
+    assertEquals(
+      dataGets.length,
+      0,
+      "pullChanged must skip download when sha256 matches",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("pullChanged: falls back to size-only when index has no sha256 (swamp-club#1771)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1771-c-" });
+  try {
+    const mock = createMockGcsClient();
+
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/m/rec/raw": {
+          key: "data/m/rec/raw",
+          size: 4,
+          lastModified: new Date().toISOString(),
+        },
+      }),
+    );
+    mock.storage.set("data/m/rec/raw", new TextEncoder().encode("BBBB"));
+
+    await seedFile(cachePath, "data/m/rec/raw", "AAAA");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    mock.gets.length = 0;
+    await service.pullChanged();
+
+    const dataGets = mock.gets.filter((k) => k === "data/m/rec/raw");
+    assertEquals(
+      dataGets.length,
+      0,
+      "no sha256 in index → size-only, no download",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// #1747: isRetryableError must treat 409 as retryable
+// ---------------------------------------------------------------------------
+
+Deno.test("isRetryableError: 409 is retryable (swamp-club#1747)", () => {
+  assertEquals(
+    isRetryableError(makeGcsErr(409)),
+    true,
+    "409 must be retryable",
+  );
+});
+
+Deno.test("retryWithBackoff: retries on 409 and succeeds (swamp-club#1747)", async () => {
+  let attempts = 0;
+  const result = await retryWithBackoff(
+    () => {
+      attempts++;
+      if (attempts < 3) {
+        return Promise.reject(makeGcsErr(409));
+      }
+      return Promise.resolve("ok");
+    },
+    { baseDelayMs: 1, maxAttempts: 5 },
+  );
+  assertEquals(result, "ok");
+  assertEquals(attempts, 3, "should have retried twice before succeeding");
+});
+
+// ---------------------------------------------------------------------------
+// #1760: pullChanged sha256 check prevents the stale-pointer rollback
+// scenario end-to-end.
+// ---------------------------------------------------------------------------
+
+Deno.test("pullChanged + pushChanged: stale latest pointer is corrected, not pushed (swamp-club#1760)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-1760-" });
+  try {
+    const mock = createMockGcsClient();
+
+    const newHash = await sha256Hex("8");
+
+    mock.storage.set(
+      ".datastore-index.json",
+      encodeIndex({
+        "data/type/model/rec/latest": {
+          key: "data/type/model/rec/latest",
+          size: 1,
+          lastModified: new Date().toISOString(),
+          sha256: newHash,
+        },
+      }),
+    );
+    mock.storage.set(
+      "data/type/model/rec/latest",
+      new TextEncoder().encode("8"),
+    );
+
+    await seedFile(cachePath, "data/type/model/rec/latest", "6");
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+
+    await service.pullChanged();
+
+    const localAfterPull = await Deno.readTextFile(
+      join(cachePath, "data/type/model/rec/latest"),
+    );
+    assertEquals(
+      localAfterPull,
+      "8",
+      "pullChanged must re-download when sha256 differs (was '6', remote is '8')",
+    );
+
+    mock.puts.length = 0;
+    await service.pushChanged();
+
+    const latestPuts = mock.puts.filter((p) =>
+      p.key === "data/type/model/rec/latest"
+    );
+    assertEquals(
+      latestPuts.length,
+      0,
+      "pushChanged must not re-push the pointer after pullChanged corrected it",
+    );
+
+    const remoteAfterSync = new TextDecoder().decode(
+      mock.storage.get("data/type/model/rec/latest"),
+    );
+    assertEquals(
+      remoteAfterSync,
+      "8",
+      "remote pointer must not be rolled back",
     );
   } finally {
     await Deno.remove(cachePath, { recursive: true });

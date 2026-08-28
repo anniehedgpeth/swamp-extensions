@@ -397,6 +397,9 @@ export function isRetryableError(err: unknown): boolean {
   if (err instanceof S3OperationError) {
     const status = err.httpStatusCode;
     if (status === 429) return true;
+    // 409 ConditionalRequestConflict: concurrent conditional PUT race —
+    // retryable after re-reading current state (swamp-club#1747).
+    if (status === 409) return true;
     if (status != null && status >= 500 && status < 600) return true;
     if (status == null) return true;
   }
@@ -1738,7 +1741,29 @@ export class S3CacheSyncService implements DatastoreSyncService {
             try {
               const stat = await Deno.stat(localPath);
               if (stat.size === entry.size) {
-                // File exists locally with matching size — no download needed.
+                // Same size — use mtime as a fast path: if the local file
+                // hasn't been touched since we last recorded its mtime AND
+                // the index carries a sha256, the remote may have changed
+                // underneath us (another machine pushed a same-size update).
+                // Hash-compare only when mtime is missing, unrecorded, or
+                // differs — that covers fresh index pulls where localMtime
+                // hasn't been reconciled yet.
+                const mtimeMatch = entry.localMtime && stat.mtime &&
+                  entry.localMtime === stat.mtime.toISOString();
+                if (!mtimeMatch && entry.sha256) {
+                  const data = await Deno.readFile(localPath);
+                  const hashBuffer = await crypto.subtle.digest(
+                    "SHA-256",
+                    data,
+                  );
+                  const localHash = Array.from(new Uint8Array(hashBuffer))
+                    .map((b) => b.toString(16).padStart(2, "0"))
+                    .join("");
+                  if (localHash !== entry.sha256) {
+                    toPull.push(rel);
+                    continue;
+                  }
+                }
                 // Reconcile localMtime so pushChanged() doesn't treat it as
                 // changed due to mtime drift (e.g. file was placed by migration
                 // or a different machine pushed the index).
