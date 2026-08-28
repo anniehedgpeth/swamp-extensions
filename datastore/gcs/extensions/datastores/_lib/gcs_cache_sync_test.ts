@@ -6878,6 +6878,185 @@ Deno.test("isInternalCacheFile excludes _control/ paths", () => {
   assert(!isInternalCacheFile("data/control-panel/file.yaml"));
 });
 
+// -- swamp-club#1889: controlPlaneStore binding, stale prefix, and control-plane migration --
+
+Deno.test("controlPlaneStore: binding protocol — solo mode binds undefined", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-bind-" });
+  try {
+    const mock = createMockGcsClient();
+    const service = new GcsCacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const payload = new TextEncoder().encode("solo");
+    await store.put("heartbeats/inst-1", payload);
+
+    assertEquals(
+      mock.storage.has("_control/heartbeats/inst-1"),
+      true,
+      "solo mode must write to root _control/",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: respects namespace when bound via pullChanged", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-ns-put-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pullChanged({ namespace: "my-ns" });
+
+    const store = service.controlPlaneStore();
+    await store.put("key", new TextEncoder().encode("x"));
+
+    assertEquals(
+      mock.storage.has("my-ns/_control/key"),
+      true,
+      "put must use the bound namespace prefix",
+    );
+    assertEquals(
+      mock.storage.has("_control/key"),
+      false,
+      "put must not write to root",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: binding protocol — solo then namespace throws mismatch", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-solo-ns-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set(".datastore-index.json", encodeIndex({}));
+    const service = new GcsCacheSyncService(mock, cachePath);
+
+    const store = service.controlPlaneStore();
+    await store.put("heartbeats/inst-1", new TextEncoder().encode("solo"));
+    assertEquals(mock.storage.has("_control/heartbeats/inst-1"), true);
+
+    await assertRejects(
+      () => service.pullChanged({ namespace: "my-ns" }),
+      Error,
+      "Namespace mismatch",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: list uses current namespace, not stale prefix", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-list-lazy-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    mock.storage.set(
+      "my-ns/_control/heartbeats/a",
+      new TextEncoder().encode("1"),
+    );
+    const service = new GcsCacheSyncService(mock, cachePath);
+
+    await service.pullChanged({ namespace: "my-ns" });
+    const nsStore = service.controlPlaneStore();
+
+    const keys = await nsStore.list("heartbeats/");
+    assertEquals(
+      keys,
+      ["heartbeats/a"],
+      "list() must scan namespaced prefix, not root",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: migration copies root _control/ keys to namespace", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-migrate-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    mock.storage.set(
+      "_control/token-encryption-key",
+      new TextEncoder().encode("secret-key"),
+    );
+    mock.storage.set(
+      "_control/heartbeats/inst-1",
+      new TextEncoder().encode("beat"),
+    );
+    mock.storage.set(
+      "my-ns/.namespace.json",
+      new TextEncoder().encode(JSON.stringify({
+        namespace: "my-ns",
+        repoId: "repo-1",
+        registeredAt: new Date().toISOString(),
+      })),
+    );
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pushChanged({ namespace: "my-ns" });
+
+    assertEquals(
+      mock.storage.has("my-ns/_control/token-encryption-key"),
+      true,
+      "migration must copy root _control/ keys to {namespace}/_control/",
+    );
+    assertEquals(
+      mock.storage.has("my-ns/_control/heartbeats/inst-1"),
+      true,
+      "migration must copy nested root _control/ keys",
+    );
+    assertEquals(
+      mock.storage.has("_control/token-encryption-key"),
+      false,
+      "migration must delete root-level originals after copy",
+    );
+    assertEquals(
+      mock.storage.has("_control/heartbeats/inst-1"),
+      false,
+      "migration must delete nested root-level originals",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: migration skips when no namespaced index (fresh namespace)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "gcssync-cp-nomigrate-" });
+  try {
+    const mock = createMockGcsClient();
+    mock.storage.set(
+      "_control/token-encryption-key",
+      new TextEncoder().encode("other-tenant-secret"),
+    );
+    mock.storage.set(
+      "my-ns/.namespace.json",
+      new TextEncoder().encode(JSON.stringify({
+        namespace: "my-ns",
+        repoId: "repo-1",
+        registeredAt: new Date().toISOString(),
+      })),
+    );
+
+    const service = new GcsCacheSyncService(mock, cachePath);
+    await service.pushChanged({ namespace: "my-ns" });
+
+    assertEquals(
+      mock.storage.has("_control/token-encryption-key"),
+      true,
+      "root _control/ keys must not be migrated when no namespaced index exists",
+    );
+    assertEquals(
+      mock.storage.has("my-ns/_control/token-encryption-key"),
+      false,
+      "keys must not appear under namespace when guard prevents migration",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 // -- swamp-club#1556: localHasAllRemoteEntries must use localRelPath in namespaced mode --
 
 function seedV2RepoNamespaced(

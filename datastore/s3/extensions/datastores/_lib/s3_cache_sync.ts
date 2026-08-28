@@ -523,6 +523,7 @@ interface DatastoreSyncStateV2 {
   commitSeq?: number;
   lastCatalogHash?: string;
   dataKeyMigrated?: boolean;
+  controlPlaneKeysMigrated?: boolean;
 }
 
 type DatastoreSyncState = DatastoreSyncStateV1 | DatastoreSyncStateV2;
@@ -800,6 +801,87 @@ export class S3CacheSyncService implements DatastoreSyncService {
       `[s3-sync] Migration complete: ${copiedKeys.size}/${toMigrate.length} object(s) moved to "${this.namespace}/"`,
     );
     return { copied: copiedKeys.size, total: toMigrate.length };
+  }
+
+  /**
+   * Server-side migration: copies root-level _control/ keys to
+   * {namespace}/_control/ via S3 CopyObject. Unlike data-key migration,
+   * control-plane keys are not tracked in the datastore index, so no
+   * index update is needed.
+   */
+  private async migrateRootControlPlaneToNamespace(
+    signal?: AbortSignal,
+  ): Promise<{ copied: number; total: number }> {
+    if (!this.namespace) return { copied: 0, total: 0 };
+
+    // Only migrate when a namespaced index already exists — this proves
+    // the repo was previously solo-mode. Without this guard, root-level
+    // _control/ keys on a shared bucket could belong to another tenant.
+    let hasNamespacedIndex = false;
+    try {
+      const head = await this.s3.headObject(this.indexKey(), signal);
+      hasNamespacedIndex = head.exists;
+    } catch {
+      // Can't check — skip migration
+    }
+    if (!hasNamespacedIndex) return { copied: 0, total: 0 };
+
+    const rootControlPrefix = "_control/";
+    let listing: Array<{ key: string; size: number; lastModified?: Date }>;
+    try {
+      listing = await retryWithBackoff(
+        () => this.s3.listAllObjects(rootControlPrefix, signal),
+        { signal },
+      );
+    } catch {
+      return { copied: 0, total: 0 };
+    }
+
+    if (listing.length === 0) return { copied: 0, total: 0 };
+
+    console.info(
+      `[s3-sync] Migrating ${listing.length} control-plane key(s) to namespace "${this.namespace}" (server-side copy)...`,
+    );
+
+    const copiedKeys: Set<string> = new Set();
+    for (let i = 0; i < listing.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = listing.slice(i, i + this.pushConcurrency);
+      const results = await Promise.allSettled(
+        batch.map((entry) => {
+          const dest = `${this.namespace}/${entry.key}`;
+          return retryWithBackoff(
+            () => this.s3.copyObject(entry.key, dest, signal),
+            { signal },
+          ).then(() => entry.key);
+        }),
+      );
+      for (const result of results) {
+        if (result.status === "fulfilled") copiedKeys.add(result.value);
+      }
+    }
+
+    if (copiedKeys.size === 0) return { copied: 0, total: listing.length };
+
+    // Delete originals that were successfully copied
+    const toDelete = listing.filter((e) => copiedKeys.has(e.key));
+    for (let i = 0; i < toDelete.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = toDelete.slice(i, i + this.pushConcurrency);
+      await Promise.allSettled(
+        batch.map((entry) =>
+          retryWithBackoff(
+            () => this.s3.deleteObject(entry.key, signal),
+            { signal },
+          )
+        ),
+      );
+    }
+
+    console.info(
+      `[s3-sync] Control-plane migration complete: ${copiedKeys.size}/${listing.length} key(s) moved to "${this.namespace}/"`,
+    );
+    return { copied: copiedKeys.size, total: listing.length };
   }
 
   private async readPartitionMeta(
@@ -1101,6 +1183,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
       dirtyPathsOverflowed: this.dirtyPathsOverflowed,
       lastCatalogHash: this.lastCatalogHash ?? undefined,
       dataKeyMigrated: v2Current?.dataKeyMigrated,
+      controlPlaneKeysMigrated: v2Current?.controlPlaneKeysMigrated,
       commitSeq: v2Current?.commitSeq,
     };
   }
@@ -2019,18 +2102,22 @@ export class S3CacheSyncService implements DatastoreSyncService {
           throwIfAborted(signal);
           await this.ensurePreflight(signal);
 
+          const syncState = await this.loadSyncState() as
+            | DatastoreSyncStateV2
+            | null;
           const needsDataKeyMigration = this.namespace != null &&
-            !(await this.loadSyncState() as DatastoreSyncStateV2 | null)
-              ?.dataKeyMigrated;
+            !syncState?.dataKeyMigrated;
+          const needsControlPlaneMigration = this.namespace != null &&
+            !syncState?.controlPlaneKeysMigrated;
 
           const fastStart = Date.now();
-          const fastResult = needsDataKeyMigration
+          const fastResult = needsDataKeyMigration || needsControlPlaneMigration
             ? null
             : await this.tryFastPushChanged(signal);
           tracePhase(
             "pushChanged.fastpath",
             fastStart,
-            needsDataKeyMigration
+            needsDataKeyMigration || needsControlPlaneMigration
               ? "skip(migration)"
               : fastResult === 0
               ? "hit"
@@ -2081,6 +2168,18 @@ export class S3CacheSyncService implements DatastoreSyncService {
               await this.writeSyncState(sidecar);
             } catch { /* non-fatal */ }
             if (copied > 0) return copied;
+          }
+
+          if (needsControlPlaneMigration) {
+            const { copied, total } = await this
+              .migrateRootControlPlaneToNamespace(signal);
+            try {
+              const sidecar = this.buildV2State({ localDirty: false });
+              if (total === 0 || copied === total) {
+                sidecar.controlPlaneKeysMigrated = true;
+              }
+              await this.writeSyncState(sidecar);
+            } catch { /* non-fatal */ }
           }
 
           const walkStart = Date.now();
@@ -2463,9 +2562,13 @@ export class S3CacheSyncService implements DatastoreSyncService {
           await this.ensurePreflight(signal);
 
           const prepareStart = Date.now();
+          const prepSyncState = await this.loadSyncState() as
+            | DatastoreSyncStateV2
+            | null;
           const needsDataKeyMigration = this.namespace != null &&
-            !(await this.loadSyncState() as DatastoreSyncStateV2 | null)
-              ?.dataKeyMigrated;
+            !prepSyncState?.dataKeyMigrated;
+          const needsControlPlaneMigration = this.namespace != null &&
+            !prepSyncState?.controlPlaneKeysMigrated;
 
           const emptyManifest: InternalPushManifest = {
             newEntries: {},
@@ -2476,13 +2579,13 @@ export class S3CacheSyncService implements DatastoreSyncService {
           };
 
           const fastStart = Date.now();
-          const fastResult = needsDataKeyMigration
+          const fastResult = needsDataKeyMigration || needsControlPlaneMigration
             ? null
             : await this.tryFastPushChanged(signal);
           tracePhase(
             "preparePush.fastpath",
             fastStart,
-            needsDataKeyMigration
+            needsDataKeyMigration || needsControlPlaneMigration
               ? "skip(migration)"
               : fastResult !== null
               ? "hit"
@@ -2523,6 +2626,18 @@ export class S3CacheSyncService implements DatastoreSyncService {
               await this.writeSyncState(sidecar);
             } catch { /* non-fatal */ }
             if (total > 0) return emptyManifest as unknown as PushManifest;
+          }
+
+          if (needsControlPlaneMigration) {
+            const { copied, total } = await this
+              .migrateRootControlPlaneToNamespace(signal);
+            try {
+              const sidecar = this.buildV2State({ localDirty: false });
+              if (total === 0 || copied === total) {
+                sidecar.controlPlaneKeysMigrated = true;
+              }
+              await this.writeSyncState(sidecar);
+            } catch { /* non-fatal */ }
           }
 
           const nsPrefix = this.namespace ? `${this.namespace}/` : "";
@@ -3305,15 +3420,19 @@ export class S3CacheSyncService implements DatastoreSyncService {
   }
 
   controlPlaneStore(): ControlPlaneStore {
-    const cpPrefix = this.controlPrefixPath();
+    const ensureBound = () => {
+      if (!this.namespaceBound) this.bindNamespace(undefined);
+    };
     return {
       put: async (key: string, data: Uint8Array): Promise<void> => {
+        ensureBound();
         await this.ensurePreflight();
         await retryWithBackoff(
           () => this.s3.putObject(this.controlKey(key), data),
         );
       },
       get: async (key: string): Promise<Uint8Array | null> => {
+        ensureBound();
         await this.ensurePreflight();
         try {
           const { data } = await retryWithBackoff(
@@ -3331,13 +3450,16 @@ export class S3CacheSyncService implements DatastoreSyncService {
         }
       },
       delete: async (key: string): Promise<void> => {
+        ensureBound();
         await this.ensurePreflight();
         await retryWithBackoff(
           () => this.s3.deleteObject(this.controlKey(key)),
         );
       },
       list: async (prefix: string): Promise<string[]> => {
+        ensureBound();
         await this.ensurePreflight();
+        const cpPrefix = this.controlPrefixPath();
         const entries = await retryWithBackoff(
           () => this.s3.listAllObjects(cpPrefix + prefix),
         );
@@ -3347,6 +3469,7 @@ export class S3CacheSyncService implements DatastoreSyncService {
         key: string,
         data: Uint8Array,
       ): Promise<boolean> => {
+        ensureBound();
         await this.ensurePreflight();
         return await retryWithBackoff(
           () => this.s3.putObjectConditional(this.controlKey(key), data),

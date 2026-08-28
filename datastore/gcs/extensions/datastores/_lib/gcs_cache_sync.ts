@@ -482,6 +482,7 @@ interface DatastoreSyncStateV2 {
   commitSeq?: number;
   lastCatalogHash?: string;
   dataKeyMigrated?: boolean;
+  controlPlaneKeysMigrated?: boolean;
 }
 
 type DatastoreSyncState = DatastoreSyncStateV1 | DatastoreSyncStateV2;
@@ -743,6 +744,83 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       `[gcs-sync] Migration complete: ${copiedKeys.size}/${toMigrate.length} object(s) moved to "${this.namespace}/"`,
     );
     return { copied: copiedKeys.size, total: toMigrate.length };
+  }
+
+  /**
+   * Server-side migration: copies root-level _control/ keys to
+   * {namespace}/_control/ via GCS copy. Unlike data-key migration,
+   * control-plane keys are not tracked in the datastore index, so no
+   * index update is needed.
+   */
+  private async migrateRootControlPlaneToNamespace(
+    signal?: AbortSignal,
+  ): Promise<{ copied: number; total: number }> {
+    if (!this.namespace) return { copied: 0, total: 0 };
+
+    let hasNamespacedIndex = false;
+    try {
+      const meta = await this.gcs.getMetadata(this.indexKey(), signal);
+      hasNamespacedIndex = meta.exists;
+    } catch {
+      // Can't check — skip migration
+    }
+    if (!hasNamespacedIndex) return { copied: 0, total: 0 };
+
+    const rootControlPrefix = "_control/";
+    let listing: Array<{ key: string; size: number; lastModified?: Date }>;
+    try {
+      listing = await retryWithBackoff(
+        () => this.gcs.listAllObjects(rootControlPrefix, signal),
+        { signal },
+      );
+    } catch {
+      return { copied: 0, total: 0 };
+    }
+
+    if (listing.length === 0) return { copied: 0, total: 0 };
+
+    console.info(
+      `[gcs-sync] Migrating ${listing.length} control-plane key(s) to namespace "${this.namespace}" (server-side copy)...`,
+    );
+
+    const copiedKeys: Set<string> = new Set();
+    for (let i = 0; i < listing.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = listing.slice(i, i + this.pushConcurrency);
+      const results = await Promise.allSettled(
+        batch.map((entry) => {
+          const dest = `${this.namespace}/${entry.key}`;
+          return retryWithBackoff(
+            () => this.gcs.copyObject(entry.key, dest, signal),
+            { signal },
+          ).then(() => entry.key);
+        }),
+      );
+      for (const result of results) {
+        if (result.status === "fulfilled") copiedKeys.add(result.value);
+      }
+    }
+
+    if (copiedKeys.size === 0) return { copied: 0, total: listing.length };
+
+    const toDelete = listing.filter((e) => copiedKeys.has(e.key));
+    for (let i = 0; i < toDelete.length; i += this.pushConcurrency) {
+      throwIfAborted(signal);
+      const batch = toDelete.slice(i, i + this.pushConcurrency);
+      await Promise.allSettled(
+        batch.map((entry) =>
+          retryWithBackoff(
+            () => this.gcs.deleteObject(entry.key, undefined, signal),
+            { signal },
+          )
+        ),
+      );
+    }
+
+    console.info(
+      `[gcs-sync] Control-plane migration complete: ${copiedKeys.size}/${listing.length} key(s) moved to "${this.namespace}/"`,
+    );
+    return { copied: copiedKeys.size, total: listing.length };
   }
 
   private async readPartitionMeta(
@@ -1039,6 +1117,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
       dirtyPathsOverflowed: this.dirtyPathsOverflowed,
       lastCatalogHash: this.lastCatalogHash ?? undefined,
       dataKeyMigrated: v2Current?.dataKeyMigrated,
+      controlPlaneKeysMigrated: v2Current?.controlPlaneKeysMigrated,
       commitSeq: v2Current?.commitSeq,
     };
   }
@@ -1895,12 +1974,16 @@ export class GcsCacheSyncService implements DatastoreSyncService {
           throwIfAborted(signal);
           await this.ensurePreflight(signal);
 
+          const syncState = await this.loadSyncState() as
+            | DatastoreSyncStateV2
+            | null;
           const needsDataKeyMigration = this.namespace != null &&
-            !(await this.loadSyncState() as DatastoreSyncStateV2 | null)
-              ?.dataKeyMigrated;
+            !syncState?.dataKeyMigrated;
+          const needsControlPlaneMigration = this.namespace != null &&
+            !syncState?.controlPlaneKeysMigrated;
 
           const fastStart = Date.now();
-          const fastResult = needsDataKeyMigration
+          const fastResult = needsDataKeyMigration || needsControlPlaneMigration
             ? null
             : await this.tryFastPushChanged(signal);
           tracePhase(
@@ -1964,6 +2047,18 @@ export class GcsCacheSyncService implements DatastoreSyncService {
             try {
               const sidecar = this.buildV2State({ localDirty: false });
               if (allMigrated) sidecar.dataKeyMigrated = true;
+              await this.writeSyncState(sidecar);
+            } catch { /* non-fatal */ }
+          }
+
+          if (needsControlPlaneMigration) {
+            const { copied, total } = await this
+              .migrateRootControlPlaneToNamespace(signal);
+            try {
+              const sidecar = this.buildV2State({ localDirty: false });
+              if (total === 0 || copied === total) {
+                sidecar.controlPlaneKeysMigrated = true;
+              }
               await this.writeSyncState(sidecar);
             } catch { /* non-fatal */ }
           }
@@ -2324,9 +2419,13 @@ export class GcsCacheSyncService implements DatastoreSyncService {
 
           const prepareStart = Date.now();
 
+          const prepSyncState = await this.loadSyncState() as
+            | DatastoreSyncStateV2
+            | null;
           const needsDataKeyMigration = this.namespace != null &&
-            !(await this.loadSyncState() as DatastoreSyncStateV2 | null)
-              ?.dataKeyMigrated;
+            !prepSyncState?.dataKeyMigrated;
+          const needsControlPlaneMigration = this.namespace != null &&
+            !prepSyncState?.controlPlaneKeysMigrated;
 
           const emptyManifest: InternalPushManifest = {
             newEntries: {},
@@ -2337,7 +2436,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
           };
 
           const fastStart = Date.now();
-          const fastResult = needsDataKeyMigration
+          const fastResult = needsDataKeyMigration || needsControlPlaneMigration
             ? null
             : await this.tryFastPushChanged(signal);
           tracePhase(
@@ -2380,6 +2479,18 @@ export class GcsCacheSyncService implements DatastoreSyncService {
               await this.writeSyncState(sidecar);
             } catch { /* non-fatal */ }
             if (total > 0) return emptyManifest as unknown as PushManifest;
+          }
+
+          if (needsControlPlaneMigration) {
+            const { copied, total } = await this
+              .migrateRootControlPlaneToNamespace(signal);
+            try {
+              const sidecar = this.buildV2State({ localDirty: false });
+              if (total === 0 || copied === total) {
+                sidecar.controlPlaneKeysMigrated = true;
+              }
+              await this.writeSyncState(sidecar);
+            } catch { /* non-fatal */ }
           }
 
           const nsPrefix = this.namespace ? `${this.namespace}/` : "";
@@ -3139,15 +3250,19 @@ export class GcsCacheSyncService implements DatastoreSyncService {
   }
 
   controlPlaneStore(): ControlPlaneStore {
-    const cpPrefix = this.controlPrefixPath();
+    const ensureBound = () => {
+      if (!this.namespaceBound) this.bindNamespace(undefined);
+    };
     return {
       put: async (key: string, data: Uint8Array): Promise<void> => {
+        ensureBound();
         await this.ensurePreflight();
         await retryWithBackoff(
           () => this.gcs.putObject(this.controlKey(key), data),
         );
       },
       get: async (key: string): Promise<Uint8Array | null> => {
+        ensureBound();
         await this.ensurePreflight();
         try {
           const { data } = await retryWithBackoff(
@@ -3162,13 +3277,16 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         }
       },
       delete: async (key: string): Promise<void> => {
+        ensureBound();
         await this.ensurePreflight();
         await retryWithBackoff(
           () => this.gcs.deleteObject(this.controlKey(key)),
         );
       },
       list: async (prefix: string): Promise<string[]> => {
+        ensureBound();
         await this.ensurePreflight();
+        const cpPrefix = this.controlPrefixPath();
         const entries = await retryWithBackoff(
           () => this.gcs.listAllObjects(cpPrefix + prefix),
         );
@@ -3178,6 +3296,7 @@ export class GcsCacheSyncService implements DatastoreSyncService {
         key: string,
         data: Uint8Array,
       ): Promise<boolean> => {
+        ensureBound();
         await this.ensurePreflight();
         const result = await retryWithBackoff(
           () => this.gcs.putObjectConditional(this.controlKey(key), data),

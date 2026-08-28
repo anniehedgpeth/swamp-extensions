@@ -42,6 +42,10 @@ export interface LockInfo {
 export interface LockOptions {
   /** Override the default lock key; lets different workflows partition locks. */
   lockKey?: string;
+  /** Namespace prefix for the lock key. When set, the lock key is scoped
+   *  under {namespace}/ so IAM policies scoped to the namespace prefix
+   *  can reach it. */
+  namespace?: string;
   /** Lease duration in milliseconds before the lock auto-expires. */
   ttlMs?: number;
   /** Delay between retries while another holder owns the lock. */

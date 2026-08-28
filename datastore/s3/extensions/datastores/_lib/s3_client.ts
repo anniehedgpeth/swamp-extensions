@@ -428,14 +428,14 @@ export class S3Client {
           span.recordException(err);
           span.setAttribute(Attr.ERROR_TYPE, err.name);
         }
-        throw this.wrapError(op, err);
+        throw this.wrapError(op, err, inputKey);
       } finally {
         span.end();
       }
     });
   }
 
-  private wrapError(op: string, err: unknown): Error {
+  private wrapError(op: string, err: unknown, key?: string): Error {
     if (!(err instanceof Error)) return new Error(String(err));
     const e = err as Error & {
       $metadata?: { httpStatusCode?: number; requestId?: string };
@@ -459,6 +459,7 @@ export class S3Client {
     // remediation before the SDK's framing of the failure.
     if (credentialHint) parts.push(credentialHint);
     parts.push(`S3 ${op} failed`);
+    if (key) parts.push(`key=${key}`);
     // Signal-triggered aborts carry no HTTP status; surface the timeout
     // context so callers can distinguish "timed out" from "service 5xx".
     // `AbortSignal.timeout()` triggers a DOMException with name

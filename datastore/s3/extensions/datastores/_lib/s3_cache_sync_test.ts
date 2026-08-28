@@ -7451,6 +7451,191 @@ Deno.test("isInternalCacheFile excludes _control/ paths", () => {
   assert(!isInternalCacheFile("data/control-panel/file.yaml"));
 });
 
+// -- swamp-club#1889: controlPlaneStore binding, stale prefix, and control-plane migration --
+
+Deno.test("controlPlaneStore: binding protocol — solo mode binds undefined", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-cp-bind-" });
+  try {
+    const mock = createMockS3Client();
+    const service = new S3CacheSyncService(mock, cachePath);
+    const store = service.controlPlaneStore();
+
+    const payload = new TextEncoder().encode("solo");
+    await store.put("heartbeats/inst-1", payload);
+
+    assertEquals(
+      mock.storage.has("_control/heartbeats/inst-1"),
+      true,
+      "solo mode must write to root _control/",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: respects namespace when bound via pullChanged", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-cp-ns-put-" });
+  try {
+    const mock = createMockS3Client();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    const service = new S3CacheSyncService(mock, cachePath);
+    await service.pullChanged({ namespace: "my-ns" });
+
+    const store = service.controlPlaneStore();
+    await store.put("key", new TextEncoder().encode("x"));
+
+    assertEquals(
+      mock.storage.has("my-ns/_control/key"),
+      true,
+      "put must use the bound namespace prefix",
+    );
+    assertEquals(
+      mock.storage.has("_control/key"),
+      false,
+      "put must not write to root",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: binding protocol — solo then namespace throws mismatch", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-cp-solo-ns-" });
+  try {
+    const mock = createMockS3Client();
+    mock.storage.set(".datastore-index.json", encodeIndex({}));
+    const service = new S3CacheSyncService(mock, cachePath);
+
+    const store = service.controlPlaneStore();
+    await store.put("heartbeats/inst-1", new TextEncoder().encode("solo"));
+    assertEquals(mock.storage.has("_control/heartbeats/inst-1"), true);
+
+    await assertRejects(
+      () => service.pullChanged({ namespace: "my-ns" }),
+      Error,
+      "Namespace mismatch",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: list uses current namespace, not stale prefix", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-cp-list-lazy-" });
+  try {
+    const mock = createMockS3Client();
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    mock.storage.set(
+      "my-ns/_control/heartbeats/a",
+      new TextEncoder().encode("1"),
+    );
+    const service = new S3CacheSyncService(mock, cachePath);
+
+    await service.pullChanged({ namespace: "my-ns" });
+    const nsStore = service.controlPlaneStore();
+
+    const keys = await nsStore.list("heartbeats/");
+    assertEquals(
+      keys,
+      ["heartbeats/a"],
+      "list() must scan namespaced prefix, not root",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: migration copies root _control/ keys to namespace", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-cp-migrate-" });
+  try {
+    const mock = createMockS3Client();
+    // Namespaced index exists — proves repo was previously solo-mode
+    mock.storage.set("my-ns/.datastore-index.json", encodeIndex({}));
+    // Root-level control plane keys left from solo-mode era
+    mock.storage.set(
+      "_control/token-encryption-key",
+      new TextEncoder().encode("secret-key"),
+    );
+    mock.storage.set(
+      "_control/heartbeats/inst-1",
+      new TextEncoder().encode("beat"),
+    );
+    // Namespace marker
+    mock.storage.set(
+      "my-ns/.namespace.json",
+      new TextEncoder().encode(JSON.stringify({
+        namespace: "my-ns",
+        repoId: "repo-1",
+        registeredAt: new Date().toISOString(),
+      })),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    await service.pushChanged({ namespace: "my-ns" });
+
+    // Root keys should be copied to namespace and originals deleted
+    assertEquals(
+      mock.storage.has("my-ns/_control/token-encryption-key"),
+      true,
+      "migration must copy root _control/ keys to {namespace}/_control/",
+    );
+    assertEquals(
+      mock.storage.has("my-ns/_control/heartbeats/inst-1"),
+      true,
+      "migration must copy nested root _control/ keys",
+    );
+    assertEquals(
+      mock.storage.has("_control/token-encryption-key"),
+      false,
+      "migration must delete root-level originals after copy",
+    );
+    assertEquals(
+      mock.storage.has("_control/heartbeats/inst-1"),
+      false,
+      "migration must delete nested root-level originals",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
+Deno.test("controlPlaneStore: migration skips when no namespaced index (fresh namespace)", async () => {
+  const cachePath = await Deno.makeTempDir({ prefix: "s3sync-cp-nomigrate-" });
+  try {
+    const mock = createMockS3Client();
+    // NO namespaced index — fresh namespace setup, root keys belong to another tenant
+    mock.storage.set(
+      "_control/token-encryption-key",
+      new TextEncoder().encode("other-tenant-secret"),
+    );
+    mock.storage.set(
+      "my-ns/.namespace.json",
+      new TextEncoder().encode(JSON.stringify({
+        namespace: "my-ns",
+        repoId: "repo-1",
+        registeredAt: new Date().toISOString(),
+      })),
+    );
+
+    const service = new S3CacheSyncService(mock, cachePath);
+    await service.pushChanged({ namespace: "my-ns" });
+
+    // Root keys must NOT be migrated
+    assertEquals(
+      mock.storage.has("_control/token-encryption-key"),
+      true,
+      "root _control/ keys must not be migrated when no namespaced index exists",
+    );
+    assertEquals(
+      mock.storage.has("my-ns/_control/token-encryption-key"),
+      false,
+      "keys must not appear under namespace when guard prevents migration",
+    );
+  } finally {
+    await Deno.remove(cachePath, { recursive: true });
+  }
+});
+
 // -- swamp-club#1556: localHasAllRemoteEntries must use localRelPath in namespaced mode --
 
 function seedV2RepoNamespaced(

@@ -473,6 +473,35 @@ Deno.test("GcsLock DEF-4 parity: stale release does not delete successor's lock"
   await lockB.release();
 });
 
+Deno.test("GcsLock: namespace scopes lock key under namespace prefix", async () => {
+  const mock = createMockGcsClient();
+  const lock = new GcsLock(mock, {
+    namespace: "my-ns",
+    ttlMs: 5000,
+  });
+
+  await lock.acquire();
+  assertEquals(mock.storage.has("my-ns/.datastore.lock"), true);
+  assertEquals(mock.storage.has(".datastore.lock"), false);
+
+  await lock.release();
+});
+
+Deno.test("GcsLock: namespace with custom lock key", async () => {
+  const mock = createMockGcsClient();
+  const lock = new GcsLock(mock, {
+    lockKey: ".locks/global.lock",
+    namespace: "my-ns",
+    ttlMs: 5000,
+  });
+
+  await lock.acquire();
+  assertEquals(mock.storage.has("my-ns/.locks/global.lock"), true);
+  assertEquals(mock.storage.has(".locks/global.lock"), false);
+
+  await lock.release();
+});
+
 // --- Conformance suite ---
 
 Deno.test("GcsLock: passes DistributedLock conformance suite", async () => {

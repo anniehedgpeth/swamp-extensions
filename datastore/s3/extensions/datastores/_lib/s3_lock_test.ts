@@ -245,6 +245,35 @@ Deno.test("S3Lock: custom lock key", async () => {
   await lock.release();
 });
 
+Deno.test("S3Lock: namespace scopes lock key under namespace prefix", async () => {
+  const mock = createMockS3Client();
+  const lock = new S3Lock(mock, {
+    namespace: "my-ns",
+    ttlMs: 5000,
+  });
+
+  await lock.acquire();
+  assertEquals(mock.storage.has("my-ns/.datastore.lock"), true);
+  assertEquals(mock.storage.has(".datastore.lock"), false);
+
+  await lock.release();
+});
+
+Deno.test("S3Lock: namespace with custom lock key", async () => {
+  const mock = createMockS3Client();
+  const lock = new S3Lock(mock, {
+    lockKey: ".locks/global.lock",
+    namespace: "my-ns",
+    ttlMs: 5000,
+  });
+
+  await lock.acquire();
+  assertEquals(mock.storage.has("my-ns/.locks/global.lock"), true);
+  assertEquals(mock.storage.has(".locks/global.lock"), false);
+
+  await lock.release();
+});
+
 // --- Conformance suite: verifies S3Lock satisfies the DistributedLock contract ---
 
 Deno.test("S3Lock: passes DistributedLock conformance suite", async () => {

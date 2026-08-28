@@ -115,7 +115,10 @@ export class S3Lock implements DistributedLock {
 
   constructor(s3: S3Client, options?: LockOptions) {
     this.s3 = s3;
-    this.lockKey = options?.lockKey ?? DEFAULT_LOCK_KEY;
+    const baseKey = options?.lockKey ?? DEFAULT_LOCK_KEY;
+    this.lockKey = options?.namespace
+      ? `${options.namespace}/${baseKey}`
+      : baseKey;
     this.ttlMs = options?.ttlMs ?? DEFAULT_TTL_MS;
     this.retryIntervalMs = options?.retryIntervalMs ??
       DEFAULT_RETRY_INTERVAL_MS;
