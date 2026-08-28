@@ -17,6 +17,8 @@ import {
   FetchArgsSchema,
   FetchResultSchema,
   GlobalArgsSchema,
+  IsAncestorArgsSchema,
+  IsAncestorResultSchema,
   LogArgsSchema,
   LogResultSchema,
   PullArgsSchema,
@@ -25,6 +27,8 @@ import {
   PushResultSchema,
   RemoteRefArgsSchema,
   RemoteRefResultSchema,
+  RemoveWorktreeArgsSchema,
+  RemoveWorktreeResultSchema,
   StatusArgsSchema,
   StatusResultSchema,
   UpstreamStateArgsSchema,
@@ -39,10 +43,12 @@ import {
   runConfig,
   runDiff,
   runFetch,
+  runIsAncestor,
   runLog,
   runPull,
   runPush,
   runRemoteRef,
+  runRemoveWorktree,
   runStatus,
   runUpstreamState,
 } from "./_lib/operations.ts";
@@ -55,10 +61,10 @@ import type { GitContext } from "./_lib/types.ts";
  * @module
  */
 
-/** Git model — clone, diff, status, log, commit, amend, push, pull, fetch, cherry_pick, branch, config, upstream_state. */
+/** Git model — clone, diff, status, log, commit, amend, push, pull, fetch, cherry_pick, branch, config, remote_ref, upstream_state, is_ancestor, remove_worktree. */
 export const model = {
   type: "@swamp/git",
-  version: "2026.08.25.1",
+  version: "2026.08.28.1",
 
   globalArguments: GlobalArgsSchema,
 
@@ -115,6 +121,14 @@ export const model = {
       toVersion: "2026.08.25.1",
       description:
         "Add remote_ref method for read-only remote ref SHA lookup via git ls-remote. No globalArguments changes.",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ): Record<string, unknown> => old,
+    },
+    {
+      toVersion: "2026.08.28.1",
+      description:
+        "Add is_ancestor method for read-only ancestry checks, orphan branch creation via branch method, and remove_worktree method for safe worktree cleanup. No globalArguments changes.",
       upgradeAttributes: (
         old: Record<string, unknown>,
       ): Record<string, unknown> => old,
@@ -206,6 +220,20 @@ export const model = {
       lifetime: "ephemeral" as const,
       garbageCollection: 5,
     },
+    isAncestorResult: {
+      description:
+        "Ancestry check result: ancestor, descendant, and boolean isAncestor flag",
+      schema: IsAncestorResultSchema,
+      lifetime: "ephemeral" as const,
+      garbageCollection: 5,
+    },
+    removeWorktreeResult: {
+      description:
+        "Worktree removal result: path, removed/alreadyAbsent flags, and reason",
+      schema: RemoveWorktreeResultSchema,
+      lifetime: "ephemeral" as const,
+      garbageCollection: 5,
+    },
     upstreamStateResult: {
       description:
         "Tracking-branch state: branch, upstream, configuredUpstream, trackingRefAvailable, ahead/behind counts (nullable), pushed/synced flags (nullable)",
@@ -236,6 +264,8 @@ export const model = {
         "config",
         "remote_ref",
         "upstream_state",
+        "is_ancestor",
+        "remove_worktree",
       ],
       execute: checkGitAvailable,
     },
@@ -255,6 +285,8 @@ export const model = {
         "branch",
         "config",
         "upstream_state",
+        "is_ancestor",
+        "remove_worktree",
       ],
       execute: checkRepoInitialized,
     },
@@ -357,6 +389,24 @@ export const model = {
         args: z.input<typeof UpstreamStateArgsSchema>,
         ctx: GitContext,
       ) => runUpstreamState(UpstreamStateArgsSchema.parse(args), ctx),
+    },
+    is_ancestor: {
+      description:
+        "Check if one commit is an ancestor of another via git merge-base --is-ancestor (read-only)",
+      arguments: IsAncestorArgsSchema,
+      execute: (
+        args: z.input<typeof IsAncestorArgsSchema>,
+        ctx: GitContext,
+      ) => runIsAncestor(IsAncestorArgsSchema.parse(args), ctx),
+    },
+    remove_worktree: {
+      description:
+        "Safely remove a registered clean secondary worktree — refuses the primary checkout and dirty worktrees, idempotent when already absent",
+      arguments: RemoveWorktreeArgsSchema,
+      execute: (
+        args: z.input<typeof RemoveWorktreeArgsSchema>,
+        ctx: GitContext,
+      ) => runRemoveWorktree(RemoveWorktreeArgsSchema.parse(args), ctx),
     },
   },
 };

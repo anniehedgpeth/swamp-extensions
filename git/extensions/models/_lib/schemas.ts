@@ -154,11 +154,26 @@ export const BranchArgsSchema = z.object({
     .describe("Branch name to create or switch to"),
   create: z.boolean().default(false)
     .describe("Create a new branch"),
+  orphan: z.boolean().default(false)
+    .describe(
+      "Create an orphan branch with no parent history (requires create: true)",
+    ),
   startPoint: safeRefOptional
     .describe("Base ref for new branch creation"),
   list: z.boolean().default(false)
     .describe("List all local branches"),
-});
+}).refine(
+  (v) => !v.orphan || v.create,
+  {
+    message: "orphan requires create to be true",
+  },
+).refine(
+  (v) => !(v.orphan && v.startPoint),
+  {
+    message:
+      "orphan and startPoint are mutually exclusive — orphan branches have no parent",
+  },
+);
 
 export type BranchArgs = z.infer<typeof BranchArgsSchema>;
 
@@ -282,6 +297,7 @@ export const BranchResultSchema = z.object({
   current: z.string().optional(),
   branches: z.array(z.string()).optional(),
   created: z.boolean().optional(),
+  orphan: z.boolean().optional(),
 });
 
 export const PullResultSchema = z.object({
@@ -330,6 +346,46 @@ export const RemoteRefResultSchema = z.object({
   remote: z.string(),
   ref: z.string(),
   sha: z.string(),
+});
+
+// ---------------------------------------------------------------------------
+// is_ancestor
+// ---------------------------------------------------------------------------
+
+export const IsAncestorArgsSchema = z.object({
+  ancestor: safeRef
+    .describe("Ref to test as ancestor (SHA, branch, tag)"),
+  descendant: safeRef
+    .describe("Ref to test as descendant (SHA, branch, tag)"),
+});
+
+export type IsAncestorArgs = z.infer<typeof IsAncestorArgsSchema>;
+
+export const IsAncestorResultSchema = z.object({
+  ancestor: z.string(),
+  descendant: z.string(),
+  isAncestor: z.boolean(),
+});
+
+// ---------------------------------------------------------------------------
+// remove_worktree
+// ---------------------------------------------------------------------------
+
+export const RemoveWorktreeArgsSchema = z.object({
+  path: z.string().min(1).refine(
+    (v) => !v.startsWith("-"),
+    { message: "must not start with a dash (interpreted as a git flag)" },
+  )
+    .describe("Path of the worktree to remove"),
+});
+
+export type RemoveWorktreeArgs = z.infer<typeof RemoveWorktreeArgsSchema>;
+
+export const RemoveWorktreeResultSchema = z.object({
+  path: z.string(),
+  removed: z.boolean(),
+  alreadyAbsent: z.boolean(),
+  reason: z.string(),
 });
 
 // ---------------------------------------------------------------------------

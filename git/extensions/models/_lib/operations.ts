@@ -12,10 +12,12 @@ import type {
   DiffArgs,
   FetchArgs,
   GlobalArgs,
+  IsAncestorArgs,
   LogArgs,
   PullArgs,
   PushArgs,
   RemoteRefArgs,
+  RemoveWorktreeArgs,
   StatusArgs,
   UpstreamStateArgs,
 } from "./schemas.ts";
@@ -692,15 +694,18 @@ export async function runBranch(
       }
 
       if (args.create) {
-        const argv = ["checkout", "-b", args.name];
-        if (args.startPoint) {
+        const argv = args.orphan
+          ? ["checkout", "--orphan", args.name]
+          : ["checkout", "-b", args.name];
+        if (!args.orphan && args.startPoint) {
           argv.push(args.startPoint);
         }
 
         const result = await execGit(argv, { cwd, signal: ctx.signal });
         if (result.exitCode !== 0) {
+          const flag = args.orphan ? "--orphan" : "-b";
           throw new Error(
-            `git checkout -b failed (exit ${result.exitCode}): ${result.stderr}`,
+            `git checkout ${flag} failed (exit ${result.exitCode}): ${result.stderr}`,
           );
         }
 
@@ -708,13 +713,14 @@ export async function runBranch(
         span.setAttribute(Attr.BRANCH, args.name);
         span.setAttribute(Attr.EXIT_CODE, result.exitCode);
 
-        ctx.logger.info(`created and switched to branch ${args.name}`);
+        const label = args.orphan ? "orphan branch" : "branch";
+        ctx.logger.info(`created and switched to ${label} ${args.name}`);
 
         const safeName = args.name.replace(/\//g, "-");
         const handle = await ctx.writeResource(
           "branchResult",
           `branch-${safeName}`,
-          { current: args.name, created: true },
+          { current: args.name, created: true, orphan: args.orphan },
           { tags: { method: "branch", action: "create", branch: args.name } },
         );
 
@@ -1359,4 +1365,237 @@ export async function runRemoteRef(
       span.end();
     }
   });
+}
+
+// ---------------------------------------------------------------------------
+// is-ancestor
+// ---------------------------------------------------------------------------
+
+export async function runIsAncestor(
+  args: IsAncestorArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan(
+    "git.is-ancestor",
+    async (span) => {
+      try {
+        const globals = resolveGlobalArgs(ctx.globalArgs);
+        const cwd = globals.repoPath;
+
+        const result = await execGit(
+          ["merge-base", "--is-ancestor", args.ancestor, args.descendant],
+          { cwd, signal: ctx.signal },
+        );
+
+        if (result.exitCode !== 0 && result.exitCode !== 1) {
+          throw new Error(
+            `git merge-base --is-ancestor failed (exit ${result.exitCode}): ${result.stderr}`,
+          );
+        }
+
+        const isAncestor = result.exitCode === 0;
+
+        span.setAttribute(Attr.METHOD, "is-ancestor");
+        span.setAttribute(Attr.EXIT_CODE, result.exitCode);
+
+        ctx.logger.info(
+          `${args.ancestor} ${
+            isAncestor ? "is" : "is not"
+          } an ancestor of ${args.descendant}`,
+        );
+
+        const handle = await ctx.writeResource(
+          "isAncestorResult",
+          "is-ancestor",
+          {
+            ancestor: args.ancestor,
+            descendant: args.descendant,
+            isAncestor,
+          },
+          {
+            tags: {
+              method: "is-ancestor",
+              ancestor: args.ancestor,
+              descendant: args.descendant,
+              isAncestor: String(isAncestor),
+            },
+          },
+        );
+
+        return { dataHandles: [handle] };
+      } catch (error) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      } finally {
+        span.end();
+      }
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// remove-worktree
+// ---------------------------------------------------------------------------
+
+interface WorktreeEntry {
+  worktree: string;
+  bare: boolean;
+}
+
+function parseWorktreeList(raw: string): WorktreeEntry[] {
+  const entries: WorktreeEntry[] = [];
+  let current: Partial<WorktreeEntry> = {};
+
+  for (const line of raw.split("\n")) {
+    if (line === "") {
+      if (current.worktree !== undefined) {
+        entries.push({
+          worktree: current.worktree,
+          bare: current.bare ?? false,
+        });
+      }
+      current = {};
+      continue;
+    }
+    if (line.startsWith("worktree ")) {
+      current.worktree = line.substring("worktree ".length);
+    }
+    if (line === "bare") {
+      current.bare = true;
+    }
+  }
+  if (current.worktree !== undefined) {
+    entries.push({
+      worktree: current.worktree,
+      bare: current.bare ?? false,
+    });
+  }
+  return entries;
+}
+
+export async function runRemoveWorktree(
+  args: RemoveWorktreeArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan(
+    "git.remove-worktree",
+    async (span) => {
+      try {
+        const globals = resolveGlobalArgs(ctx.globalArgs);
+        const cwd = globals.repoPath;
+
+        const listResult = await execGit(
+          ["worktree", "list", "--porcelain"],
+          { cwd, signal: ctx.signal },
+        );
+        if (listResult.exitCode !== 0) {
+          throw new Error(
+            `git worktree list failed (exit ${listResult.exitCode}): ${listResult.stderr}`,
+          );
+        }
+
+        const worktrees = parseWorktreeList(listResult.stdout);
+
+        const resolvedPath = args.path.replace(/\/+$/, "");
+
+        const primaryPath = worktrees.length > 0
+          ? worktrees[0].worktree
+          : undefined;
+        if (
+          primaryPath !== undefined &&
+          resolvedPath === primaryPath.replace(/\/+$/, "")
+        ) {
+          throw new Error(
+            "cannot remove the primary checkout",
+          );
+        }
+
+        const registered = worktrees.some(
+          (w) => w.worktree.replace(/\/+$/, "") === resolvedPath,
+        );
+
+        if (!registered) {
+          span.setAttribute(Attr.METHOD, "remove-worktree");
+          span.setAttribute(Attr.EXIT_CODE, 0);
+
+          ctx.logger.info(
+            `worktree ${resolvedPath} already absent`,
+          );
+
+          const handle = await ctx.writeResource(
+            "removeWorktreeResult",
+            "remove-worktree",
+            {
+              path: resolvedPath,
+              removed: false,
+              alreadyAbsent: true,
+              reason: "worktree not registered",
+            },
+            {
+              tags: { method: "remove-worktree", removed: "false" },
+            },
+          );
+
+          return { dataHandles: [handle] };
+        }
+
+        const statusResult = await execGit(
+          ["status", "--porcelain"],
+          { cwd: resolvedPath, signal: ctx.signal },
+        );
+        if (statusResult.exitCode !== 0) {
+          throw new Error(
+            `git status failed for worktree (exit ${statusResult.exitCode}): ${statusResult.stderr}`,
+          );
+        }
+        if (statusResult.stdout.trim().length > 0) {
+          throw new Error(
+            "worktree has uncommitted changes — commit or discard before removing",
+          );
+        }
+
+        const removeResult = await execGit(
+          ["worktree", "remove", resolvedPath],
+          { cwd, signal: ctx.signal },
+        );
+        if (removeResult.exitCode !== 0) {
+          throw new Error(
+            `git worktree remove failed (exit ${removeResult.exitCode}): ${removeResult.stderr}`,
+          );
+        }
+
+        span.setAttribute(Attr.METHOD, "remove-worktree");
+        span.setAttribute(Attr.EXIT_CODE, removeResult.exitCode);
+
+        ctx.logger.info(`removed worktree ${resolvedPath}`);
+
+        const handle = await ctx.writeResource(
+          "removeWorktreeResult",
+          "remove-worktree",
+          {
+            path: resolvedPath,
+            removed: true,
+            alreadyAbsent: false,
+            reason: "worktree removed",
+          },
+          {
+            tags: { method: "remove-worktree", removed: "true" },
+          },
+        );
+
+        return { dataHandles: [handle] };
+      } catch (error) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      } finally {
+        span.end();
+      }
+    },
+  );
 }

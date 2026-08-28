@@ -99,9 +99,9 @@ Deno.test("globalArguments accepts full config", () => {
 // Resource declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 14 resource specs exist", () => {
+Deno.test("all 16 resource specs exist", () => {
   const names = Object.keys(model.resources);
-  assertEquals(names.length, 14);
+  assertEquals(names.length, 16);
   for (
     const name of [
       "cloneResult",
@@ -117,6 +117,8 @@ Deno.test("all 14 resource specs exist", () => {
       "fetchResult",
       "cherryPickResult",
       "remoteRefResult",
+      "isAncestorResult",
+      "removeWorktreeResult",
       "upstreamStateResult",
     ]
   ) {
@@ -143,9 +145,9 @@ Deno.test("resources have description and schema", () => {
 // Method declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 14 methods exist", () => {
+Deno.test("all 16 methods exist", () => {
   const names = Object.keys(model.methods);
-  assertEquals(names.length, 14);
+  assertEquals(names.length, 16);
   for (
     const name of [
       "clone",
@@ -162,6 +164,8 @@ Deno.test("all 14 methods exist", () => {
       "config",
       "remote_ref",
       "upstream_state",
+      "is_ancestor",
+      "remove_worktree",
     ]
   ) {
     assertEquals(name in model.methods, true, `missing method: ${name}`);
@@ -217,6 +221,14 @@ Deno.test("git-available check exists and covers all methods", () => {
     model.checks["git-available"].appliesTo.includes("upstream_state"),
     true,
   );
+  assertEquals(
+    model.checks["git-available"].appliesTo.includes("is_ancestor"),
+    true,
+  );
+  assertEquals(
+    model.checks["git-available"].appliesTo.includes("remove_worktree"),
+    true,
+  );
 });
 
 Deno.test("repo-initialized check exists and excludes clone and remote_ref", () => {
@@ -251,6 +263,14 @@ Deno.test("repo-initialized check exists and excludes clone and remote_ref", () 
   );
   assertEquals(
     model.checks["repo-initialized"].appliesTo.includes("upstream_state"),
+    true,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("is_ancestor"),
+    true,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("remove_worktree"),
     true,
   );
 });
@@ -2712,6 +2732,469 @@ Deno.test("remote_ref: signal passed to executor", async () => {
       ctx,
     );
     assertEquals(receivedSignal, ac.signal);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// is_ancestor schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("IsAncestorArgs requires ancestor and descendant", () => {
+  const result = model.methods.is_ancestor.arguments.safeParse({});
+  assertEquals(result.success, false);
+});
+
+Deno.test("IsAncestorArgs accepts valid refs", () => {
+  const result = model.methods.is_ancestor.arguments.parse({
+    ancestor: "abc1234",
+    descendant: "def5678",
+  });
+  assertEquals(result.ancestor, "abc1234");
+  assertEquals(result.descendant, "def5678");
+});
+
+Deno.test("IsAncestorArgs rejects ancestor starting with dash", () => {
+  const result = model.methods.is_ancestor.arguments.safeParse({
+    ancestor: "--evil",
+    descendant: "HEAD",
+  });
+  assertEquals(result.success, false);
+});
+
+Deno.test("IsAncestorArgs rejects descendant starting with dash", () => {
+  const result = model.methods.is_ancestor.arguments.safeParse({
+    ancestor: "HEAD",
+    descendant: "--evil",
+  });
+  assertEquals(result.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// is_ancestor operation
+// ---------------------------------------------------------------------------
+
+Deno.test("is_ancestor: true when ancestor", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.is_ancestor.execute(
+      { ancestor: "abc1234", descendant: "def5678" },
+      ctx,
+    );
+
+    const argv = calls[0];
+    assertEquals(argv.includes("merge-base"), true);
+    assertEquals(argv.includes("--is-ancestor"), true);
+    assertEquals(argv.includes("abc1234"), true);
+    assertEquals(argv.includes("def5678"), true);
+
+    assertEquals(writes.length, 1);
+    assertEquals(writes[0].specName, "isAncestorResult");
+    assertEquals(writes[0].data.ancestor, "abc1234");
+    assertEquals(writes[0].data.descendant, "def5678");
+    assertEquals(writes[0].data.isAncestor, true);
+    assertEquals(writes[0].tags?.isAncestor, "true");
+    assertEquals(logs.some((l) => l.message.includes("is an ancestor")), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("is_ancestor: false when not ancestor", async () => {
+  setCommandExecutor(() => ({ stdout: "", stderr: "", exitCode: 1 }));
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.is_ancestor.execute(
+      { ancestor: "abc1234", descendant: "def5678" },
+      ctx,
+    );
+
+    assertEquals(writes[0].data.isAncestor, false);
+    assertEquals(writes[0].tags?.isAncestor, "false");
+    assertEquals(
+      logs.some((l) => l.message.includes("is not an ancestor")),
+      true,
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("is_ancestor: throws on bad ref (exit code 128)", async () => {
+  setCommandExecutor(() => ({
+    stdout: "",
+    stderr: "fatal: Not a valid commit name nonexistent",
+    exitCode: 128,
+  }));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () =>
+        model.methods.is_ancestor.execute(
+          { ancestor: "nonexistent", descendant: "HEAD" },
+          ctx,
+        ),
+      Error,
+      "git merge-base --is-ancestor failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("is_ancestor: uses repoPath from globalArgs", async () => {
+  const calls: { argv: string[]; opts?: { cwd?: string } }[] = [];
+  setCommandExecutor((argv, opts) => {
+    calls.push({ argv, opts });
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness({ repoPath: "/my/repo" });
+    await model.methods.is_ancestor.execute(
+      { ancestor: "abc", descendant: "def" },
+      ctx,
+    );
+
+    assertEquals(calls[0].opts?.cwd, "/my/repo");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// orphan branch schema validation and operation
+// ---------------------------------------------------------------------------
+
+Deno.test("BranchArgs orphan defaults to false", () => {
+  const result = model.methods.branch.arguments.parse({});
+  assertEquals(result.orphan, false);
+});
+
+Deno.test("BranchArgs rejects orphan without create", () => {
+  const result = model.methods.branch.arguments.safeParse({
+    name: "evidence",
+    orphan: true,
+  });
+  assertEquals(result.success, false);
+});
+
+Deno.test("BranchArgs rejects orphan with startPoint", () => {
+  const result = model.methods.branch.arguments.safeParse({
+    name: "evidence",
+    create: true,
+    orphan: true,
+    startPoint: "main",
+  });
+  assertEquals(result.success, false);
+});
+
+Deno.test("BranchArgs accepts orphan with create", () => {
+  const result = model.methods.branch.arguments.parse({
+    name: "evidence",
+    create: true,
+    orphan: true,
+  });
+  assertEquals(result.orphan, true);
+  assertEquals(result.create, true);
+});
+
+Deno.test("branch orphan create uses --orphan flag", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.branch.execute(
+      { name: "evidence", create: true, orphan: true },
+      ctx,
+    );
+
+    const argv = calls[0];
+    assertEquals(argv.includes("checkout"), true);
+    assertEquals(argv.includes("--orphan"), true);
+    assertEquals(argv.includes("evidence"), true);
+    assertEquals(argv.includes("-b"), false);
+
+    assertEquals(writes[0].data.current, "evidence");
+    assertEquals(writes[0].data.created, true);
+    assertEquals(writes[0].data.orphan, true);
+    assertEquals(
+      logs.some((l) => l.message.includes("orphan branch")),
+      true,
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("branch non-orphan create still uses -b", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.branch.execute(
+      { name: "feature", create: true },
+      ctx,
+    );
+
+    assertEquals(calls[0].includes("-b"), true);
+    assertEquals(calls[0].includes("--orphan"), false);
+    assertEquals(writes[0].data.orphan, false);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("branch orphan create throws on failure", async () => {
+  setCommandExecutor(() => fail("fatal: cannot checkout orphan"));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () =>
+        model.methods.branch.execute(
+          { name: "evidence", create: true, orphan: true },
+          ctx,
+        ),
+      Error,
+      "git checkout --orphan failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// remove_worktree schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("RemoveWorktreeArgs requires path", () => {
+  const result = model.methods.remove_worktree.arguments.safeParse({});
+  assertEquals(result.success, false);
+});
+
+Deno.test("RemoveWorktreeArgs accepts path", () => {
+  const result = model.methods.remove_worktree.arguments.parse({
+    path: "/tmp/worktree",
+  });
+  assertEquals(result.path, "/tmp/worktree");
+});
+
+Deno.test("RemoveWorktreeArgs rejects path starting with dash", () => {
+  const result = model.methods.remove_worktree.arguments.safeParse({
+    path: "--force",
+  });
+  assertEquals(result.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// remove_worktree operation
+// ---------------------------------------------------------------------------
+
+const WORKTREE_LIST_PRIMARY = [
+  "worktree /repo",
+  "HEAD abc1234",
+  "branch refs/heads/main",
+  "",
+].join("\n");
+
+const WORKTREE_LIST_WITH_SECONDARY = [
+  "worktree /repo",
+  "HEAD abc1234",
+  "branch refs/heads/main",
+  "",
+  "worktree /tmp/wt-feature",
+  "HEAD def5678",
+  "branch refs/heads/feature",
+  "",
+].join("\n");
+
+Deno.test("remove_worktree: refuses primary checkout", async () => {
+  setCommandExecutor(() => ok(WORKTREE_LIST_PRIMARY));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () =>
+        model.methods.remove_worktree.execute(
+          { path: "/repo" },
+          ctx,
+        ),
+      Error,
+      "cannot remove the primary checkout",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remove_worktree: idempotent when absent", async () => {
+  setCommandExecutor(() => ok(WORKTREE_LIST_PRIMARY));
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.remove_worktree.execute(
+      { path: "/tmp/nonexistent" },
+      ctx,
+    );
+
+    assertEquals(writes.length, 1);
+    assertEquals(writes[0].specName, "removeWorktreeResult");
+    assertEquals(writes[0].data.removed, false);
+    assertEquals(writes[0].data.alreadyAbsent, true);
+    assertEquals(writes[0].data.reason, "worktree not registered");
+    assertEquals(writes[0].tags?.removed, "false");
+    assertEquals(
+      logs.some((l) => l.message.includes("already absent")),
+      true,
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remove_worktree: refuses dirty worktree", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok(WORKTREE_LIST_WITH_SECONDARY);
+    return ok(" M dirty-file.ts\n");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () =>
+        model.methods.remove_worktree.execute(
+          { path: "/tmp/wt-feature" },
+          ctx,
+        ),
+      Error,
+      "worktree has uncommitted changes",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remove_worktree: removes clean secondary worktree", async () => {
+  const calls: string[][] = [];
+  let callIdx = 0;
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    callIdx++;
+    if (callIdx === 1) return ok(WORKTREE_LIST_WITH_SECONDARY);
+    if (callIdx === 2) return ok("");
+    return ok("");
+  });
+  try {
+    const { ctx, writes, logs } = makeHarness();
+    await model.methods.remove_worktree.execute(
+      { path: "/tmp/wt-feature" },
+      ctx,
+    );
+
+    assertEquals(calls[1].includes("status"), true);
+    assertEquals(calls[1].includes("--porcelain"), true);
+    assertEquals(calls[2].includes("worktree"), true);
+    assertEquals(calls[2].includes("remove"), true);
+    assertEquals(calls[2].includes("/tmp/wt-feature"), true);
+
+    assertEquals(writes[0].data.removed, true);
+    assertEquals(writes[0].data.alreadyAbsent, false);
+    assertEquals(writes[0].data.reason, "worktree removed");
+    assertEquals(writes[0].tags?.removed, "true");
+    assertEquals(
+      logs.some((l) => l.message.includes("removed worktree")),
+      true,
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remove_worktree: throws when git status fails in worktree", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok(WORKTREE_LIST_WITH_SECONDARY);
+    return fail("fatal: not a git repository", 128);
+  });
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () =>
+        model.methods.remove_worktree.execute(
+          { path: "/tmp/wt-feature" },
+          ctx,
+        ),
+      Error,
+      "git status failed for worktree",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remove_worktree: throws on git worktree remove failure", async () => {
+  let callIdx = 0;
+  setCommandExecutor(() => {
+    callIdx++;
+    if (callIdx === 1) return ok(WORKTREE_LIST_WITH_SECONDARY);
+    if (callIdx === 2) return ok("");
+    return fail("fatal: worktree remove failed");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () =>
+        model.methods.remove_worktree.execute(
+          { path: "/tmp/wt-feature" },
+          ctx,
+        ),
+      Error,
+      "git worktree remove failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remove_worktree: throws on git worktree list failure", async () => {
+  setCommandExecutor(() => fail("fatal: not a git repository"));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () =>
+        model.methods.remove_worktree.execute(
+          { path: "/tmp/wt" },
+          ctx,
+        ),
+      Error,
+      "git worktree list failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("remove_worktree: trailing slash on path is normalized", async () => {
+  setCommandExecutor(() => ok(WORKTREE_LIST_PRIMARY));
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.remove_worktree.execute(
+      { path: "/tmp/nonexistent/" },
+      ctx,
+    );
+
+    assertEquals(writes[0].data.path, "/tmp/nonexistent");
   } finally {
     resetCommandExecutor();
   }
