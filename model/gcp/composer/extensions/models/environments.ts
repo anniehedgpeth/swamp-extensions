@@ -536,6 +536,9 @@ const GlobalArgsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for this environment. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \\p{Ll}\\p{Lo}{0,62} * Values must conform to regexp: [\\p{Ll}\\p{Lo}\\p{N}_-]{0,63} * Both keys and values are additionally constrained to be <= 128 bytes in size.",
   ).optional(),
+  mode: z.enum(["MODE_UNSPECIFIED", "DEVELOPMENT"]).describe(
+    "Optional. Selects the environment mode that determines what settings are customizable and what features are available in the environment.",
+  ).optional(),
   name: z.string().describe(
     'Identifier. The resource name of the environment, in the form: "projects/{projectId}/locations/{locationId}/environments/{environmentId}" EnvironmentId must start with a lowercase letter followed by up to 63 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.',
   ).optional(),
@@ -544,6 +547,7 @@ const GlobalArgsSchema = z.object({
     "CREATING",
     "RUNNING",
     "UPDATING",
+    "HIBERNATED",
     "DELETING",
     "ERROR",
   ]).describe("The current state of the environment.").optional(),
@@ -699,6 +703,7 @@ const StateSchema = z.object({
   }).optional(),
   createTime: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
+  mode: z.string().optional(),
   name: z.string(),
   satisfiesPzi: z.boolean().optional(),
   satisfiesPzs: z.boolean().optional(),
@@ -1100,6 +1105,9 @@ const InputsSchema = z.object({
   labels: z.record(z.string(), z.string()).describe(
     "Optional. User-defined labels for this environment. The labels map can contain no more than 64 entries. Entries of the labels map are UTF8 strings that comply with the following restrictions: * Keys must conform to regexp: \\p{Ll}\\p{Lo}{0,62} * Values must conform to regexp: [\\p{Ll}\\p{Lo}\\p{N}_-]{0,63} * Both keys and values are additionally constrained to be <= 128 bytes in size.",
   ).optional(),
+  mode: z.enum(["MODE_UNSPECIFIED", "DEVELOPMENT"]).describe(
+    "Optional. Selects the environment mode that determines what settings are customizable and what features are available in the environment.",
+  ).optional(),
   name: z.string().describe(
     'Identifier. The resource name of the environment, in the form: "projects/{projectId}/locations/{locationId}/environments/{environmentId}" EnvironmentId must start with a lowercase letter followed by up to 63 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.',
   ).optional(),
@@ -1108,6 +1116,7 @@ const InputsSchema = z.object({
     "CREATING",
     "RUNNING",
     "UPDATING",
+    "HIBERNATED",
     "DELETING",
     "ERROR",
   ]).describe("The current state of the environment.").optional(),
@@ -1148,7 +1157,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Composer Environments. Registered at `@swamp/gcp/composer/environments`. */
 export const model = {
   type: "@swamp/gcp/composer/environments",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1295,6 +1304,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.29.1",
+      description: "Added: mode",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -1327,6 +1341,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["config"] !== undefined) body["config"] = g["config"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["mode"] !== undefined) body["mode"] = g["mode"];
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["storageConfig"] !== undefined) {
@@ -1456,6 +1471,7 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (g["config"] !== undefined) body["config"] = g["config"];
         if (g["labels"] !== undefined) body["labels"] = g["labels"];
+        if (g["mode"] !== undefined) body["mode"] = g["mode"];
         if (g["state"] !== undefined) body["state"] = g["state"];
         if (g["storageConfig"] !== undefined) {
           body["storageConfig"] = g["storageConfig"];

@@ -60,6 +60,9 @@ const GET_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "location": {
+      "location": "query",
+    },
     "project": {
       "location": "path",
       "required": true,
@@ -75,6 +78,9 @@ const INSERT_CONFIG = {
     "project",
   ],
   "parameters": {
+    "location": {
+      "location": "query",
+    },
     "project": {
       "location": "path",
       "required": true,
@@ -94,6 +100,9 @@ const UPDATE_CONFIG = {
     "instance": {
       "location": "path",
       "required": true,
+    },
+    "location": {
+      "location": "query",
     },
     "project": {
       "location": "path",
@@ -127,6 +136,9 @@ const DELETE_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "location": {
+      "location": "query",
+    },
     "project": {
       "location": "path",
       "required": true,
@@ -143,6 +155,9 @@ const LIST_CONFIG = {
   ],
   "parameters": {
     "filter": {
+      "location": "query",
+    },
+    "location": {
       "location": "query",
     },
     "maxResults": {
@@ -249,6 +264,9 @@ const GlobalArgsSchema = z.object({
     "The database engine type and version. The `databaseVersion` field cannot be changed after instance creation.",
   ).optional(),
   diskEncryptionConfiguration: z.object({
+    confidentialMode: z.boolean().describe(
+      "Optional. If true, enables Confidential Mode for the instance's Hyperdisk Balanced volumes. Only supported for zonal C4A instances currently.",
+    ).optional(),
     kind: z.string().describe(
       "This is always `sql#diskEncryptionConfiguration`.",
     ).optional(),
@@ -303,6 +321,7 @@ const GlobalArgsSchema = z.object({
     "ON_PREMISES_INSTANCE",
     "READ_REPLICA_INSTANCE",
     "READ_POOL_INSTANCE",
+    "GREEN_INSTANCE",
   ]).describe("The instance type.").optional(),
   ipAddresses: z.array(z.object({
     ipAddress: z.string().describe("The IP address assigned.").optional(),
@@ -794,7 +813,7 @@ const GlobalArgsSchema = z.object({
           "Optional. The list of consumer projects that are allow-listed for PSC connections to this instance. This instance can be connected to with PSC from any network in these projects. Each consumer project in this list may be represented by a project number (numeric) or by a project id (alphanumeric).",
         ).optional(),
         networkAttachmentUri: z.string().describe(
-          "Optional. The network attachment of the consumer network that the Private Service Connect enabled Cloud SQL instance is authorized to connect via PSC interface. format: projects/PROJECT/regions/REGION/networkAttachments/ID",
+          "Optional. The network attachment of the consumer network that the Private Service Connect enabled Cloud SQL instance is authorized to connect using the PSC interface. format: projects/PROJECT/regions/REGION/networkAttachments/ID",
         ).optional(),
         pscAutoConnectionPolicyEnabled: z.boolean().describe(
           "Optional. Whether to set up the PSC service connection policy automatically.",
@@ -928,8 +947,9 @@ const GlobalArgsSchema = z.object({
       reuseInterval: z.number().int().describe(
         "Number of previous passwords that cannot be reused.",
       ).optional(),
-    }).describe("The local user password validation policy of the instance.")
-      .optional(),
+    }).describe(
+      "The local user password validation policy of the instance for PostgreSQL and MySQL.",
+    ).optional(),
     performanceCaptureConfig: z.object({
       cpuUtilizationThresholdPercent: z.number().int().describe(
         "Optional. Specifies the minimum percentage of CPU utilization to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
@@ -1094,6 +1114,8 @@ const GlobalArgsSchema = z.object({
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys and tag values that are bound to this instance. You must represent each item in the map as: `"": ""`. For example, a single resource can have the following tags: ` "123/environment": "production", "123/costCenter": "marketing", ` For more information on tag creation and management, see https://cloud.google.com/resource-manager/docs/tags/tags-overview.',
   ).optional(),
+  location: z.string().describe("Optional. Region of the Cloud SQL instance.")
+    .optional(),
 });
 
 const StateSchema = z.object({
@@ -1105,7 +1127,26 @@ const StateSchema = z.object({
   databaseCenterIntegrationEnabled: z.boolean().optional(),
   databaseInstalledVersion: z.string().optional(),
   databaseVersion: z.string().optional(),
+  deploymentInfo: z.object({
+    deploymentId: z.string(),
+    source: z.object({
+      targetId: z.object({
+        name: z.string(),
+        project: z.string(),
+        region: z.string(),
+      }),
+    }),
+    state: z.string(),
+    target: z.object({
+      sourceId: z.object({
+        name: z.string(),
+        project: z.string(),
+        region: z.string(),
+      }),
+    }),
+  }).optional(),
   diskEncryptionConfiguration: z.object({
+    confidentialMode: z.boolean(),
     kind: z.string(),
     kmsKeyName: z.string(),
   }).optional(),
@@ -1535,6 +1576,9 @@ const InputsSchema = z.object({
     "The database engine type and version. The `databaseVersion` field cannot be changed after instance creation.",
   ).optional(),
   diskEncryptionConfiguration: z.object({
+    confidentialMode: z.boolean().describe(
+      "Optional. If true, enables Confidential Mode for the instance's Hyperdisk Balanced volumes. Only supported for zonal C4A instances currently.",
+    ).optional(),
     kind: z.string().describe(
       "This is always `sql#diskEncryptionConfiguration`.",
     ).optional(),
@@ -1589,6 +1633,7 @@ const InputsSchema = z.object({
     "ON_PREMISES_INSTANCE",
     "READ_REPLICA_INSTANCE",
     "READ_POOL_INSTANCE",
+    "GREEN_INSTANCE",
   ]).describe("The instance type.").optional(),
   ipAddresses: z.array(z.object({
     ipAddress: z.string().describe("The IP address assigned.").optional(),
@@ -2080,7 +2125,7 @@ const InputsSchema = z.object({
           "Optional. The list of consumer projects that are allow-listed for PSC connections to this instance. This instance can be connected to with PSC from any network in these projects. Each consumer project in this list may be represented by a project number (numeric) or by a project id (alphanumeric).",
         ).optional(),
         networkAttachmentUri: z.string().describe(
-          "Optional. The network attachment of the consumer network that the Private Service Connect enabled Cloud SQL instance is authorized to connect via PSC interface. format: projects/PROJECT/regions/REGION/networkAttachments/ID",
+          "Optional. The network attachment of the consumer network that the Private Service Connect enabled Cloud SQL instance is authorized to connect using the PSC interface. format: projects/PROJECT/regions/REGION/networkAttachments/ID",
         ).optional(),
         pscAutoConnectionPolicyEnabled: z.boolean().describe(
           "Optional. Whether to set up the PSC service connection policy automatically.",
@@ -2214,8 +2259,9 @@ const InputsSchema = z.object({
       reuseInterval: z.number().int().describe(
         "Number of previous passwords that cannot be reused.",
       ).optional(),
-    }).describe("The local user password validation policy of the instance.")
-      .optional(),
+    }).describe(
+      "The local user password validation policy of the instance for PostgreSQL and MySQL.",
+    ).optional(),
     performanceCaptureConfig: z.object({
       cpuUtilizationThresholdPercent: z.number().int().describe(
         "Optional. Specifies the minimum percentage of CPU utilization to trigger the performance capture. Valid integers range from `10` to `99`. Enter `0` to disable the check.",
@@ -2380,6 +2426,8 @@ const InputsSchema = z.object({
   tags: z.record(z.string(), z.string()).describe(
     'Optional. Input only. Immutable. Tag keys and tag values that are bound to this instance. You must represent each item in the map as: `"": ""`. For example, a single resource can have the following tags: ` "123/environment": "production", "123/costCenter": "marketing", ` For more information on tag creation and management, see https://cloud.google.com/resource-manager/docs/tags/tags-overview.',
   ).optional(),
+  location: z.string().describe("Optional. Region of the Cloud SQL instance.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -2407,7 +2455,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Instances. Registered at `@swamp/gcp/sqladmin/instances`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/instances",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -2624,6 +2672,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.29.1",
+      description: "Added: location",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -2743,6 +2796,9 @@ export const model = {
             g["switchTransactionLogsToCloudStorageEnabled"];
         }
         if (g["tags"] !== undefined) body["tags"] = g["tags"];
+        if (g["location"] !== undefined) {
+          params["location"] = String(g["location"]);
+        }
         if (g["name"] !== undefined) params["instance"] = String(g["name"]);
         const result = await createResource(
           baseUrl,
@@ -3064,6 +3120,9 @@ export const model = {
         filter: z.string().describe(
           "A filter expression that filters resources listed in the response. The expression is in the form of field:value. For example, 'instanceType:CLOUD_SQL_INSTANCE'. Fields can be nested as needed as per their JSON representation, such as 'settings.userLabels.auto_start:true'. Multiple filter queries are space-separated. For example. 'state:RUNNABLE instanceType:CLOUD_SQL_INSTANCE'. By default, each expression is an AND expression. However, you can include AND and OR expressions explicitly.",
         ).optional(),
+        location: z.string().describe(
+          "Optional. Region of the Cloud SQL instance.",
+        ).optional(),
         maxResults: z.number().describe(
           "The maximum number of instances to return. The service may return fewer than this value. If unspecified, at most 500 instances are returned. The maximum value is 1000; values above 1000 are coerced to 1000.",
         ).optional(),
@@ -3080,6 +3139,9 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (args["filter"] !== undefined) {
           params["filter"] = String(args["filter"]);
+        }
+        if (args["location"] !== undefined) {
+          params["location"] = String(args["location"]);
         }
         if (args["maxResults"] !== undefined) {
           params["maxResults"] = String(args["maxResults"]);
@@ -3149,6 +3211,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3196,6 +3259,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3242,6 +3306,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3289,6 +3354,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3341,6 +3407,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3393,6 +3460,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3445,6 +3513,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3519,6 +3588,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3571,6 +3641,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3623,6 +3694,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3675,6 +3747,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3722,6 +3795,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3768,6 +3842,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3815,6 +3890,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3942,6 +4018,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -3989,6 +4066,7 @@ export const model = {
             "parameters": {
               "failover": { "location": "query" },
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4041,6 +4119,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4088,6 +4167,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4134,6 +4214,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "mode": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
@@ -4181,6 +4262,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4199,6 +4281,7 @@ export const model = {
       arguments: z.object({
         backup: z.any().optional(),
         backupdrBackup: z.any().optional(),
+        ignoreMaintenanceVersion: z.any().optional(),
         restoreBackupContext: z.any().optional(),
         restoreInstanceClearOverridesFieldNames: z.any().optional(),
         restoreInstanceSettings: z.any().optional(),
@@ -4229,6 +4312,9 @@ export const model = {
         if (args["backupdrBackup"] !== undefined) {
           body["backupdrBackup"] = args["backupdrBackup"];
         }
+        if (args["ignoreMaintenanceVersion"] !== undefined) {
+          body["ignoreMaintenanceVersion"] = args["ignoreMaintenanceVersion"];
+        }
         if (args["restoreBackupContext"] !== undefined) {
           body["restoreBackupContext"] = args["restoreBackupContext"];
         }
@@ -4248,6 +4334,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4302,6 +4389,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4354,6 +4442,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4408,6 +4497,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4454,6 +4544,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4500,6 +4591,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4547,6 +4639,7 @@ export const model = {
             "parameters": {
               "dbTimeout": { "location": "query" },
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },
@@ -4599,6 +4692,7 @@ export const model = {
             "parameterOrder": ["project", "instance"],
             "parameters": {
               "instance": { "location": "path", "required": true },
+              "location": { "location": "query" },
               "project": { "location": "path", "required": true },
             },
           },

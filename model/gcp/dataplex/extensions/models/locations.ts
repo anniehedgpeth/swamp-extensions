@@ -159,7 +159,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex Locations. Registered at `@swamp/gcp/dataplex/locations`. */
 export const model = {
   type: "@swamp/gcp/dataplex/locations",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -318,6 +318,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -661,6 +666,7 @@ export const model = {
             "httpMethod": "POST",
             "parameterOrder": ["name"],
             "parameters": {
+              "contexts": { "location": "query" },
               "name": { "location": "path", "required": true },
               "orderBy": { "location": "query" },
               "pageSize": { "location": "query" },

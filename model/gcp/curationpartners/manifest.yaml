@@ -1,0 +1,23 @@
+# Auto-generated manifest. Re-generate with the appropriate deno task.
+manifestVersion: 1
+name: "@swamp/gcp/curationpartners"
+version: "2026.08.29.1"
+description: "Google Cloud curationpartners infrastructure models"
+repository: "https://github.com/swamp-club/swamp-extensions"
+labels:
+  - gcp
+  - google-cloud
+  - curationpartners
+  - cloud
+  - infrastructure
+releaseNotes: |
+  - Added: curators_curatedpackages, curators_datasegments, curators_reports, mediaplanners
+models:
+  - curators_curatedpackages.ts
+  - curators_datasegments.ts
+  - curators_reports.ts
+  - mediaplanners.ts
+additionalFiles:
+  - LICENSE.txt
+  - README.md
+platforms: []

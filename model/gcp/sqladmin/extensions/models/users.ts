@@ -64,6 +64,9 @@ const GET_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "location": {
+      "location": "query",
+    },
     "name": {
       "location": "path",
       "required": true,
@@ -87,6 +90,9 @@ const INSERT_CONFIG = {
     "instance": {
       "location": "path",
       "required": true,
+    },
+    "location": {
+      "location": "query",
     },
     "project": {
       "location": "path",
@@ -113,6 +119,9 @@ const UPDATE_CONFIG = {
     "instance": {
       "location": "path",
       "required": true,
+    },
+    "location": {
+      "location": "query",
     },
     "name": {
       "location": "query",
@@ -149,6 +158,9 @@ const DELETE_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "location": {
+      "location": "query",
+    },
     "name": {
       "location": "query",
     },
@@ -171,6 +183,9 @@ const LIST_CONFIG = {
     "instance": {
       "location": "path",
       "required": true,
+    },
+    "location": {
+      "location": "query",
     },
     "project": {
       "location": "path",
@@ -249,9 +264,11 @@ const GlobalArgsSchema = z.object({
     "Optional. The server roles for the SQL Server login.",
   ).optional(),
   sqlserverUserDetails: z.object({
-    disabled: z.boolean().describe("If the user has been disabled").optional(),
-    serverRoles: z.array(z.string()).describe("The server roles for this user")
+    disabled: z.boolean().describe("Indicates if the user has been disabled.")
       .optional(),
+    serverRoles: z.array(z.string()).describe(
+      "Indicates the server roles for this user.",
+    ).optional(),
   }).describe("Represents a Sql Server user on the Cloud SQL instance.")
     .optional(),
   type: z.enum([
@@ -266,6 +283,8 @@ const GlobalArgsSchema = z.object({
   ]).describe(
     "The user type. It determines the method to authenticate the user during login. The default is the database's built-in user type.",
   ).optional(),
+  location: z.string().describe("Optional. Region of the Cloud SQL instance.")
+    .optional(),
 });
 
 const StateSchema = z.object({
@@ -360,9 +379,11 @@ const InputsSchema = z.object({
     "Optional. The server roles for the SQL Server login.",
   ).optional(),
   sqlserverUserDetails: z.object({
-    disabled: z.boolean().describe("If the user has been disabled").optional(),
-    serverRoles: z.array(z.string()).describe("The server roles for this user")
+    disabled: z.boolean().describe("Indicates if the user has been disabled.")
       .optional(),
+    serverRoles: z.array(z.string()).describe(
+      "Indicates the server roles for this user.",
+    ).optional(),
   }).describe("Represents a Sql Server user on the Cloud SQL instance.")
     .optional(),
   type: z.enum([
@@ -377,6 +398,8 @@ const InputsSchema = z.object({
   ]).describe(
     "The user type. It determines the method to authenticate the user during login. The default is the database's built-in user type.",
   ).optional(),
+  location: z.string().describe("Optional. Region of the Cloud SQL instance.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -404,7 +427,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Users. Registered at `@swamp/gcp/sqladmin/users`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/users",
-  version: "2026.08.12.3",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -556,6 +579,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.29.1",
+      description: "Added: location",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -603,6 +631,9 @@ export const model = {
           body["sqlserverUserDetails"] = g["sqlserverUserDetails"];
         }
         if (g["type"] !== undefined) body["type"] = g["type"];
+        if (g["location"] !== undefined) {
+          params["location"] = String(g["location"]);
+        }
         if (g["name"] !== undefined) params["name"] = String(g["name"]);
         const result = await createResource(
           baseUrl,
@@ -853,6 +884,9 @@ export const model = {
     list: {
       description: "List users resources",
       arguments: z.object({
+        location: z.string().describe(
+          "Optional. Region of the Cloud SQL instance.",
+        ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
         ).optional(),
@@ -866,6 +900,9 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["instance"] !== undefined) {
           params["instance"] = String(g["instance"]);
+        }
+        if (args["location"] !== undefined) {
+          params["location"] = String(args["location"]);
         }
         const { items, nextPageToken } = await listResources(
           baseUrl,

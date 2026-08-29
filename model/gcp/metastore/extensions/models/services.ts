@@ -743,7 +743,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Metastore Services. Registered at `@swamp/gcp/metastore/services`. */
 export const model = {
   type: "@swamp/gcp/metastore/services",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -883,6 +883,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -1839,6 +1844,7 @@ export const model = {
       description: "start migration",
       arguments: z.object({
         migrationExecution: z.any().optional(),
+        migrationExecutionId: z.any().optional(),
         requestId: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
@@ -1865,6 +1871,9 @@ export const model = {
         const body: Record<string, unknown> = {};
         if (args["migrationExecution"] !== undefined) {
           body["migrationExecution"] = args["migrationExecution"];
+        }
+        if (args["migrationExecutionId"] !== undefined) {
+          body["migrationExecutionId"] = args["migrationExecutionId"];
         }
         if (args["requestId"] !== undefined) {
           body["requestId"] = args["requestId"];

@@ -65,6 +65,9 @@ const GET_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "location": {
+      "location": "query",
+    },
     "project": {
       "location": "path",
       "required": true,
@@ -84,6 +87,9 @@ const INSERT_CONFIG = {
     "instance": {
       "location": "path",
       "required": true,
+    },
+    "location": {
+      "location": "query",
     },
     "project": {
       "location": "path",
@@ -110,6 +116,9 @@ const UPDATE_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "location": {
+      "location": "query",
+    },
     "project": {
       "location": "path",
       "required": true,
@@ -135,6 +144,9 @@ const DELETE_CONFIG = {
       "location": "path",
       "required": true,
     },
+    "location": {
+      "location": "query",
+    },
     "project": {
       "location": "path",
       "required": true,
@@ -154,6 +166,9 @@ const LIST_CONFIG = {
     "instance": {
       "location": "path",
       "required": true,
+    },
+    "location": {
+      "location": "query",
     },
     "project": {
       "location": "path",
@@ -197,6 +212,8 @@ const GlobalArgsSchema = z.object({
       "The recovery model of a SQL Server database",
     ).optional(),
   }).describe("Represents a Sql Server database on the Cloud SQL instance.")
+    .optional(),
+  location: z.string().describe("Optional. Region of the Cloud SQL instance.")
     .optional(),
 });
 
@@ -243,6 +260,8 @@ const InputsSchema = z.object({
     ).optional(),
   }).describe("Represents a Sql Server database on the Cloud SQL instance.")
     .optional(),
+  location: z.string().describe("Optional. Region of the Cloud SQL instance.")
+    .optional(),
 });
 
 const _credentialKeys = new Set([
@@ -270,7 +289,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin Databases. Registered at `@swamp/gcp/sqladmin/databases`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/databases",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -397,6 +416,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.29.1",
+      description: "Added: location",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -428,6 +452,9 @@ export const model = {
         if (g["name"] !== undefined) body["name"] = g["name"];
         if (g["sqlserverDatabaseDetails"] !== undefined) {
           body["sqlserverDatabaseDetails"] = g["sqlserverDatabaseDetails"];
+        }
+        if (g["location"] !== undefined) {
+          params["location"] = String(g["location"]);
         }
         if (g["name"] !== undefined) params["database"] = String(g["name"]);
         const result = await createResource(
@@ -666,6 +693,9 @@ export const model = {
     list: {
       description: "List databases resources",
       arguments: z.object({
+        location: z.string().describe(
+          "Optional. Region of the Cloud SQL instance.",
+        ).optional(),
         maxPages: z.number().describe(
           "Maximum number of pages to fetch (default: 10)",
         ).optional(),
@@ -679,6 +709,9 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["instance"] !== undefined) {
           params["instance"] = String(g["instance"]);
+        }
+        if (args["location"] !== undefined) {
+          params["location"] = String(args["location"]);
         }
         const { items, nextPageToken } = await listResources(
           baseUrl,

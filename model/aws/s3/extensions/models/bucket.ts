@@ -73,8 +73,6 @@ const InventoryConfigurationSchema = z.object({
       "ObjectLockRetainUntilDate",
       "ObjectLockMode",
       "ObjectLockLegalHoldStatus",
-      "ObjectLockEventHoldStatus",
-      "ObjectLockEventHoldDuration",
       "IntelligentTieringAccessTier",
       "BucketKeyStatus",
       "ChecksumAlgorithm",
@@ -1180,7 +1178,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for S3 Bucket. Registered at `@swamp/aws/s3/bucket`. */
 export const model = {
   type: "@swamp/aws/s3/bucket",
-  version: "2026.08.17.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1244,6 +1242,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

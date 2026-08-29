@@ -174,6 +174,7 @@ const StateSchema = z.object({
       queries: z.array(z.object({
         description: z.string(),
         sql: z.string(),
+        sqlDialect: z.string(),
       })),
       schemaRelationships: z.array(z.object({
         leftSchemaPaths: z.object({
@@ -194,6 +195,7 @@ const StateSchema = z.object({
       queries: z.array(z.object({
         description: z.string(),
         sql: z.string(),
+        sqlDialect: z.string(),
       })),
       schema: z.object({
         fields: z.array(z.object({
@@ -207,6 +209,7 @@ const StateSchema = z.object({
   dataDocumentationSpec: z.object({
     catalogPublishingEnabled: z.boolean(),
     generationScopes: z.array(z.string()),
+    sqlDialect: z.string(),
   }).optional(),
   dataProfileResult: z.object({
     catalogPublishingStatus: z.object({
@@ -531,7 +534,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataplex DataScans.Jobs. Registered at `@swamp/gcp/dataplex/datascans-jobs`. */
 export const model = {
   type: "@swamp/gcp/dataplex/datascans-jobs",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -710,6 +713,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

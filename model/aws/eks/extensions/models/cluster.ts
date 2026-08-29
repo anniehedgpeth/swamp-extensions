@@ -147,6 +147,12 @@ const NodeResourcesFitConfigSchema = z.object({
   ).optional(),
 });
 
+const PodGcControllerConfigSchema = z.object({
+  TerminatedPodGcThreshold: z.number().int().describe(
+    "The number of terminated pods that can exist before the terminated pod garbage collector starts deleting them.",
+  ).optional(),
+});
+
 const HorizontalPodAutoscalerControllerConfigSchema = z.object({
   HorizontalPodAutoscalerSyncPeriod: z.string().describe(
     "The interval between each sync of the horizontal pod autoscaler (e.g., 15s, 1m).",
@@ -329,6 +335,9 @@ const GlobalArgsSchema = z.object({
     "The configuration for the Kubernetes scheduler on an Amazon EKS cluster.",
   ).optional(),
   KubeControllerManagerConfig: z.object({
+    PodGcControllerConfig: PodGcControllerConfigSchema.describe(
+      "The pod garbage collector controller configuration.",
+    ).optional(),
     HorizontalPodAutoscalerControllerConfig:
       HorizontalPodAutoscalerControllerConfigSchema.describe(
         "The horizontal pod autoscaler controller configuration.",
@@ -422,6 +431,7 @@ const StateSchema = z.object({
     NodeResourcesFit: NodeResourcesFitConfigSchema,
   }).optional(),
   KubeControllerManagerConfig: z.object({
+    PodGcControllerConfig: PodGcControllerConfigSchema,
     HorizontalPodAutoscalerControllerConfig:
       HorizontalPodAutoscalerControllerConfigSchema,
   }).optional(),
@@ -597,6 +607,9 @@ const InputsSchema = z.object({
     "The configuration for the Kubernetes scheduler on an Amazon EKS cluster.",
   ).optional(),
   KubeControllerManagerConfig: z.object({
+    PodGcControllerConfig: PodGcControllerConfigSchema.describe(
+      "The pod garbage collector controller configuration.",
+    ).optional(),
     HorizontalPodAutoscalerControllerConfig:
       HorizontalPodAutoscalerControllerConfigSchema.describe(
         "The horizontal pod autoscaler controller configuration.",
@@ -625,7 +638,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for EKS Cluster. Registered at `@swamp/aws/eks/cluster`. */
 export const model = {
   type: "@swamp/aws/eks/cluster",
-  version: "2026.08.20.1",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -706,6 +719,11 @@ export const model = {
     {
       toVersion: "2026.08.20.1",
       description: "Added: ActiveCertificateAuthorityId",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.29.1",
+      description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],

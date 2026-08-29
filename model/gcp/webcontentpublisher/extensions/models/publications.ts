@@ -126,11 +126,6 @@ const LIST_CONFIG = {
   },
 } as const;
 
-const _defaultOAuthScopes: string[] = [
-  "https://www.googleapis.com/auth/subscribewithgoogle.publications.entitlements.manage",
-  "https://www.googleapis.com/auth/subscribewithgoogle.publications.entitlements.readonly",
-];
-
 const GlobalArgsSchema = z.object({
   accessToken: z.string().meta({ sensitive: true }).describe(
     "GCP OAuth2 access token; overrides GCP_ACCESS_TOKEN environment variable. Wire with a vault.get(...) expression to source it from a vault.",
@@ -368,7 +363,7 @@ function _buildGcpCredentials(
     project: g.project as string | undefined,
     scopes: typeof g.scopes === "string"
       ? g.scopes.split(",").map((s: string) => s.trim())
-      : _defaultOAuthScopes,
+      : undefined,
     quotaProject: g.quotaProject as string | undefined,
   };
 }
@@ -376,7 +371,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Web Content Publisher Publications. Registered at `@swamp/gcp/webcontentpublisher/publications`. */
 export const model = {
   type: "@swamp/gcp/webcontentpublisher/publications",
-  version: "2026.08.25.1",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.07.17.1",
@@ -433,6 +428,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.25.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

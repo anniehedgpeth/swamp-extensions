@@ -168,6 +168,9 @@ const GlobalArgsSchema = z.object({
     "The description of this run, only applicable to on-demand backups.",
   ).optional(),
   diskEncryptionConfiguration: z.object({
+    confidentialMode: z.boolean().describe(
+      "Optional. If true, enables Confidential Mode for the instance's Hyperdisk Balanced volumes. Only supported for zonal C4A instances currently.",
+    ).optional(),
     kind: z.string().describe(
       "This is always `sql#diskEncryptionConfiguration`.",
     ).optional(),
@@ -236,6 +239,7 @@ const StateSchema = z.object({
   databaseVersion: z.string().optional(),
   description: z.string().optional(),
   diskEncryptionConfiguration: z.object({
+    confidentialMode: z.boolean(),
     kind: z.string(),
     kmsKeyName: z.string(),
   }).optional(),
@@ -279,6 +283,9 @@ const InputsSchema = z.object({
     "The description of this run, only applicable to on-demand backups.",
   ).optional(),
   diskEncryptionConfiguration: z.object({
+    confidentialMode: z.boolean().describe(
+      "Optional. If true, enables Confidential Mode for the instance's Hyperdisk Balanced volumes. Only supported for zonal C4A instances currently.",
+    ).optional(),
     kind: z.string().describe(
       "This is always `sql#diskEncryptionConfiguration`.",
     ).optional(),
@@ -368,7 +375,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud SQL Admin BackupRuns. Registered at `@swamp/gcp/sqladmin/backupruns`. */
 export const model = {
   type: "@swamp/gcp/sqladmin/backupruns",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -487,6 +494,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

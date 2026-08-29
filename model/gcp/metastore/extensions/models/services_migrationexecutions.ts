@@ -141,26 +141,33 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
-  cloudSqlMigrationConfig: z.object({
-    cdcConfig: z.object({
-      bucket: z.string(),
-      password: z.string(),
-      reverseProxySubnet: z.string(),
-      rootPath: z.string(),
-      subnetIpRange: z.string(),
-      username: z.string(),
-      vpcNetwork: z.string(),
+  biglakeMetastoreMigrationConfig: z.object({
+    backfillStatus: z.object({
+      migrationSummary: z.object({
+        catalogSummaries: z.array(z.object({
+          catalog: z.unknown(),
+          catalogType: z.unknown(),
+          databaseSummaries: z.unknown(),
+        })),
+        createTime: z.string(),
+        dryRun: z.boolean(),
+        service: z.string(),
+      }),
+      reportPath: z.string(),
+      state: z.string(),
     }),
-    cloudSqlConnectionConfig: z.object({
-      hiveDatabaseName: z.string(),
-      instanceConnectionName: z.string(),
-      ipAddress: z.string(),
-      natSubnet: z.string(),
-      password: z.string(),
-      port: z.number(),
-      proxySubnet: z.string(),
-      username: z.string(),
+    conflictPolicy: z.string(),
+    dryRun: z.boolean(),
+    hiveConfig: z.object({
+      catalog: z.string(),
+      databases: z.array(z.string()),
     }),
+    icebergConfig: z.object({
+      catalog: z.string(),
+      namespaces: z.array(z.string()),
+    }),
+    mode: z.string(),
+    reportPath: z.string(),
   }).optional(),
   createTime: z.string().optional(),
   endTime: z.string().optional(),
@@ -214,7 +221,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Dataproc Metastore Services.MigrationExecutions. Registered at `@swamp/gcp/metastore/services-migrationexecutions`. */
 export const model = {
   type: "@swamp/gcp/metastore/services-migrationexecutions",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -333,6 +340,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.29.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

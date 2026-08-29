@@ -164,6 +164,13 @@ const GlobalArgsSchema = z.object({
   caPool: z.string().describe(
     'Required. A CA pool resource used to issue interception certificates. The CA pool string has a relative resource path following the form "projects/{project}/locations/{location}/caPools/{ca_pool}".',
   ).optional(),
+  certificateIssuanceMode: z.enum([
+    "CERTIFICATE_ISSUANCE_MODE_UNSPECIFIED",
+    "DIRECT_LEAF_PROVISIONING",
+    "LOCAL_INTERMEDIATE_CA_SIGNING",
+  ]).describe(
+    "Optional. The mode used to issue certificates (local CA signing vs direct leaf).",
+  ).optional(),
   customTlsFeatures: z.array(z.string()).describe(
     "Optional. List of custom TLS cipher suites selected. This field is valid only if the selected tls_feature_profile is CUSTOM. The compute.SslPoliciesService.ListAvailableFeatures method returns the set of features that can be specified in this list. Note that Secure Web Proxy does not yet honor this field.",
   ).optional(),
@@ -207,6 +214,7 @@ const GlobalArgsSchema = z.object({
 
 const StateSchema = z.object({
   caPool: z.string().optional(),
+  certificateIssuanceMode: z.string().optional(),
   createTime: z.string().optional(),
   customTlsFeatures: z.array(z.string()).optional(),
   description: z.string().optional(),
@@ -229,6 +237,13 @@ const InputsSchema = z.object({
   apiEndpoint: z.string().optional(),
   caPool: z.string().describe(
     'Required. A CA pool resource used to issue interception certificates. The CA pool string has a relative resource path following the form "projects/{project}/locations/{location}/caPools/{ca_pool}".',
+  ).optional(),
+  certificateIssuanceMode: z.enum([
+    "CERTIFICATE_ISSUANCE_MODE_UNSPECIFIED",
+    "DIRECT_LEAF_PROVISIONING",
+    "LOCAL_INTERMEDIATE_CA_SIGNING",
+  ]).describe(
+    "Optional. The mode used to issue certificates (local CA signing vs direct leaf).",
   ).optional(),
   customTlsFeatures: z.array(z.string()).describe(
     "Optional. List of custom TLS cipher suites selected. This field is valid only if the selected tls_feature_profile is CUSTOM. The compute.SslPoliciesService.ListAvailableFeatures method returns the set of features that can be specified in this list. Note that Secure Web Proxy does not yet honor this field.",
@@ -297,7 +312,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Network Security TlsInspectionPolicies. Registered at `@swamp/gcp/networksecurity/tlsinspectionpolicies`. */
 export const model = {
   type: "@swamp/gcp/networksecurity/tlsinspectionpolicies",
-  version: "2026.08.12.2",
+  version: "2026.08.29.1",
   upgrades: [
     {
       toVersion: "2026.04.01.2",
@@ -424,6 +439,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.29.1",
+      description: "Added: certificateIssuanceMode",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -452,6 +472,9 @@ export const model = {
         }`;
         const body: Record<string, unknown> = {};
         if (g["caPool"] !== undefined) body["caPool"] = g["caPool"];
+        if (g["certificateIssuanceMode"] !== undefined) {
+          body["certificateIssuanceMode"] = g["certificateIssuanceMode"];
+        }
         if (g["customTlsFeatures"] !== undefined) {
           body["customTlsFeatures"] = g["customTlsFeatures"];
         }
@@ -587,6 +610,9 @@ export const model = {
         }
         const body: Record<string, unknown> = {};
         if (g["caPool"] !== undefined) body["caPool"] = g["caPool"];
+        if (g["certificateIssuanceMode"] !== undefined) {
+          body["certificateIssuanceMode"] = g["certificateIssuanceMode"];
+        }
         if (g["customTlsFeatures"] !== undefined) {
           body["customTlsFeatures"] = g["customTlsFeatures"];
         }
