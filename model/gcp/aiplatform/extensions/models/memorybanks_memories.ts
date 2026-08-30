@@ -164,6 +164,9 @@ const GlobalArgsSchema = z.object({
   apiEndpoint: z.string().describe(
     "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
   ).optional(),
+  context: z.string().describe(
+    "Optional. Represents the context of the memory.",
+  ).optional(),
   description: z.string().describe(
     "Optional. Represents the description of the Memory.",
   ).optional(),
@@ -234,6 +237,7 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  context: z.string().optional(),
   createTime: z.string().optional(),
   description: z.string().optional(),
   disableMemoryRevisions: z.boolean().optional(),
@@ -263,6 +267,9 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
   apiEndpoint: z.string().optional(),
+  context: z.string().describe(
+    "Optional. Represents the context of the memory.",
+  ).optional(),
   description: z.string().describe(
     "Optional. Represents the description of the Memory.",
   ).optional(),
@@ -358,7 +365,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform MemoryBanks.Memories. Registered at `@swamp/gcp/aiplatform/memorybanks-memories`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/memorybanks-memories",
-  version: "2026.08.12.2",
+  version: "2026.08.30.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -373,6 +380,11 @@ export const model = {
     {
       toVersion: "2026.08.12.2",
       description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.30.1",
+      description: "Added: context",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
   ],
@@ -399,6 +411,7 @@ export const model = {
         const params: Record<string, string> = { project: projectId };
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
+        if (g["context"] !== undefined) body["context"] = g["context"];
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }
@@ -535,6 +548,7 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (g["context"] !== undefined) body["context"] = g["context"];
         if (g["description"] !== undefined) {
           body["description"] = g["description"];
         }

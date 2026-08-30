@@ -238,9 +238,6 @@ const GlobalArgsSchema = z.object({
             languageHints: z.unknown().describe(
               "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
             ).optional(),
-            mode: z.unknown().describe(
-              "Optional. Configures transcription mode. Supported values: `VERBATIM`, `SMART`. If unspecified, defaults to `VERBATIM` transcription. In `SMART` mode, the model performs disfluency removal (eliminating filler words, repetitions, and false starts), light grammatical cleanup, automatic formatting (paragraphs, bullet points, numbered lists), and minor user edits (inline self-corrections). Timestamps and diarization are incompatible with mode `SMART`.",
-            ).optional(),
             wordTimestamp: z.unknown().describe(
               "Optional. Configures word-level timestamp generation.",
             ).optional(),
@@ -704,7 +701,6 @@ const StateSchema = z.object({
             languageAuto: z.unknown(),
             languageCodes: z.unknown(),
             languageHints: z.unknown(),
-            mode: z.unknown(),
             wordTimestamp: z.unknown(),
           }),
           candidateCount: z.number(),
@@ -965,9 +961,6 @@ const InputsSchema = z.object({
             ).optional(),
             languageHints: z.unknown().describe(
               "Optional. Deprecated: Use top-level `language_codes` instead. Specifies one or more languages in the audio.",
-            ).optional(),
-            mode: z.unknown().describe(
-              "Optional. Configures transcription mode. Supported values: `VERBATIM`, `SMART`. If unspecified, defaults to `VERBATIM` transcription. In `SMART` mode, the model performs disfluency removal (eliminating filler words, repetitions, and false starts), light grammatical cleanup, automatic formatting (paragraphs, bullet points, numbered lists), and minor user edits (inline self-corrections). Timestamps and diarization are incompatible with mode `SMART`.",
             ).optional(),
             wordTimestamp: z.unknown().describe(
               "Optional. Configures word-level timestamp generation.",
@@ -1422,7 +1415,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform EvaluationMetrics. Registered at `@swamp/gcp/aiplatform/evaluationmetrics`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/evaluationmetrics",
-  version: "2026.08.22.1",
+  version: "2026.08.30.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -1451,6 +1444,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.22.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.30.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

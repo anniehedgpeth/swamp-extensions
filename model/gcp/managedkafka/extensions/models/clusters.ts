@@ -176,6 +176,13 @@ const GlobalArgsSchema = z.object({
   apiEndpoint: z.string().describe(
     "Custom API endpoint for emulators; overrides GCP_API_ENDPOINT environment variable. Defaults to the service's production URL.",
   ).optional(),
+  brokerCapacityConfig: z.object({
+    diskSizeGib: z.string().describe(
+      "Optional. The disk to provision for each broker in Gibibytes. Minimum: 100 GiB.",
+    ).optional(),
+  }).describe(
+    "Optional. Capacity configuration at a per-broker level within the Kafka cluster. The config will be appled to each broker in the cluster.",
+  ).optional(),
   capacityConfig: z.object({
     memoryBytes: z.string().describe(
       "Required. The memory to provision for the cluster in bytes. The CPU:memory ratio (vCPU:GiB) must be between 1:1 and 1:8. Minimum: 3221225472 (3 GiB).",
@@ -193,6 +200,13 @@ const GlobalArgsSchema = z.object({
         ).optional(),
       })).describe(
         "Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.",
+      ).optional(),
+      publicClusterConfig: z.object({
+        allowedSourceIpRanges: z.array(z.string()).describe(
+          "Required. The list of IPv4 ranges in CIDR notation that are allowed to connect to the public Kafka broker endpoints. The Kafka cluster should only be exposed to trusted external ranges. A maximum of 500 IP ranges can be specified and no single range can be larger than a `/16`. This field is required if PublicClusterConfig is specified.",
+        ).optional(),
+      }).describe(
+        "Optional. The configuration for public connectivity to the Kafka cluster.",
       ).optional(),
     }).describe("Required. Access configuration for the Kafka cluster.")
       .optional(),
@@ -253,6 +267,10 @@ const GlobalArgsSchema = z.object({
 });
 
 const StateSchema = z.object({
+  bootstrapAddress: z.string().optional(),
+  brokerCapacityConfig: z.object({
+    diskSizeGib: z.string(),
+  }).optional(),
   brokerDetails: z.array(z.object({
     brokerIndex: z.string(),
     nodeId: z.string(),
@@ -263,17 +281,28 @@ const StateSchema = z.object({
     vcpuCount: z.string(),
   }).optional(),
   createTime: z.string().optional(),
+  effectiveCapacityConfig: z.object({
+    brokerCount: z.string(),
+    brokerDiskSizeGib: z.string(),
+  }).optional(),
   gcpConfig: z.object({
     accessConfig: z.object({
       networkConfigs: z.array(z.object({
         subnet: z.string(),
       })),
+      publicClusterConfig: z.object({
+        allowedSourceIpRanges: z.array(z.string()),
+      }),
     }),
     kmsKey: z.string(),
   }).optional(),
   kafkaVersion: z.string().optional(),
   labels: z.record(z.string(), z.unknown()).optional(),
   name: z.string(),
+  publicClusterDetails: z.object({
+    discoveryDnsRecords: z.array(z.string()),
+    externalIpAddresses: z.array(z.string()),
+  }).optional(),
   rebalanceConfig: z.object({
     mode: z.string(),
   }).optional(),
@@ -303,6 +332,13 @@ const InputsSchema = z.object({
   scopes: z.string().optional(),
   quotaProject: z.string().optional(),
   apiEndpoint: z.string().optional(),
+  brokerCapacityConfig: z.object({
+    diskSizeGib: z.string().describe(
+      "Optional. The disk to provision for each broker in Gibibytes. Minimum: 100 GiB.",
+    ).optional(),
+  }).describe(
+    "Optional. Capacity configuration at a per-broker level within the Kafka cluster. The config will be appled to each broker in the cluster.",
+  ).optional(),
   capacityConfig: z.object({
     memoryBytes: z.string().describe(
       "Required. The memory to provision for the cluster in bytes. The CPU:memory ratio (vCPU:GiB) must be between 1:1 and 1:8. Minimum: 3221225472 (3 GiB).",
@@ -320,6 +356,13 @@ const InputsSchema = z.object({
         ).optional(),
       })).describe(
         "Required. Virtual Private Cloud (VPC) networks that must be granted direct access to the Kafka cluster. Minimum of 1 network is required. Maximum 10 networks can be specified.",
+      ).optional(),
+      publicClusterConfig: z.object({
+        allowedSourceIpRanges: z.array(z.string()).describe(
+          "Required. The list of IPv4 ranges in CIDR notation that are allowed to connect to the public Kafka broker endpoints. The Kafka cluster should only be exposed to trusted external ranges. A maximum of 500 IP ranges can be specified and no single range can be larger than a `/16`. This field is required if PublicClusterConfig is specified.",
+        ).optional(),
+      }).describe(
+        "Optional. The configuration for public connectivity to the Kafka cluster.",
       ).optional(),
     }).describe("Required. Access configuration for the Kafka cluster.")
       .optional(),
@@ -405,7 +448,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Managed Service for Apache Kafka Clusters. Registered at `@swamp/gcp/managedkafka/clusters`. */
 export const model = {
   type: "@swamp/gcp/managedkafka/clusters",
-  version: "2026.08.12.2",
+  version: "2026.08.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -537,6 +580,11 @@ export const model = {
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
+    {
+      toVersion: "2026.08.30.1",
+      description: "Added: brokerCapacityConfig",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
   ],
   globalArguments: GlobalArgsSchema,
   inputsSchema: InputsSchema,
@@ -567,6 +615,9 @@ export const model = {
           String(g["location"] ?? "")
         }`;
         const body: Record<string, unknown> = {};
+        if (g["brokerCapacityConfig"] !== undefined) {
+          body["brokerCapacityConfig"] = g["brokerCapacityConfig"];
+        }
         if (g["capacityConfig"] !== undefined) {
           body["capacityConfig"] = g["capacityConfig"];
         }
@@ -708,6 +759,9 @@ export const model = {
           );
         }
         const body: Record<string, unknown> = {};
+        if (g["brokerCapacityConfig"] !== undefined) {
+          body["brokerCapacityConfig"] = g["brokerCapacityConfig"];
+        }
         if (g["capacityConfig"] !== undefined) {
           body["capacityConfig"] = g["capacityConfig"];
         }

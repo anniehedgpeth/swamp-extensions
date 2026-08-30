@@ -55,6 +55,8 @@ const ConditionSchema = z.object({
   LessThan: z.number().int().optional(),
   LessThanOrEqual: z.number().int().optional(),
   NotEquals: z.array(z.string()).optional(),
+  Matches: z.array(z.string()).optional(),
+  NotMatches: z.array(z.string()).optional(),
 });
 
 const TagItemSchema = z.object({
@@ -139,7 +141,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for GuardDuty Filter. Registered at `@swamp/aws/guardduty/filter`. */
 export const model = {
   type: "@swamp/aws/guardduty/filter",
-  version: "2026.08.17.2",
+  version: "2026.08.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -188,6 +190,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.30.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

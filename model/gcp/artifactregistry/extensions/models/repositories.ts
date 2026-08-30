@@ -232,6 +232,7 @@ const GlobalArgsSchema = z.object({
     "GO",
     "GENERIC",
     "RUBY",
+    "CONDA",
   ]).describe(
     "Optional. The format of packages that are stored in the repository.",
   ).optional(),
@@ -421,7 +422,7 @@ const GlobalArgsSchema = z.object({
       "INHERITED",
       "DISABLED",
     ]).describe(
-      "Optional. Config for whether this repository has vulnerability scanning disabled.",
+      "Optional. Config for whether this repository has vulnerability scanning disabled. When unset (ENABLEMENT_CONFIG_UNSPECIFIED), this is treated as INHERITED for Docker repositories and DISABLED for non-Docker repositories.",
     ).optional(),
     enablementState: z.enum([
       "ENABLEMENT_STATE_UNSPECIFIED",
@@ -623,6 +624,7 @@ const InputsSchema = z.object({
     "GO",
     "GENERIC",
     "RUBY",
+    "CONDA",
   ]).describe(
     "Optional. The format of packages that are stored in the repository.",
   ).optional(),
@@ -812,7 +814,7 @@ const InputsSchema = z.object({
       "INHERITED",
       "DISABLED",
     ]).describe(
-      "Optional. Config for whether this repository has vulnerability scanning disabled.",
+      "Optional. Config for whether this repository has vulnerability scanning disabled. When unset (ENABLEMENT_CONFIG_UNSPECIFIED), this is treated as INHERITED for Docker repositories and DISABLED for non-Docker repositories.",
     ).optional(),
     enablementState: z.enum([
       "ENABLEMENT_STATE_UNSPECIFIED",
@@ -865,7 +867,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Artifact Registry Repositories. Registered at `@swamp/gcp/artifactregistry/repositories`. */
 export const model = {
   type: "@swamp/gcp/artifactregistry/repositories",
-  version: "2026.08.12.2",
+  version: "2026.08.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -1014,6 +1016,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.30.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

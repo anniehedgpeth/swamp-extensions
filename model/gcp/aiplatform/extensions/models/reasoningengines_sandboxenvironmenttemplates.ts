@@ -191,9 +191,6 @@ const GlobalArgsSchema = z.object({
     "Required. The display name of the SandboxEnvironmentTemplate.",
   ).optional(),
   egressControlConfig: z.object({
-    customerVpcNetwork: z.string().describe(
-      "Optional. The customer VPC network that sandbox egress is routed into.",
-    ).optional(),
     dnsPeeringConfigs: z.array(z.object({
       domain: z.string().describe(
         'Required. The DNS name suffix of the zone being peered to, e.g., "my-internal-domain.corp.". Must end with a dot.',
@@ -289,7 +286,6 @@ const StateSchema = z.object({
   }).optional(),
   displayName: z.string().optional(),
   egressControlConfig: z.object({
-    customerVpcNetwork: z.string(),
     dnsPeeringConfigs: z.array(z.object({
       domain: z.string(),
       targetNetwork: z.string(),
@@ -373,9 +369,6 @@ const InputsSchema = z.object({
     "Required. The display name of the SandboxEnvironmentTemplate.",
   ).optional(),
   egressControlConfig: z.object({
-    customerVpcNetwork: z.string().describe(
-      "Optional. The customer VPC network that sandbox egress is routed into.",
-    ).optional(),
     dnsPeeringConfigs: z.array(z.object({
       domain: z.string().describe(
         'Required. The DNS name suffix of the zone being peered to, e.g., "my-internal-domain.corp.". Must end with a dot.',
@@ -473,7 +466,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform ReasoningEngines.SandboxEnvironmentTemplates. Registered at `@swamp/gcp/aiplatform/reasoningengines-sandboxenvironmenttemplates`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/reasoningengines-sandboxenvironmenttemplates",
-  version: "2026.08.12.2",
+  version: "2026.08.30.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -492,6 +485,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.30.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

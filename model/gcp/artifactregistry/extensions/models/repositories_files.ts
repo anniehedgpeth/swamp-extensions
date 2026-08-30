@@ -259,7 +259,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Artifact Registry Repositories.Files. Registered at `@swamp/gcp/artifactregistry/repositories-files`. */
 export const model = {
   type: "@swamp/gcp/artifactregistry/repositories-files",
-  version: "2026.08.12.2",
+  version: "2026.08.30.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -383,6 +383,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.12.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.30.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
@@ -710,6 +715,7 @@ export const model = {
       description: "upload",
       arguments: z.object({
         fileId: z.any().optional(),
+        fileType: z.any().optional(),
       }),
       execute: async (args: Record<string, unknown>, context: any) => {
         const g = context.globalArgs;
@@ -721,6 +727,7 @@ export const model = {
         if (g["parent"] !== undefined) params["parent"] = String(g["parent"]);
         const body: Record<string, unknown> = {};
         if (args["fileId"] !== undefined) body["fileId"] = args["fileId"];
+        if (args["fileType"] !== undefined) body["fileType"] = args["fileType"];
         const result = await createResource(
           baseUrl,
           {

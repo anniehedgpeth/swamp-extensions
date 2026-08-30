@@ -166,7 +166,7 @@ const GlobalArgsSchema = z.object({
   ).optional(),
   cloudObservability: z.object({
     logView: z.string().describe(
-      "Optional. Optional log view that will be used to query logs. If empty, the `_Default` view will be used.",
+      "Optional. Optional log view that will be used to query logs. If empty, the project's default view (`projects/{project_id}`) will be used.",
     ).optional(),
     openTelemetry: z.object({
       semconvVersion: z.string().describe(
@@ -270,7 +270,7 @@ const GlobalArgsSchema = z.object({
       ).optional(),
     }).describe("Scope online evaluation to single traces.").optional(),
     traceView: z.string().describe(
-      "Optional. Optional trace view that will be used to query traces. If empty, the `_Default` view will be used. NOTE: This field is not supported yet and will be ignored if set.",
+      "Optional. Optional trace view that will be used to query traces. If empty, the `_AllSpans` view from `_Trace` US bucket will be used, i.e. `projects/{project_id}/locations/us/buckets/_Trace/datasets/Spans/views/_AllSpans`.",
     ).optional(),
   }).describe(
     "Data source for the OnlineEvaluator, based on Google Cloud Observability stack (Cloud Trace & Cloud Logging).",
@@ -648,7 +648,7 @@ const InputsSchema = z.object({
   ).optional(),
   cloudObservability: z.object({
     logView: z.string().describe(
-      "Optional. Optional log view that will be used to query logs. If empty, the `_Default` view will be used.",
+      "Optional. Optional log view that will be used to query logs. If empty, the project's default view (`projects/{project_id}`) will be used.",
     ).optional(),
     openTelemetry: z.object({
       semconvVersion: z.string().describe(
@@ -752,7 +752,7 @@ const InputsSchema = z.object({
       ).optional(),
     }).describe("Scope online evaluation to single traces.").optional(),
     traceView: z.string().describe(
-      "Optional. Optional trace view that will be used to query traces. If empty, the `_Default` view will be used. NOTE: This field is not supported yet and will be ignored if set.",
+      "Optional. Optional trace view that will be used to query traces. If empty, the `_AllSpans` view from `_Trace` US bucket will be used, i.e. `projects/{project_id}/locations/us/buckets/_Trace/datasets/Spans/views/_AllSpans`.",
     ).optional(),
   }).describe(
     "Data source for the OnlineEvaluator, based on Google Cloud Observability stack (Cloud Trace & Cloud Logging).",
@@ -993,7 +993,7 @@ function _buildGcpCredentials(
 /** Swamp extension model for Google Cloud Agent Platform OnlineEvaluators. Registered at `@swamp/gcp/aiplatform/onlineevaluators`. */
 export const model = {
   type: "@swamp/gcp/aiplatform/onlineevaluators",
-  version: "2026.08.22.1",
+  version: "2026.08.30.1",
   upgrades: [
     {
       toVersion: "2026.07.21.2",
@@ -1017,6 +1017,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.22.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.30.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
