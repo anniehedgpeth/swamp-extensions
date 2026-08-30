@@ -319,8 +319,8 @@ Deno.test("model: exposes the new link_pr method definition", () => {
   );
 });
 
-Deno.test("model: version bumped to 2026.08.16.1", () => {
-  assertEquals(model.version, "2026.08.16.1");
+Deno.test("model: version bumped to 2026.08.28.1", () => {
+  assertEquals(model.version, "2026.08.28.1");
 });
 
 // ---------------------------------------------------------------------------
@@ -1428,4 +1428,470 @@ Deno.test("model: exposes summarize method definition", () => {
 
 Deno.test("model: exposes summary resource definition", () => {
   assertEquals("summary" in model.resources, true);
+});
+
+// ---------------------------------------------------------------------------
+// verify
+// ---------------------------------------------------------------------------
+
+Deno.test("verify: transitions state to verifying and invalidates previous results", async () => {
+  const { context, writes, restore } = await buildTestContext(42);
+  try {
+    await model.methods.verify.execute(
+      { commit: "abc123", branch: "feat/test" },
+      context,
+    );
+
+    const stateWrite = writes.find((w) => w.specName === "state");
+    assertEquals(stateWrite!.data.phase, "verifying");
+    assertEquals(stateWrite!.data.issueNumber, 42);
+
+    const verificationWrite = writes.find(
+      (w) => w.specName === "verificationResult",
+    );
+    assertEquals(verificationWrite !== undefined, true);
+    assertEquals(verificationWrite!.instanceName, "verificationResult-main");
+    assertEquals(verificationWrite!.data.allPassed, false);
+    assertEquals(verificationWrite!.data.stepsCompleted, 0);
+    assertEquals(verificationWrite!.data.commit, "abc123");
+
+    const attestationWrite = writes.find(
+      (w) => w.specName === "attestation",
+    );
+    assertEquals(attestationWrite !== undefined, true);
+    assertEquals(attestationWrite!.instanceName, "attestation-main");
+    assertEquals(attestationWrite!.data.invalidated, true);
+    assertEquals(attestationWrite!.data.attestationId, "");
+  } finally {
+    await restore();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// verification_passed
+// ---------------------------------------------------------------------------
+
+Deno.test("verification_passed: writes verificationResult with correct aggregated counts", async () => {
+  const { context, writes, restore } = await buildTestContext(42);
+  try {
+    await model.methods.verification_passed.execute(
+      {
+        workflowRunId: "run-1",
+        commit: "abc123",
+        branch: "feat/test",
+        steps: [
+          {
+            job: "build",
+            step: "lint",
+            model: "build-lint",
+            method: "execute",
+            status: "succeeded" as const,
+          },
+          {
+            job: "build",
+            step: "test",
+            model: "build-test",
+            method: "execute",
+            status: "succeeded" as const,
+          },
+          {
+            job: "reviews",
+            step: "code-review",
+            model: "review-code",
+            method: "execute",
+            status: "succeeded" as const,
+          },
+          {
+            job: "reviews",
+            step: "ci-security",
+            model: "review-ci",
+            method: "execute",
+            status: "skipped" as const,
+          },
+        ],
+      },
+      context,
+    );
+
+    const vrWrite = writes.find((w) => w.specName === "verificationResult");
+    assertEquals(vrWrite!.instanceName, "verificationResult-main");
+    assertEquals(vrWrite!.data.allPassed, true);
+    assertEquals(vrWrite!.data.stepsCompleted, 3);
+    assertEquals(vrWrite!.data.stepsSkipped, 1);
+    assertEquals(vrWrite!.data.stepsFailed, 0);
+    assertEquals(vrWrite!.data.stepsTotal, 4);
+    assertEquals(vrWrite!.data.commit, "abc123");
+    assertEquals(vrWrite!.data.workflowRunId, "run-1");
+
+    const stateWrite = writes.find((w) => w.specName === "state");
+    assertEquals(stateWrite!.data.phase, "verifying");
+  } finally {
+    await restore();
+  }
+});
+
+Deno.test("verification_passed: allPassed is false when any step failed", async () => {
+  const { context, writes, restore } = await buildTestContext(42);
+  try {
+    await model.methods.verification_passed.execute(
+      {
+        workflowRunId: "run-2",
+        commit: "def456",
+        branch: "feat/test",
+        steps: [
+          {
+            job: "build",
+            step: "lint",
+            model: "build-lint",
+            method: "execute",
+            status: "succeeded" as const,
+          },
+          {
+            job: "build",
+            step: "test",
+            model: "build-test",
+            method: "execute",
+            status: "failed" as const,
+          },
+        ],
+      },
+      context,
+    );
+
+    const vrWrite = writes.find((w) => w.specName === "verificationResult");
+    assertEquals(vrWrite!.data.allPassed, false);
+    assertEquals(vrWrite!.data.stepsCompleted, 1);
+    assertEquals(vrWrite!.data.stepsFailed, 1);
+  } finally {
+    await restore();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// verification_failed
+// ---------------------------------------------------------------------------
+
+Deno.test("verification_failed: transitions state back to implementing", async () => {
+  const { context, writes, restore } = await buildTestContext(42);
+  try {
+    await model.methods.verification_failed.execute(
+      {
+        workflowRunId: "run-3",
+        commit: "abc123",
+        branch: "feat/test",
+        failureReason: "2 tests failed",
+      },
+      context,
+    );
+
+    const stateWrite = writes.find((w) => w.specName === "state");
+    assertEquals(stateWrite!.data.phase, "implementing");
+    assertEquals(stateWrite!.data.issueNumber, 42);
+  } finally {
+    await restore();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// post_attestation
+// ---------------------------------------------------------------------------
+
+Deno.test("post_attestation: throws when swamp-club is unreachable", async () => {
+  const { context, restore } = await buildTestContext(42);
+  try {
+    await assertRejects(
+      () =>
+        model.methods.post_attestation.execute(
+          { attestation: '{"version":"1"}' },
+          context,
+        ),
+      Error,
+      "swamp-club is not reachable",
+    );
+  } finally {
+    await restore();
+  }
+});
+
+Deno.test("post_attestation: throws on invalid JSON input", async () => {
+  const { context, restore } = await buildTestContext(42);
+  try {
+    // Set up a fake swamp-club server so the client is created
+    const controller = new AbortController();
+    const server = Deno.serve(
+      { port: 0, signal: controller.signal, onListen: () => {} },
+      (req) => {
+        if (req.url.endsWith("/healthz")) {
+          return new Response("ok");
+        }
+        return new Response("not found", { status: 404 });
+      },
+    );
+    const addr = server.addr;
+    Deno.env.set("SWAMP_CLUB_URL", `http://localhost:${addr.port}`);
+    Deno.env.set("SWAMP_API_KEY", "test-key");
+
+    try {
+      await assertRejects(
+        () =>
+          model.methods.post_attestation.execute(
+            { attestation: "not valid json {{{" },
+            context,
+          ),
+        Error,
+        "not valid JSON",
+      );
+    } finally {
+      controller.abort();
+      await server.finished;
+    }
+  } finally {
+    await restore();
+  }
+});
+
+Deno.test("post_attestation: writes attestation resource on success", async () => {
+  const { context, writes, restore } = await buildTestContext(42);
+  try {
+    const controller = new AbortController();
+    const server = Deno.serve(
+      { port: 0, signal: controller.signal, onListen: () => {} },
+      (req) => {
+        if (req.url.endsWith("/healthz")) {
+          return new Response("ok");
+        }
+        if (req.url.endsWith("/attestations")) {
+          return new Response(
+            JSON.stringify({
+              id: "att-123",
+              postedBy: "test-user",
+              postedAt: "2026-08-28T12:00:00Z",
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+        if (req.url.includes("/lifecycle")) {
+          return new Response(JSON.stringify({}), {
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response("not found", { status: 404 });
+      },
+    );
+    const addr = server.addr;
+    Deno.env.set("SWAMP_CLUB_URL", `http://localhost:${addr.port}`);
+    Deno.env.set("SWAMP_API_KEY", "test-key");
+
+    try {
+      const attestationJson = JSON.stringify({
+        version: "1",
+        subject: { commit: "abc123" },
+        gate: { allPassed: true },
+      });
+      await model.methods.post_attestation.execute(
+        { attestation: attestationJson },
+        context,
+      );
+
+      const attWrite = writes.find((w) => w.specName === "attestation");
+      assertEquals(attWrite !== undefined, true);
+      assertEquals(attWrite!.instanceName, "attestation-main");
+      assertEquals(attWrite!.data.attestationId, "att-123");
+      assertEquals(attWrite!.data.postedBy, "test-user");
+      assertEquals(attWrite!.data.commit, "abc123");
+      assertEquals(attWrite!.data.gatePassed, true);
+    } finally {
+      controller.abort();
+      await server.finished;
+    }
+  } finally {
+    await restore();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// verification-clear check
+// ---------------------------------------------------------------------------
+
+Deno.test("verification-clear: passes when allPassed is true", async () => {
+  const checkContext = {
+    dataRepository: {
+      getContent: (
+        _type: string,
+        _modelId: string,
+        dataName: string,
+      ) => {
+        if (dataName === "verificationResult-main") {
+          return Promise.resolve(
+            new TextEncoder().encode(
+              JSON.stringify({ allPassed: true, stepsFailed: 0 }),
+            ),
+          );
+        }
+        return Promise.resolve(null);
+      },
+    },
+    modelType: "@swamp/issue-lifecycle",
+    modelId: "issue-42",
+  };
+
+  const result = await model.checks["verification-clear"].execute(checkContext);
+  assertEquals(result.pass, true);
+});
+
+Deno.test("verification-clear: rejects when no verification result exists", async () => {
+  const checkContext = {
+    dataRepository: {
+      getContent: () => Promise.resolve(null),
+    },
+    modelType: "@swamp/issue-lifecycle",
+    modelId: "issue-42",
+  };
+
+  const result = await model.checks["verification-clear"].execute(checkContext);
+  assertEquals(result.pass, false);
+  assertStringIncludes(result.errors![0], "No verification result exists");
+});
+
+Deno.test("verification-clear: rejects when allPassed is false", async () => {
+  const checkContext = {
+    dataRepository: {
+      getContent: (
+        _type: string,
+        _modelId: string,
+        dataName: string,
+      ) => {
+        if (dataName === "verificationResult-main") {
+          return Promise.resolve(
+            new TextEncoder().encode(
+              JSON.stringify({ allPassed: false, stepsFailed: 2 }),
+            ),
+          );
+        }
+        return Promise.resolve(null);
+      },
+    },
+    modelType: "@swamp/issue-lifecycle",
+    modelId: "issue-42",
+  };
+
+  const result = await model.checks["verification-clear"].execute(checkContext);
+  assertEquals(result.pass, false);
+  assertStringIncludes(result.errors![0], "Verification failed");
+  assertStringIncludes(result.errors![0], "2 step(s) failed");
+});
+
+// ---------------------------------------------------------------------------
+// Verification model smoke tests
+// ---------------------------------------------------------------------------
+
+Deno.test("model: exposes verificationResult resource definition", () => {
+  assertEquals("verificationResult" in model.resources, true);
+});
+
+Deno.test("model: exposes verify method definition", () => {
+  assertEquals("verify" in model.methods, true);
+});
+
+Deno.test("model: exposes verification_passed method definition", () => {
+  assertEquals("verification_passed" in model.methods, true);
+});
+
+Deno.test("model: exposes verification_failed method definition", () => {
+  assertEquals("verification_failed" in model.methods, true);
+});
+
+Deno.test("model: exposes post_attestation method definition", () => {
+  assertEquals("post_attestation" in model.methods, true);
+});
+
+Deno.test("model: exposes verification-clear check definition", () => {
+  assertEquals("verification-clear" in model.checks, true);
+});
+
+Deno.test("model: exposes attestation resource definition", () => {
+  assertEquals("attestation" in model.resources, true);
+});
+
+Deno.test("model: exposes attestation-clear check definition", () => {
+  assertEquals("attestation-clear" in model.checks, true);
+});
+
+// ---------------------------------------------------------------------------
+// attestation-clear check
+// ---------------------------------------------------------------------------
+
+Deno.test("attestation-clear: passes when valid attestation exists", async () => {
+  const checkContext = {
+    dataRepository: {
+      getContent: (
+        _type: string,
+        _modelId: string,
+        dataName: string,
+      ) => {
+        if (dataName === "attestation-main") {
+          return Promise.resolve(
+            new TextEncoder().encode(
+              JSON.stringify({
+                attestationId: "att-123",
+                postedBy: "test-user",
+                postedAt: "2026-08-28T12:00:00Z",
+              }),
+            ),
+          );
+        }
+        return Promise.resolve(null);
+      },
+    },
+    modelType: "@swamp/issue-lifecycle",
+    modelId: "issue-42",
+  };
+
+  const result = await model.checks["attestation-clear"].execute(checkContext);
+  assertEquals(result.pass, true);
+});
+
+Deno.test("attestation-clear: rejects when no attestation exists", async () => {
+  const checkContext = {
+    dataRepository: {
+      getContent: () => Promise.resolve(null),
+    },
+    modelType: "@swamp/issue-lifecycle",
+    modelId: "issue-42",
+  };
+
+  const result = await model.checks["attestation-clear"].execute(checkContext);
+  assertEquals(result.pass, false);
+  assertStringIncludes(result.errors![0], "No attestation posted");
+});
+
+Deno.test("attestation-clear: rejects invalidated attestation", async () => {
+  const checkContext = {
+    dataRepository: {
+      getContent: (
+        _type: string,
+        _modelId: string,
+        dataName: string,
+      ) => {
+        if (dataName === "attestation-main") {
+          return Promise.resolve(
+            new TextEncoder().encode(
+              JSON.stringify({
+                attestationId: "",
+                invalidated: true,
+                postedAt: "2026-08-28T12:00:00Z",
+              }),
+            ),
+          );
+        }
+        return Promise.resolve(null);
+      },
+    },
+    modelType: "@swamp/issue-lifecycle",
+    modelId: "issue-42",
+  };
+
+  const result = await model.checks["attestation-clear"].execute(checkContext);
+  assertEquals(result.pass, false);
+  assertStringIncludes(result.errors![0], "invalidated");
 });

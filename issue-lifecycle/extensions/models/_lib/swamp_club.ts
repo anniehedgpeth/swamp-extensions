@@ -182,6 +182,37 @@ export class SwampClubClient {
     }
   }
 
+  /**
+   * Post a verification attestation. Unlike lifecycle entries, this is NOT
+   * best-effort — it throws on failure because the attestation must be stored
+   * before a PR can open.
+   */
+  async postAttestation(
+    attestation: Record<string, unknown>,
+  ): Promise<{ id: string; postedBy: string; postedAt: string }> {
+    const url = `${this.baseUrl}/api/v1/admin/attestations`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${this.#apiKey}`,
+      },
+      body: JSON.stringify(attestation),
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(
+        `Attestation POST failed: HTTP ${res.status} — ${text}`,
+      );
+    }
+    return await res.json() as {
+      id: string;
+      postedBy: string;
+      postedAt: string;
+    };
+  }
+
   /** Transition the issue status. Best-effort. */
   async transitionStatus(status: string): Promise<void> {
     await this.patchIssue({ status });

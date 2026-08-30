@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@swamp/issue-lifecycle"
-version: "2026.08.16.1"
+version: "2026.08.28.1"
 description: |
   Interactive triage and implementation planning for swamp-club lab issues.
   Drives the triage/plan/iterate/approve/implement loop as a local
@@ -20,7 +20,11 @@ description: |
   plan_generated ──[iterate]──> plan_generated  (feedback loop)
   plan_generated ──[approve]──> approved
   approved ──[implement]──> implementing
-  implementing ──[link_pr]──> pr_open
+  implementing ──[verify]──> verifying
+  verifying ──[verification_passed]──> verifying  (record results)
+  verifying ──[verification_failed]──> implementing  (fix and retry)
+  verifying ──[post_attestation]──> verifying  (post to swamp-club)
+  verifying ──[link_pr]──> pr_open
   pr_open ──[link_pr]──> pr_open  (idempotent re-link)
   pr_open ──[pr_failed]──> pr_failed
   pr_failed ──[link_pr]──> pr_open  (retry with new PR)
@@ -30,8 +34,9 @@ description: |
   implementing ──[complete]──> notify  (no PR linked)
   pr_open ──[complete]──> notify
   releasing ──[complete]──> notify
-  notify ──[notify]──> done  (thank external contributor)
-  notify ──[skip_notify]──> done  (skip notification)
+  notify ──[notify]──> summarizing  (thank external contributor)
+  notify ──[skip_notify]──> summarizing  (skip notification)
+  summarizing ──[summarize]──> done
   ```
 
   Pre-flight checks enforce valid transitions: you cannot approve without a
@@ -53,6 +58,10 @@ description: |
   - `resolve_findings` — mark adversarial findings as resolved
   - `approve` — lock the plan and transition to in_progress
   - `implement` — signal implementation has started
+  - `verify` — start pre-PR verification (transitions to `verifying`)
+  - `verification_passed` — record that verification passed with full checklist
+  - `verification_failed` — record failure, return to `implementing`
+  - `post_attestation` — post verification attestation to swamp-club (hard gate)
   - `link_pr` — link an opaque pull request URL to the lifecycle record
     (idempotent; transitions to `pr_open`). Git-host agnostic — the model
     persists whatever URL the agent supplies without fetching anything.
@@ -63,14 +72,17 @@ description: |
   - `ship` — mark as shipped/released (transitions to `notify`)
   - `complete` — mark the lifecycle complete (transitions to `notify`)
   - `notify` — post a thank-you ripple to the issue author and transition
-    to `done`
-  - `skip_notify` — skip contributor notification and transition directly
-    to `done`
+    to `summarizing`
+  - `skip_notify` — skip contributor notification and transition to
+    `summarizing`
+  - `summarize` — record session summary and transition to `done`
 
   ## Data
 
   All resources are versioned and immutable: `state`, `context`,
-  `classification`, `plan`, `feedback`, `adversarialReview`, `pullRequest`.
+  `classification`, `plan`, `feedback`, `adversarialReview`,
+  `codeConformanceReview`, `verificationResult`, `attestation`,
+  `pullRequest`, `summary`.
 
   ## Prerequisites
 

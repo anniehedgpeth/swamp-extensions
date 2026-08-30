@@ -27,7 +27,9 @@ Deno.test("Phase: includes pr_open, pr_failed, releasing, notify, summarizing be
   const summarizingIdx = phases.indexOf("summarizing");
   const doneIdx = phases.indexOf("done");
 
-  assertEquals(prOpenIdx, implementingIdx + 1);
+  const verifyingIdx = phases.indexOf("verifying");
+  assertEquals(verifyingIdx, implementingIdx + 1);
+  assertEquals(prOpenIdx, verifyingIdx + 1);
   assertEquals(prFailedIdx, prOpenIdx + 1);
   assertEquals(releasingIdx, prFailedIdx + 1);
   assertEquals(notifyIdx, releasingIdx + 1);
@@ -35,8 +37,8 @@ Deno.test("Phase: includes pr_open, pr_failed, releasing, notify, summarizing be
   assertEquals(doneIdx, summarizingIdx + 1);
 });
 
-Deno.test("TRANSITIONS: link_pr accepts implementing, pr_open, and pr_failed", () => {
-  assertEquals(TRANSITIONS.link_pr, ["implementing", "pr_open", "pr_failed"]);
+Deno.test("TRANSITIONS: link_pr accepts verifying, pr_open, and pr_failed", () => {
+  assertEquals(TRANSITIONS.link_pr, ["verifying", "pr_open", "pr_failed"]);
 });
 
 Deno.test("TRANSITIONS: complete accepts implementing, pr_open, and releasing", () => {
@@ -45,12 +47,21 @@ Deno.test("TRANSITIONS: complete accepts implementing, pr_open, and releasing", 
   assertEquals(TRANSITIONS.complete, ["implementing", "pr_open", "releasing"]);
 });
 
-Deno.test("TRANSITIONS: start (resume) includes pr_open, pr_failed, releasing, and notify", () => {
-  const startPhases = TRANSITIONS.start;
-  assertEquals(startPhases.includes("pr_open"), true);
-  assertEquals(startPhases.includes("pr_failed"), true);
-  assertEquals(startPhases.includes("releasing"), true);
-  assertEquals(startPhases.includes("notify"), true);
+Deno.test("TRANSITIONS: start (resume) accepts every phase except done", () => {
+  assertEquals(TRANSITIONS.start, [
+    "created",
+    "triaging",
+    "classified",
+    "plan_generated",
+    "approved",
+    "implementing",
+    "verifying",
+    "pr_open",
+    "pr_failed",
+    "releasing",
+    "notify",
+    "summarizing",
+  ]);
 });
 
 Deno.test("TRANSITIONS: notify and skip_notify accept only notify phase", () => {
