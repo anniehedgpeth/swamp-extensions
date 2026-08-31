@@ -71,6 +71,8 @@ const GlobalArgsSchema = z.object({
       "AiGatewayCredits",
       "AiGatewayApiKeyOwnedBySelf",
       "AiGatewayBudgetManager",
+      "AiGatewayTranscriptsManager",
+      "AiGatewayTranscriptsViewer",
       "V0Builder",
       "V0Chatter",
       "V0Viewer",
@@ -138,6 +140,8 @@ const InputsSchema = z.object({
       "AiGatewayCredits",
       "AiGatewayApiKeyOwnedBySelf",
       "AiGatewayBudgetManager",
+      "AiGatewayTranscriptsManager",
+      "AiGatewayTranscriptsViewer",
       "V0Builder",
       "V0Chatter",
       "V0Viewer",
@@ -162,7 +166,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Members. Registered at `@swamp/vercel/teams/members`. */
 export const model = {
   type: "@swamp/vercel/teams/members",
-  version: "2026.08.13.1",
+  version: "2026.08.31.1",
   upgrades: [
     {
       toVersion: "2026.08.02.2",
@@ -206,6 +210,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.13.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.31.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

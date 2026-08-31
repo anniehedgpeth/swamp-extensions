@@ -926,6 +926,8 @@ const ResourceSchema = z.object({
     aiGatewayGuardrails: z.array(z.string()).optional(),
     aiGatewayRules: z.array(z.string()).optional(),
     aiGatewaySettings: z.array(z.string()).optional(),
+    aiGatewayTranscripts: z.array(z.string()).optional(),
+    aiGatewayTranscriptsSettings: z.array(z.string()).optional(),
     aiGatewayUsage: z.array(z.string()).optional(),
     aiGatewayVirtualModelConfigs: z.array(z.string()).optional(),
     alerts: z.array(z.string()).optional(),
@@ -1708,7 +1710,7 @@ const InputsSchema = z.object({
 /** Swamp extension model for Vercel Projects. Registered at `@swamp/vercel/projects/projects`. */
 export const model = {
   type: "@swamp/vercel/projects/projects",
-  version: "2026.08.29.1",
+  version: "2026.08.31.1",
   upgrades: [
     {
       toVersion: "2026.08.02.1",
@@ -1797,6 +1799,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.29.1",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.31.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },

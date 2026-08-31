@@ -48,7 +48,7 @@ const WeightedTargetGroupSchema = z.object({
       "^((tg-[0-9a-z]{17})|(arn:[a-z0-9\\-]+:vpc-lattice:[a-zA-Z0-9\\-]+:\\d{12}:targetgroup/tg-[0-9a-z]{17}))$",
     ),
   ),
-  Weight: z.number().int().min(1).max(999).optional(),
+  Weight: z.number().int().min(0).max(999).optional(),
 });
 
 const ForwardSchema = z.object({
@@ -208,7 +208,7 @@ function _buildCredentials(g: Record<string, unknown>): AwsCredentials {
 /** Swamp extension model for VpcLattice Rule. Registered at `@swamp/aws/vpclattice/rule`. */
 export const model = {
   type: "@swamp/aws/vpclattice/rule",
-  version: "2026.08.17.2",
+  version: "2026.08.31.1",
   upgrades: [
     {
       toVersion: "2026.04.01.1",
@@ -257,6 +257,11 @@ export const model = {
     },
     {
       toVersion: "2026.08.17.2",
+      description: "No schema changes",
+      upgradeAttributes: (old: Record<string, unknown>) => old,
+    },
+    {
+      toVersion: "2026.08.31.1",
       description: "No schema changes",
       upgradeAttributes: (old: Record<string, unknown>) => old,
     },
