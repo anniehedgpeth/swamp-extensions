@@ -38,9 +38,7 @@ export function memoryRepository(
     findAllForModel: (_type, _modelId) => {
       const out: { name: string; version: number }[] = [];
       for (const [name, versions] of store) {
-        for (let i = 0; i < versions.length; i++) {
-          out.push({ name, version: i + 1 });
-        }
+        out.push({ name, version: versions.length });
       }
       return Promise.resolve(out);
     },
@@ -56,6 +54,10 @@ export function memoryRepository(
           ? null
           : new TextEncoder().encode(JSON.stringify(data)),
       );
+    },
+    listVersions: (_type, _modelId, dataName) => {
+      const versions = store.get(dataName) ?? [];
+      return Promise.resolve(versions.map((_, index) => index + 1));
     },
   };
 }
