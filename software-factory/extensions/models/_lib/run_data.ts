@@ -334,7 +334,15 @@ export async function loadRunView(
 
     if (name.startsWith(approvalPrefix)) {
       const records: ApprovalRecord[] = [];
-      for (const version of versions) {
+      // findAllForModel surfaces only the latest version in current Swamp
+      // repositories. Approvals are additive records, so load their complete
+      // history when the repository exposes version enumeration.
+      const approvalVersions = repo.listVersions !== undefined
+        ? await repo.listVersions(modelType, modelId, name)
+        : versions;
+      for (
+        const version of [...new Set(approvalVersions)].sort((a, b) => a - b)
+      ) {
         const content = await repo.getContent(
           modelType,
           modelId,
