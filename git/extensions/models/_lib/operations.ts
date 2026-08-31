@@ -20,6 +20,7 @@ import type {
   RemoveWorktreeArgs,
   StatusArgs,
   UpstreamStateArgs,
+  WorktreeDiffArgs,
 } from "./schemas.ts";
 import type { DataHandle, GitContext } from "./types.ts";
 
@@ -1583,6 +1584,141 @@ export async function runRemoveWorktree(
           },
           {
             tags: { method: "remove-worktree", removed: "true" },
+          },
+        );
+
+        return { dataHandles: [handle] };
+      } catch (error) {
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      } finally {
+        span.end();
+      }
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// worktree-diff
+// ---------------------------------------------------------------------------
+
+export async function runWorktreeDiff(
+  args: WorktreeDiffArgs,
+  ctx: GitContext,
+): Promise<{ dataHandles: DataHandle[] }> {
+  return await getTracer().startActiveSpan(
+    "git.worktree-diff",
+    async (span) => {
+      try {
+        const globals = resolveGlobalArgs(ctx.globalArgs);
+        const cwd = globals.repoPath;
+
+        const pathArgs: string[] = [];
+        if (args.paths && args.paths.length > 0) {
+          pathArgs.push("--");
+          pathArgs.push(...args.paths);
+        }
+
+        // Always enumerate tracked changed files for accurate files/count.
+        const nameOnlyArgv = ["diff", "--name-only", args.base, ...pathArgs];
+        const nameOnlyResult = await execGit(nameOnlyArgv, {
+          cwd,
+          signal: ctx.signal,
+        });
+        if (nameOnlyResult.exitCode !== 0) {
+          throw new Error(
+            `git diff failed (exit ${nameOnlyResult.exitCode}): ${nameOnlyResult.stderr}`,
+          );
+        }
+
+        const trackedFiles = nameOnlyResult.stdout
+          .split("\n")
+          .filter((l) => l.trim().length > 0);
+
+        // Get the primary diff output (patch, stat, or name-only).
+        let raw: string;
+        if (args.nameOnly) {
+          raw = nameOnlyResult.stdout;
+        } else {
+          const diffArgv = ["diff", args.base];
+          if (args.stat) {
+            diffArgv.push("--stat");
+          }
+          diffArgv.push(...pathArgs);
+
+          const diffResult = await execGit(diffArgv, {
+            cwd,
+            signal: ctx.signal,
+          });
+          if (diffResult.exitCode !== 0) {
+            throw new Error(
+              `git diff failed (exit ${diffResult.exitCode}): ${diffResult.stderr}`,
+            );
+          }
+          raw = diffResult.stdout;
+        }
+
+        // Enumerate untracked non-ignored files.
+        const lsArgv = [
+          "ls-files",
+          "--others",
+          "--exclude-standard",
+          ...pathArgs,
+        ];
+
+        const lsResult = await execGit(lsArgv, {
+          cwd,
+          signal: ctx.signal,
+        });
+        if (lsResult.exitCode !== 0) {
+          throw new Error(
+            `git ls-files failed (exit ${lsResult.exitCode}): ${lsResult.stderr}`,
+          );
+        }
+
+        const untrackedFiles = lsResult.stdout
+          .split("\n")
+          .filter((l) => l.trim().length > 0);
+
+        // Collect patches for untracked files in full-diff mode.
+        if (!args.nameOnly && !args.stat && untrackedFiles.length > 0) {
+          for (const file of untrackedFiles) {
+            const noIndexResult = await execGit(
+              ["diff", "--no-index", "--", "/dev/null", file],
+              { cwd, signal: ctx.signal },
+            );
+            // git diff --no-index exits 1 when files differ (expected)
+            if (noIndexResult.exitCode !== 0 && noIndexResult.exitCode !== 1) {
+              throw new Error(
+                `git diff --no-index failed for ${file} (exit ${noIndexResult.exitCode}): ${noIndexResult.stderr}`,
+              );
+            }
+            raw += noIndexResult.stdout;
+          }
+        }
+
+        const allFiles = [...trackedFiles, ...untrackedFiles];
+
+        span.setAttribute(Attr.METHOD, "worktree-diff");
+        span.setAttribute(Attr.BASE_REF, args.base);
+        span.setAttribute(Attr.REPO_PATH, cwd);
+        span.setAttribute(Attr.EXIT_CODE, 0);
+
+        const handle = await ctx.writeResource(
+          "worktreeDiffResult",
+          "worktree-diff",
+          {
+            files: allFiles,
+            untrackedFiles,
+            raw,
+            count: allFiles.length,
+            base: args.base,
+          },
+          {
+            tags: { method: "worktree-diff", base: args.base },
           },
         );
 

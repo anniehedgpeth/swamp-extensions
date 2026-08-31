@@ -62,6 +62,33 @@ swamp model method run repo diff \
   --json
 ```
 
+### Review Working-Tree Changes (Pre-commit Review)
+
+Diff the working tree against a base ref, including staged, unstaged, and
+untracked non-ignored files. Read-only — makes no index, worktree, or network
+mutations.
+
+```bash
+# Full working-tree diff against HEAD (tracked + untracked)
+swamp model method run repo worktree_diff --json
+
+# Name-only file list for change detection
+swamp model method run repo worktree_diff \
+  --input nameOnly=true \
+  --json
+
+# Diff against a specific base ref
+swamp model method run repo worktree_diff \
+  --input base=HEAD~3 \
+  --json
+
+# Filter to specific paths
+swamp model method run repo worktree_diff \
+  --input nameOnly=true \
+  --input 'paths:json=["src/", "lib/"]' \
+  --json
+```
+
 ### Check Working Tree Status
 
 ```bash
@@ -311,6 +338,7 @@ swamp data query repo 'tags.clean == "false"'
 | -------- | ----------- |
 | `clone`  | Clone a repository with configurable depth, branch, and auth token |
 | `diff`   | Show changes between refs — name-only file lists, stat summaries, or full diffs |
+| `worktree_diff` | Read-only working-tree diff — staged, unstaged, and untracked changes vs a base ref |
 | `status` | Working tree status with structured entries and clean/dirty flag |
 | `remote_ref` | Look up the SHA of a named ref on a remote via git ls-remote (read-only) |
 | `upstream_state` | Tracking-branch state: configured upstream, tracking-ref availability, ahead/behind counts, pushed/synced flags |
@@ -330,6 +358,7 @@ swamp data query repo 'tags.clean == "false"'
 | -------------- | ----------- |
 | `cloneResult`  | Clone path, URL, depth, branch |
 | `diffResult`   | Changed files array, raw diff, count, base/head refs |
+| `worktreeDiffResult` | Changed tracked files, untracked files, combined raw diff, count, base ref |
 | `statusResult` | Status entries with path and status code, clean flag, count |
 | `remoteRefResult` | Remote name, resolved ref, and SHA from git ls-remote |
 | `upstreamStateResult` | Branch, upstream, configuredUpstream, trackingRefAvailable, ahead/behind counts (nullable), pushed/synced flags (nullable) |
@@ -347,7 +376,7 @@ swamp data query repo 'tags.clean == "false"'
 
 | Check              | Applies To | Description |
 | ------------------ | ---------- | ----------- |
-| `git-available`    | all 14 methods | Verifies `git` binary is on PATH |
+| `git-available`    | all 17 methods | Verifies `git` binary is on PATH |
 | `repo-initialized` | all except `clone` and `remote_ref` | Verifies `repoPath` is inside a git work tree |
 
 ## License

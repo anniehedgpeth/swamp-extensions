@@ -422,3 +422,28 @@ export const UpstreamStateResultSchema = z.object({
   pushed: z.boolean(),
   synced: z.boolean(),
 });
+
+// ---------------------------------------------------------------------------
+// worktree_diff
+// ---------------------------------------------------------------------------
+
+export const WorktreeDiffArgsSchema = z.object({
+  base: safeRef.default("HEAD")
+    .describe("Base ref to compare against (SHA, branch, tag, HEAD~1, etc.)"),
+  nameOnly: z.boolean().default(false)
+    .describe("Only return changed file paths"),
+  stat: z.boolean().default(false)
+    .describe("Show diffstat summary instead of patch"),
+  paths: z.array(z.string()).optional()
+    .describe("Path filters (git pathspecs after --)"),
+});
+
+export type WorktreeDiffArgs = z.infer<typeof WorktreeDiffArgsSchema>;
+
+export const WorktreeDiffResultSchema = z.object({
+  files: z.array(z.string()),
+  untrackedFiles: z.array(z.string()),
+  raw: z.string(),
+  count: z.number().int(),
+  base: z.string(),
+});

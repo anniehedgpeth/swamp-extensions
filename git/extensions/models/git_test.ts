@@ -99,13 +99,14 @@ Deno.test("globalArguments accepts full config", () => {
 // Resource declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 16 resource specs exist", () => {
+Deno.test("all 17 resource specs exist", () => {
   const names = Object.keys(model.resources);
-  assertEquals(names.length, 16);
+  assertEquals(names.length, 17);
   for (
     const name of [
       "cloneResult",
       "diffResult",
+      "worktreeDiffResult",
       "statusResult",
       "logResult",
       "commitResult",
@@ -145,13 +146,14 @@ Deno.test("resources have description and schema", () => {
 // Method declarations
 // ---------------------------------------------------------------------------
 
-Deno.test("all 16 methods exist", () => {
+Deno.test("all 17 methods exist", () => {
   const names = Object.keys(model.methods);
-  assertEquals(names.length, 16);
+  assertEquals(names.length, 17);
   for (
     const name of [
       "clone",
       "diff",
+      "worktree_diff",
       "status",
       "log",
       "commit",
@@ -229,6 +231,10 @@ Deno.test("git-available check exists and covers all methods", () => {
     model.checks["git-available"].appliesTo.includes("remove_worktree"),
     true,
   );
+  assertEquals(
+    model.checks["git-available"].appliesTo.includes("worktree_diff"),
+    true,
+  );
 });
 
 Deno.test("repo-initialized check exists and excludes clone and remote_ref", () => {
@@ -243,6 +249,10 @@ Deno.test("repo-initialized check exists and excludes clone and remote_ref", () 
   );
   assertEquals(
     model.checks["repo-initialized"].appliesTo.includes("diff"),
+    true,
+  );
+  assertEquals(
+    model.checks["repo-initialized"].appliesTo.includes("worktree_diff"),
     true,
   );
   assertEquals(
@@ -3195,6 +3205,341 @@ Deno.test("remove_worktree: trailing slash on path is normalized", async () => {
     );
 
     assertEquals(writes[0].data.path, "/tmp/nonexistent");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// worktree_diff schema validation
+// ---------------------------------------------------------------------------
+
+Deno.test("WorktreeDiffArgs defaults", () => {
+  const result = model.methods.worktree_diff.arguments.parse({});
+  assertEquals(result.base, "HEAD");
+  assertEquals(result.nameOnly, false);
+  assertEquals(result.stat, false);
+  assertEquals(result.paths, undefined);
+});
+
+Deno.test("WorktreeDiffArgs accepts base override", () => {
+  const result = model.methods.worktree_diff.arguments.parse({
+    base: "HEAD~3",
+  });
+  assertEquals(result.base, "HEAD~3");
+});
+
+Deno.test("WorktreeDiffArgs rejects base starting with dash", () => {
+  const result = model.methods.worktree_diff.arguments.safeParse({
+    base: "--output=/tmp/exfil",
+  });
+  assertEquals(result.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// worktree_diff operation
+// ---------------------------------------------------------------------------
+
+Deno.test("worktree_diff: nameOnly returns tracked and untracked files", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    if (argv.includes("ls-files")) {
+      return ok("new-file.ts\n");
+    }
+    // nameOnly: the --name-only call is the only diff call
+    return ok("src/main.ts\nsrc/lib.ts\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.worktree_diff.execute(
+      { nameOnly: true },
+      ctx,
+    );
+
+    // nameOnly: (1) diff --name-only, (2) ls-files
+    assertEquals(calls.length, 2);
+    assertEquals(calls[0].includes("diff"), true);
+    assertEquals(calls[0].includes("HEAD"), true);
+    assertEquals(calls[0].includes("--name-only"), true);
+    assertEquals(calls[1].includes("ls-files"), true);
+    assertEquals(calls[1].includes("--others"), true);
+    assertEquals(calls[1].includes("--exclude-standard"), true);
+
+    assertEquals(writes.length, 1);
+    assertEquals(writes[0].specName, "worktreeDiffResult");
+    const data = writes[0].data;
+    assertEquals((data.files as string[]).length, 3);
+    assertEquals((data.files as string[])[0], "src/main.ts");
+    assertEquals((data.files as string[])[1], "src/lib.ts");
+    assertEquals((data.files as string[])[2], "new-file.ts");
+    assertEquals((data.untrackedFiles as string[]).length, 1);
+    assertEquals((data.untrackedFiles as string[])[0], "new-file.ts");
+    assertEquals(data.count, 3);
+    assertEquals(data.base, "HEAD");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: full diff includes untracked file patches", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    if (argv.includes("ls-files")) {
+      return ok("new-file.ts\n");
+    }
+    if (argv.includes("--no-index")) {
+      return {
+        stdout: "diff --no-index a/dev/null b/new-file.ts\n",
+        stderr: "",
+        exitCode: 1,
+      };
+    }
+    if (argv.includes("--name-only")) {
+      return ok("src/main.ts\n");
+    }
+    return ok("diff --git a/src/main.ts b/src/main.ts\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.worktree_diff.execute({}, ctx);
+
+    // full diff: (1) diff --name-only, (2) diff (patch), (3) ls-files, (4) diff --no-index
+    assertEquals(calls.length, 4);
+    assertEquals(calls[0].includes("--name-only"), true);
+    assertEquals(calls[3].includes("--no-index"), true);
+    assertEquals(calls[3].includes("/dev/null"), true);
+    assertEquals(calls[3].includes("new-file.ts"), true);
+
+    const data = writes[0].data;
+    const raw = data.raw as string;
+    assertEquals(raw.includes("diff --git a/src/main.ts"), true);
+    assertEquals(raw.includes("diff --no-index a/dev/null"), true);
+    assertEquals((data.files as string[]).length, 2);
+    assertEquals((data.files as string[])[0], "src/main.ts");
+    assertEquals((data.files as string[])[1], "new-file.ts");
+    assertEquals(data.count, 2);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: full diff with tracked-only changes has correct count", async () => {
+  setCommandExecutor((argv) => {
+    if (argv.includes("ls-files")) {
+      return ok("");
+    }
+    if (argv.includes("--name-only")) {
+      return ok("src/main.ts\nsrc/lib.ts\nsrc/util.ts\n");
+    }
+    return ok("diff --git a/src/main.ts b/src/main.ts\n<patch content>\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.worktree_diff.execute({}, ctx);
+
+    const data = writes[0].data;
+    assertEquals((data.files as string[]).length, 3);
+    assertEquals(data.count, 3);
+    assertEquals((data.untrackedFiles as string[]).length, 0);
+    assertEquals((data.raw as string).includes("diff --git"), true);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: stat mode skips untracked file patches", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    if (argv.includes("ls-files")) {
+      return ok("new-file.ts\n");
+    }
+    if (argv.includes("--name-only")) {
+      return ok("src/main.ts\n");
+    }
+    return ok(" 1 file changed, 5 insertions(+)\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.worktree_diff.execute({ stat: true }, ctx);
+
+    // stat: (1) diff --name-only, (2) diff --stat, (3) ls-files
+    assertEquals(calls.length, 3);
+    assertEquals(calls[0].includes("--name-only"), true);
+    assertEquals(calls[1].includes("--stat"), true);
+
+    const data = writes[0].data;
+    assertEquals((data.files as string[]).length, 2);
+    assertEquals(data.count, 2);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: no untracked files", async () => {
+  setCommandExecutor((argv) => {
+    if (argv.includes("ls-files")) {
+      return ok("");
+    }
+    return ok("src/main.ts\n");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.worktree_diff.execute({ nameOnly: true }, ctx);
+
+    const data = writes[0].data;
+    assertEquals((data.files as string[]).length, 1);
+    assertEquals((data.untrackedFiles as string[]).length, 0);
+    assertEquals(data.count, 1);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: clean working tree", async () => {
+  setCommandExecutor((argv) => {
+    if (argv.includes("ls-files")) {
+      return ok("");
+    }
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.worktree_diff.execute({ nameOnly: true }, ctx);
+
+    const data = writes[0].data;
+    assertEquals((data.files as string[]).length, 0);
+    assertEquals((data.untrackedFiles as string[]).length, 0);
+    assertEquals(data.count, 0);
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: custom base ref", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    if (argv.includes("ls-files")) {
+      return ok("");
+    }
+    return ok("");
+  });
+  try {
+    const { ctx, writes } = makeHarness();
+    await model.methods.worktree_diff.execute(
+      { base: "HEAD~3", nameOnly: true },
+      ctx,
+    );
+
+    assertEquals(calls[0].includes("HEAD~3"), true);
+    assertEquals(writes[0].data.base, "HEAD~3");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: path filters passed to all commands", async () => {
+  const calls: string[][] = [];
+  setCommandExecutor((argv) => {
+    calls.push(argv);
+    if (argv.includes("ls-files")) {
+      return ok("");
+    }
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await model.methods.worktree_diff.execute(
+      { nameOnly: true, paths: ["src/", "lib/"] },
+      ctx,
+    );
+
+    const diffArgv = calls[0];
+    const diffDashIdx = diffArgv.indexOf("--");
+    assertEquals(diffDashIdx > 0, true);
+    assertEquals(diffArgv[diffDashIdx + 1], "src/");
+    assertEquals(diffArgv[diffDashIdx + 2], "lib/");
+
+    const lsArgv = calls[1];
+    const lsDashIdx = lsArgv.indexOf("--");
+    assertEquals(lsDashIdx > 0, true);
+    assertEquals(lsArgv[lsDashIdx + 1], "src/");
+    assertEquals(lsArgv[lsDashIdx + 2], "lib/");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: throws on git diff failure", async () => {
+  setCommandExecutor(() => fail("fatal: bad ref"));
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.worktree_diff.execute({}, ctx),
+      Error,
+      "git diff failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: throws on git ls-files failure", async () => {
+  setCommandExecutor((argv) => {
+    if (argv.includes("ls-files")) {
+      return fail("fatal: not a git repository");
+    }
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness();
+    await assertRejects(
+      () => model.methods.worktree_diff.execute({}, ctx),
+      Error,
+      "git ls-files failed",
+    );
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: uses repoPath from globalArgs", async () => {
+  const calls: { argv: string[]; opts?: { cwd?: string } }[] = [];
+  setCommandExecutor((argv, opts) => {
+    calls.push({ argv, opts });
+    if (argv.includes("ls-files")) {
+      return ok("");
+    }
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness({ repoPath: "/my/repo" });
+    await model.methods.worktree_diff.execute({ nameOnly: true }, ctx);
+
+    assertEquals(calls[0].opts?.cwd, "/my/repo");
+    assertEquals(calls[1].opts?.cwd, "/my/repo");
+  } finally {
+    resetCommandExecutor();
+  }
+});
+
+Deno.test("worktree_diff: signal passed to executor", async () => {
+  let receivedSignal: AbortSignal | undefined;
+  const ac = new AbortController();
+  setCommandExecutor((_argv, opts) => {
+    receivedSignal = opts?.signal;
+    if (_argv.includes("ls-files")) {
+      return ok("");
+    }
+    return ok("");
+  });
+  try {
+    const { ctx } = makeHarness({}, { signal: ac.signal });
+    await model.methods.worktree_diff.execute({}, ctx);
+    assertEquals(receivedSignal, ac.signal);
   } finally {
     resetCommandExecutor();
   }

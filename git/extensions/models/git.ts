@@ -33,6 +33,8 @@ import {
   StatusResultSchema,
   UpstreamStateArgsSchema,
   UpstreamStateResultSchema,
+  WorktreeDiffArgsSchema,
+  WorktreeDiffResultSchema,
 } from "./_lib/schemas.ts";
 import {
   runAmend,
@@ -51,6 +53,7 @@ import {
   runRemoveWorktree,
   runStatus,
   runUpstreamState,
+  runWorktreeDiff,
 } from "./_lib/operations.ts";
 import { checkGitAvailable, checkRepoInitialized } from "./_lib/checks.ts";
 import type { GitContext } from "./_lib/types.ts";
@@ -61,10 +64,10 @@ import type { GitContext } from "./_lib/types.ts";
  * @module
  */
 
-/** Git model — clone, diff, status, log, commit, amend, push, pull, fetch, cherry_pick, branch, config, remote_ref, upstream_state, is_ancestor, remove_worktree. */
+/** Git model — clone, diff, worktree_diff, status, log, commit, amend, push, pull, fetch, cherry_pick, branch, config, remote_ref, upstream_state, is_ancestor, remove_worktree. */
 export const model = {
   type: "@swamp/git",
-  version: "2026.08.28.1",
+  version: "2026.08.30.1",
 
   globalArguments: GlobalArgsSchema,
 
@@ -129,6 +132,14 @@ export const model = {
       toVersion: "2026.08.28.1",
       description:
         "Add is_ancestor method for read-only ancestry checks, orphan branch creation via branch method, and remove_worktree method for safe worktree cleanup. No globalArguments changes.",
+      upgradeAttributes: (
+        old: Record<string, unknown>,
+      ): Record<string, unknown> => old,
+    },
+    {
+      toVersion: "2026.08.30.1",
+      description:
+        "Add worktree_diff method for read-only working-tree diff including staged, unstaged, and untracked files. No globalArguments changes.",
       upgradeAttributes: (
         old: Record<string, unknown>,
       ): Record<string, unknown> => old,
@@ -243,6 +254,14 @@ export const model = {
       // unpushed" needs history that ephemeral/10 destroys.
       garbageCollection: 50,
     },
+    worktreeDiffResult: {
+      description:
+        "Working-tree diff: tracked changes (staged + unstaged) plus untracked non-ignored files, with reviewable patch output",
+      schema: WorktreeDiffResultSchema,
+      lifetime: "ephemeral" as const,
+      // Higher GC to preserve reviewed evidence at manual approval gates.
+      garbageCollection: 50,
+    },
   },
 
   checks: {
@@ -252,6 +271,7 @@ export const model = {
       appliesTo: [
         "clone",
         "diff",
+        "worktree_diff",
         "status",
         "log",
         "commit",
@@ -274,6 +294,7 @@ export const model = {
       labels: ["prerequisite"],
       appliesTo: [
         "diff",
+        "worktree_diff",
         "status",
         "log",
         "commit",
@@ -305,6 +326,15 @@ export const model = {
       arguments: DiffArgsSchema,
       execute: (args: z.input<typeof DiffArgsSchema>, ctx: GitContext) =>
         runDiff(DiffArgsSchema.parse(args), ctx),
+    },
+    worktree_diff: {
+      description:
+        "Read-only working-tree diff: compare a base ref against the working tree including staged, unstaged, and untracked non-ignored files",
+      arguments: WorktreeDiffArgsSchema,
+      execute: (
+        args: z.input<typeof WorktreeDiffArgsSchema>,
+        ctx: GitContext,
+      ) => runWorktreeDiff(WorktreeDiffArgsSchema.parse(args), ctx),
     },
     status: {
       description: "Show working tree status with structured output",
