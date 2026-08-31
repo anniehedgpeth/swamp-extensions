@@ -307,9 +307,9 @@ jobs:
       - job: detect-changes
         condition:
           type: succeeded
-    guard: "${{ data.latest('build-detect-' + run.id, 'log').attributes.stdout.contains('CHANGED_CODEGEN: true') }}"
     steps:
       - name: codegen-check
+        guard: "${{ data.latest('build-detect-' + run.id, 'log').attributes.stdout.contains('CHANGED_CODEGEN: true') }}"
         task:
           type: model_method
           modelType: "command/shell"
@@ -334,6 +334,7 @@ jobs:
             workingDir: "/tmp/swamp-verify-build-${{ run.id }}"
 
       - name: idempotency
+        guard: "${{ data.latest('build-detect-' + run.id, 'log').attributes.stdout.contains('CHANGED_CODEGEN: true') }}"
         dependsOn:
           - step: codegen-check
             condition:
