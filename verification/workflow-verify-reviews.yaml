@@ -1,4 +1,4 @@
-id: e5f6a7b8-9c0d-1e2f-3a4b-5c6d7e8f9a0b
+id: 94c0688e-1bf0-4f4b-b1b2-cb349e4abe36
 name: verify-reviews
 description: |
   Agent code reviews using claude CLI directly. Detects changed files,
